@@ -56,10 +56,10 @@
 - [x] Task: Character integration (Rive) [4d15078]
   - [x] Wire `@rive-app/canvas-lite`; load `dino4.riv`; idle autoplay; celebrate trigger from JS; resize handling
   - [x] Component tests for the Rive wrapper (load/trigger API with mocked runtime)
-- [~] Task: Audio engine v1
-  - [ ] Tests: pentatonic mapping (checkpoint index → note), envelope/pitch math, unlock state machine
-  - [ ] Implement `audio/synth.ts` (marimba-ish preset); chime per checkpoint; chord resolve + arpeggio on completion
-- [ ] Task: Completion choreography
+- [x] Task: Audio engine v1 [cda8072]
+  - [x] Tests: pentatonic mapping (checkpoint index → note), envelope/pitch math, unlock state machine
+  - [x] Implement `audio/synth.ts` (marimba-ish preset); chime per checkpoint; chord resolve + arpeggio on completion
+- [~] Task: Completion choreography
   - [ ] Tests: hop timeline math (waypoints along traced path, 50% burst point), deterministic confetti particle step
   - [ ] Implement sequence: path glow → hop → celebrate at goal → confetti → sticker fly-in → success overlay
 - [ ] Task: Success screen (3 icons) + replay/next/home wiring; placeholder sticker art
