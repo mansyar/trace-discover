@@ -40,10 +40,10 @@
 - [x] Task: Renderer [b9bbec3]
   - [x] Tests: draw-list math (ribbon offsets, dotted spacing, paint-fill reveal)
   - [x] Implement `render/renderPath.ts` (ribbon + outline + marching dots + paint-fill + stars) with theme palettes
-- [~] Task: Input binding
-  - [ ] Tests: pointer→canvas mapping incl. letterbox + DPR; `isPrimary`-only filtering; multi-touch ignore
-  - [ ] Implement `input/pointer.ts`
-- [ ] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing
+- [x] Task: Input binding [a4dbb34]
+  - [x] Tests: pointer→canvas mapping incl. letterbox + DPR; `isPrimary`-only filtering; multi-touch ignore
+  - [x] Implement `input/pointer.ts`
+- [~] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — First Playable Level ("is it fun" slice)
