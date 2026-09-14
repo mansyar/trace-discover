@@ -63,7 +63,7 @@
   - [x] Tests: hop timeline math (waypoints along traced path, 50% burst point), deterministic confetti particle step
   - [x] Implement sequence: path glow → hop → celebrate at goal → confetti → sticker fly-in → success overlay
 - [x] Task: Success screen (3 icons) + replay/next/home wiring; placeholder sticker art [4b6fe41]
-- [~] Task: On-device feel test via LAN + tune tolerance/speed/nudge defaults (record findings)
+- [x] Task: On-device feel test via LAN + tune tolerance/speed/nudge defaults (findings: defaults confirmed on device 2026-09-15, no tuning needed)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Shell, Navigation & Persistence
