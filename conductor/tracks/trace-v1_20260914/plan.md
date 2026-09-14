@@ -43,7 +43,7 @@
 - [x] Task: Input binding [a4dbb34]
   - [x] Tests: pointer→canvas mapping incl. letterbox + DPR; `isPrimary`-only filtering; multi-touch ignore
   - [x] Implement `input/pointer.ts`
-- [~] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing
+- [x] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing [3697e9d]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — First Playable Level ("is it fun" slice)
