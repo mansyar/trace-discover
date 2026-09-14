@@ -34,10 +34,10 @@
 - [x] Task: Checkpoints & events [d4083c2]
   - [x] Tests: segment boundaries, ordered progress, chime event emission, completion detection
   - [x] Implement `engine/checkpoints.ts`
-- [~] Task: Assists
-  - [ ] Tests: 2 s nudge timing + target math, 4 s hint state, auto-assist (3 nudges → widened tolerance), parent override
-  - [ ] Implement `engine/assists.ts`
-- [ ] Task: Renderer
+- [x] Task: Assists [629a32d]
+  - [x] Tests: 2 s nudge timing + target math, 4 s hint state, auto-assist (3 nudges → widened tolerance), parent override
+  - [x] Implement `engine/assists.ts`
+- [~] Task: Renderer
   - [ ] Tests: draw-list math (ribbon offsets, dotted spacing, paint-fill reveal)
   - [ ] Implement `render/renderPath.ts` (ribbon + outline + marching dots + paint-fill + stars) with theme palettes
 - [ ] Task: Input binding
