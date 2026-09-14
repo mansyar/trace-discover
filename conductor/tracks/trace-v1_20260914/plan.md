@@ -25,10 +25,10 @@
 
 *Goal: tracing math + rendering proven in a dev harness.*
 
-- [ ] Task: Path geometry
-  - [ ] Tests: Catmull-Rom smoothing, constant-pixel resampling, cumulative lengths, nearest-point/tangent queries
-  - [ ] Implement `engine/path.ts` + level control-point schema types
-- [ ] Task: Trail-tip state machine
+- [x] Task: Path geometry [08c1c63]
+  - [x] Tests: Catmull-Rom smoothing, constant-pixel resampling, cumulative lengths, nearest-point/tangent queries
+  - [x] Implement `engine/path.ts` + level control-point schema types
+- [~] Task: Trail-tip state machine
   - [ ] Tests: frontier advance within tolerance, capped speed (fast swipe cannot skip), lift keeps progress, progress never decreases, resume-from-frontier on new touch
   - [ ] Implement `engine/trail.ts` (pure, frame-step API)
 - [ ] Task: Checkpoints & events
