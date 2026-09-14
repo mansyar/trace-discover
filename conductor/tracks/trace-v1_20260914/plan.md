@@ -53,10 +53,10 @@
 - [x] Task: Level data + dino levels [6fd0774]
   - [x] Tests: level schema validation; L1/L2 data sanity (endpoints, left→right direction)
   - [x] Implement `themes/dino.ts` with L1/L2 control points + goal placement
-- [~] Task: Character integration (Rive)
-  - [ ] Wire `@rive-app/canvas-lite`; load `dino4.riv`; idle autoplay; celebrate trigger from JS; resize handling
-  - [ ] Component tests for the Rive wrapper (load/trigger API with mocked runtime)
-- [ ] Task: Audio engine v1
+- [x] Task: Character integration (Rive) [4d15078]
+  - [x] Wire `@rive-app/canvas-lite`; load `dino4.riv`; idle autoplay; celebrate trigger from JS; resize handling
+  - [x] Component tests for the Rive wrapper (load/trigger API with mocked runtime)
+- [~] Task: Audio engine v1
   - [ ] Tests: pentatonic mapping (checkpoint index → note), envelope/pitch math, unlock state machine
   - [ ] Implement `audio/synth.ts` (marimba-ish preset); chime per checkpoint; chord resolve + arpeggio on completion
 - [ ] Task: Completion choreography
