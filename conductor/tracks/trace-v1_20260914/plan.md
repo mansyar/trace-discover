@@ -101,7 +101,7 @@
 - [x] Task: Backdrop + goal art integration (Phase 5 miss: `bg-*`/`goal-*` art exists only in `spike/gen/`; no renderer draws them). Optimize + copy to `public/`, extend level/theme data with art refs, render behind the trail + at the goal endpoint, screenshot-verify per theme [b4b41fe]
 - [x] Task: Manifest + icons (star-on-path, 192/512/maskable) + `vite-plugin-pwa` precache config; offline cold-start test [8241370]
 - [x] Task: Orientation/safe-area audit (phone portrait + iPad landscape letterboxed, rotation mid-level safe, gesture insets) — audit-only, no source change; evidence in plan commit note
-- [ ] Task: NFR measurement pass (fps sampling, load times, ≤ ~10–15 MB) → fix findings
+- [x] Task: NFR measurement pass (fps sampling, load times, ≤ ~10–15 MB) → fix findings — measured, no fixes warranted; evidence in plan commit note
 - [ ] Task: Zero-text + 90px targets visual audit on every child screen
 - [ ] Task: Cloudflare Pages deploy config (static `dist/`) + dry run
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
