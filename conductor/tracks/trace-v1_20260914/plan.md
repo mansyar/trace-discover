@@ -62,8 +62,8 @@
 - [x] Task: Completion choreography [ce40f8e]
   - [x] Tests: hop timeline math (waypoints along traced path, 50% burst point), deterministic confetti particle step
   - [x] Implement sequence: path glow → hop → celebrate at goal → confetti → sticker fly-in → success overlay
-- [~] Task: Success screen (3 icons) + replay/next/home wiring; placeholder sticker art
-- [ ] Task: On-device feel test via LAN + tune tolerance/speed/nudge defaults (record findings)
+- [x] Task: Success screen (3 icons) + replay/next/home wiring; placeholder sticker art [4b6fe41]
+- [~] Task: On-device feel test via LAN + tune tolerance/speed/nudge defaults (record findings)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Shell, Navigation & Persistence
