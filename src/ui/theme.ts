@@ -39,7 +39,7 @@ export interface ThemeLayout {
   readonly slots: readonly StickerSlot[];
 }
 
-const BADGE_RADIUS = 40;
+const BADGE_RADIUS = 48;
 const BADGE_Y = 80;
 const CARD_GAP = 20;
 const CARD_SIZE = 170;

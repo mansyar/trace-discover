@@ -86,6 +86,10 @@ describe('themeLayout', () => {
     expect(badge.y - badge.radius).toBeGreaterThanOrEqual(0);
   });
 
+  it('paints the badge spot at toddler size: it gates the bonus level', () => {
+    expect(layout().badge.radius * 2).toBeGreaterThanOrEqual(90);
+  });
+
   it('keeps a toddler-sized home button in the bottom-left corner', () => {
     const home = layout().home;
     expect(home.radius * 2).toBeGreaterThanOrEqual(90);
