@@ -82,7 +82,7 @@
 - [x] Task: Badge + bonus flow (4th sticker → theme celebration → badge + bonus circle → finale) [ce2dc19]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5 — Full Content (12 + 3)
+## Phase 5 — Full Content (12 + 3) [checkpoint: 89472a5]
 
 *Goal: every level, character, backdrop, goal and sticker in place, via the assembly line.*
 
@@ -91,7 +91,7 @@
 - [x] Task: Build `.riv` cast via the rive-cli skill (per character: RML → verify/inspect/screenshot loop → ≤~500 KB) [9f62890]
 - [x] Task: Author remaining level data (construction L1–L4, animal L1–L4, all 3 bonuses); validate directions [c1fc870]
 - [x] Task: Full-level QA pass (headless screenshot harness per level + manual device run of every level) [89472a5]
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — PWA & Compliance Polish
 
