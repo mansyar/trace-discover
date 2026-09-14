@@ -70,9 +70,9 @@
 
 *Goal: the full app loop around the engine — menu → theme → level → rewards, with saved progress.*
 
-- [ ] Task: Save module (TDD)
-  - [ ] Tests: typed schema, load/migrate/save, corrupt-JSON recovery, sticker+badge state, settings, auto-assist state
-  - [ ] Implement `save/store.ts`
+- [x] Task: Save module (TDD) [2363803]
+  - [x] Tests: typed schema, load/migrate/save, corrupt-JSON recovery, sticker+badge state, settings, auto-assist state
+  - [x] Implement `save/store.ts`
 - [ ] Task: Screen router (TDD)
   - [ ] Tests: transitions menu → theme → level → success → (badge) → theme; home always reachable
   - [ ] Implement `app/router.ts`
