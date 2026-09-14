@@ -4,6 +4,7 @@
 // completes it (sticker lights), the 4th completion earns the badge,
 // double-tapping the badge resets progress. ?screen=theme picks the
 // starting screen for headless screenshots.
+import '../style.css';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
