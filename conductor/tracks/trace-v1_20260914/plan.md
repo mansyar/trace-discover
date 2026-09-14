@@ -31,10 +31,10 @@
 - [x] Task: Trail-tip state machine [73a7de4]
   - [x] Tests: frontier advance within tolerance, capped speed (fast swipe cannot skip), lift keeps progress, progress never decreases, resume-from-frontier on new touch
   - [x] Implement `engine/trail.ts` (pure, frame-step API)
-- [~] Task: Checkpoints & events
-  - [ ] Tests: segment boundaries, ordered progress, chime event emission, completion detection
-  - [ ] Implement `engine/checkpoints.ts`
-- [ ] Task: Assists
+- [x] Task: Checkpoints & events [d4083c2]
+  - [x] Tests: segment boundaries, ordered progress, chime event emission, completion detection
+  - [x] Implement `engine/checkpoints.ts`
+- [~] Task: Assists
   - [ ] Tests: 2 s nudge timing + target math, 4 s hint state, auto-assist (3 nudges → widened tolerance), parent override
   - [ ] Implement `engine/assists.ts`
 - [ ] Task: Renderer
