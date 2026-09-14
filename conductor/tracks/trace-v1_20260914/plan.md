@@ -66,7 +66,7 @@
 - [x] Task: On-device feel test via LAN + tune tolerance/speed/nudge defaults (findings: defaults confirmed on device 2026-09-15, no tuning needed)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Shell, Navigation & Persistence
+## Phase 4 — Shell, Navigation & Persistence [checkpoint: 2d0e16f]
 
 *Goal: the full app loop around the engine — menu → theme → level → rewards, with saved progress.*
 
@@ -80,7 +80,7 @@
 - [x] Task: Theme screen (4 level cards + 4 sticker slots + badge spot) wired to save [c03e5d8]
 - [x] Task: Parent zone UI (2-finger hold gate; volume, easier tracing, reset with confirm, install guide text) [4354274]
 - [x] Task: Badge + bonus flow (4th sticker → theme celebration → badge + bonus circle → finale) [ce2dc19]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Full Content (12 + 3)
 
