@@ -79,7 +79,7 @@
 - [x] Task: Boot splash + Main Menu (3 theme cards, parent-gate corner zone) [99dbe29]
 - [x] Task: Theme screen (4 level cards + 4 sticker slots + badge spot) wired to save [c03e5d8]
 - [x] Task: Parent zone UI (2-finger hold gate; volume, easier tracing, reset with confirm, install guide text) [4354274]
-- [ ] Task: Badge + bonus flow (4th sticker → theme celebration → badge + bonus circle → finale)
+- [x] Task: Badge + bonus flow (4th sticker → theme celebration → badge + bonus circle → finale) [ce2dc19]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Full Content (12 + 3)
