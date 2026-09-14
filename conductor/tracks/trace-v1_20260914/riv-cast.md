@@ -40,6 +40,13 @@ screenshot last — the screenshot is always the source of truth.
   open eyes with no visible seam, celebrate swaps to arm-raised jump art with
   sparkles + shrinking shadow. Tap proxy fires the transition (`--pointer`
   shot is mid-air), so the state machine + listener wiring works.
+- **Phase 7 polish (2026-09-15):** the blink patch opacity used instant
+  hold-keys (pop on/off over 7 frames) — a toddler play-tester flagged it as
+  choppy. Eased to a 6-frame linear fade-in (f106→f112), 2-frame hold,
+  6-frame fade-out (f114→f120). Mid-fade screenshot shows clean
+  motion-blur-like half-blink, peak frame unchanged. Size unchanged
+  (~466 KB). Dino/lion keep their hold-key blinks (not flagged, out of
+  scope).
 - **Lion**: seated rest, blink exact, celebrate paws-up swap with sparkles.
   416px sources chosen over 448px purely for the byte budget — visually
   identical at render scale.
