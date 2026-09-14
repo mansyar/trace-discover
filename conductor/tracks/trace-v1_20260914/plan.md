@@ -50,10 +50,10 @@
 
 *Goal: dino L1 + L2 fully playable on a phone: trace → chimes → hop → celebrate → sticker → success.*
 
-- [ ] Task: Level data + dino levels
-  - [ ] Tests: level schema validation; L1/L2 data sanity (endpoints, left→right direction)
-  - [ ] Implement `themes/dino.ts` with L1/L2 control points + goal placement
-- [ ] Task: Character integration (Rive)
+- [x] Task: Level data + dino levels [6fd0774]
+  - [x] Tests: level schema validation; L1/L2 data sanity (endpoints, left→right direction)
+  - [x] Implement `themes/dino.ts` with L1/L2 control points + goal placement
+- [~] Task: Character integration (Rive)
   - [ ] Wire `@rive-app/canvas-lite`; load `dino4.riv`; idle autoplay; celebrate trigger from JS; resize handling
   - [ ] Component tests for the Rive wrapper (load/trigger API with mocked runtime)
 - [ ] Task: Audio engine v1
