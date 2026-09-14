@@ -1,5 +1,6 @@
-// Dev-only first-playable harness: dino L1/L2 end to end (trace -> chimes ->
-// hop -> celebrate -> confetti -> sticker -> success) for on-device feel testing.
+// Dev-only playable harness: every level end to end (trace -> chimes ->
+// hop -> celebrate -> confetti -> sticker -> success) for feel testing and QA.
+// ?level=<id> selects any of the 15 levels (default dino-1); next cycles all.
 // Excluded from the production build (only index.html builds).
 import '../style.css';
 import { createTonePlayer } from '../audio/player';
@@ -25,8 +26,10 @@ import { type ConfettiParticle, createConfetti, stepConfetti } from '../render/c
 import { drawPath, type PathStyle } from '../render/renderPath';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
+import { ANIMAL_LEVELS, ANIMALS_THEME } from '../themes/animals';
+import { CONSTRUCTION_LEVELS, CONSTRUCTION_THEME } from '../themes/construction';
 import { DINO_LEVELS, DINO_THEME } from '../themes/dino';
-import { type LevelDef, levelToPath } from '../themes/level';
+import { type LevelDef, levelToPath, type ThemeDef } from '../themes/level';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
 type Trail = ReturnType<typeof createTrail>;
@@ -34,13 +37,32 @@ type TrailState = typeof TRAIL_START;
 type AssistState = typeof ASSIST_START;
 type CheckpointState = typeof CHECKPOINT_START;
 
-const CHARACTER_SOURCE = `/rive/${DINO_THEME.character}.riv`;
+interface LevelEntry {
+  readonly level: LevelDef;
+  readonly theme: ThemeDef;
+}
+
+const ALL_LEVELS: readonly LevelEntry[] = [
+  ...DINO_LEVELS.map((level) => ({ level, theme: DINO_THEME })),
+  ...CONSTRUCTION_LEVELS.map((level) => ({ level, theme: CONSTRUCTION_THEME })),
+  ...ANIMAL_LEVELS.map((level: LevelDef) => ({ level, theme: ANIMALS_THEME })),
+];
+
+const query = new URLSearchParams(window.location.search);
+const requestedId = query.get('level');
+const requestedIndex = ALL_LEVELS.findIndex((entry) => entry.level.id === requestedId);
+
+const CHARACTER_SOURCE = `/rive/${ALL_LEVELS[requestedIndex >= 0 ? requestedIndex : 0]?.theme.character ?? DINO_THEME.character}.riv`;
 const CHARACTER_SCALE = 0.62;
 const CHARACTER_OFFSET_Y = 0.38;
 const CHECKPOINT_COUNT = 6;
 const TOLERANCE_FRACTION = 0.12;
 const CONFETTI_COUNT = 26;
 const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
+// Cheering spot while tracing: clear of every level's path band so the mascot
+// never covers the pulsing start star. Completion still hops the full trail
+// (glow stage snaps the character back to the path start first).
+const TRACE_PARK: Point = { x: FIELD_WIDTH / 2, y: 650 };
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 
 const STYLE: PathStyle = {
@@ -110,7 +132,7 @@ const character = loadCharacter({
   stateMachine: 'State Machine 1',
 });
 
-let levelIndex = 0;
+let levelIndex = requestedIndex >= 0 ? requestedIndex : 0;
 let play = freshPlay(levelIndex);
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
 let pointer: Point | null = null;
@@ -118,22 +140,45 @@ let nudgeTarget: number | null = null;
 let lastTime = performance.now();
 let detachInput = (): void => {};
 
+interface QaHook {
+  readonly isSuccess: () => boolean;
+  readonly levelId: string;
+  readonly path: readonly Point[];
+  readonly field: Rect;
+}
+
+declare global {
+  interface Window {
+    __qa?: QaHook;
+  }
+}
+
+function refreshQa(): void {
+  window.__qa = {
+    field,
+    isSuccess: () => play.success,
+    levelId: play.level.id,
+    path: play.trail.points,
+  };
+}
+
 function endPoint(): Point {
   return pointAtLength(play.trail.points, play.trail.cumulative, play.trail.total);
 }
 
 function freshPlay(index: number): Play {
-  const level = DINO_LEVELS[index % DINO_LEVELS.length];
-  if (!level) {
+  const entry = ALL_LEVELS[index % ALL_LEVELS.length];
+  if (!entry) {
     throw new Error('missing level');
   }
+  const { level } = entry;
   const trail = createTrail(levelToPath(level), {
     maxAdvanceSpeed: 600,
     tolerance: FIELD_WIDTH * TOLERANCE_FRACTION,
   });
   return {
     assistState: ASSIST_START,
-    charPos: pointAtLength(trail.points, trail.cumulative, 0),
+    charPos: { ...TRACE_PARK },
     checkState: CHECKPOINT_START,
     checkpoints: createCheckpoints(trail, CHECKPOINT_COUNT),
     completion: null,
@@ -193,11 +238,12 @@ function handleSuccessAction(action: SuccessAction): void {
   if (action === 'home') {
     levelIndex = 0;
   } else if (action === 'next') {
-    levelIndex = (levelIndex + 1) % DINO_LEVELS.length;
+    levelIndex = (levelIndex + 1) % ALL_LEVELS.length;
   }
   play = freshPlay(levelIndex);
   pointer = null;
   nudgeTarget = null;
+  refreshQa();
   log(action);
 }
 
@@ -212,6 +258,7 @@ function resize(): void {
   field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
   detachInput();
   detachInput = attachTraceInput(trailCanvas, field, handlers);
+  refreshQa();
 }
 
 function traceStep(dt: number): void {
@@ -258,7 +305,7 @@ function traceStep(dt: number): void {
       play.completion = COMPLETION_START;
     }
   }
-  play.charPos = pointAtLength(play.trail.points, play.trail.cumulative, 0);
+  play.charPos = { ...TRACE_PARK };
 }
 
 function handleCompletionEvent(event: CompletionEvent): void {
@@ -516,5 +563,6 @@ function frame(now: number): void {
 
 window.addEventListener('resize', resize);
 resize();
+refreshQa();
 log(`play ready - level ${play.level.id} (${play.level.stroke})`);
 requestAnimationFrame(frame);
