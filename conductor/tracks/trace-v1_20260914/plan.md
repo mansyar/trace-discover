@@ -4,22 +4,22 @@
 
 **Delivery strategy:** "is-it-fun first" — a playable dino slice (Phases 1–3) before shell/content breadth (4–5), then PWA compliance (6) and device validation (7).
 
-## Phase 1 — Project Scaffold & Foundations
+## Phase 1 — Project Scaffold & Foundations [checkpoint: b8933ca]
 
 *Goal: bootable Vite + TS + PWA-ready skeleton with quality tooling wired.*
 
 - [x] Task: Scaffold the app (Vite + TypeScript strict + pnpm) [603ca2e]
-  - [ ] Create `package.json`, `vite.config.ts`, strict `tsconfig.json`, `index.html` shell, `src/` structure
-  - [ ] Configure Biome (aligned with `conductor/code_styleguides/`) + `pnpm check` (Biome + `tsc --noEmit`)
-  - [ ] Configure Vitest + `pnpm test`; scripts: `dev` / `serve` / `build` / `preview` / `check` / `test`
-  - [ ] Verify: clean scaffold — checks pass, dev server serves the shell
+  - [x] Create `package.json`, `vite.config.ts`, strict `tsconfig.json`, `index.html` shell, `src/` structure
+  - [x] Configure Biome (aligned with `conductor/code_styleguides/`) + `pnpm check` (Biome + `tsc --noEmit`)
+  - [x] Configure Vitest + `pnpm test`; scripts: `dev` / `serve` / `build` / `preview` / `check` / `test`
+  - [x] Verify: clean scaffold — checks pass, dev server serves the shell
 - [x] Task: Shell utilities (TDD) [5d6e655]
-  - [ ] Tests: DPR canvas sizing + letterbox play-field rect math
-  - [ ] Implement: viewport sizing, DPR scaling, letterbox helper, no-zoom meta, `touch-action: none`, safe-area CSS
-  - [ ] Verify on a real phone via LAN
+  - [x] Tests: DPR canvas sizing + letterbox play-field rect math
+  - [x] Implement: viewport sizing, DPR scaling, letterbox helper, no-zoom meta, `touch-action: none`, safe-area CSS
+  - [x] Verify on a real phone via LAN
 - [x] Task: Asset intake from spike [fdf6355]
-  - [ ] Add `@rive-app/canvas-lite`; place `dino4.riv` in app assets; `.riv`/`.wasm` MIME verified in dev + build
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Add `@rive-app/canvas-lite`; place `dino4.riv` in app assets; `.riv`/`.wasm` MIME verified in dev + build
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Trail Engine (TDD core)
 
