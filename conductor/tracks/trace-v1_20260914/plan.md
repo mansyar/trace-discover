@@ -37,10 +37,10 @@
 - [x] Task: Assists [629a32d]
   - [x] Tests: 2 s nudge timing + target math, 4 s hint state, auto-assist (3 nudges → widened tolerance), parent override
   - [x] Implement `engine/assists.ts`
-- [~] Task: Renderer
-  - [ ] Tests: draw-list math (ribbon offsets, dotted spacing, paint-fill reveal)
-  - [ ] Implement `render/renderPath.ts` (ribbon + outline + marching dots + paint-fill + stars) with theme palettes
-- [ ] Task: Input binding
+- [x] Task: Renderer [b9bbec3]
+  - [x] Tests: draw-list math (ribbon offsets, dotted spacing, paint-fill reveal)
+  - [x] Implement `render/renderPath.ts` (ribbon + outline + marching dots + paint-fill + stars) with theme palettes
+- [~] Task: Input binding
   - [ ] Tests: pointer→canvas mapping incl. letterbox + DPR; `isPrimary`-only filtering; multi-touch ignore
   - [ ] Implement `input/pointer.ts`
 - [ ] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing
