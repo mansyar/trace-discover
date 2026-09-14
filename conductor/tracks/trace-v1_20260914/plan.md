@@ -21,7 +21,7 @@
   - [x] Add `@rive-app/canvas-lite`; place `dino4.riv` in app assets; `.riv`/`.wasm` MIME verified in dev + build
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Trail Engine (TDD core)
+## Phase 2 — Trail Engine (TDD core) [checkpoint: 3697e9d]
 
 *Goal: tracing math + rendering proven in a dev harness.*
 
@@ -44,7 +44,7 @@
   - [x] Tests: pointer→canvas mapping incl. letterbox + DPR; `isPrimary`-only filtering; multi-touch ignore
   - [x] Implement `input/pointer.ts`
 - [x] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing [3697e9d]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — First Playable Level ("is it fun" slice)
 
