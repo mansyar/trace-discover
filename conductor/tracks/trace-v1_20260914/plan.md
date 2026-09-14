@@ -103,7 +103,7 @@
 - [x] Task: Orientation/safe-area audit (phone portrait + iPad landscape letterboxed, rotation mid-level safe, gesture insets) — audit-only, no source change; evidence in plan commit note
 - [x] Task: NFR measurement pass (fps sampling, load times, ≤ ~10–15 MB) → fix findings — measured, no fixes warranted; evidence in plan commit note
 - [x] Task: Zero-text + 90px targets visual audit on every child screen [0817931]
-- [ ] Task: Cloudflare Pages deploy config (static `dist/`) + dry run
+- [x] Task: Cloudflare Pages deploy config (static `dist/`) + dry run — no config needed (single root route, relative paths); dry-run passed on final bytes; deploy steps in plan commit note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 7 — Device Validation & Acceptance
