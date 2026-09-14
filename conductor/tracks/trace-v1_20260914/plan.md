@@ -93,7 +93,7 @@
 - [x] Task: Full-level QA pass (headless screenshot harness per level + manual device run of every level) [89472a5]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 6 — PWA & Compliance Polish
+## Phase 6 — PWA & Compliance Polish [checkpoint: 0817931]
 
 *Goal: installable, offline, measured, audited — deployable.*
 
@@ -104,7 +104,7 @@
 - [x] Task: NFR measurement pass (fps sampling, load times, ≤ ~10–15 MB) → fix findings — measured, no fixes warranted; evidence in plan commit note
 - [x] Task: Zero-text + 90px targets visual audit on every child screen [0817931]
 - [x] Task: Cloudflare Pages deploy config (static `dist/`) + dry run — no config needed (single root route, relative paths); dry-run passed on final bytes; deploy steps in plan commit note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 7 — Device Validation & Acceptance
 
