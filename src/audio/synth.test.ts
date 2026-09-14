@@ -1,0 +1,110 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  checkpointMidi,
+  createUnlockGate,
+  envelopeGain,
+  midiToFrequency,
+  playCheckpointChime,
+  playCompletion,
+  type ToneSpec,
+} from './synth';
+
+function recordingPlayer() {
+  const played: ToneSpec[] = [];
+  return {
+    play: (spec: ToneSpec): void => {
+      played.push(spec);
+    },
+    played,
+  };
+}
+
+describe('pentatonic mapping', () => {
+  it('walks C-major pentatonic upward across octaves', () => {
+    expect(checkpointMidi(0)).toBe(72);
+    expect(checkpointMidi(1)).toBe(74);
+    expect(checkpointMidi(2)).toBe(76);
+    expect(checkpointMidi(3)).toBe(79);
+    expect(checkpointMidi(4)).toBe(81);
+    expect(checkpointMidi(5)).toBe(84);
+  });
+
+  it('is strictly ascending for at least 12 checkpoints', () => {
+    let previous = 0;
+    for (let index = 0; index < 12; index += 1) {
+      const midi = checkpointMidi(index);
+      expect(midi).toBeGreaterThan(previous);
+      previous = midi;
+    }
+  });
+});
+
+describe('midiToFrequency', () => {
+  it('anchors A4 at 440 Hz', () => {
+    expect(midiToFrequency(69)).toBeCloseTo(440, 6);
+    expect(midiToFrequency(81)).toBeCloseTo(880, 6);
+    expect(midiToFrequency(60)).toBeCloseTo(261.6256, 3);
+  });
+});
+
+describe('envelopeGain', () => {
+  it('ramps in, then decays toward silence', () => {
+    expect(envelopeGain(0)).toBe(0);
+    expect(envelopeGain(0.006)).toBeCloseTo(1, 2);
+    const mid = envelopeGain(0.2);
+    expect(mid).toBeLessThan(1);
+    expect(mid).toBeGreaterThan(envelopeGain(0.5));
+    expect(envelopeGain(2)).toBeLessThan(0.01);
+  });
+});
+
+describe('playCheckpointChime', () => {
+  it('plays one tone at the mapped pitch', () => {
+    const player = recordingPlayer();
+    playCheckpointChime(player, 2);
+    expect(player.played).toHaveLength(1);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(76), 6);
+    expect(spec.duration).toBeGreaterThan(0.3);
+    expect(spec.duration).toBeLessThan(1.5);
+    expect(spec.gain).toBeGreaterThan(0);
+    expect(spec.delay).toBe(0);
+  });
+});
+
+describe('playCompletion', () => {
+  it('plays a chord plus a rising sparkle arpeggio', () => {
+    const player = recordingPlayer();
+    playCompletion(player);
+    expect(player.played.length).toBeGreaterThanOrEqual(4);
+    const delays = player.played.map((spec) => spec.delay);
+    for (let index = 1; index < delays.length; index += 1) {
+      const previous = delays[index - 1];
+      const current = delays[index];
+      if (previous === undefined || current === undefined) {
+        throw new Error('missing delay');
+      }
+      expect(current).toBeGreaterThanOrEqual(previous);
+    }
+    const frequencies = player.played.map((spec) => spec.frequency);
+    expect(Math.max(...frequencies)).toBeGreaterThan(Math.min(...frequencies));
+    for (const spec of player.played) {
+      expect(spec.duration).toBeGreaterThan(0.2);
+    }
+  });
+});
+
+describe('unlock gate', () => {
+  it('starts locked and unlocks once', () => {
+    const gate = createUnlockGate();
+    expect(gate.unlocked).toBe(false);
+    gate.unlock();
+    expect(gate.unlocked).toBe(true);
+    gate.unlock();
+    expect(gate.unlocked).toBe(true);
+  });
+});
