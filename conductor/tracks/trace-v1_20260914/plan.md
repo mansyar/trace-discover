@@ -8,7 +8,7 @@
 
 *Goal: bootable Vite + TS + PWA-ready skeleton with quality tooling wired.*
 
-- [ ] Task: Scaffold the app (Vite + TypeScript strict + pnpm)
+- [x] Task: Scaffold the app (Vite + TypeScript strict + pnpm) [603ca2e]
   - [ ] Create `package.json`, `vite.config.ts`, strict `tsconfig.json`, `index.html` shell, `src/` structure
   - [ ] Configure Biome (aligned with `conductor/code_styleguides/`) + `pnpm check` (Biome + `tsc --noEmit`)
   - [ ] Configure Vitest + `pnpm test`; scripts: `dev` / `serve` / `build` / `preview` / `check` / `test`
