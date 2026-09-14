@@ -88,7 +88,7 @@
 
 - [x] Task: Content spec pass (cast per theme, goals, sticker motifs, checkpoint counts, stroke-direction checklist) [e8973df]
 - [x] Task: Generate art batch via Workers AI (3 backdrops, remaining characters + pose variants, goal art, 12 stickers + badge) → cutout tools [b2f0705]
-- [ ] Task: Build `.riv` cast via the rive-cli skill (per character: RML → verify/inspect/screenshot loop → ≤~500 KB)
+- [x] Task: Build `.riv` cast via the rive-cli skill (per character: RML → verify/inspect/screenshot loop → ≤~500 KB) [9f62890]
 - [ ] Task: Author remaining level data (construction L1–L4, animal L1–L4, all 3 bonuses); validate directions
 - [ ] Task: Full-level QA pass (headless screenshot harness per level + manual device run of every level)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
