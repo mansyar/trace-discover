@@ -21,6 +21,20 @@ function straightPath(): Point[] {
   );
 }
 
+/** Square 1600 px closed loop resampled at 10 px spacing (start == end). */
+function loopPath(): Point[] {
+  return resample(
+    [
+      { x: 0, y: 0 },
+      { x: 400, y: 0 },
+      { x: 400, y: 400 },
+      { x: 0, y: 400 },
+      { x: 0, y: 0 },
+    ],
+    10,
+  );
+}
+
 const CONFIG = { tolerance: 50, maxAdvanceSpeed: 600 };
 const FRAME = 1 / 60;
 
@@ -111,6 +125,27 @@ describe('trail-tip state machine', () => {
   it('handles an empty trail', () => {
     const trail = createTrail([], CONFIG);
     expect(tipPosition(trail, TRAIL_START)).toEqual({ x: 0, y: 0 });
+  });
+
+  it('finishes a closed loop when the finger dwells on the goal (start == end)', () => {
+    const trail = createTrail(loopPath(), CONFIG);
+    const points = trail.points;
+    const goal = points[points.length - 1];
+    if (!goal) {
+      throw new Error('missing loop end');
+    }
+    let state = { ...beginStroke(TRAIL_START), frontier: trail.total * 0.9 };
+    for (let frame = 0; frame < 30; frame += 1) {
+      state = advanceTrail(trail, state, goal.x, goal.y, FRAME);
+    }
+    expect(state.frontier).toBeCloseTo(trail.total, 0);
+  });
+
+  it('still rejects a direct tap on the goal of an open path (no skip)', () => {
+    const trail = createTrail(straightPath(), CONFIG);
+    const state = { ...beginStroke(TRAIL_START), frontier: trail.total * 0.5 };
+    const done = advanceTrail(trail, state, 400, 0, FRAME);
+    expect(done.frontier).toBeCloseTo(trail.total * 0.5, 9);
   });
 
   it('handles a zero-length trail', () => {

@@ -79,10 +79,19 @@ export function advanceTrail(
   const nearest = nearestOnPath(trail.points, x, y);
   const tip = tipPosition(trail, state);
   const tipGap = Math.hypot(x - tip.x, y - tip.y);
-  if (nearest.distance > trail.config.tolerance || tipGap > trail.config.tolerance) {
+  // Closed loop (bonus circles): start and goal coincide, so a finger dwelling
+  // on the goal snaps to the path start by global-nearest and the tip can lag
+  // past tolerance on the final stretch. Past halfway, a finger at the goal
+  // means finish intent: resolve to the path end and let the capped tip catch
+  // up. Open paths keep both gates, so goal taps still cannot skip.
+  const finishingLoop = isFinishingClosedLoop(trail, state, x, y);
+  if (
+    !finishingLoop &&
+    (nearest.distance > trail.config.tolerance || tipGap > trail.config.tolerance)
+  ) {
     return state;
   }
-  const target = arcLengthAt(trail, nearest);
+  const target = finishingLoop ? trail.total : arcLengthAt(trail, nearest);
   const cappedTarget = Math.min(target, state.frontier + trail.config.maxAdvanceSpeed * dtSeconds);
   if (cappedTarget <= state.frontier) {
     return state;
@@ -93,6 +102,21 @@ export function advanceTrail(
 /** Point on the path at the frontier, clamped to the trail's extent. */
 export function tipPosition(trail: Trail, state: TrailState): Point {
   return pointAtLength(trail.points, trail.cumulative, state.frontier);
+}
+
+/** Finger at the goal of a closed loop with the tip past halfway: finish intent. */
+function isFinishingClosedLoop(trail: Trail, state: TrailState, x: number, y: number): boolean {
+  const points = trail.points;
+  const first = points[0];
+  const last = points[points.length - 1];
+  if (!first || !last || state.frontier <= trail.total / 2) {
+    return false;
+  }
+  const closedGap = Math.hypot(last.x - first.x, last.y - first.y);
+  if (closedGap > trail.config.tolerance) {
+    return false;
+  }
+  return Math.hypot(x - last.x, y - last.y) <= trail.config.tolerance;
 }
 
 function arcLengthAt(trail: Trail, nearest: NearestResult): number {
