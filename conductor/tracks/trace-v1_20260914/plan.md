@@ -13,7 +13,7 @@
   - [ ] Configure Biome (aligned with `conductor/code_styleguides/`) + `pnpm check` (Biome + `tsc --noEmit`)
   - [ ] Configure Vitest + `pnpm test`; scripts: `dev` / `serve` / `build` / `preview` / `check` / `test`
   - [ ] Verify: clean scaffold — checks pass, dev server serves the shell
-- [ ] Task: Shell utilities (TDD)
+- [x] Task: Shell utilities (TDD) [5d6e655]
   - [ ] Tests: DPR canvas sizing + letterbox play-field rect math
   - [ ] Implement: viewport sizing, DPR scaling, letterbox helper, no-zoom meta, `touch-action: none`, safe-area CSS
   - [ ] Verify on a real phone via LAN
