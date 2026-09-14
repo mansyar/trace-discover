@@ -102,7 +102,7 @@
 - [x] Task: Manifest + icons (star-on-path, 192/512/maskable) + `vite-plugin-pwa` precache config; offline cold-start test [8241370]
 - [x] Task: Orientation/safe-area audit (phone portrait + iPad landscape letterboxed, rotation mid-level safe, gesture insets) — audit-only, no source change; evidence in plan commit note
 - [x] Task: NFR measurement pass (fps sampling, load times, ≤ ~10–15 MB) → fix findings — measured, no fixes warranted; evidence in plan commit note
-- [ ] Task: Zero-text + 90px targets visual audit on every child screen
+- [x] Task: Zero-text + 90px targets visual audit on every child screen [0817931]
 - [ ] Task: Cloudflare Pages deploy config (static `dist/`) + dry run
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
