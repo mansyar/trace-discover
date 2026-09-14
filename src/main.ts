@@ -1,18 +1,39 @@
 import './style.css';
+import { computeBackingSize } from './shell/layout';
 
-/**
- * Boot entry point. Deliberately minimal for now — proper canvas sizing and
- * the letterboxed play-field arrive with the shell utilities task.
- */
-const canvas = document.querySelector<HTMLCanvasElement>('.game-canvas');
+function requireCanvas(): HTMLCanvasElement {
+  const canvas = document.querySelector<HTMLCanvasElement>('.game-canvas');
 
-if (canvas === null) {
-  throw new Error('Game canvas element is missing from the document.');
+  if (canvas === null) {
+    throw new Error('Game canvas element is missing from the document.');
+  }
+
+  return canvas;
 }
 
-const context = canvas.getContext('2d');
+function require2dContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+  const context = canvas.getContext('2d');
 
-if (context !== null) {
+  if (context === null) {
+    throw new Error('Canvas 2D context is unavailable.');
+  }
+
+  return context;
+}
+
+const canvas = requireCanvas();
+const context = require2dContext(canvas);
+
+function render(): void {
+  const { devicePixelRatio, innerHeight, innerWidth } = window;
+  const size = computeBackingSize(innerWidth, innerHeight, devicePixelRatio);
+
+  canvas.width = size.width;
+  canvas.height = size.height;
   context.fillStyle = '#f6e3b8';
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, size.width, size.height);
 }
+
+window.addEventListener('resize', render);
+
+render();
