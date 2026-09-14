@@ -14,7 +14,7 @@ export interface TonePlayer {
   play(spec: ToneSpec): void;
 }
 
-const ATTACK_SECONDS = 0.006;
+export const ATTACK_SECONDS = 0.006;
 const DECAY_TAU = 0.35;
 
 const PENTATONIC_OFFSETS = [0, 2, 4, 7, 9] as const;

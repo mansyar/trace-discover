@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f6e3b8" />
+    <title>Trace Play — dev harness</title>
+    <style>
+      #log {
+        bottom: 12px;
+        color: #2e4a63;
+        font: 12px/1.4 ui-monospace, monospace;
+        left: 12px;
+        margin: 0;
+        opacity: 0.75;
+        pointer-events: none;
+        position: fixed;
+        white-space: pre;
+      }
+      .char-canvas {
+        left: 0;
+        pointer-events: none;
+        position: fixed;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="game-canvas" id="trail"></canvas>
+    <canvas class="char-canvas" id="char"></canvas>
+    <pre id="log"></pre>
+    <script type="module" src="/src/dev/play.ts"></script>
+  </body>
+</html>
