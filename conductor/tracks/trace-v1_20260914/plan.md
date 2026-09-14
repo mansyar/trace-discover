@@ -17,7 +17,7 @@
   - [ ] Tests: DPR canvas sizing + letterbox play-field rect math
   - [ ] Implement: viewport sizing, DPR scaling, letterbox helper, no-zoom meta, `touch-action: none`, safe-area CSS
   - [ ] Verify on a real phone via LAN
-- [ ] Task: Asset intake from spike
+- [x] Task: Asset intake from spike [fdf6355]
   - [ ] Add `@rive-app/canvas-lite`; place `dino4.riv` in app assets; `.riv`/`.wasm` MIME verified in dev + build
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
