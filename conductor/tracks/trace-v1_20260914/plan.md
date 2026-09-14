@@ -110,7 +110,7 @@
 
 *Goal: proven on the actual hardware, with the actual toddler.*
 
-- [ ] Task: Install on test Android phone + iPad; offline re-launch; gesture/rotation spot-checks
+- [x] Task: Install on test Android phone + iPad; offline re-launch; gesture/rotation spot-checks — user-verified on both devices, all items pass; evidence in plan commit note
 - [ ] Task: Independent-play observation session → capture friction notes → fix pass
 - [ ] Task: Run every acceptance criterion (spec §Acceptance Criteria) and record evidence
 - [ ] Task: Final polish fixes; re-verify affected criteria
