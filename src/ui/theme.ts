@@ -26,9 +26,16 @@ export interface BadgeSpot {
   readonly y: number;
 }
 
+export interface ThemeHome {
+  readonly radius: number;
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface ThemeLayout {
   readonly badge: BadgeSpot;
   readonly cards: readonly LevelCard[];
+  readonly home: ThemeHome;
   readonly slots: readonly StickerSlot[];
 }
 
@@ -38,11 +45,17 @@ const CARD_GAP = 20;
 const CARD_SIZE = 170;
 const COLUMNS = 2;
 const GRID_TOP = 170;
+const HOME_MARGIN = 56;
+const HOME_RADIUS = 48;
 const SLOT_GAP = 24;
 const SLOT_OFFSET_BELOW_GRID = 60;
 const SLOT_RADIUS = 36;
 
-export function themeLayout(fieldWidth: number, levelIds: readonly string[]): ThemeLayout {
+export function themeLayout(
+  fieldWidth: number,
+  fieldHeight: number,
+  levelIds: readonly string[],
+): ThemeLayout {
   const gridWidth = COLUMNS * CARD_SIZE + (COLUMNS - 1) * CARD_GAP;
   const startX = (fieldWidth - gridWidth) / 2;
   const cards = levelIds.map(
@@ -70,6 +83,7 @@ export function themeLayout(fieldWidth: number, levelIds: readonly string[]): Th
   return {
     badge: { radius: BADGE_RADIUS, x: fieldWidth / 2, y: BADGE_Y },
     cards,
+    home: { radius: HOME_RADIUS, x: HOME_MARGIN, y: fieldHeight - HOME_MARGIN },
     slots,
   };
 }
@@ -83,6 +97,11 @@ export function hitThemeCard(layout: ThemeLayout, point: Point): string | null {
       point.y <= entry.y + entry.height,
   );
   return card === undefined ? null : card.levelId;
+}
+
+/** True when the point lands on the home corner button. */
+export function hitThemeHome(layout: ThemeLayout, point: Point): boolean {
+  return Math.hypot(point.x - layout.home.x, point.y - layout.home.y) <= layout.home.radius;
 }
 
 export function themeStickers(save: SaveData, levelIds: readonly string[]): readonly boolean[] {

@@ -26,3 +26,10 @@ body {
   top: 0;
   width: 100%;
 }
+
+.char-canvas {
+  left: 0;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+}

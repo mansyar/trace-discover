@@ -10,10 +10,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/apple-180.png">
     <title>Trace &amp; Discover!</title>
   </head>
   <body>
     <canvas class="game-canvas"></canvas>
+    <canvas class="char-canvas" id="char"></canvas>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

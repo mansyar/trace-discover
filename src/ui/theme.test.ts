@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FIELD_WIDTH } from '../field';
+import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import {
   completeLevel,
   createDefaultSave,
@@ -7,7 +7,7 @@ import {
   type SaveStorage,
   saveSave,
 } from '../save/store';
-import { hitThemeCard, type ThemeLayout, themeLayout, themeStickers } from './theme';
+import { hitThemeCard, hitThemeHome, type ThemeLayout, themeLayout, themeStickers } from './theme';
 
 const LEVELS = ['dino-1', 'dino-2', 'dino-3', 'dino-4'];
 
@@ -25,7 +25,7 @@ function createMemoryStorage(initial: Record<string, string> = {}): SaveStorage 
 }
 
 function layout(): ThemeLayout {
-  return themeLayout(FIELD_WIDTH, LEVELS);
+  return themeLayout(FIELD_WIDTH, FIELD_HEIGHT, LEVELS);
 }
 
 function cardAt(current: ThemeLayout, index: number) {
@@ -85,6 +85,13 @@ describe('themeLayout', () => {
     expect(badge.x + badge.radius).toBeLessThanOrEqual(FIELD_WIDTH);
     expect(badge.y - badge.radius).toBeGreaterThanOrEqual(0);
   });
+
+  it('keeps a toddler-sized home button in the bottom-left corner', () => {
+    const home = layout().home;
+    expect(home.radius * 2).toBeGreaterThanOrEqual(90);
+    expect(home.x - home.radius).toBeGreaterThanOrEqual(0);
+    expect(home.y + home.radius).toBeLessThanOrEqual(FIELD_HEIGHT);
+  });
 });
 
 describe('hitThemeCard', () => {
@@ -96,6 +103,14 @@ describe('hitThemeCard', () => {
       ).toBe(LEVELS[index]);
     });
     expect(hitThemeCard(current, { x: FIELD_WIDTH / 2, y: 5 })).toBeNull();
+  });
+});
+
+describe('hitThemeHome', () => {
+  it('hits the home button center and misses the field center', () => {
+    const current = layout();
+    expect(hitThemeHome(current, { x: current.home.x, y: current.home.y })).toBe(true);
+    expect(hitThemeHome(current, { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT / 2 })).toBe(false);
   });
 });
 

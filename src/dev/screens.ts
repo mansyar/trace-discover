@@ -176,7 +176,7 @@ function drawMenu(): void {
 }
 
 function drawTheme(): void {
-  const layout = themeLayout(FIELD_WIDTH, DINO_IDS);
+  const layout = themeLayout(FIELD_WIDTH, FIELD_HEIGHT, DINO_IDS);
   const stickers = themeStickers(save, DINO_IDS);
   const badged = save.badges.includes('dino');
   if (badged) {
@@ -253,7 +253,7 @@ function cycle(): void {
 }
 
 function tapTheme(point: Point): void {
-  const layout = themeLayout(FIELD_WIDTH, DINO_IDS);
+  const layout = themeLayout(FIELD_WIDTH, FIELD_HEIGHT, DINO_IDS);
   if (
     Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y) <= layout.badge.radius &&
     save.badges.includes('dino')
