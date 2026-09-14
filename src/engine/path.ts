@@ -94,6 +94,17 @@ export function cumulativeLengths(points: readonly Point[]): number[] {
   return result;
 }
 
+/** Point on the polyline at `target` arc length, clamped to the path's extent. */
+export function pointAtLength(
+  points: readonly Point[],
+  cumulative: readonly number[],
+  target: number,
+): Point {
+  const total = cumulative[cumulative.length - 1] ?? 0;
+  const clamped = Math.min(Math.max(target, 0), total);
+  return pointOnSegment(points, cumulative, findSegment(cumulative, clamped), clamped);
+}
+
 /** Finds the nearest point on the path to `(x, y)`, with its distance and unit tangent. */
 export function nearestOnPath(points: readonly Point[], x: number, y: number): NearestResult {
   const first = points[0];
@@ -153,6 +164,16 @@ function segmentResult(from: Point, to: Point, index: number, x: number, y: numb
     point,
     tangent: length > EPSILON ? { x: dx / length, y: dy / length } : { x: 1, y: 0 },
   };
+}
+
+function findSegment(cumulative: readonly number[], target: number): number {
+  for (let i = 0; i < cumulative.length - 1; i += 1) {
+    const end = cumulative[i + 1];
+    if (end !== undefined && target <= end) {
+      return i;
+    }
+  }
+  return Math.max(0, cumulative.length - 2);
 }
 
 function pointOnSegment(

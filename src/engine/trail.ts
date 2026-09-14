@@ -1,4 +1,4 @@
-import { type NearestResult, nearestOnPath } from './path';
+import { cumulativeLengths, type NearestResult, nearestOnPath, pointAtLength } from './path';
 import type { Point } from './types';
 
 /** Tuning for the trail-tip state machine, in play-field pixels. */
@@ -17,9 +17,10 @@ interface TrailSegment {
   readonly endLength: number;
 }
 
-/** Prepared trail: dense points + arc-length segments + tuning. */
+/** Prepared trail: dense points + arc lengths + tuning. */
 export interface Trail {
   readonly points: readonly Point[];
+  readonly cumulative: readonly number[];
   readonly segments: readonly TrailSegment[];
   readonly total: number;
   readonly config: TrailConfig;
@@ -47,7 +48,7 @@ export function createTrail(points: readonly Point[], config: TrailConfig): Trai
       total = endLength;
     }
   }
-  return { points, segments, total, config };
+  return { points, cumulative: cumulativeLengths(points), segments, total, config };
 }
 
 /** Marks a finger down. */
@@ -91,19 +92,7 @@ export function advanceTrail(
 
 /** Point on the path at the frontier, clamped to the trail's extent. */
 export function tipPosition(trail: Trail, state: TrailState): Point {
-  const target = Math.min(Math.max(state.frontier, 0), trail.total);
-  const segment =
-    trail.segments.find((candidate) => target <= candidate.endLength) ??
-    trail.segments[trail.segments.length - 1];
-  if (!segment) {
-    return { x: 0, y: 0 };
-  }
-  const span = segment.endLength - segment.startLength;
-  const t = span > 0 ? Math.min(1, Math.max(0, (target - segment.startLength) / span)) : 0;
-  return {
-    x: segment.from.x + (segment.to.x - segment.from.x) * t,
-    y: segment.from.y + (segment.to.y - segment.from.y) * t,
-  };
+  return pointAtLength(trail.points, trail.cumulative, state.frontier);
 }
 
 function arcLengthAt(trail: Trail, nearest: NearestResult): number {

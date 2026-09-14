@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { catmullRom, cumulativeLengths, nearestOnPath, resample } from './path';
+import { catmullRom, cumulativeLengths, nearestOnPath, pointAtLength, resample } from './path';
 import type { Point } from './types';
 
 function at(points: readonly Point[], index: number): Point {
@@ -216,5 +216,37 @@ describe('nearestOnPath', () => {
     const result = nearestOnPath([], 3, 4);
     expect(result.distance).toBeCloseTo(5, 9);
     expect(result.point).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe('pointAtLength', () => {
+  it('interpolates within a segment', () => {
+    const line: Point[] = [
+      { x: 0, y: 0 },
+      { x: 400, y: 0 },
+    ];
+    expect(pointAtLength(line, cumulativeLengths(line), 35)).toEqual({ x: 35, y: 0 });
+  });
+
+  it('clamps to the path extent', () => {
+    const line: Point[] = [
+      { x: 0, y: 0 },
+      { x: 400, y: 0 },
+    ];
+    const lengths = cumulativeLengths(line);
+    expect(pointAtLength(line, lengths, 0)).toEqual({ x: 0, y: 0 });
+    expect(pointAtLength(line, lengths, -5)).toEqual({ x: 0, y: 0 });
+    expect(pointAtLength(line, lengths, 9999)).toEqual({ x: 400, y: 0 });
+  });
+
+  it('walks arc length around a corner', () => {
+    const corner: Point[] = [
+      { x: 0, y: 0 },
+      { x: 0, y: 100 },
+      { x: 100, y: 100 },
+    ];
+    const lengths = cumulativeLengths(corner);
+    expect(pointAtLength(corner, lengths, 50)).toEqual({ x: 0, y: 50 });
+    expect(pointAtLength(corner, lengths, 150)).toEqual({ x: 50, y: 100 });
   });
 });
