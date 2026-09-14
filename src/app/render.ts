@@ -86,6 +86,33 @@ export function drawStar(
 }
 
 /** Gold star seal for an earned sticker/badge, dashed outline when unearned. */
+/** Runtime level art: null until its file loads; renderers fall back to paint. */
+export interface LevelArt {
+  readonly backdrop: HTMLImageElement | null;
+  readonly goal: HTMLImageElement | null;
+}
+
+export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null };
+
+/** Paints the backdrop cover-cropped over the whole field. */
+function drawBackdrop(ctx: CanvasRenderingContext2D, image: HTMLImageElement): void {
+  const scale = Math.max(FIELD_WIDTH / image.naturalWidth, FIELD_HEIGHT / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  ctx.drawImage(image, (FIELD_WIDTH - width) / 2, (FIELD_HEIGHT - height) / 2, width, height);
+}
+
+/** Paints a goal vignette centered on the point at the given pixel size. */
+function drawGoalArt(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  size: number,
+): void {
+  ctx.drawImage(image, x - size / 2, y - size / 2, size, size);
+}
+
 export function drawSeal(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -280,6 +307,7 @@ export function drawTheme(
   badgeEarned: boolean,
   highlightBadge: boolean,
   miniPaths: ReadonlyMap<string, readonly Point[]>,
+  goalImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
 ): void {
   const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
   drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius * badgePulse, badgeEarned);
@@ -314,7 +342,24 @@ export function drawTheme(
     }
   });
   layout.slots.forEach((slot, index) => {
-    drawSeal(ctx, slot.x, slot.y, slot.radius, stickers[index] ?? false);
+    const earned = stickers[index] === true;
+    const card = layout.cards[index];
+    const image = card ? goalImages.get(card.levelId) : undefined;
+    if (earned && image) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.clip();
+      drawGoalArt(ctx, image, slot.x, slot.y, slot.radius * 2);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+    } else {
+      drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
+    }
   });
   ctx.beginPath();
   ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
@@ -326,7 +371,15 @@ export function drawTheme(
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
-export function drawLevel(ctx: CanvasRenderingContext2D, now: number, snap: SessionSnapshot): void {
+export function drawLevel(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  snap: SessionSnapshot,
+  art: LevelArt = NO_LEVEL_ART,
+): void {
+  if (art.backdrop) {
+    drawBackdrop(ctx, art.backdrop);
+  }
   const pulse = 1 + 0.12 * Math.sin(now / 300);
   if (snap.completionStarted && snap.completion.stage === 'glow') {
     ctx.save();
@@ -356,13 +409,17 @@ export function drawLevel(ctx: CanvasRenderingContext2D, now: number, snap: Sess
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   const end = pointAtLength(snap.trail.points, snap.trail.cumulative, snap.trail.total);
-  ctx.beginPath();
-  ctx.arc(end.x, end.y, 26, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff';
-  ctx.fill();
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = NAVY;
-  ctx.stroke();
+  if (art.goal) {
+    drawGoalArt(ctx, art.goal, end.x, end.y, 104);
+  } else {
+    ctx.beginPath();
+    ctx.arc(end.x, end.y, 26, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
   if (snap.nudgeAt !== null && !snap.completionStarted) {
     const target = pointAtLength(snap.trail.points, snap.trail.cumulative, snap.nudgeAt);
     ctx.beginPath();

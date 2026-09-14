@@ -1,6 +1,7 @@
 import type { LevelDef, ThemeDef } from './level';
 
 export const CONSTRUCTION_THEME: ThemeDef = {
+  backdrop: '/art/bg/construction.jpg',
   character: 'excavator',
   id: 'construction',
   name: 'Construction Site',
@@ -15,6 +16,7 @@ export const CONSTRUCTION_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 400 },
     ],
     goal: { x: 370, y: 400 },
+    goalArt: '/art/goal/construction-1.png',
     id: 'construction-1',
     stroke: 'line',
     theme: 'construction',
@@ -28,6 +30,7 @@ export const CONSTRUCTION_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 520 },
     ],
     goal: { x: 370, y: 520 },
+    goalArt: '/art/goal/construction-2.png',
     id: 'construction-2',
     stroke: 'wave',
     theme: 'construction',
@@ -40,6 +43,7 @@ export const CONSTRUCTION_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 560 },
     ],
     goal: { x: 370, y: 560 },
+    goalArt: '/art/goal/construction-3.png',
     id: 'construction-3',
     stroke: 'arc',
     theme: 'construction',
@@ -54,6 +58,7 @@ export const CONSTRUCTION_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 470 },
     ],
     goal: { x: 370, y: 470 },
+    goalArt: '/art/goal/construction-4.png',
     id: 'construction-4',
     stroke: 'zigzag',
     theme: 'construction',
@@ -67,6 +72,7 @@ export const CONSTRUCTION_LEVELS: readonly LevelDef[] = [
       { x: 215, y: 300 },
     ],
     goal: { x: 215, y: 300 },
+    goalArt: '/art/goal/construction-bonus.png',
     id: 'construction-bonus',
     stroke: 'circle',
     theme: 'construction',

@@ -11,6 +11,7 @@ const VALID: LevelDef = {
     { x: 370, y: 430 },
   ],
   goal: { x: 370, y: 430 },
+  goalArt: '/art/goal/test-1.png',
   id: 'test-1',
   stroke: 'line',
   theme: 'test',

@@ -1,6 +1,7 @@
 import type { LevelDef, ThemeDef } from './level';
 
 export const ANIMALS_THEME: ThemeDef = {
+  backdrop: '/art/bg/animals.jpg',
   character: 'lion',
   id: 'animals',
   name: 'Animal Friends',
@@ -15,6 +16,7 @@ export const ANIMAL_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 460 },
     ],
     goal: { x: 370, y: 460 },
+    goalArt: '/art/goal/animals-1.png',
     id: 'animals-1',
     stroke: 'line',
     theme: 'animals',
@@ -28,6 +30,7 @@ export const ANIMAL_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 580 },
     ],
     goal: { x: 370, y: 580 },
+    goalArt: '/art/goal/animals-2.png',
     id: 'animals-2',
     stroke: 'wave',
     theme: 'animals',
@@ -40,6 +43,7 @@ export const ANIMAL_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 600 },
     ],
     goal: { x: 370, y: 600 },
+    goalArt: '/art/goal/animals-3.png',
     id: 'animals-3',
     stroke: 'arc',
     theme: 'animals',
@@ -54,6 +58,7 @@ export const ANIMAL_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 450 },
     ],
     goal: { x: 370, y: 450 },
+    goalArt: '/art/goal/animals-4.png',
     id: 'animals-4',
     stroke: 'zigzag',
     theme: 'animals',
@@ -67,6 +72,7 @@ export const ANIMAL_LEVELS: readonly LevelDef[] = [
       { x: 215, y: 320 },
     ],
     goal: { x: 215, y: 320 },
+    goalArt: '/art/goal/animals-bonus.png',
     id: 'animals-bonus',
     stroke: 'circle',
     theme: 'animals',

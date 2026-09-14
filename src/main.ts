@@ -6,6 +6,7 @@
 import './style.css';
 
 import { type AppState, applyAppEvent, startApp } from './app/app';
+import { loadArtImage } from './app/art';
 import {
   BADGE_HOME,
   BADGE_SEAL,
@@ -18,6 +19,8 @@ import {
   drawSuccess,
   drawTheme,
   endField,
+  type LevelArt,
+  NO_LEVEL_ART,
 } from './app/render';
 import { createSession, type LevelSession } from './app/session';
 import { withVolume } from './audio/meter';
@@ -117,6 +120,36 @@ function commit(next: AppState): void {
   saveSave(localStorage, app.save);
 }
 
+/** Level-art cache: loaded files by bundle URL, with one in-flight load each. */
+const artCache = new Map<string, HTMLImageElement>();
+const artPending = new Set<string>();
+
+function preloadArt(url: string): void {
+  if (artCache.has(url) || artPending.has(url)) {
+    return;
+  }
+  artPending.add(url);
+  void loadArtImage(url).then((image) => {
+    artPending.delete(url);
+    if (image) {
+      artCache.set(url, image);
+    }
+  });
+}
+
+/** Art refs for the active session's level; null once the session hands off. */
+let levelArtUrls: { backdrop: string; goal: string } | null = null;
+
+function currentLevelArt(): LevelArt {
+  if (!levelArtUrls) {
+    return NO_LEVEL_ART;
+  }
+  return {
+    backdrop: artCache.get(levelArtUrls.backdrop) ?? null,
+    goal: artCache.get(levelArtUrls.goal) ?? null,
+  };
+}
+
 function hideCharacter(): void {
   character?.dispose();
   character = null;
@@ -143,6 +176,9 @@ function enterLevel(themeId: string, levelId: string): void {
   if (app.screen.name !== 'level') {
     return;
   }
+  levelArtUrls = { backdrop: entry.theme.backdrop, goal: level.goalArt };
+  preloadArt(entry.theme.backdrop);
+  preloadArt(level.goalArt);
   hideCharacter();
   charCanvas.style.display = 'block';
   character = loadCharacter({
@@ -222,6 +258,7 @@ const handlers: TraceHandlers = {
           } else if (next.name !== 'success') {
             hideCharacter();
             session = null;
+            levelArtUrls = null;
           }
         }
         return;
@@ -319,6 +356,17 @@ function render(now: number): void {
   } else if (screen.name === 'theme') {
     const entry = themeEntry(screen.themeId);
     const mainIds = entry?.mainLevels.map((level) => level.id) ?? [];
+    const levels = entry ? [...entry.mainLevels, entry.bonus] : [];
+    for (const level of levels) {
+      preloadArt(level.goalArt);
+    }
+    const goalImages = new Map<string, HTMLImageElement>();
+    for (const level of levels) {
+      const image = artCache.get(level.goalArt);
+      if (image) {
+        goalImages.set(level.id, image);
+      }
+    }
     drawTheme(
       trailContext,
       now,
@@ -327,17 +375,18 @@ function render(now: number): void {
       (app.save.badges ?? []).includes(screen.themeId),
       app.pendingBadge === screen.themeId,
       miniPaths(screen.themeId),
+      goalImages,
     );
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
-    drawLevel(trailContext, now, snap);
+    drawLevel(trailContext, now, snap, currentLevelArt());
     if (session.success) {
       drawSuccess(trailContext, SUCCESS);
     }
   } else if (screen.name === 'success' && session) {
     // Level completed but the session already handed off (e.g. after a
     // settings round-trip): keep the frozen tableau behind the buttons.
-    drawLevel(trailContext, now, session.snapshot());
+    drawLevel(trailContext, now, session.snapshot(), currentLevelArt());
     drawSuccess(trailContext, SUCCESS);
   } else if (screen.name === 'badge') {
     drawBadge(trailContext, now);

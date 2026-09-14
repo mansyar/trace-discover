@@ -6,6 +6,8 @@ import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 export interface LevelDef {
   readonly controlPoints: readonly Point[];
   readonly goal: Point;
+  /** Bundle path of the goal vignette drawn at the trail end (and as its sticker). */
+  readonly goalArt: string;
   readonly id: string;
   readonly stroke: StrokePattern;
   readonly theme: string;
@@ -13,6 +15,8 @@ export interface LevelDef {
 
 /** A theme groups levels with their character and presentation metadata. */
 export interface ThemeDef {
+  /** Bundle path of the soft scene painted behind the trail. */
+  readonly backdrop: string;
   readonly character: string;
   readonly id: string;
   readonly name: string;
@@ -58,6 +62,9 @@ export function validateLevel(level: LevelDef): string[] {
     problems.push('non-finite goal');
   } else if (outsideMargin(level.goal)) {
     problems.push('goal outside field margin');
+  }
+  if (level.goalArt === '') {
+    problems.push('missing goal art');
   }
   return problems;
 }

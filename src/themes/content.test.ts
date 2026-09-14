@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ANIMAL_LEVELS, ANIMALS_THEME } from './animals';
 import { CONSTRUCTION_LEVELS, CONSTRUCTION_THEME } from './construction';
-import { DINO_LEVELS } from './dino';
+import { DINO_LEVELS, DINO_THEME } from './dino';
 import type { LevelDef } from './level';
 import { validateLevel } from './level';
 
@@ -40,6 +40,7 @@ function expectFullRamp(levels: readonly LevelDef[], theme: string): void {
   for (const level of levels) {
     expect(validateLevel(level)).toEqual([]);
     expect(level.theme).toBe(theme);
+    expect(level.goalArt).toBe(`/art/goal/${level.id}.png`);
   }
 }
 
@@ -64,6 +65,7 @@ describe('construction theme', () => {
   it('exposes theme identity', () => {
     expect(CONSTRUCTION_THEME.id).toBe('construction');
     expect(CONSTRUCTION_THEME.character).toBe('excavator');
+    expect(CONSTRUCTION_THEME.backdrop).toBe('/art/bg/construction.jpg');
   });
 
   it('has the full five-level ramp, all valid', () => {
@@ -108,6 +110,7 @@ describe('animals theme', () => {
   it('exposes theme identity', () => {
     expect(ANIMALS_THEME.id).toBe('animals');
     expect(ANIMALS_THEME.character).toBe('lion');
+    expect(ANIMALS_THEME.backdrop).toBe('/art/bg/animals.jpg');
   });
 
   it('has the full five-level ramp, all valid', () => {
@@ -149,6 +152,12 @@ describe('animals theme', () => {
 });
 
 describe('dino theme full ramp', () => {
+  it('exposes theme identity', () => {
+    expect(DINO_THEME.id).toBe('dino');
+    expect(DINO_THEME.character).toBe('dino');
+    expect(DINO_THEME.backdrop).toBe('/art/bg/dino.jpg');
+  });
+
   it('has all five levels including the bonus', () => {
     expectFullRamp(DINO_LEVELS, 'dino');
   });

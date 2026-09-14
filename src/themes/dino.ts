@@ -1,6 +1,7 @@
 import type { LevelDef, ThemeDef } from './level';
 
 export const DINO_THEME: ThemeDef = {
+  backdrop: '/art/bg/dino.jpg',
   character: 'dino',
   id: 'dino',
   name: 'Dinosaur Trail',
@@ -15,6 +16,7 @@ export const DINO_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 430 },
     ],
     goal: { x: 370, y: 430 },
+    goalArt: '/art/goal/dino-1.png',
     id: 'dino-1',
     stroke: 'line',
     theme: 'dino',
@@ -28,6 +30,7 @@ export const DINO_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 560 },
     ],
     goal: { x: 370, y: 560 },
+    goalArt: '/art/goal/dino-2.png',
     id: 'dino-2',
     stroke: 'wave',
     theme: 'dino',
@@ -40,6 +43,7 @@ export const DINO_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 605 },
     ],
     goal: { x: 370, y: 605 },
+    goalArt: '/art/goal/dino-3.png',
     id: 'dino-3',
     stroke: 'arc',
     theme: 'dino',
@@ -54,6 +58,7 @@ export const DINO_LEVELS: readonly LevelDef[] = [
       { x: 370, y: 490 },
     ],
     goal: { x: 370, y: 490 },
+    goalArt: '/art/goal/dino-4.png',
     id: 'dino-4',
     stroke: 'zigzag',
     theme: 'dino',
@@ -67,6 +72,7 @@ export const DINO_LEVELS: readonly LevelDef[] = [
       { x: 215, y: 280 },
     ],
     goal: { x: 215, y: 280 },
+    goalArt: '/art/goal/dino-bonus.png',
     id: 'dino-bonus',
     stroke: 'circle',
     theme: 'dino',
