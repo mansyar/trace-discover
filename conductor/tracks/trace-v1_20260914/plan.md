@@ -28,10 +28,10 @@
 - [x] Task: Path geometry [08c1c63]
   - [x] Tests: Catmull-Rom smoothing, constant-pixel resampling, cumulative lengths, nearest-point/tangent queries
   - [x] Implement `engine/path.ts` + level control-point schema types
-- [~] Task: Trail-tip state machine
-  - [ ] Tests: frontier advance within tolerance, capped speed (fast swipe cannot skip), lift keeps progress, progress never decreases, resume-from-frontier on new touch
-  - [ ] Implement `engine/trail.ts` (pure, frame-step API)
-- [ ] Task: Checkpoints & events
+- [x] Task: Trail-tip state machine [73a7de4]
+  - [x] Tests: frontier advance within tolerance, capped speed (fast swipe cannot skip), lift keeps progress, progress never decreases, resume-from-frontier on new touch
+  - [x] Implement `engine/trail.ts` (pure, frame-step API)
+- [~] Task: Checkpoints & events
   - [ ] Tests: segment boundaries, ordered progress, chime event emission, completion detection
   - [ ] Implement `engine/checkpoints.ts`
 - [ ] Task: Assists
