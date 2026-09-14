@@ -63,6 +63,10 @@ const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
 // never covers the pulsing start star. Completion still hops the full trail
 // (glow stage snaps the character back to the path start first).
 const TRACE_PARK: Point = { x: FIELD_WIDTH / 2, y: 650 };
+// Cheering spot for the success tableau: centered above the button row so the
+// mascot never covers a success button. (dino-3's goal sits right behind the
+// home button, and the mascot canvas is ~62% of the field wide.)
+const SUCCESS_PARK: Point = { x: FIELD_WIDTH / 2, y: 410 };
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 
 const STYLE: PathStyle = {
@@ -141,10 +145,12 @@ let lastTime = performance.now();
 let detachInput = (): void => {};
 
 interface QaHook {
+  readonly charPos: () => Point;
   readonly isSuccess: () => boolean;
   readonly levelId: string;
   readonly path: readonly Point[];
   readonly field: Rect;
+  readonly stage: () => string;
 }
 
 declare global {
@@ -155,10 +161,12 @@ declare global {
 
 function refreshQa(): void {
   window.__qa = {
+    charPos: () => ({ ...play.charPos }),
     field,
     isSuccess: () => play.success,
     levelId: play.level.id,
     path: play.trail.points,
+    stage: () => play.completion?.stage ?? '(none)',
   };
 }
 
@@ -362,8 +370,22 @@ function completionStep(dt: number): void {
       play.trail.cumulative,
       play.trail.total * progress,
     );
-  } else {
+  } else if (!play.success) {
+    // Pre-success the mascot waits at the goal; once success lands, charPos is
+    // owned by the glide below (resetting to the goal every frame would pin it
+    // there and the glide would never accumulate).
     play.charPos = endPoint();
+  }
+
+  if (play.success) {
+    // Success buttons are in: glide the mascot up to the cheering spot so it
+    // never covers a button (pointer taps pass through, but a toddler cannot
+    // tap a button they cannot see).
+    const blend = 1 - Math.exp(-dt * 5);
+    play.charPos = {
+      x: play.charPos.x + (SUCCESS_PARK.x - play.charPos.x) * blend,
+      y: play.charPos.y + (SUCCESS_PARK.y - play.charPos.y) * blend,
+    };
   }
 
   if (play.confetti.length > 0) {
