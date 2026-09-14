@@ -33,6 +33,14 @@ left (arithmetic slip + trim-box drift). Fixed empirically: measure open-eye
 centers in the rest shot vs lash centers in the blink shot, shift the patch
 node by the delta, re-shoot. One calibration round nailed it. Formula first,
 screenshot last — the screenshot is always the source of truth.
+- **Second calibration (blink-2 regen):** reusing blink-1's node position for
+  the regenerated patch assumed "same cutout box = pixel-aligned" — false,
+  because img2img re-renders the whole face and the eyes move inside the
+  frame. Grid-measured rest-vs-peak showed the lashes ~14px right / ~7px low
+  of the pupils. Corrected node (-23,-31.7) → (-37,-41.7) in two rounds (x
+  landed exact, then a -3 y nudge); final residual ~1px. Lesson: every
+  regenerated source gets its own grid measurement — never inherit patch
+  placement.
 
 ## QA (all verified by looking at CLI screenshots)
 
