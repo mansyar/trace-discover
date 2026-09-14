@@ -86,7 +86,7 @@
 
 *Goal: every level, character, backdrop, goal and sticker in place, via the assembly line.*
 
-- [ ] Task: Content spec pass (cast per theme, goals, sticker motifs, checkpoint counts, stroke-direction checklist)
+- [x] Task: Content spec pass (cast per theme, goals, sticker motifs, checkpoint counts, stroke-direction checklist) [e8973df]
 - [ ] Task: Generate art batch via Workers AI (3 backdrops, remaining characters + pose variants, goal art, 12 stickers + badge) → cutout tools
 - [ ] Task: Build `.riv` cast via the rive-cli skill (per character: RML → verify/inspect/screenshot loop → ≤~500 KB)
 - [ ] Task: Author remaining level data (construction L1–L4, animal L1–L4, all 3 bonuses); validate directions
