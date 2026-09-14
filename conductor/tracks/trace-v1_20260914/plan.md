@@ -46,7 +46,7 @@
 - [x] Task: Dev harness page (`levels/tune.html` equivalent) for device feel-testing [3697e9d]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — First Playable Level ("is it fun" slice)
+## Phase 3 — First Playable Level ("is it fun" slice) [checkpoint: 4b6fe41]
 
 *Goal: dino L1 + L2 fully playable on a phone: trace → chimes → hop → celebrate → sticker → success.*
 
@@ -64,7 +64,7 @@
   - [x] Implement sequence: path glow → hop → celebrate at goal → confetti → sticker fly-in → success overlay
 - [x] Task: Success screen (3 icons) + replay/next/home wiring; placeholder sticker art [4b6fe41]
 - [x] Task: On-device feel test via LAN + tune tolerance/speed/nudge defaults (findings: defaults confirmed on device 2026-09-15, no tuning needed)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Shell, Navigation & Persistence
 
