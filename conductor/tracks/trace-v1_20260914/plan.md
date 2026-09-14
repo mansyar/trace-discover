@@ -73,9 +73,9 @@
 - [x] Task: Save module (TDD) [2363803]
   - [x] Tests: typed schema, load/migrate/save, corrupt-JSON recovery, sticker+badge state, settings, auto-assist state
   - [x] Implement `save/store.ts`
-- [ ] Task: Screen router (TDD)
-  - [ ] Tests: transitions menu → theme → level → success → (badge) → theme; home always reachable
-  - [ ] Implement `app/router.ts`
+- [x] Task: Screen router (TDD) [2ac1aef]
+  - [x] Tests: transitions menu → theme → level → success → (badge) → theme; home always reachable
+  - [x] Implement `app/router.ts`
 - [ ] Task: Boot splash + Main Menu (3 theme cards, parent-gate corner zone)
 - [ ] Task: Theme screen (4 level cards + 4 sticker slots + badge spot) wired to save
 - [ ] Task: Parent zone UI (2-finger hold gate; volume, easier tracing, reset with confirm, install guide text)
