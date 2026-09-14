@@ -76,7 +76,7 @@
 - [x] Task: Screen router (TDD) [2ac1aef]
   - [x] Tests: transitions menu → theme → level → success → (badge) → theme; home always reachable
   - [x] Implement `app/router.ts`
-- [ ] Task: Boot splash + Main Menu (3 theme cards, parent-gate corner zone)
+- [x] Task: Boot splash + Main Menu (3 theme cards, parent-gate corner zone) [99dbe29]
 - [ ] Task: Theme screen (4 level cards + 4 sticker slots + badge spot) wired to save
 - [ ] Task: Parent zone UI (2-finger hold gate; volume, easier tracing, reset with confirm, install guide text)
 - [ ] Task: Badge + bonus flow (4th sticker → theme celebration → badge + bonus circle → finale)
