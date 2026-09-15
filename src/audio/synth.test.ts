@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
-
+import { hopTimeline } from '../character/hops';
 import {
   checkpointMidi,
+  countedNoteSpecs,
   createUnlockGate,
   envelopeGain,
+  MARIMBA_PRESET,
   midiToFrequency,
   playCheckpointChime,
   playCompletion,
+  playCountedNotes,
+  TOY_PIANO_PRESET,
   type ToneSpec,
 } from './synth';
 
@@ -106,5 +110,70 @@ describe('unlock gate', () => {
     expect(gate.unlocked).toBe(true);
     gate.unlock();
     expect(gate.unlocked).toBe(true);
+  });
+});
+
+describe('toy piano counted notes', () => {
+  it('keeps the counted run in the pentatonic mapping with the preset voice', () => {
+    const timeline = hopTimeline(3);
+    const specs = countedNoteSpecs(timeline);
+    expect(specs).toHaveLength(3);
+    specs.forEach((spec, index) => {
+      expect(spec.frequency).toBeCloseTo(midiToFrequency(checkpointMidi(index)), 6);
+      expect(spec.duration).toBe(TOY_PIANO_PRESET.duration);
+      expect(spec.gain).toBe(TOY_PIANO_PRESET.gain);
+      expect(spec.type).toBe(TOY_PIANO_PRESET.type);
+      const hop = timeline.hops[index];
+      if (!hop) {
+        throw new Error('missing hop');
+      }
+      expect(spec.delay).toBeCloseTo(hop.endMs / 1000, 9);
+    });
+  });
+
+  it('plays one note per hop through the player', () => {
+    const player = recordingPlayer();
+    playCountedNotes(player, hopTimeline(9));
+    expect(player.played).toHaveLength(9);
+    for (let index = 1; index < player.played.length; index += 1) {
+      const previous = player.played[index - 1];
+      const current = player.played[index];
+      if (!previous || !current) {
+        throw new Error('missing spec');
+      }
+      expect(current.frequency).toBeGreaterThan(previous.frequency);
+      expect(current.delay).toBeGreaterThan(previous.delay);
+    }
+  });
+
+  it('gives 0 a single note halfway through the ring move', () => {
+    const player = recordingPlayer();
+    playCountedNotes(player, hopTimeline(0));
+    expect(player.played).toHaveLength(1);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.delay).toBeCloseTo(0.45, 9);
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(checkpointMidi(0)), 6);
+  });
+
+  it('leaves the world voice untouched by default and swaps on request', () => {
+    const chime = recordingPlayer();
+    playCheckpointChime(chime, 0);
+    const world = chime.played[0];
+    if (!world) {
+      throw new Error('missing spec');
+    }
+    expect(world.duration).toBe(MARIMBA_PRESET.duration);
+    expect(world.gain).toBe(MARIMBA_PRESET.gain);
+    const toy = recordingPlayer();
+    playCheckpointChime(toy, 0, TOY_PIANO_PRESET);
+    const swap = toy.played[0];
+    if (!swap) {
+      throw new Error('missing spec');
+    }
+    expect(swap.duration).toBe(TOY_PIANO_PRESET.duration);
+    expect(swap.gain).toBe(TOY_PIANO_PRESET.gain);
   });
 });
