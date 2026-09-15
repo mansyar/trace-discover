@@ -24,7 +24,7 @@
   - [x] Incident from this control: transient artifact-finalize 403 failed the green run → upload step hardened non-blocking [7be8431]; job rerun of the identical commit succeeded — PR #1 closed without merging (2026-09-15), branch deleted (local + remote)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Release Automation (CD on tag)
+## Phase 2 — Release Automation (CD on tag) [checkpoint: f203e10]
 
 *Goal: tag → validate → gate → build → deploy → release note, with fail-fast guards proven before any deploy exists.*
 
