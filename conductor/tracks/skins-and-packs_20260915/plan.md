@@ -60,10 +60,10 @@
 
 *Goal: the 12 slots form a real small→medium→large ramp; screenshots approved; feel checked.*
 
-- [ ] Task: Ramp geometry table + level data (TDD)
-  - [ ] Tests: control points within margins; ramp targets per block (line length, wave amplitude, arc rise, zigzag teeth, circle size); start/goal/direction conventions
-  - [ ] Implement per-block geometry; `validateLevel` clean; record the final table (track content note)
-- [ ] Task: Headless screenshot QA per level — start/goal/direction + the ramp reads visually
+- [x] Task: Ramp geometry table + level data (TDD) [9024c24]
+  - [x] Tests: control points within margins; ramp targets per block (line length, wave amplitude, arc rise, zigzag teeth, circle size); start/goal/direction conventions
+  - [x] Implement per-block geometry; `validateLevel` clean; record the final table (track content note)
+- [~] Task: Headless screenshot QA per level — start/goal/direction + the ramp reads visually
 - [ ] Task: Harness/device feel check via LAN — trace small/medium/large spot levels; tune values; record findings
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
