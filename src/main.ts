@@ -621,7 +621,17 @@ function render(now: number): void {
   } else if (screen.name === 'badge') {
     drawBadge(trailContext, now, packBadgeArt(screen.packId));
   } else if (screen.name === 'parent') {
-    drawParent(trailContext, PARENT, app.save.settings, screen.confirmReset, screen.showInstall);
+    drawParent(
+      trailContext,
+      now,
+      PARENT,
+      app.save.settings,
+      screen.confirmReset,
+      screen.showInstall,
+      activeSkin(),
+      artCache.get(activeSkin().face) ?? null,
+      app.save.trophies,
+    );
   }
   if (SKIN_BUTTON_SCREENS.has(screen.name)) {
     const skin = activeSkin();
@@ -730,6 +740,7 @@ function screenTargets(): AppTarget[] {
       PARENT.volumeUp,
       PARENT.mute,
       PARENT.easier,
+      PARENT.skin,
       PARENT.reset,
       PARENT.install,
       PARENT.done,

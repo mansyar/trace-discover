@@ -162,6 +162,11 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
         ...state,
         save: updateSettings(state.save, { easierTracing: !state.save.settings.easierTracing }),
       };
+    case 'skin':
+      return {
+        ...state,
+        save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
+      };
     case 'reset':
       if (!parent.confirmReset) {
         return { ...state, screen: { ...parent, confirmReset: true } };

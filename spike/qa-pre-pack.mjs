@@ -131,6 +131,50 @@ await tapTarget('level:pre-1');
 await wait(900);
 await shot('pre-journey-star-level.png');
 
+// Scenario 5: parent zone - skin setter + legacy trophy row on a seeded save.
+await page.evaluate(() => {
+  localStorage.setItem(
+    'trace-discover-save-v1',
+    JSON.stringify({
+      badges: ['pre-badge'],
+      completedLevels: ['pre-1'],
+      settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+      trophies: ['dino', 'animals'],
+      version: 3,
+    }),
+  );
+});
+await page.reload({ waitUntil: 'load' });
+await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 30000 });
+await wait(600);
+await tapTarget('splash');
+await page.evaluate(() => {
+  const canvas = document.querySelector('.game-canvas');
+  const field = window.__app.field();
+  const gate = window.__app.targets().find((target) => target.id === 'gate');
+  if (!canvas || !gate) {
+    throw new Error('missing gate target');
+  }
+  const clientX = field.x + (gate.x / 430) * field.width;
+  const clientY = field.y + (gate.y / 860) * field.height;
+  for (const pointerId of [11, 12]) {
+    canvas.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX,
+        clientY,
+        isPrimary: pointerId === 11,
+        pointerId,
+        pointerType: 'touch',
+      }),
+    );
+  }
+});
+await wait(3600);
+const parentScreen = await page.evaluate(() => window.__app.screen());
+findings.push(`parent gate hold -> ${JSON.stringify(parentScreen)}`);
+await shot('pre-journey-parent.png');
+
 findings.push(`page errors: ${errors.length === 0 ? 'none' : errors.join(' | ')}`);
 console.log(findings.join('\n'));
 await browser.close();

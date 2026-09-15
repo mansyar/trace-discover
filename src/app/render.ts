@@ -761,10 +761,14 @@ function drawZoneButton(
 
 export function drawParent(
   ctx: CanvasRenderingContext2D,
+  now: number,
   layout: ParentZoneLayout,
   settings: ParentSettings,
   confirmReset: boolean,
   showInstall: boolean,
+  skin: SkinDef,
+  skinFace: HTMLImageElement | null,
+  trophies: readonly string[],
 ): void {
   ctx.fillStyle = NAVY;
   ctx.font = '30px system-ui, sans-serif';
@@ -802,7 +806,9 @@ export function drawParent(
   );
   ctx.font = '24px system-ui, sans-serif';
   ctx.fillStyle = NAVY;
-  ctx.fillText('Tracing', FIELD_WIDTH / 2, 322);
+  ctx.textAlign = 'left';
+  ctx.fillText('Tracing', 40, 400);
+  ctx.textAlign = 'center';
   drawZoneButton(
     ctx,
     layout.easier.x,
@@ -812,6 +818,46 @@ export function drawParent(
     '★',
     settings.easierTracing ? 'easier: on' : 'easier: off',
   );
+  const skinButton = layout.skin;
+  drawSkinButton(
+    ctx,
+    now,
+    { radius: skinButton.radius, x: skinButton.x, y: skinButton.y },
+    skin,
+    skinFace,
+    null,
+  );
+  ctx.fillStyle = NAVY;
+  ctx.font = '22px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('skin', skinButton.x, skinButton.y + skinButton.radius + 24);
+  ctx.font = '24px system-ui, sans-serif';
+  ctx.fillText('Trophies', FIELD_WIDTH / 2, 648);
+  layout.trophies.forEach((slot, index) => {
+    ctx.beginPath();
+    if (index < trophies.length) {
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+      drawStar(ctx, slot.x, slot.y, slot.radius - 8);
+      ctx.fillStyle = GOLD;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+    } else {
+      ctx.setLineDash([8, 6]);
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(46, 74, 99, 0.35)';
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  });
   drawZoneButton(
     ctx,
     layout.reset.x,

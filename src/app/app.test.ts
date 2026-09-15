@@ -159,6 +159,30 @@ describe('app navigation', () => {
     app = applyAppEvent(app, { type: 'parent-action', action: 'done' });
     expect(app.screen).toEqual({ name: 'menu' });
   });
+
+  it('cycles the skin from the parent setter and reset clears trophies', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(app.save.settings.skin).toBe('dino');
+    app = applyAppEvent(app, { type: 'parent-action', action: 'skin' });
+    expect(app.save.settings.skin).toBe('star');
+    app = applyAppEvent(app, { type: 'parent-action', action: 'skin' });
+    expect(app.save.settings.skin).toBe('construction');
+    const seeded = {
+      ...createDefaultSave(),
+      badges: ['pre-badge'],
+      completedLevels: ['pre-1'],
+      trophies: ['dino'],
+    };
+    let resetting = startApp(seeded);
+    resetting = applyAppEvent(resetting, { type: 'splash-tap' });
+    resetting = applyAppEvent(resetting, { type: 'parent-open' });
+    resetting = applyAppEvent(resetting, { type: 'parent-action', action: 'reset' });
+    resetting = applyAppEvent(resetting, { type: 'parent-action', action: 'reset' });
+    expect(resetting.save.badges).toEqual([]);
+    expect(resetting.save.completedLevels).toEqual([]);
+    expect(resetting.save.trophies).toEqual([]);
+  });
 });
 
 describe('numbers pack navigation', () => {
