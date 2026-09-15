@@ -22,7 +22,7 @@ import {
   stepCompletion,
   travelProgress,
 } from '../engine/completion';
-import { pointAtLength } from '../engine/path';
+import { nearestOnPath, pointAtLength } from '../engine/path';
 import {
   advanceMultiTrail,
   beginMultiStroke,
@@ -154,6 +154,8 @@ let detachInput = (): void => {};
 
 interface QaHook {
   readonly charPos: () => Point;
+  readonly debug: () => Record<string, unknown>;
+  readonly frontier: () => number;
   readonly isSuccess: () => boolean;
   readonly levelId: string;
   readonly path: readonly Point[];
@@ -171,7 +173,28 @@ declare global {
 function refreshQa(): void {
   window.__qa = {
     charPos: () => ({ ...play.charPos }),
+    debug: () => {
+      const state = play.multiState;
+      const stroke = play.multi.strokes[state.strokeIndex];
+      if (!stroke || !pointer) {
+        return { frontier: state.frontier, pointer: null, tracing: state.tracing };
+      }
+      const nearest = nearestOnPath(stroke.points, pointer.x, pointer.y);
+      const tip = pointAtLength(stroke.points, stroke.cumulative, state.frontier);
+      return {
+        frontier: state.frontier,
+        nearestDistance: nearest.distance,
+        nearestIndex: nearest.index,
+        nearestPoint: nearest.point,
+        pointer: { ...pointer },
+        tip,
+        tipGap: Math.hypot(pointer.x - tip.x, pointer.y - tip.y),
+        total: stroke.total,
+        tracing: state.tracing,
+      };
+    },
     field,
+    frontier: () => play.multiState.frontier,
     isSuccess: () => play.success,
     levelId: play.level.id,
     path: play.multi.strokes[0]?.points ?? [],

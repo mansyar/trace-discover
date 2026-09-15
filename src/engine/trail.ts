@@ -91,7 +91,10 @@ export function advanceTrail(
   ) {
     return state;
   }
-  const target = finishingLoop ? trail.total : arcLengthAt(trail, nearest);
+  const target =
+    finishingLoop || isFinishingAtEnd(trail, state, x, y)
+      ? trail.total
+      : arcLengthAt(trail, nearest);
   const cappedTarget = Math.min(target, state.frontier + trail.config.maxAdvanceSpeed * dtSeconds);
   if (cappedTarget <= state.frontier) {
     return state;
@@ -114,6 +117,23 @@ function isFinishingClosedLoop(trail: Trail, state: TrailState, x: number, y: nu
   }
   const closedGap = Math.hypot(last.x - first.x, last.y - first.y);
   if (closedGap > trail.config.tolerance) {
+    return false;
+  }
+  return Math.hypot(x - last.x, y - last.y) <= trail.config.tolerance;
+}
+
+/**
+ * Finger dwelling within tolerance of an open path's end while the tip is past
+ * halfway: finish intent. Without it, a fingertip that stops a few px short
+ * (or endpoint projection float rounding) strands the frontier just below the
+ * total and the level never completes.
+ */
+function isFinishingAtEnd(trail: Trail, state: TrailState, x: number, y: number): boolean {
+  if (state.frontier <= trail.total / 2) {
+    return false;
+  }
+  const last = trail.points[trail.points.length - 1];
+  if (!last) {
     return false;
   }
   return Math.hypot(x - last.x, y - last.y) <= trail.config.tolerance;

@@ -156,6 +156,23 @@ describe('trail-tip state machine', () => {
     expect(done.frontier).toBeCloseTo(trail.total * 0.5, 9);
   });
 
+  it('snaps to the total when the finger dwells just short of the open path end', () => {
+    const trail = createTrail(straightPath(), CONFIG);
+    let state = { ...beginStroke(TRAIL_START), frontier: trail.total * 0.9 };
+    for (let frame = 0; frame < 30; frame += 1) {
+      // Dwell 40 px short of the end: within tolerance, not on the last point.
+      state = advanceTrail(trail, state, 360, 0, FRAME);
+    }
+    expect(state.frontier).toBeCloseTo(trail.total, 0);
+  });
+
+  it('does not snap to the end while the tip is far behind (open path)', () => {
+    const trail = createTrail(straightPath(), CONFIG);
+    const state = { ...beginStroke(TRAIL_START), frontier: trail.total * 0.6 };
+    const done = advanceTrail(trail, state, 400, 0, FRAME);
+    expect(done.frontier).toBeCloseTo(trail.total * 0.6, 9);
+  });
+
   it('handles a zero-length trail', () => {
     const trail = createTrail(
       [
