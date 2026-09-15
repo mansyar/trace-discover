@@ -4,7 +4,7 @@
 
 **Delivery strategy:** model-first — registries + save v3 + routing + content-first shell (Phase 1) land a working content-first app on the fixed dino skin before anything cosmetic changes; skins in motion next (Phase 2: button, mascot, audio, parent controls); the pre-writing re-ramp as focused content work (Phase 3); the art batch with screenshot approval (Phase 4); compliance sweep (Phase 5); device validation & acceptance with the toddler (Phase 6). Work stays local on `track/skins-and-packs` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Foundations: docs, skins/packs model, save v3, content-first shell
+## Phase 1 — Foundations: docs, skins/packs model, save v3, content-first shell [checkpoint: ae5e5e1]
 
 *Goal: the app runs on the new model — content-first menu (Pre-writing + Numbers), both packs playable under the (temporarily fixed) dino skin, save v3 migrating v1/v2 losslessly, docs resynced.*
 
@@ -34,7 +34,7 @@
 - [x] Task: Dev harness + spike QA script updates (new ids/screens; v2→v3 migration probe) [ae5e5e1]
   - [x] All QA scripts re-pointed to packs × skins navigation (14 scripts); qa-persistence probes v1→v3 migration; qa-app drives the full pre-pack loop
   - [x] Fix found during the sweep: pack badge spot opens the first unlocked circle (v1 parity, no dead-end) [922e740]
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Skins in motion: switching, mascot, audio, parent controls
 
