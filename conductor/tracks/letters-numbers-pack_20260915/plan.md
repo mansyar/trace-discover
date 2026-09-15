@@ -23,9 +23,9 @@
 - [x] Task: Assists across strokes (TDD) [73c6847]
   - [x] Tests: nudge/hint target the active stroke; auto-assist counter across strokes; parent override still effective
   - [x] Implement in `engine/assists.ts`
-- [ ] Task: Multi-stroke render states (TDD)
-  - [ ] Tests: state model — active (glow + marching dots + start star) vs completed (painted) vs upcoming (faint); whole numeral visible; completion choreography only after final stroke
-  - [ ] Implement in `render/renderPath.ts` + stroke state helper
+- [x] Task: Multi-stroke render states (TDD) [dab76ee]
+  - [x] Tests: state model — active (glow + marching dots + start star) vs completed (painted) vs upcoming (faint); whole numeral visible; completion choreography only after final stroke
+  - [x] Implement in `render/renderPath.ts` + stroke state helper
 - [ ] Task: Save schema v2 + migration (TDD)
   - [ ] Tests: additive pack fields; v1 → v2 lossless migration; corrupt-JSON recovery unchanged; existing consumers unaffected
   - [ ] Implement in `save/store.ts`
