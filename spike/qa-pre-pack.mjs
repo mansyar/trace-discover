@@ -105,6 +105,32 @@ const skinState = await page.evaluate(() => ({
 findings.push(`skin cycles -> ${JSON.stringify(skinState)}`);
 await shot('pre-journey-skin-cycle.png');
 
+// Scenario 4: star skin - dusk placeholder backdrop + idle mascot on menu/pack.
+await page.evaluate(() => {
+  localStorage.setItem(
+    'trace-discover-save-v1',
+    JSON.stringify({
+      badges: [],
+      completedLevels: [],
+      settings: { easierTracing: false, muted: false, skin: 'star', volume: 1 },
+      trophies: [],
+      version: 3,
+    }),
+  );
+});
+await page.reload({ waitUntil: 'load' });
+await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 30000 });
+await wait(600);
+await tapTarget('splash');
+await wait(700);
+await shot('pre-journey-menu-mascot.png');
+await tapTarget('pack:pre');
+await wait(700);
+await shot('pre-journey-pack-mascot.png');
+await tapTarget('level:pre-1');
+await wait(900);
+await shot('pre-journey-star-level.png');
+
 findings.push(`page errors: ${errors.length === 0 ? 'none' : errors.join(' | ')}`);
 console.log(findings.join('\n'));
 await browser.close();

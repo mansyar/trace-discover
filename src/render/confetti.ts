@@ -13,7 +13,8 @@ export const CONFETTI_COLORS = ['#f6b45a', '#e86a92', '#6ec6b9', '#6fa8d4', '#e8
 
 export const GRAVITY = 900; // px/s^2
 
-function mulberry32(seed: number): () => number {
+/** Deterministic PRNG so confetti (and other flourishes) replay identically. */
+export function mulberry32(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
     state += 0x6d2b79f5;

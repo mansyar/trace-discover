@@ -9,6 +9,7 @@ import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { levelToPath } from '../packs/level';
 import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
+import { mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
@@ -566,14 +567,43 @@ export function drawPack(
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
+/** Drawn stand-in while a skin's backdrop art has not shipped yet. */
+function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent: string): void {
+  const gradient = ctx.createLinearGradient(0, 0, 0, FIELD_HEIGHT);
+  gradient.addColorStop(0, '#20264d');
+  gradient.addColorStop(1, '#4a3b6b');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  const random = mulberry32(7);
+  ctx.fillStyle = '#ffe9a8';
+  for (let i = 0; i < 26; i += 1) {
+    const x = random() * FIELD_WIDTH;
+    const y = random() * FIELD_HEIGHT;
+    const radius = 1.5 + random() * 2.5;
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(now / 600 + i);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  ctx.arc(FIELD_WIDTH / 2, 150, 64, 0, Math.PI * 2);
+  ctx.fillStyle = accent;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
 export function drawLevel(
   ctx: CanvasRenderingContext2D,
   now: number,
   snap: SessionSnapshot,
   art: LevelArt = NO_LEVEL_ART,
+  skin?: SkinDef,
 ): void {
   if (art.backdrop) {
     drawBackdrop(ctx, art.backdrop);
+  } else if (skin) {
+    drawDuskPlaceholder(ctx, now, skin.accent);
   }
   const pulse = 1 + 0.12 * Math.sin(now / 300);
   if (snap.completionStarted && snap.completion.stage === 'glow') {
