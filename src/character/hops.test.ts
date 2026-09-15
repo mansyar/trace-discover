@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { burstTimeMs, DEFAULT_HOP_CONFIG, hopTimeline } from './hops';
+import {
+  burstTimeMs,
+  DEFAULT_HOP_CONFIG,
+  HOP_LIFT,
+  hopPlacement,
+  hopTimeline,
+  RING_RADIUS,
+} from './hops';
 
 describe('hop timeline', () => {
   it('lays out one hop per count across the whole journey', () => {
@@ -80,5 +87,38 @@ describe('hop timeline', () => {
     const two = hopTimeline(2, config);
     expect(two.hopMs).toBe(config.maxHopMs);
     expect(two.totalMs).toBe(600);
+  });
+});
+
+describe('hop placement', () => {
+  it('puts the guide on the path with a lift at each hop apex', () => {
+    const plan = hopTimeline(3);
+    const start = hopPlacement(plan, 0);
+    expect(start.progress).toBeCloseTo(0, 9);
+    expect(start.dy).toBeCloseTo(0, 9);
+    const apex = hopPlacement(plan, plan.hopMs / 2);
+    expect(apex.progress).toBeCloseTo(1 / 6, 9);
+    expect(apex.dy).toBeCloseTo(-HOP_LIFT, 9);
+    const landing = hopPlacement(plan, plan.hopMs);
+    expect(landing.progress).toBeCloseTo(1 / 3, 9);
+    expect(landing.dy).toBeCloseTo(0, 9);
+    const done = hopPlacement(plan, plan.totalMs * 2);
+    expect(done.progress).toBeCloseTo(1, 9);
+    expect(done.dy).toBeCloseTo(0, 9);
+  });
+
+  it('loops one circle in place for the 0 ring move', () => {
+    const plan = hopTimeline(0);
+    const quarter = hopPlacement(plan, plan.totalMs / 4);
+    expect(quarter.dx).toBeCloseTo(RING_RADIUS, 9);
+    expect(quarter.dy).toBeCloseTo(-RING_RADIUS, 9);
+    const half = hopPlacement(plan, plan.totalMs / 2);
+    expect(half.dx).toBeCloseTo(0, 6);
+    expect(half.dy).toBeCloseTo(-2 * RING_RADIUS, 9);
+    expect(half.progress).toBeCloseTo(0.5, 9);
+    const done = hopPlacement(plan, plan.totalMs);
+    expect(done.dx).toBeCloseTo(0, 6);
+    expect(done.dy).toBeCloseTo(0, 9);
+    expect(done.progress).toBeCloseTo(1, 9);
   });
 });

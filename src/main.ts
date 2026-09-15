@@ -30,6 +30,7 @@ import type { TonePlayer } from './audio/synth';
 import { createUnlockGate } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
+import { type HopTimeline, hopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
@@ -212,6 +213,7 @@ function startRun(
   themeId: string,
   levelId: string,
   player: TonePlayer,
+  hopPlan?: HopTimeline,
 ): void {
   levelArtUrls = art;
   if (art.backdrop) {
@@ -230,6 +232,7 @@ function startRun(
     character: {
       fire: (trigger) => character?.fire(trigger) ?? false,
     },
+    hopPlan,
     onEvent: (event) => {
       if (event.type === 'assist-widened') {
         commit({ ...app, save: setAssistWidened(app.save, true) });
@@ -243,7 +246,7 @@ function startRun(
   });
 }
 
-/** Numerals run the shared level flow; star.riv lands in Phase 3 (dino placeholder). */
+/** Numerals run the shared level flow with the star guide and counted hops. */
 function enterNumeral(numeralId: string): void {
   const level = NUMERAL_LEVELS.find((candidate) => candidate.id === numeralId);
   if (!level) {
@@ -257,6 +260,8 @@ function enterNumeral(numeralId: string): void {
   if (app.screen.name !== 'level') {
     return;
   }
+  const count = Number.parseInt(numeralId.slice('num-'.length), 10);
+  const hopPlan = Number.isNaN(count) ? undefined : hopTimeline(count);
   const seed = 7 + NUMERIC_IDS.indexOf(numeralId) * 13;
   startRun(
     level,
@@ -266,6 +271,7 @@ function enterNumeral(numeralId: string): void {
     NUMBERS_PACK.id,
     numeralId,
     player,
+    hopPlan,
   );
 }
 

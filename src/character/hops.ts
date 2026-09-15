@@ -64,3 +64,43 @@ export function burstTimeMs(timeline: HopTimeline): number {
   const halfway = timeline.hops.find((hop) => hop.to >= 0.5);
   return halfway ? halfway.startMs + timeline.hopMs / 2 : timeline.totalMs / 2;
 }
+
+/** Height of each counted hop arc, in field units. */
+export const HOP_LIFT = 26;
+/** Radius of the in-place loop for the 0 ring move. */
+export const RING_RADIUS = 42;
+
+export interface HopPlacement {
+  /** Horizontal offset from the journey point (ring move only). */
+  readonly dx: number;
+  /** Vertical offset in field units; negative is up. */
+  readonly dy: number;
+  /** Journey progress 0..1 at this moment. */
+  readonly progress: number;
+}
+
+/** Placement during the hop stage: journey progress plus the arc lift
+ *  (counted hops) or one looping circle in place (the 0 ring move). */
+export function hopPlacement(plan: HopTimeline, elapsedMs: number): HopPlacement {
+  const clamped = Math.min(Math.max(elapsedMs, 0), plan.totalMs);
+  if (plan.ring) {
+    const local = plan.totalMs > 0 ? clamped / plan.totalMs : 1;
+    const angle = local * Math.PI * 2;
+    return {
+      dx: RING_RADIUS * Math.sin(angle),
+      dy: -RING_RADIUS * (1 - Math.cos(angle)),
+      progress: local,
+    };
+  }
+  const index = Math.min(Math.floor(clamped / plan.hopMs), plan.hops.length - 1);
+  const hop = plan.hops[index];
+  if (!hop) {
+    return { dx: 0, dy: 0, progress: 1 };
+  }
+  const local = (clamped - hop.startMs) / plan.hopMs;
+  return {
+    dx: 0,
+    dy: -HOP_LIFT * Math.sin(Math.PI * local),
+    progress: hop.from + (hop.to - hop.from) * local,
+  };
+}

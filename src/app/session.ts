@@ -3,7 +3,13 @@
 // harness into a testable module. Owns the engine state; the shell renders
 // snapshots and forwards pointer input. Sound and character go through
 // injected deps so tests run headless with fakes.
-import { playCheckpointChime, playCompletion, type TonePlayer } from '../audio/synth';
+import {
+  playCheckpointChime,
+  playCompletion,
+  playCountedNotes,
+  type TonePlayer,
+} from '../audio/synth';
+import { type HopTimeline, hopPlacement } from '../character/hops';
 import {
   ASSIST_START,
   type AssistState,
@@ -63,6 +69,8 @@ export interface SessionCharacter {
 
 export interface SessionDeps {
   readonly character: SessionCharacter;
+  /** Counted reward plan for numerals (hop pacing + notes); absent in the worlds. */
+  readonly hopPlan?: HopTimeline;
   readonly onEvent: (event: SessionEvent) => void;
   readonly player: TonePlayer;
   /** Deterministic confetti seed (varies per level for QA replay). */
@@ -197,16 +205,34 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       deps.onEvent({ type: 'assist-widened' });
     }
     if (completionStarted) {
-      const step = stepCompletion(DEFAULT_COMPLETION_CONFIG, completion, dtMs, multi.total);
+      const step = stepCompletion(
+        DEFAULT_COMPLETION_CONFIG,
+        completion,
+        dtMs,
+        multi.total,
+        deps.hopPlan?.totalMs,
+      );
       completion = step.state;
       for (const event of step.events) {
         if (event === 'burst') {
-          const progress = travelProgress(completion, DEFAULT_COMPLETION_CONFIG, multi.total);
-          confetti = createConfetti(
-            CONFETTI_COUNT,
-            deps.seed,
-            pointAtSequence(multi, multi.total * progress),
+          const burst = deps.hopPlan
+            ? hopPlacement(deps.hopPlan, deps.hopPlan.totalMs * DEFAULT_COMPLETION_CONFIG.burstAt)
+            : null;
+          const base = pointAtSequence(
+            multi,
+            multi.total *
+              (burst
+                ? burst.progress
+                : travelProgress(completion, DEFAULT_COMPLETION_CONFIG, multi.total)),
           );
+          confetti = createConfetti(CONFETTI_COUNT, deps.seed, {
+            x: base.x + (burst?.dx ?? 0),
+            y: base.y + (burst?.dy ?? 0),
+          });
+        } else if (event === 'hopStart') {
+          if (deps.hopPlan) {
+            playCountedNotes(deps.player, deps.hopPlan);
+          }
         } else if (event === 'celebrateStart') {
           deps.character.fire('celebrate');
           playCompletion(deps.player);
@@ -217,6 +243,10 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       }
       if (success) {
         glideToPark(dtMs);
+      } else if (deps.hopPlan && completion.stage === 'hop') {
+        const placement = hopPlacement(deps.hopPlan, completion.elapsedMs);
+        const base = pointAtSequence(multi, multi.total * placement.progress);
+        charPos = { x: base.x + placement.dx, y: base.y + placement.dy };
       } else {
         const progress = travelProgress(completion, DEFAULT_COMPLETION_CONFIG, multi.total);
         charPos = pointAtSequence(multi, multi.total * progress);
