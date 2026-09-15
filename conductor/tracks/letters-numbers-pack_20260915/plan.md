@@ -29,7 +29,7 @@
 - [x] Task: Save schema v2 + migration (TDD) [4fc45b2]
   - [x] Tests: additive pack fields; v1 → v2 lossless migration; corrupt-JSON recovery unchanged; existing consumers unaffected
   - [x] Implement in `save/store.ts`
-- [ ] Task: Dev harness multi-stroke support (play/tune previews for multi-stroke levels)
+- [x] Task: Dev harness multi-stroke support (play/tune previews for multi-stroke levels) [5823b14]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Numbers pack slice (first playable)
