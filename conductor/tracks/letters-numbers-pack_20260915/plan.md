@@ -14,9 +14,9 @@
 - [x] Task: Level schema v2 — ordered strokes (TDD) [92fac21]
   - [x] Tests: per-stroke validation (non-empty, ≥2 control points, margins, finite), stroke order preserved, v1 `controlPoints` normalized to a single stroke, `levelToPath` per stroke
   - [x] Implement schema/types + validation in `themes/level.ts`
-- [ ] Task: Trail engine — multi-stroke sequencing (TDD)
-  - [ ] Tests: stroke completed → advance to next; per-stroke frontier; lift keeps completed strokes and resumes mid-stroke; crossing-path fixture (figure-8 shape) tracking not corrupted by nearest-point ambiguity; progress never decreases; single-stroke parity with v1
-  - [ ] Implement in `engine/trail.ts` (pure, frame-step API preserved)
+- [x] Task: Trail engine — multi-stroke sequencing (TDD) [0fe3b9f]
+  - [x] Tests: stroke completed → advance to next; per-stroke frontier; lift keeps completed strokes and resumes mid-stroke; crossing-path fixture (figure-8 shape) tracking not corrupted by nearest-point ambiguity; progress never decreases; single-stroke parity with v1
+  - [x] Implement in `engine/trail.ts` (pure, frame-step API preserved)
 - [ ] Task: Checkpoints & completion across strokes (TDD)
   - [ ] Tests: per-stroke segment boundaries, ordered chime events across the sequence, completion only after the final stroke
   - [ ] Implement in `engine/checkpoints.ts`
