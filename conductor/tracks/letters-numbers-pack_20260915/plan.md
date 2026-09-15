@@ -20,9 +20,9 @@
 - [x] Task: Checkpoints & completion across strokes (TDD) [a35e939]
   - [x] Tests: per-stroke segment boundaries, ordered chime events across the sequence, completion only after the final stroke
   - [x] Implement in `engine/checkpoints.ts`
-- [ ] Task: Assists across strokes (TDD)
-  - [ ] Tests: nudge/hint target the active stroke; auto-assist counter across strokes; parent override still effective
-  - [ ] Implement in `engine/assists.ts`
+- [x] Task: Assists across strokes (TDD) [73c6847]
+  - [x] Tests: nudge/hint target the active stroke; auto-assist counter across strokes; parent override still effective
+  - [x] Implement in `engine/assists.ts`
 - [ ] Task: Multi-stroke render states (TDD)
   - [ ] Tests: state model — active (glow + marching dots + start star) vs completed (painted) vs upcoming (faint); whole numeral visible; completion choreography only after final stroke
   - [ ] Implement in `render/renderPath.ts` + stroke state helper
