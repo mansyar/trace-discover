@@ -19,9 +19,9 @@
   - [x] Steps: checkout → `pnpm/action-setup` (reads `packageManager`) → `setup-node` 24 + pnpm cache → `pnpm install --frozen-lockfile` → `pnpm check` → tests with coverage (`pnpm test --coverage` passthrough verified) → `pnpm build` → upload `coverage/` artifact (informational; 150,039 bytes uploaded)
   - [x] Verify locally: `actionlint` v1.7.12 clean; actions pinned to latest verified majors (checkout v7, setup-node v7, upload-artifact v7, pnpm/action-setup v6)
   - [x] Verify live: master push run [34919040984] green (~32s); dispatch run [34919111407] green; superseded dispatch run [34919096966] cancelled by `concurrency`
-- [ ] Task: Negative control — a failing PR fails CI
-  - [ ] Branch with a deliberate lint violation **and** a failing unit test → PR → both steps fail at the expected gates
-  - [ ] Push the fix to the same PR → green; close PR without merging; delete branch
+- [x] Task: Negative control — a failing PR fails CI
+  - [x] PR #1 (`qa/ci-negative-control`) proven red/green in sequence: failing test → red at `Tests with coverage` [34919251028]; broken type → red at `Lint and typecheck` (tsc TS2322) [34919310152]; misformatted file → red at `Lint and typecheck` (Biome formatter, log-verified) [34919357599]; cleanup commit → all gates green [34919423243]
+  - [x] Incident from this control: transient artifact-finalize 403 failed the green run → upload step hardened non-blocking [7be8431]; job rerun of the identical commit succeeded — PR #1 closed without merging (2026-09-15), branch deleted (local + remote)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Release Automation (CD on tag)
