@@ -23,14 +23,14 @@
 - [x] Task: Save schema v3 + migration (TDD) [0e4fa98]
   - [x] Tests: v2→v3 mapping (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3`, `num-*` preserved, theme badges→trophies, numbers badge→pack badges); v1→v3 chain; hostile input; `assistWidened` dropped; reset covers v3 fields
   - [x] Implement in `save/store.ts`
-- [~] Task: Consumer sweep — module moves, id renames, imports across `app/`, `render`, `main.ts`, `dev/`, tests
-- [ ] Task: App routing generalization (TDD)
-  - [ ] Tests: pack-generic screens/events (no `PACK_ID` special-casing); success replay/next/home per pack; badge per pack; circle unlock gating
-  - [ ] Implement in `app/app.ts`
-- [ ] Task: Content-first menu + pre-writing pack screen (zero-text)
-  - [ ] Menu: pack cards (Pre-writing, Numbers) in the existing card language; parent gate unchanged
-  - [ ] Pack screen: 12 cards + 12 sticker slots + badge + home; 90 px+ targets; safe-area + letterbox as v1
-  - [ ] Wire render + `main.ts`; screens-harness QA
+- [x] Task: Consumer sweep — module moves, id renames, imports across `app/`, `render`, `main.ts`, `dev/`, tests [272e377]
+- [x] Task: App routing generalization (TDD) — landed with the sweep commit to keep the tree green [272e377]
+  - [x] Tests: pack-generic screens/events (no `PACK_ID` special-casing); success replay/next/home per pack; badge per pack; circle unlock gating
+  - [x] Implement in `app/app.ts`
+- [~] Task: Content-first menu + pre-writing pack screen (zero-text)
+  - [x] Menu: pack cards (Pre-writing, Numbers) in the existing card language; parent gate unchanged [272e377]
+  - [~] Pack screen: 12 cards + 12 sticker slots + badge + home; 90 px+ targets; safe-area + letterbox as v1 (currently drawn with the 2-column numbers layout; 12-slot grid + shelf sizing next)
+  - [~] Wire render + `main.ts`; screens-harness QA (wired in [272e377]; harness QA pending)
 - [ ] Task: Dev harness + spike QA script updates (new ids/screens; v2→v3 migration probe)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
