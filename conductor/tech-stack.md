@@ -58,12 +58,12 @@
 - **GitHub Actions** — repository `mansyar/trace-discover` (public; free-tier runners)
   - **CI** (`.github/workflows/ci.yml`): on PR → `master`, push → `master`, manual dispatch — `pnpm check` → tests + coverage (artifact, informational) → `pnpm build`
   - **CD** (`.github/workflows/release.yml`): on semver tags `v*.*.*` — fail-fast validation (strict semver + tag == `package.json#version`) → same quality gates → `wrangler pages deploy`
-- **Deploy target:** Cloudflare Pages project `trace-discover` (direct upload; `trace-discover.pages.dev`); stable tags → production branch, prerelease tags → `rc` preview URL
+- **Deploy target:** Cloudflare Pages project `trace-discover` (direct upload; `trace-discover.pages.dev` production, `rc.trace-discover.pages.dev` prerelease); stable tags → branch `master` (production), prerelease tags → branch `rc` (preview)
 - **Secrets (Actions):** `CLOUDFLARE_API_TOKEN` (Account · Cloudflare Pages · Edit) + `CLOUDFLARE_ACCOUNT_ID`
-- **Releases:** semver tags are the release trigger; GitHub Release with auto-generated notes + deployed URL
+- **Releases:** semver tags are the release trigger; GitHub Release with auto-generated notes + "Deployed at &lt;url&gt;" line; release runbook lives in `workflow.md` (Deployment Workflow)
 - **Toolchain parity:** CI = `ubuntu-latest` + Node 24 + pnpm 12.4.1 (from `packageManager`, frozen lockfile); `wrangler` pinned exactly (`npx wrangler@4.131.2`)
 
-*2026-09-15 — Added (track `cicd-pipeline_20260915`): GitHub Actions CI + tag-driven CD to Cloudflare Pages, with GitHub Release notes. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+*2026-09-15 — Added (track `cicd-pipeline_20260915`): GitHub Actions CI + tag-driven CD to Cloudflare Pages, with GitHub Release notes. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Verified live same day: `v1.0.0-rc.1` → run 34920856339 deployed to the rc preview and created the prerelease; production untouched.*
 
 ## Constraints
 

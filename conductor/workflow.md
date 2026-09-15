@@ -404,32 +404,36 @@ A task is complete when:
 
 ## Deployment Workflow
 
-### Pre-Deployment Checklist
+All of this is automated by `.github/workflows/ci.yml` (checks) and `.github/workflows/release.yml` (releases). Tags are the release trigger; the only human decision is the version.
 
--   [ ] All tests passing
--   [ ] Coverage >80%
--   [ ] No linting errors
--   [ ] Mobile testing complete
--   [ ] Environment variables configured
--   [ ] Database migrations ready
--   [ ] Backup created
+### Pre-Release Checklist
 
-### Deployment Steps
+-   [ ] `master` CI is green (Actions → CI)
+-   [ ] `package.json` version bumped and committed (`chore(release): <version>`)
+-   [ ] Tag name matches `package.json` exactly (`v<version>`, strict semver) — the Release workflow refuses to run otherwise
+-   [ ] Repo secrets present: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
 
-1.  Merge feature branch to main
-2.  Tag release with version
-3.  Push to deployment service
-4.  Run database migrations
-5.  Verify deployment
-6.  Test critical paths
-7.  Monitor for errors
+### Release Steps
+
+1.  Bump `package.json` to the release version and push to `master` (`chore(release): <version>`)
+2.  `git tag -a v<version> -m "<version>"` (prereleases like `1.0.0-rc.1` are allowed — use them for release candidates)
+3.  `git push origin v<version>` — this triggers the Release workflow
+4.  Observe the run (Actions → Release): guards → checks → tests → build → Pages deploy → GitHub Release
+5.  Verify: run is green; Release exists with generated notes + "Deployed at …" line; the target URL serves the app
+6.  Stable tags deploy to production (`trace-discover.pages.dev`, branch `master`); prerelease tags deploy only to the `rc` preview (`rc.trace-discover.pages.dev`)
+
+### Rollback
+
+-   **Bad deploy, good code:** promote the previous Pages deployment in the Cloudflare dashboard (Deployments → ⋯ → Rollback)
+-   **Bad code:** revert the offending commit on `master`, bump to the next patch version, re-tag and push — never move or delete a released tag
+-   Never hand-deploy `dist/` to production; the tag path is the only sanctioned release route
 
 ### Post-Deployment
 
-1.  Monitor analytics
-2.  Check error logs
+1.  Monitor the Cloudflare dashboard (requests, errors)
+2.  Check the app boots on a real device (local builds: `pnpm serve` + LAN URL; live: install from the published URL)
 3.  Gather user feedback
-4.  Plan next iteration
+4.  Plan the next iteration (minor for features, patch for fixes)
 
 ## Continuous Improvement
 
