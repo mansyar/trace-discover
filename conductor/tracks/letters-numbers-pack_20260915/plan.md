@@ -32,7 +32,7 @@
 - [x] Task: Dev harness multi-stroke support (play/tune previews for multi-stroke levels) [5823b14]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Numbers pack slice (first playable)
+## Phase 2 — Numbers pack slice (first playable) [checkpoint: 1886ae1]
 
 *Goal: pack catalogue + all 10 numeral definitions + pack screen, traceable end-to-end in the dev harness with placeholder rewards; feel verified on device for 3, 4 and 8.*
 
@@ -52,7 +52,7 @@
   - [x] Tests: menu → pack → numeral → success → pack transitions; replay/next/home behavior for numerals
   - [x] Implement card (placeholder "123" art) + flow wiring
 - [x] Task: Device feel check via LAN — trace 3 (easy), 4 (two-stroke), 8 (crossing); tune tolerance/speed/nudge if needed; record findings [1886ae1]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Star buddy, audio & counted celebration
 
