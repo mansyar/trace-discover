@@ -8,6 +8,8 @@ function imageConstructor(): ImageConstructor | null {
   if (typeof globalImage !== 'function') {
     return null;
   }
+  // Justified cast: the typeof guard above narrows unknown to a callable, and
+  // only its construct signature is assumed (returning the DOM image type).
   return globalImage as ImageConstructor;
 }
 
