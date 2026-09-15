@@ -233,10 +233,19 @@ export function drawSplash(ctx: CanvasRenderingContext2D, now: number, layout: S
   ctx.stroke();
 }
 
+/** Pack card extras: real art plus zero-text progress (first frames: null). */
+export interface PackMenuArt {
+  readonly image: HTMLImageElement | null;
+  readonly cleared: number;
+  readonly total: number;
+  readonly badge: boolean;
+}
+
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
   layout: MenuLayout,
   fills: readonly string[],
+  packArt?: PackMenuArt,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -247,7 +256,7 @@ export function drawMenu(
     ctx.strokeStyle = NAVY;
     ctx.stroke();
     if (card.themeId === NUMBERS_PACK.id) {
-      drawMenuPackArt(ctx, card);
+      drawMenuPackCard(ctx, card, packArt);
     } else {
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
     }
@@ -264,7 +273,52 @@ export function drawMenu(
   ctx.restore();
 }
 
-/** Placeholder "1 2 3" card art until the Phase 4 art batch lands. */
+/** Pack card: "123" art, a dot strip for cleared numerals, star on badge. */
+function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
+  const centerX = card.x + card.width / 2;
+  const image = art?.image;
+  if (image) {
+    const maxHeight = card.height - 58;
+    const maxWidth = card.width - 44;
+    const scale = Math.min(maxHeight / image.naturalHeight, maxWidth / image.naturalWidth);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    ctx.drawImage(
+      image,
+      centerX - width / 2,
+      card.y + 14 + (maxHeight - height) / 2,
+      width,
+      height,
+    );
+  } else {
+    drawMenuPackArt(ctx, card);
+  }
+  if (!art || art.cleared <= 0) {
+    return;
+  }
+  const spacing = 22;
+  const startX = centerX - (spacing * (art.total - 1)) / 2;
+  const dotY = card.y + card.height - 22;
+  for (let i = 0; i < art.total; i += 1) {
+    ctx.beginPath();
+    ctx.arc(startX + i * spacing, dotY, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = i < art.cleared ? NAVY : '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
+  if (art.badge) {
+    drawStar(ctx, card.x + card.width - 28, card.y + 28, 16);
+    ctx.fillStyle = GOLD;
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
+}
+
+/** Fallback "1 2 3" strokes for the first frames before the card art loads. */
 function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
   const boxWidth = card.width / 4;
   const startX = card.x + (card.width - boxWidth * 3) / 2;

@@ -458,7 +458,14 @@ function render(now: number): void {
   if (screen.name === 'splash') {
     drawSplash(trailContext, now, SPLASH);
   } else if (screen.name === 'menu') {
-    drawMenu(trailContext, MENU, MENU_FILLS);
+    const cardUrl = '/art/pack/card.png';
+    preloadArt(cardUrl);
+    drawMenu(trailContext, MENU, MENU_FILLS, {
+      image: artCache.get(cardUrl) ?? null,
+      cleared: app.save.pack.cleared.length,
+      total: NUMERIC_IDS.length,
+      badge: app.save.pack.badge,
+    });
   } else if (screen.name === 'theme') {
     const entry = themeEntry(screen.themeId);
     const mainIds = entry?.mainLevels.map((level) => level.id) ?? [];
