@@ -42,9 +42,9 @@
 - [x] Task: Pack catalogue + progress model (TDD) [7af8a91]
   - [x] Tests: pack entry shape (pack id, 10 numerals, badge); playable ids; next-level wrap 0→…→9; progress read from save v2; badge-on-all-10 logic
   - [x] Implement pack catalogue (`themes/catalog.ts` extension or new pack module)
-- [ ] Task: Author numeral level data 0–9
-  - [ ] Implement level defs per content doc (strokes, goal placement) with `validateLevel` clean
-  - [ ] Headless screenshot QA per numeral (start/goal/direction)
+- [x] Task: Author numeral level data 0–9 [67b692e]
+  - [x] Implement level defs per content doc (strokes, goal placement) with `validateLevel` clean
+  - [x] Headless screenshot QA per numeral (start/goal/direction)
 - [ ] Task: Pack screen UI (zero-text)
   - [ ] 10 numeral cards + 10 sticker slots + badge spot; cleared state shows sticker; 90px+ targets; safe-area + letterbox as v1
   - [ ] Wired to save v2 progress; screens-harness QA
