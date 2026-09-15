@@ -48,10 +48,10 @@
   - [x] Implement in `app/render.ts` + `main.ts` wiring + session guard
 - [x] Task: Idle mascot on menu + pack screens [67ba2b5]
   - [x] Character idles (parked) outside levels; placeholder star backdrop until Phase 4 art
-- [~] Task: Audio — per-skin instrument presets (TDD)
-  - [ ] Tests: preset registry (marimba · bell · woodblock · kalimba); chimes + completion accept the skin preset; counted notes stay toy piano; volume/mute unaffected
-  - [ ] Implement in `audio/synth.ts` + wiring
-- [ ] Task: Parent zone — skin setter + trophy row + reset coverage (TDD)
+- [x] Task: Audio — per-skin instrument presets (TDD) [a2b7796]
+  - [x] Tests: preset registry (marimba · bell · woodblock · kalimba); chimes + completion accept the skin preset; counted notes stay toy piano; volume/mute unaffected
+  - [x] Implement in `audio/synth.ts` + wiring
+- [~] Task: Parent zone — skin setter + trophy row + reset coverage (TDD)
   - [ ] Tests: setter writes `settings.skin`; trophies display-only; reset clears packs/badges/trophies after confirm; volume/mute still apply per skin
 - [ ] Task: Device feel check via LAN — skin swap (incl. mid-trace) + audio timbres; record findings; tune if needed
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
