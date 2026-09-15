@@ -1,8 +1,9 @@
 # CD — tag-driven releases. A semver tag (v*.*.*) triggers: fail-fast validation -> quality gates
 # -> production build -> Cloudflare Pages deploy -> GitHub Release with generated notes.
 #
-# Stage note (track cicd-pipeline_20260915): this workflow lands guard-first. The guard is proven
-# with negative-control tags BEFORE the deploy and release steps are added (delivery strategy).
+# Stage note (track cicd-pipeline_20260915): guards landed first and were proven with negative-control
+# tags (runs 34920352519, 34920397104) BEFORE this deploy path was added (delivery strategy).
+# GitHub Release creation is added in stage 3; live proof lands with v1.0.0-rc.1 (Phase 3).
 name: Release
 
 on:
@@ -50,3 +51,48 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "Tag '$TAG' validated: version=$VERSION, prerelease=$PRERELEASE."
+
+      - name: Set up pnpm (version from packageManager)
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint and typecheck (Biome + tsc)
+        run: pnpm check
+
+      - name: Tests (Vitest)
+        run: pnpm test
+
+      - name: Production build (Vite)
+        run: pnpm build
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DEPLOY_BRANCH: ${{ steps.tag.outputs.prerelease == 'true' && 'rc' || 'master' }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          echo "Deploying tag $TAG to Pages branch $DEPLOY_BRANCH"
+          npx --yes wrangler@4.131.2 pages deploy dist \
+            --project-name trace-discover \
+            --branch="$DEPLOY_BRANCH" \
+            --commit-hash="$GITHUB_SHA" \
+            --commit-message="Release $TAG"
+
+          if [[ "$DEPLOY_BRANCH" == "master" ]]; then
+            TARGET_URL="https://trace-discover.pages.dev"
+          else
+            TARGET_URL="https://rc.trace-discover.pages.dev"
+          fi
+          echo "url=$TARGET_URL" >> "$GITHUB_OUTPUT"
+          echo "### Deployed $TAG to $TARGET_URL (branch: $DEPLOY_BRANCH)" >> "$GITHUB_STEP_SUMMARY"
