@@ -36,9 +36,9 @@
 
 *Goal: pack catalogue + all 10 numeral definitions + pack screen, traceable end-to-end in the dev harness with placeholder rewards; feel verified on device for 3, 4 and 8.*
 
-- [ ] Task: Content doc — numeral formation table (`content.md` in this track folder)
-  - [ ] Author 0–9: stroke order/direction, start marks, stroke counts (4 = two strokes), checkpoint counts, goal refs
-  - [ ] Stroke-direction checklist mirroring the v1 content workflow (0 = top CCW; 1 = top→bottom; …)
+- [x] Task: Content doc — numeral formation table (`content.md` in this track folder) [25a17ab]
+  - [x] Author 0–9: stroke order/direction, start marks, stroke counts (4 = two strokes), checkpoint counts, goal refs
+  - [x] Stroke-direction checklist mirroring the v1 content workflow (0 = top CCW; 1 = top→bottom; …)
 - [ ] Task: Pack catalogue + progress model (TDD)
   - [ ] Tests: pack entry shape (pack id, 10 numerals, badge); playable ids; next-level wrap 0→…→9; progress read from save v2; badge-on-all-10 logic
   - [ ] Implement pack catalogue (`themes/catalog.ts` extension or new pack module)
