@@ -17,10 +17,10 @@
 - [x] Task: Packs registry + pre-writing pack data (TDD) [e78a703]
   - [x] Tests: pack entry shape; pre-writing holds 12 slots (`pre-1..pre-12`) + 3 circles (`pre-bonus-1..3`) in current slot order (geometry relabeled, re-ramp lands Phase 3); numbers folds in (`num-0..9`); ids unique; `validateLevel` clean for all
   - [x] Implement `src/packs/` (level schema moves from `themes/level.ts`; `LevelDef.theme` removed)
-- [~] Task: Unified progress module (TDD)
-  - [ ] Tests: completedCount; isPackComplete; shouldAwardPackBadge; circle unlock boundaries at 4/8/12; nextPackLevelId wrap; no-circles pack (numbers) parity
-  - [ ] Implement progress; supersedes `themes/progress.ts`/`themes/pack.ts`/`themes/catalog.ts` (physical removal happens in the consumer sweep)
-- [ ] Task: Save schema v3 + migration (TDD)
+- [x] Task: Unified progress module (TDD) [ed1e8ba]
+  - [x] Tests: completedCount; isPackComplete; shouldAwardPackBadge; circle unlock boundaries at 4/8/12; nextPackLevelId wrap; no-circles pack (numbers) parity
+  - [x] Implement progress; supersedes `themes/progress.ts`/`themes/pack.ts`/`themes/catalog.ts` (physical removal happens in the consumer sweep)
+- [~] Task: Save schema v3 + migration (TDD)
   - [ ] Tests: v2→v3 mapping (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3`, `num-*` preserved, theme badges→trophies, numbers badge→pack badges); v1→v3 chain; hostile input; `assistWidened` dropped; reset covers v3 fields
   - [ ] Implement in `save/store.ts`
 - [ ] Task: Consumer sweep — module moves, id renames, imports across `app/`, `render`, `main.ts`, `dev/`, tests
