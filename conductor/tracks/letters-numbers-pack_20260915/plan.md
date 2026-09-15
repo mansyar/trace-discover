@@ -89,7 +89,7 @@
 - [x] Task: Build + precache/size verification — SW glob covers new assets (.riv, PNGs); dist within budget; offline cold-start probe (`spike/qa-offline.mjs`) from preview [4ce0da1]
 - [x] Task: Zero-text + 90px audit of new surfaces (menu card, pack screen, success overlays) — screenshot evidence — audit 2026-09-15: vision reports "(no text)" on menu, pack and success screenshots; code scan: fillText only in parent-zone functions; targets: numeral cards 96px, home Ø90, success buttons Ø96, menu pack card full width (badge on the pack screen is display-only)
 - [x] Task: Perf spot-checks — multi-stroke rendering fps sampling (mid-range Android + base iPad), cold start; fix if warranted [a307ba8]
-- [~] Task: v1 regression sweep — 3 worlds + bonuses quick pass (screens harness + device spot-checks); full test suite green
+- [x] Task: v1 regression sweep — 3 worlds + bonuses quick pass (screens harness + device spot-checks); full test suite green [3d5c1fa]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — Device validation & acceptance
