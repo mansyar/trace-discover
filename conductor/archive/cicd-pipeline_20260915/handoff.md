@@ -1,12 +1,12 @@
 # Handoff: Cutting `v1.0.0` (stable release)
 
-**Track:** `cicd-pipeline_20260915` · **Written:** 2026-09-15 · **State:** waiting for the `trace-v1_20260914` track to formally close
+**Track:** `cicd-pipeline_20260915` · **Written:** 2026-09-15 · **State:** `trace-v1_20260914` is closed and archived (2026-09-15); ready to cut stable
 
 The release machinery is live and proven end-to-end with `v1.0.0-rc.1` (prerelease → `rc` preview). This checklist is everything the maintainer needs to ship stable `v1.0.0`.
 
 ## Preconditions
 
-- [ ] The `trace-v1_20260914` track is formally complete (final review/acceptance done)
+- [x] The `trace-v1_20260914` track is formally complete (final review/acceptance done; review fixes `742fe2a` recorded)
 - [ ] `master` CI green; no open v1-scope work items
 - [ ] RC tag disposition decided — recommended: **keep `v1.0.0-rc.1` published** (tags are immutable; the RC documents the validation run). If you insist on deleting it, do so *before* shipping stable, and never reuse or move a pushed tag
 - [ ] `package.json` bumped to `1.0.0` (`chore(release): 1.0.0`), pushed — the version guard requires the exact match
