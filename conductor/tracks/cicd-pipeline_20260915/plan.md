@@ -44,7 +44,7 @@
   - [ ] (Deferred — Phase 3) Verify via `gh release view`: prerelease flag, generated notes, URL line
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — End-to-End Release Proof & Handoff
+## Phase 3 — End-to-End Release Proof & Handoff [checkpoint: 8a43f1f]
 
 *Goal: the full chain proven on a real prerelease, production untouched, runbook recorded.*
 
