@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 // not a mid-range Android verdict (Phase 7 measures on hardware).
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const URL = process.argv[2] ?? 'http://localhost:4173/';
+const LEVEL = process.argv[3] ?? 'dino-1';
 const DIST = path.join(HERE, '..', 'dist');
 
 const EDGE_PATHS = [
@@ -112,15 +113,21 @@ function summarize(name, samples) {
   };
   const downAt = Date.now();
   await tapTarget('splash');
-  await tapTarget('theme:dino');
-  await tapTarget('level:dino-1');
+  if (LEVEL.startsWith('num-')) {
+    await tapTarget('pack');
+  } else {
+    await tapTarget('theme:dino');
+  }
+  await tapTarget(LEVEL.startsWith('num-') ? `numeral:${LEVEL}` : `level:${LEVEL}`);
   await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });
   const trace = await page.evaluate(() => {
     const field = window.__app.field();
-    const path = window.__app.path();
-    const pts = path.filter((_, i) => i % 4 === 0);
-    pts.push(path[path.length - 1]);
-    return { field, pts };
+    const strokes = window.__app.strokes().map((points) => {
+      const pts = points.filter((_, i) => i % 4 === 0);
+      pts.push(points[points.length - 1]);
+      return pts;
+    });
+    return { field, strokes };
   });
   const toClient = (p) => ({
     x: trace.field.x + (p.x / 430) * trace.field.width,
@@ -129,7 +136,7 @@ function summarize(name, samples) {
   // Touch-to-feedback upper bound: page timestamp just before pointerdown
   // vs. the first rAF timestamp after it. Includes automation round-trip,
   // so the true input-to-paint cost is lower; the budget is <100ms.
-  const first = toClient(trace.pts[0]);
+  const first = toClient(trace.strokes[0][0]);
   await page.mouse.move(first.x, first.y);
   await page.evaluate(() => {
     window.__downAt = performance.now();
@@ -142,17 +149,27 @@ function summarize(name, samples) {
   await page.waitForFunction(() => window.__paintAt > 0, null, { timeout: 5000 });
   const feedback = await page.evaluate(() => window.__paintAt - window.__downAt);
   console.log(`input-to-next-frame: ${feedback.toFixed(1)}ms (upper bound, incl. automation)`);
-  for (const p of trace.pts.slice(1)) {
-    const c = toClient(p);
-    await page.mouse.move(c.x, c.y, { steps: 2 });
-    await wait(60);
+  // Trace every stroke with the fingertip, lifting between strokes.
+  for (let s = 0; s < trace.strokes.length; s += 1) {
+    const stroke = trace.strokes[s];
+    if (s > 0) {
+      const start = toClient(stroke[0]);
+      await page.mouse.move(start.x, start.y);
+      await page.mouse.down();
+    }
+    for (const p of stroke) {
+      const c = toClient(p);
+      await page.mouse.move(c.x, c.y, { steps: 2 });
+      await wait(60);
+    }
+    const goal = toClient(stroke[stroke.length - 1]);
+    for (let i = 0; i < 6; i += 1) {
+      await page.mouse.move(goal.x, goal.y);
+      await wait(120);
+    }
+    await page.mouse.up();
+    await wait(250);
   }
-  const goal = toClient(trace.pts[trace.pts.length - 1]);
-  for (let i = 0; i < 6; i += 1) {
-    await page.mouse.move(goal.x, goal.y);
-    await wait(120);
-  }
-  await page.mouse.up();
   await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
   const frames = await page.evaluate(() => window.__frames);
   summarize('frame interval during trace', frames);
