@@ -131,30 +131,48 @@ try {
   await page.screenshot({ path: path.join(OUT, 'persist-menu-migrated.png') });
 
   const migrated = await readSave(page);
-  check('version upgraded to 2', migrated?.version === 2);
-  check('badges kept', JSON.stringify(migrated?.badges) === '["dino"]');
-  check('world levels kept', migrated?.completedLevels?.length === 8);
+  check('version upgraded to 3', migrated?.version === 3);
   check(
-    'pack section starts fresh',
-    migrated?.pack?.badge === false && migrated?.pack?.cleared?.length === 0,
+    'legacy world badge became a trophy',
+    JSON.stringify(migrated?.trophies) === '["dino"]' && JSON.stringify(migrated?.badges) === '[]',
+  );
+  check(
+    'world levels remapped to pre slots',
+    JSON.stringify(migrated?.completedLevels) ===
+      JSON.stringify([
+        'pre-1',
+        'pre-2',
+        'pre-3',
+        'pre-4',
+        'pre-bonus-1',
+        'pre-5',
+        'pre-9',
+        'pre-10',
+      ]),
+  );
+  check(
+    'legacy keys dropped',
+    migrated?.assistWidened === undefined && migrated?.pack === undefined,
   );
   check(
     'settings kept',
-    migrated?.settings?.volume === 0.7 && migrated?.settings?.easierTracing === true,
+    migrated?.settings?.volume === 0.7 &&
+      migrated?.settings?.easierTracing === true &&
+      migrated?.settings?.skin === 'dino',
   );
 
-  await tapTarget(page, 'theme:dino');
+  await tapTarget(page, 'pack:pre');
   await page.waitForTimeout(700);
-  await page.screenshot({ path: path.join(OUT, 'persist-theme-migrated.png') });
-  await tapTarget(page, 'theme:home');
-  await tapTarget(page, 'pack');
+  await page.screenshot({ path: path.join(OUT, 'persist-pack-migrated.png') });
+  await tapTarget(page, 'pack:home');
+  await tapTarget(page, 'pack:numbers');
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(OUT, 'persist-pack-empty.png') });
+  await page.screenshot({ path: path.join(OUT, 'persist-numbers-empty.png') });
   await tapTarget(page, 'pack:home');
 
-  // Part B: pack progress survives a relaunch.
-  await tapTarget(page, 'pack');
-  await tapTarget(page, 'numeral:num-2');
+  // Part B: numbers progress survives a relaunch.
+  await tapTarget(page, 'pack:numbers');
+  await tapTarget(page, 'level:num-2');
   await traceNumeral(page);
   await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
   await page.waitForTimeout(1500);
@@ -164,20 +182,23 @@ try {
   await page.screenshot({ path: path.join(OUT, 'persist-pack-num2.png') });
 
   const afterRun = await readSave(page);
-  check('num-2 cleared on save', JSON.stringify(afterRun?.pack?.cleared) === '["num-2"]');
+  check('num-2 cleared on save', afterRun?.completedLevels?.includes('num-2') === true);
 
   await page.reload();
   await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
   await tapSplash(page);
   await page.waitForTimeout(700);
   await page.screenshot({ path: path.join(OUT, 'persist-menu-after-relaunch.png') });
-  await tapTarget(page, 'pack');
+  await tapTarget(page, 'pack:numbers');
   await page.waitForTimeout(700);
   await page.screenshot({ path: path.join(OUT, 'persist-pack-after-relaunch.png') });
 
   const relaunched = await readSave(page);
-  check('progress survived the relaunch', JSON.stringify(relaunched?.pack?.cleared) === '["num-2"]');
-  check('version still 2 after relaunch', relaunched?.version === 2);
+  check(
+    'progress survived the relaunch',
+    relaunched?.completedLevels?.includes('num-2') === true,
+  );
+  check('version still 3 after relaunch', relaunched?.version === 3);
 } catch (error) {
   console.error('FAILED:', String(error));
   process.exitCode = 1;

@@ -1,11 +1,11 @@
 import { chromium } from 'playwright-core';
 
-// Production app-loop QA: drives the real index.html from splash to badge to
-// bonus for every theme, tracing each level with a simulated fingertip.
+// Production app-loop QA: drives the real index.html from splash to pack badge
+// to the bonus circles for the pre-writing pack, tracing each level with a
+// simulated fingertip.
 // Usage: `pnpm serve` (preview on 4173) then `node spike/qa-app.mjs [url]`.
 const BASE = process.argv[2] ?? 'http://localhost:4173';
-const THEMES = ['dino', 'construction', 'animals'];
-const MAINS = ['1', '2', '3', '4'];
+const MAINS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const logs = [];
@@ -83,53 +83,51 @@ await tapTarget('splash');
 log(`splash -> ${(await screenOf()).name}`);
 await page.screenshot({ path: 'spike/qa/qa-app/menu.png' });
 
-for (const theme of THEMES) {
-  await tapTarget(`theme:${theme}`);
-  log(`${theme}: -> ${(await screenOf()).name}`);
-  await page.screenshot({ path: `spike/qa/qa-app/theme-${theme}.png` });
-  for (const n of MAINS) {
-    const id = `${theme}-${n}`;
-    const opened = await screenOf();
-    if (opened.name !== 'level' || opened.levelId !== id) {
-      if (opened.name === 'theme') {
-        await tapTarget(`level:${id}`);
-      } else {
-        log(`${id}: DID NOT OPEN (${opened.name} ${opened.levelId ?? ''})`);
-        continue;
-      }
+await tapTarget('pack:pre');
+log(`menu -> ${(await screenOf()).name}`);
+await page.screenshot({ path: 'spike/qa/qa-app/pack-pre.png' });
+for (const n of MAINS) {
+  const id = `pre-${n}`;
+  const opened = await screenOf();
+  if (opened.name !== 'level' || opened.levelId !== id) {
+    if (opened.name === 'pack') {
+      await tapTarget(`level:${id}`);
+    } else {
+      log(`${id}: DID NOT OPEN (${opened.name} ${opened.levelId ?? ''})`);
+      continue;
     }
-    try {
-      await traceLevel(id);
-      log(`${id}: TRACE SUCCESS`);
-    } catch (e) {
-      log(`${id}: TRACE FAILED`);
-      await page.screenshot({ path: `spike/qa/qa-app/${id}-stuck.png` });
-    }
-    await tapTarget('success:next');
-    await wait(300);
   }
-  const afterMains = await screenOf();
-  log(`${theme}: after L4 next -> ${afterMains.name}`);
-  await page.screenshot({ path: `spike/qa/qa-app/badge-${theme}.png` });
-  await tapTarget(`bonus:${theme}`);
   try {
-    await traceLevel(`${theme}-bonus`);
-    log(`${theme}-bonus: TRACE SUCCESS`);
+    await traceLevel(id);
+    log(`${id}: TRACE SUCCESS`);
   } catch (e) {
-    log(`${theme}-bonus: TRACE FAILED`);
-    await page.screenshot({ path: `spike/qa/qa-app/${theme}-bonus-stuck.png` });
+    log(`${id}: TRACE FAILED`);
+    await page.screenshot({ path: `spike/qa/qa-app/${id}-stuck.png` });
   }
-  await tapTarget('success:home');
+  await tapTarget('success:next');
   await wait(300);
-  log(`${theme}: home -> ${(await screenOf()).name}`);
-  // Re-open the theme to capture filled sticker slots + badge.
-  await tapTarget(`theme:${theme}`);
-  await wait(400);
-  await page.screenshot({ path: `spike/qa/qa-app/theme-${theme}-done.png` });
-  await tapTarget('theme:home');
-  await wait(300);
-  log(`${theme}: back -> ${(await screenOf()).name}`);
 }
+log(`after L12 next -> ${(await screenOf()).name}`);
+await page.screenshot({ path: 'spike/qa/qa-app/badge-pre.png' });
+await tapTarget('badge:seal');
+log(`seal -> ${(await screenOf()).name}`);
+for (const n of ['1', '2', '3']) {
+  const id = `pre-bonus-${n}`;
+  try {
+    await traceLevel(id);
+    log(`${id}: TRACE SUCCESS`);
+  } catch (e) {
+    log(`${id}: TRACE FAILED`);
+    await page.screenshot({ path: `spike/qa/qa-app/${id}-stuck.png` });
+  }
+  await tapTarget(n === '3' ? 'success:home' : 'success:next');
+  await wait(300);
+}
+log(`pack done -> ${(await screenOf()).name}`);
+await page.screenshot({ path: 'spike/qa/qa-app/pack-pre-done.png' });
+// The pack badge spot re-opens the first unlocked circle (v1 parity).
+await tapTarget('pack:badge');
+log(`badge re-entry -> ${JSON.stringify(await screenOf())}`);
 
 const saved = await page.evaluate(() => localStorage.getItem('trace-discover-save-v1'));
 log(`save: ${saved}`);

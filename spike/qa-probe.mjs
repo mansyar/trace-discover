@@ -38,11 +38,11 @@ await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
 await wait(800);
 await tapTarget('splash');
-await tapTarget('theme:dino');
-await tapTarget('level:dino-1');
+await tapTarget('pack:pre');
+await tapTarget('level:pre-1');
 console.log('screen:', JSON.stringify(await page.evaluate(() => window.__app.screen())));
 
-// Trace dino-1.
+// Trace pre-1.
 await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });
 const trace = await page.evaluate(() => {
   const field = window.__app.field();

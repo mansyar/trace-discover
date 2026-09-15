@@ -1,5 +1,5 @@
 // Offline cold-start probe: installs the SW from the production preview
-// server, then goes fully offline and plays dino-1 end to end.
+// server, then goes fully offline and plays pre-1 end to end.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const URL = process.argv[2] ?? 'http://localhost:4173/';
-const LEVEL = process.argv[3] ?? 'dino-1';
+const LEVEL = process.argv[3] ?? 'pre-1';
 const OUT = path.join(HERE, 'qa-offline');
 
 const EDGE_PATHS = [
@@ -68,15 +68,12 @@ async function launch() {
   };
 
   await tap('splash');
-  if (LEVEL.startsWith('num-')) {
-    await tap('pack');
-  } else {
-    await tap('theme:dino');
-  }
-  await page.screenshot({ path: path.join(OUT, 'offline-theme.png') });
+  const packId = LEVEL.startsWith('num-') ? 'numbers' : 'pre';
+  await tap(`pack:${packId}`);
+  await page.screenshot({ path: path.join(OUT, 'offline-pack.png') });
 
   // Trace the chosen level with the real pointer path.
-  await tap(LEVEL.startsWith('num-') ? `numeral:${LEVEL}` : `level:${LEVEL}`);
+  await tap(`level:${LEVEL}`);
   await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });
   const trace = await page.evaluate(() => {
     const field = window.__app.field();

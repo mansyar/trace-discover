@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 // not a mid-range Android verdict (Phase 7 measures on hardware).
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const URL = process.argv[2] ?? 'http://localhost:4173/';
-const LEVEL = process.argv[3] ?? 'dino-1';
+const LEVEL = process.argv[3] ?? 'pre-1';
 const DIST = path.join(HERE, '..', 'dist');
 
 const EDGE_PATHS = [
@@ -80,7 +80,7 @@ function summarize(name, samples) {
   });
   console.log(`cold boot to interactive app: ${bootMs}ms`, JSON.stringify(timing));
 
-  // Start frame-interval sampling, then trace dino-1 end to end.
+  // Start frame-interval sampling, then trace pre-1 end to end.
   await page.evaluate(() => {
     window.__frames = [];
     let last = 0;
@@ -113,12 +113,9 @@ function summarize(name, samples) {
   };
   const downAt = Date.now();
   await tapTarget('splash');
-  if (LEVEL.startsWith('num-')) {
-    await tapTarget('pack');
-  } else {
-    await tapTarget('theme:dino');
-  }
-  await tapTarget(LEVEL.startsWith('num-') ? `numeral:${LEVEL}` : `level:${LEVEL}`);
+  const packId = LEVEL.startsWith('num-') ? 'numbers' : 'pre';
+  await tapTarget(`pack:${packId}`);
+  await tapTarget(`level:${LEVEL}`);
   await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });
   const trace = await page.evaluate(() => {
     const field = window.__app.field();

@@ -65,6 +65,29 @@ findings.push(`level screen payload ${JSON.stringify(screen2)}`);
 await wait(900);
 await shot('pre-journey-level.png');
 
+// Scenario 2: an unlocked circle is reachable from the pack badge spot.
+await page.evaluate(() => {
+  localStorage.setItem(
+    'trace-discover-save-v1',
+    JSON.stringify({
+      badges: [],
+      completedLevels: ['pre-1', 'pre-2', 'pre-3', 'pre-4'],
+      settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+      trophies: [],
+      version: 3,
+    }),
+  );
+});
+await page.reload({ waitUntil: 'load' });
+await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 30000 });
+await wait(600);
+await tapTarget('splash');
+await tapTarget('pack:pre');
+await tapTarget('pack:badge');
+const reentry = await page.evaluate(() => window.__app.screen());
+findings.push(`badge re-entry -> ${JSON.stringify(reentry)}`);
+await shot('pre-journey-badge-reentry.png');
+
 findings.push(`page errors: ${errors.length === 0 ? 'none' : errors.join(' | ')}`);
 console.log(findings.join('\n'));
 await browser.close();

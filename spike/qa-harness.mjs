@@ -48,8 +48,8 @@ async function tracePath(points, field, goalDwell = 8) {
   await page.mouse.up();
 }
 
-// --- play.html: v1 levels full trace through the migrated pipeline ---
-for (const id of ['dino-2', 'dino-bonus']) {
+// --- play.html: pre-writing slots full trace through the migrated pipeline ---
+for (const id of ['pre-2', 'pre-bonus-1']) {
   await page.goto(`${BASE}/play.html?level=${id}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__qa !== undefined, null, { timeout: 30000 });
   await wait(600);
