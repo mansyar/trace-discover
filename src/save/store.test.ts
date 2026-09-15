@@ -205,3 +205,42 @@ describe('setAssistWidened', () => {
     expect(loadSave(storage).assistWidened).toBe(true);
   });
 });
+
+describe('v1 fixture migration', () => {
+  it('upgrades a real v1 save losslessly, keeping every sticker and setting', () => {
+    // A save as the shipped v1 app wrote it: dino cleared end to end (badge
+    // plus bonus), one construction level, two animals levels, tuned settings.
+    const fixture = {
+      assistWidened: true,
+      badges: ['dino'],
+      completedLevels: [
+        'dino-1',
+        'dino-2',
+        'dino-3',
+        'dino-4',
+        'dino-bonus',
+        'construction-1',
+        'animals-1',
+        'animals-2',
+      ],
+      settings: { easierTracing: true, muted: false, volume: 0.7 },
+      version: 1,
+    };
+    const storage = createMemoryStorage({
+      'trace-discover-save-v1': JSON.stringify(fixture),
+    });
+
+    const migrated = loadSave(storage);
+
+    expect(migrated.assistWidened).toBe(true);
+    expect(migrated.badges).toEqual(['dino']);
+    expect(migrated.completedLevels).toEqual(fixture.completedLevels);
+    expect(migrated.settings).toEqual({ easierTracing: true, muted: false, volume: 0.7 });
+    expect(migrated.pack).toEqual({ badge: false, cleared: [] });
+    expect(migrated.version).toBe(2);
+
+    // Re-saving the migrated payload round-trips unchanged.
+    saveSave(storage, migrated);
+    expect(loadSave(storage)).toEqual(migrated);
+  });
+});
