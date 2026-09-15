@@ -65,7 +65,7 @@
 
 *2026-09-15 — Added (track `cicd-pipeline_20260915`): GitHub Actions CI + tag-driven CD to Cloudflare Pages, with GitHub Release notes. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Verified live same day: `v1.0.0-rc.1` → run 34920856339 deployed to the rc preview and created the prerelease; production untouched.*
 
-*2026-09-15 — Updated (track `letters-numbers-pack_20260915`): level schema v2 — ordered multi-stroke levels (single-stroke v1 content unchanged, per-stroke frontiers in the trail engine); save schema v2 — additive `pack` section (numerals cleared, numeral stickers, pack badge) with lossless v1→v2 migration; dedicated zero-text "123" pack screen pattern (numerals as drawn art, cream shell). Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+*2026-09-15 — Updated (track `letters-numbers-pack_20260915`): level schema v2 — ordered multi-stroke levels (single-stroke v1 content unchanged, per-stroke frontiers in the trail engine); save schema v2 — additive `pack` section (numerals cleared, numeral stickers, pack badge) with lossless v1→v2 migration; dedicated zero-text "123" pack screen pattern (numerals as drawn art, cream shell). Implemented and acceptance-passed 2026-09-15 (Phase 6: numerals 0–9 + `star.riv` guide, dist 6.25 MB); awaits the merge/release decision. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
 
 ## Constraints
 

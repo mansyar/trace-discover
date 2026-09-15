@@ -10,6 +10,8 @@ Give a 3.5-year-old a joyful first taste of "writing" — no text, no timers, no
 
 Long-term direction: a **letters & numbers tracing pack** that continues the stroke curriculum. The architecture (path engine + Rive characters + sticker loop) is designed so that pack is *content*, not code.
 
+*2026-09-15 — Numbers pack, Part 1 (numerals 0–9 with the star guide: pack screen, multi-stroke engine, counted reward) implemented on local branch `track/letters-numbers-pack` — awaiting the merge/release decision. Letters A–Z remain the planned follow-up.*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
