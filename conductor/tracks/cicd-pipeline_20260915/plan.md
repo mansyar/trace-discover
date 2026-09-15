@@ -48,10 +48,10 @@
 
 *Goal: the full chain proven on a real prerelease, production untouched, runbook recorded.*
 
-- [ ] Task: Cut `v1.0.0-rc.1` end-to-end
-  - [ ] Bump `package.json` → `1.0.0-rc.1` (`chore(release): 1.0.0-rc.1`), push to `master`
-  - [ ] Tag + push `v1.0.0-rc.1`; observe the CD run: guards pass, gates run, deploy succeeds to the `rc` preview, URL captured
-  - [ ] Verify: release exists (prerelease + notes + URL); preview URL serves the PWA with offline intact; production URL unchanged; evidence (run URLs, deployed URL) recorded in the track
+- [x] Task: Cut `v1.0.0-rc.1` end-to-end
+  - [x] Bump `package.json` → `1.0.0-rc.1` (`chore(release): 1.0.0-rc.1`), pushed to `master` [e4fb31d]
+  - [x] Tag + push `v1.0.0-rc.1`; CD run [34920856339] green: guards passed, gates ran, deploy succeeded to the `rc` preview, URL captured (`deploy.url` → summary + release body)
+  - [x] Verify: prerelease exists with generated notes + `Deployed at https://rc.trace-discover.pages.dev`; preview serves PWA (HTTP 200) with offline cold-start intact (`spike/qa-offline.mjs`: booted from precache, dino-1 traced SUCCESS, zero page errors); production untouched (no new Production deployment; site still `47747df` build); CI [34920853873] green; evidence recorded in plan + git note
 - [ ] Task: Documentation alignment — release runbook
   - [ ] Rewrite `workflow.md` "Deployment Workflow" → real runbook (bump → PR/merge → tag → push → observe → verify; rollback = promote a previous Pages deployment / re-tag a fixed build)
   - [ ] `tech-stack.md` CI/CD section reflects what actually shipped (dated note); track docs list secret names, project name, production branch, URLs
