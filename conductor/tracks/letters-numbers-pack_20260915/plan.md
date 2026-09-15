@@ -70,7 +70,7 @@
 - [x] Task: Device feel check of the full loop via LAN → tune N-hop pacing (e.g., cap) if needed; record findings — device-verified 2026-09-15: hops, notes and the 0 ring move all feel right; no tuning needed
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Art batch, stickers & progress integration
+## Phase 4 — Art batch, stickers & progress integration [checkpoint: 0ec8bd7]
 
 *Goal: real art everywhere + full persistence — the pack is feature-complete.*
 
@@ -80,7 +80,7 @@
 - [x] Task: Parent zone — pack reset + easier-tracing coverage (TDD) [2d6498c]
   - [x] Tests: reset clears pack fields only after confirm; easier tracing affects numerals; volume/mute applies to the new preset
 - [x] Task: Persistence E2E — relaunch state + v1→v2 migration on a real v1 save fixture (TDD + manual) [0ec8bd7]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance & QA sweep
 
