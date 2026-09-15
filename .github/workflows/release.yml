@@ -96,3 +96,18 @@ jobs:
           fi
           echo "url=$TARGET_URL" >> "$GITHUB_OUTPUT"
           echo "### Deployed $TAG to $TARGET_URL (branch: $DEPLOY_BRANCH)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          TARGET_URL: ${{ steps.deploy.outputs.url }}
+          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          FLAGS=()
+          if [[ "$PRERELEASE" == "true" ]]; then FLAGS+=(--prerelease); fi
+          gh release create "$TAG" --title "$TAG" --generate-notes "${FLAGS[@]}"
+          BODY="$(gh release view "$TAG" --json body -q .body)"
+          gh release edit "$TAG" --notes "${BODY}"$'\n\n'"Deployed at ${TARGET_URL}"
+          echo "### Release $TAG created (prerelease: $PRERELEASE, deployed: $TARGET_URL)" >> "$GITHUB_STEP_SUMMARY"
