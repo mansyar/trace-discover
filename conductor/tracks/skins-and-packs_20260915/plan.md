@@ -8,9 +8,9 @@
 
 *Goal: the app runs on the new model — content-first menu (Pre-writing + Numbers), both packs playable under the (temporarily fixed) dino skin, save v3 migrating v1/v2 losslessly, docs resynced.*
 
-- [ ] Task: Context docs resync — `tech-stack.md` (skins/packs architecture, save v3, character contract) + `product.md` (packs × skins framing; stale note refresh) — before implementation per workflow.md
-  - [ ] Update `tech-stack.md`: module map (`skins/`, `packs/`), save schema v3, character contract, asset pipeline notes
-  - [ ] Update `product.md`: description/direction around packs × skins; refresh the dated note; verify no contradictions
+- [x] Task: Context docs resync — `tech-stack.md` (skins/packs architecture, save v3, character contract) + `product.md` (packs × skins framing; stale note refresh) — before implementation per workflow.md [df9752b]
+  - [x] Update `tech-stack.md`: module map (`skins/`, `packs/`), save schema v3, character contract, asset pipeline notes
+  - [x] Update `product.md`: description/direction around packs × skins; refresh the dated note; verify no contradictions
 - [ ] Task: Skins registry (TDD)
   - [ ] Tests: four skins (dino, star, construction, animal) each carrying id/character/backdrop/accent/instrument; unique ids; lookup by id; contract fields present
   - [ ] Implement `src/skins/` (star backdrop refs the future art path; placeholder until Phase 4)
