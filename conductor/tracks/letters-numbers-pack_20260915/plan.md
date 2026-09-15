@@ -26,9 +26,9 @@
 - [x] Task: Multi-stroke render states (TDD) [dab76ee]
   - [x] Tests: state model — active (glow + marching dots + start star) vs completed (painted) vs upcoming (faint); whole numeral visible; completion choreography only after final stroke
   - [x] Implement in `render/renderPath.ts` + stroke state helper
-- [ ] Task: Save schema v2 + migration (TDD)
-  - [ ] Tests: additive pack fields; v1 → v2 lossless migration; corrupt-JSON recovery unchanged; existing consumers unaffected
-  - [ ] Implement in `save/store.ts`
+- [x] Task: Save schema v2 + migration (TDD) [4fc45b2]
+  - [x] Tests: additive pack fields; v1 → v2 lossless migration; corrupt-JSON recovery unchanged; existing consumers unaffected
+  - [x] Implement in `save/store.ts`
 - [ ] Task: Dev harness multi-stroke support (play/tune previews for multi-stroke levels)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
