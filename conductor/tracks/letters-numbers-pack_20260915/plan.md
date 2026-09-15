@@ -54,7 +54,7 @@
 - [x] Task: Device feel check via LAN — trace 3 (easy), 4 (two-stroke), 8 (crossing); tune tolerance/speed/nudge if needed; record findings [1886ae1]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Star buddy, audio & counted celebration
+## Phase 3 — Star buddy, audio & counted celebration [checkpoint: bbd9e43]
 
 *Goal: the reward layer live — star guide hops/celebrates; toy-piano preset; numeral-aware completion (N hops + N notes; 0 special).*
 
@@ -67,8 +67,8 @@
   - [x] Implement in `audio/synth.ts` (+ preset registry)
 - [x] Task: Completion choreography integration — glow → N counted hops with notes → celebrate → confetti → sticker fly-in → success [bbd9e43]
   - [x] Replace the placeholder reward path in the app loop; wire the 0 treatment; screens QA
-- [ ] Task: Device feel check of the full loop via LAN → tune N-hop pacing (e.g., cap) if needed; record findings
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Device feel check of the full loop via LAN → tune N-hop pacing (e.g., cap) if needed; record findings — device-verified 2026-09-15: hops, notes and the 0 ring move all feel right; no tuning needed
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Art batch, stickers & progress integration
 
