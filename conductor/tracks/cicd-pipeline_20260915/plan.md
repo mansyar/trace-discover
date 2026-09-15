@@ -28,12 +28,12 @@
 
 *Goal: tag → validate → gate → build → deploy → release note, with fail-fast guards proven before any deploy exists.*
 
-- [ ] Task: Release workflow — trigger + fail-fast validation
-  - [ ] Author `.github/workflows/release.yml`: trigger `push: tags: ['v*.*.*']`; `concurrency` **without** cancel-in-progress; `permissions: contents: write`; `ubuntu-latest`; `timeout-minutes: 20`
-  - [ ] Step: strict semver check of `${GITHUB_REF_NAME#v}` **and** tag == `package.json#version` — fail before install/build/deploy
-  - [ ] Verify locally: `actionlint` clean
-  - [ ] Negative control A: push tag `v1.0.x` (matches trigger, rejected by semver) → fails at validation, no build/deploy attempted; delete tag
-  - [ ] Negative control B: push tag `v1.0.0-rc.9` while `package.json` = 0.1.0 → fails at the version guard; delete tag
+- [x] Task: Release workflow — trigger + fail-fast validation
+  - [x] Author `.github/workflows/release.yml` (stage 1, guards only): trigger `push: tags: ['v*.*.*']` [5bfd94c]; `concurrency` without cancel-in-progress; `permissions: contents: write`; `ubuntu-latest`; `timeout-minutes: 20`
+  - [x] Step: strict semver regex on `${GITHUB_REF_NAME#v}` **and** tag == `package.json#version` — fails before install/build/deploy; emits `version`/`prerelease` outputs
+  - [x] Verify locally: `actionlint` clean; regex mirror sanity (rejects `1.0.x`, `01.0.0`, `1.0`, accepts `1.0.0-rc.1`/`1.0.0-rc.9`)
+  - [x] Negative control A: tag `v1.0.x` → run [34920352519] failed in ~6s at "Validate tag" (*"not strict semver … Refusing to release"*), nothing further ran; tag deleted
+  - [x] Negative control B: tag `v1.0.0-rc.9` while `package.json` = 0.1.0 → run [34920397104] failed at "Validate tag" (*"does not match package.json version '0.1.0'"*); tag deleted — remote tag list empty
 - [ ] Task: Cloudflare Pages deploy step
   - [ ] Confirm the live Pages project's production branch with the maintainer (dashboard) and record it
   - [ ] Secrets: `gh secret set CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Pages: Edit) — values supplied by the maintainer, never echoed, never committed; verify via `gh secret list`
