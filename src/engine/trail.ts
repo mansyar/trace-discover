@@ -165,11 +165,12 @@ export function createMultiTrail(
 }
 
 /**
- * Advances the frontier one frame on the active stroke. Once that stroke is
- * complete, a finger within tolerance of the next stroke's start hands tracing
- * over to it (the same gates as a fresh touch apply). Completed strokes are
- * never revisited, so the per-stroke frontier and the stroke index never
- * decrease.
+ * Advances the frontier one frame on the active stroke. When that stroke
+ * reaches its end, tracing hands over to the next stroke immediately (the next
+ * stroke lights up as the active one); the finger must still start near its
+ * start point before the frontier advances (the same gates as a fresh touch
+ * apply). Completed strokes are never revisited, so the per-stroke frontier
+ * and the stroke index never decrease.
  */
 export function advanceMultiTrail(
   trail: MultiTrail,
