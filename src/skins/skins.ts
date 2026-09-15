@@ -53,3 +53,9 @@ export const SKINS: readonly SkinDef[] = [
 export function skinById(id: string): SkinDef | undefined {
   return SKINS.find((skin) => skin.id === id);
 }
+
+/** Next skin in cycle order (wraps); unknown ids restart the cycle at dino. */
+export function nextSkinId(currentId: string): string {
+  const index = SKINS.findIndex((skin) => skin.id === currentId);
+  return SKINS[(index + 1) % SKINS.length]?.id ?? SKINS[0]?.id ?? 'dino';
+}

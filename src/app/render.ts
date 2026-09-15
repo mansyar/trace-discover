@@ -11,9 +11,11 @@ import { levelToPath } from '../packs/level';
 import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
+import type { SkinDef } from '../skins/skins';
 import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
 import type { PackLayout } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
+import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
 import type { SessionSnapshot } from './session';
 
@@ -46,6 +48,79 @@ export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
 /** Home button on the badge screen (bottom-center). */
 export const BADGE_HOME = { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 90, radius: 48 };
 export const BADGE_SEAL = { x: FIELD_WIDTH / 2, y: 380, radius: 110 };
+
+/** Top-left skin switch: face icon in a ring, poofing outward on cycle. */
+export function drawSkinButton(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  zone: SkinButtonZone,
+  skin: SkinDef,
+  face: HTMLImageElement | null,
+  poofStartedAt: number | null,
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  if (face) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y, zone.radius - 8, 0, Math.PI * 2);
+    ctx.clip();
+    const size = (zone.radius - 8) * 2;
+    ctx.drawImage(face, zone.x - zone.radius + 8, zone.y - zone.radius + 8, size, size);
+    ctx.restore();
+  } else {
+    // Drawn face until the Phase 4 icon batch ships.
+    ctx.fillStyle = skin.accent;
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y, zone.radius - 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = NAVY;
+    ctx.beginPath();
+    ctx.arc(zone.x - 12, zone.y - 8, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(zone.x + 12, zone.y - 8, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y + 4, 15, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
+  if (poofStartedAt !== null) {
+    const progress = (now - poofStartedAt) / 450;
+    if (progress >= 0 && progress < 1) {
+      ctx.globalAlpha = 1 - progress;
+      ctx.beginPath();
+      ctx.arc(zone.x, zone.y, zone.radius + 20 * progress, 0, Math.PI * 2);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = skin.accent;
+      ctx.stroke();
+      ctx.fillStyle = skin.accent;
+      for (let i = 0; i < 6; i += 1) {
+        const angle = (Math.PI * 2 * i) / 6 + progress * 0.8;
+        const radius = zone.radius + 10 + 26 * progress;
+        ctx.beginPath();
+        ctx.arc(
+          zone.x + Math.cos(angle) * radius,
+          zone.y + Math.sin(angle) * radius,
+          5 * (1 - progress),
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+  ctx.restore();
+}
 
 /** Paints the cream shell, installs the field transform, and clips to the field. */
 export function beginField(

@@ -288,3 +288,28 @@ describe('pack badge', () => {
     expect(app.screen).toEqual({ name: 'menu' });
   });
 });
+
+describe('skin cycling', () => {
+  it('cycles the persisted skin on each skin-cycle event and wraps', () => {
+    const app = startApp(createDefaultSave());
+    expect(app.save.settings.skin).toBe('dino');
+
+    const first = applyAppEvent(app, { type: 'skin-cycle' });
+    expect(first.save.settings.skin).toBe('star');
+
+    const second = applyAppEvent(first, { type: 'skin-cycle' });
+    expect(second.save.settings.skin).toBe('construction');
+
+    const third = applyAppEvent(second, { type: 'skin-cycle' });
+    expect(third.save.settings.skin).toBe('animal');
+
+    const fourth = applyAppEvent(third, { type: 'skin-cycle' });
+    expect(fourth.save.settings.skin).toBe('dino');
+  });
+
+  it('leaves the current screen untouched', () => {
+    const app = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
+    const cycled = applyAppEvent(app, { type: 'skin-cycle' });
+    expect(cycled.screen).toEqual({ name: 'menu' });
+  });
+});

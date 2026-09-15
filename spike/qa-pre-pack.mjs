@@ -88,6 +88,23 @@ const reentry = await page.evaluate(() => window.__app.screen());
 findings.push(`badge re-entry -> ${JSON.stringify(reentry)}`);
 await shot('pre-journey-badge-reentry.png');
 
+// Scenario 3: the skin switch cycles from menu, pack, and level screens.
+await page.reload({ waitUntil: 'load' });
+await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 30000 });
+await wait(600);
+await tapTarget('splash');
+await tapTarget('skin:cycle');
+await tapTarget('pack:pre');
+await tapTarget('skin:cycle');
+await tapTarget('level:pre-1');
+await tapTarget('skin:cycle');
+const skinState = await page.evaluate(() => ({
+  screen: window.__app.screen(),
+  skin: JSON.parse(localStorage.getItem('trace-discover-save-v1')).settings.skin,
+}));
+findings.push(`skin cycles -> ${JSON.stringify(skinState)}`);
+await shot('pre-journey-skin-cycle.png');
+
 findings.push(`page errors: ${errors.length === 0 ? 'none' : errors.join(' | ')}`);
 console.log(findings.join('\n'));
 await browser.close();

@@ -16,6 +16,7 @@ import {
   type SaveData,
   updateSettings,
 } from '../save/store';
+import { nextSkinId } from '../skins/skins';
 import { changeVolume } from '../ui/parent';
 import type { ParentZoneAction } from '../ui/parentZone';
 import type { SuccessAction } from '../ui/success';
@@ -50,6 +51,7 @@ export type AppEvent =
     }
   | { readonly type: 'badge-tap'; readonly packId: string }
   | { readonly type: 'badge-exit' }
+  | { readonly type: 'skin-cycle' }
   | { readonly type: 'parent-open' }
   | { readonly type: 'parent-action'; readonly action: ParentZoneAction };
 
@@ -197,6 +199,11 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
       return badgeTap(state, event.packId);
     case 'badge-exit':
       return { ...state, screen: { name: 'menu' } };
+    case 'skin-cycle':
+      return {
+        ...state,
+        save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
+      };
     case 'parent-open':
       return { ...state, screen: { name: 'parent', confirmReset: false, showInstall: false } };
     case 'parent-action':

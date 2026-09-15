@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { SKINS, skinById } from './skins';
+import { nextSkinId, SKINS, skinById } from './skins';
 
 describe('skins registry', () => {
   it('defines the four skins in cycle order', () => {
@@ -45,5 +45,18 @@ describe('skins registry', () => {
   it('looks a skin up by id', () => {
     expect(skinById('star')?.accent).toBe('#f3c969');
     expect(skinById('nope')).toBeUndefined();
+  });
+});
+
+describe('nextSkinId', () => {
+  it('cycles dino -> star -> construction -> animal -> dino', () => {
+    expect(nextSkinId('dino')).toBe('star');
+    expect(nextSkinId('star')).toBe('construction');
+    expect(nextSkinId('construction')).toBe('animal');
+    expect(nextSkinId('animal')).toBe('dino');
+  });
+
+  it('falls back to the first skin for an unknown id', () => {
+    expect(nextSkinId('unicorn')).toBe('dino');
   });
 });

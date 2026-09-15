@@ -16,6 +16,7 @@ import {
   drawMenu,
   drawPack,
   drawParent,
+  drawSkinButton,
   drawSplash,
   drawSuccess,
   endField,
@@ -52,6 +53,7 @@ import {
 } from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import { hitParentZone, parentZoneLayout } from './ui/parentZone';
+import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
@@ -106,6 +108,15 @@ const PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const SPLASH = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const PARENT = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+const SKIN_BUTTON = skinButtonLayout();
+/** Child screens that show the tap-to-cycle skin switch. */
+const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
+  'menu',
+  'pack',
+  'level',
+  'success',
+  'badge',
+]);
 
 let app: AppState = startApp(loadSave(localStorage));
 let session: LevelSession | null = null;
@@ -115,6 +126,8 @@ let gateState: ParentGateState = PARENT_GATE_START;
 const gatePointers = new Set<number>();
 let detachInput = (): void => {};
 let lastTime = performance.now();
+let lastSkinTap: number | null = null;
+let skinPoofAt: number | null = null;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -161,6 +174,11 @@ function preloadArt(url: string): void {
       artCache.set(url, image);
     }
   });
+}
+
+// Face icons for the skin button; missing files (pre-Phase-4) fall back to a drawn face.
+for (const skin of SKINS) {
+  preloadArt(skin.face);
 }
 
 /** Art refs for the active session's level; null once the session hands off. */
@@ -289,6 +307,16 @@ function startRun(
 const handlers: TraceHandlers = {
   onDown: (point) => {
     ensureAudio();
+    const tapNow = performance.now();
+    if (SKIN_BUTTON_SCREENS.has(app.screen.name) && hitSkinButton(SKIN_BUTTON, point)) {
+      if (canCycleSkin(tapNow, lastSkinTap)) {
+        lastSkinTap = tapNow;
+        skinPoofAt = tapNow;
+        commit(applyAppEvent(app, { type: 'skin-cycle' }));
+        pop();
+      }
+      return;
+    }
     const screen = app.screen;
     if (screen.name === 'splash') {
       commit(applyAppEvent(app, { type: 'splash-tap' }));
@@ -493,6 +521,17 @@ function render(now: number): void {
   } else if (screen.name === 'parent') {
     drawParent(trailContext, PARENT, app.save.settings, screen.confirmReset, screen.showInstall);
   }
+  if (SKIN_BUTTON_SCREENS.has(screen.name)) {
+    const skin = activeSkin();
+    drawSkinButton(
+      trailContext,
+      now,
+      SKIN_BUTTON,
+      skin,
+      artCache.get(skin.face) ?? null,
+      skinPoofAt,
+    );
+  }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
     const charSize = field.width * CHARACTER_SCALE;
@@ -535,6 +574,7 @@ interface AppTarget {
 }
 
 function screenTargets(): AppTarget[] {
+  const skinTarget: AppTarget = { id: 'skin:cycle', x: SKIN_BUTTON.x, y: SKIN_BUTTON.y };
   const screen = app.screen;
   if (screen.name === 'splash') {
     return [{ id: 'splash', x: SPLASH.centerX, y: SPLASH.centerY }];
@@ -546,7 +586,11 @@ function screenTargets(): AppTarget[] {
       y: card.y + card.height / 2,
     }));
     const gate = MENU.parentGate;
-    return [...cards, { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 }];
+    return [
+      ...cards,
+      { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 },
+      skinTarget,
+    ];
   }
   if (screen.name === 'pack') {
     const layout = PACK_LAYOUTS.get(screen.packId);
@@ -561,19 +605,27 @@ function screenTargets(): AppTarget[] {
       })),
       { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
       { id: 'pack:home', x: layout.home.x, y: layout.home.y },
+      skinTarget,
     ];
   }
+  if (screen.name === 'level') {
+    return [skinTarget];
+  }
   if (screen.name === 'success') {
-    return SUCCESS.buttons.map((button) => ({
-      id: `success:${button.action}`,
-      x: button.x,
-      y: button.y,
-    }));
+    return [
+      ...SUCCESS.buttons.map((button) => ({
+        id: `success:${button.action}`,
+        x: button.x,
+        y: button.y,
+      })),
+      skinTarget,
+    ];
   }
   if (screen.name === 'badge') {
     return [
       { id: 'badge:seal', x: BADGE_SEAL.x, y: BADGE_SEAL.y },
       { id: 'badge:home', x: BADGE_HOME.x, y: BADGE_HOME.y },
+      skinTarget,
     ];
   }
   if (screen.name === 'parent') {
