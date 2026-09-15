@@ -34,14 +34,14 @@
   - [x] Verify locally: `actionlint` clean; regex mirror sanity (rejects `1.0.x`, `01.0.0`, `1.0`, accepts `1.0.0-rc.1`/`1.0.0-rc.9`)
   - [x] Negative control A: tag `v1.0.x` → run [34920352519] failed in ~6s at "Validate tag" (*"not strict semver … Refusing to release"*), nothing further ran; tag deleted
   - [x] Negative control B: tag `v1.0.0-rc.9` while `package.json` = 0.1.0 → run [34920397104] failed at "Validate tag" (*"does not match package.json version '0.1.0'"*); tag deleted — remote tag list empty
-- [ ] Task: Cloudflare Pages deploy step
-  - [ ] Confirm the live Pages project's production branch with the maintainer (dashboard) and record it
-  - [ ] Secrets: `gh secret set CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (Pages: Edit) — values supplied by the maintainer, never echoed, never committed; verify via `gh secret list`
-  - [ ] Deploy: `npx --yes wrangler@4.131.2 pages deploy dist --project-name trace-discover --branch=<production|rc> --commit-hash=$GITHUB_SHA --commit-message="Release $TAG"` — stable → production branch, prerelease (contains `-`) → `rc` preview; capture the deployed URL into the step summary (+ constructed-URL fallback)
-  - [ ] Verify flags against the installed wrangler (`--help`); live proof lands in Phase 3
-- [ ] Task: GitHub Release creation with notes
-  - [ ] `gh release create "$TAG" --title "$TAG" --generate-notes` (+ `--prerelease` when tag contains `-`); append `Deployed at <url>` to the body
-  - [ ] Verify via `gh release view` in Phase 3: prerelease flag, notes, URL line
+- [x] Task: Cloudflare Pages deploy step [b1eb68c]
+  - [x] Production branch confirmed with maintainer: `master` (API evidence: existing Production deployments on branch `master` from source `47747df`; user confirmed) → stable → `--branch=master`, prerelease → `--branch=rc`
+  - [x] Secrets `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` present in repo secrets (`gh secret list`; set by maintainer 2026-09-15; values never echoed/committed)
+  - [x] Deploy step added: `npx --yes wrangler@4.131.2 pages deploy dist --project-name trace-discover --branch=<master|rc> --commit-hash=$GITHUB_SHA --commit-message="Release $TAG"` — stable → `https://trace-discover.pages.dev`, prerelease → `https://rc.trace-discover.pages.dev`; URL → step summary + `deploy.url` output [b1eb68c]
+  - [x] Flags verified against installed wrangler (`--project-name`, `--branch`, `--commit-hash`, `--commit-message` all present); actionlint clean; live proof lands in Phase 3
+- [x] Task: GitHub Release creation with notes [f203e10]
+  - [x] Release step added: `gh release create "$TAG" --title "$TAG" --generate-notes` (+ `--prerelease` when tag contains `-`); body appended with `Deployed at <url>` via `gh release edit`; summary line written [f203e10]
+  - [ ] (Deferred — Phase 3) Verify via `gh release view`: prerelease flag, generated notes, URL line
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — End-to-End Release Proof & Handoff
