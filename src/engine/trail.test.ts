@@ -210,15 +210,18 @@ describe('multi-stroke trail', () => {
     expect(empty.total).toBe(0);
   });
 
-  it('keeps the frontier per stroke, completes stroke 0, then hands over to stroke 1', () => {
+  it('advances to the next stroke as soon as the previous one completes', () => {
     const trail = createMultiTrail(crossedPaths(), CONFIG);
     let state = beginMultiStroke(MULTI_TRAIL_START);
-    for (let x = 10; x <= 300; x += 10) {
+    for (let x = 10; x <= 290; x += 10) {
       state = advanceMultiTrail(trail, state, x, 150, FRAME);
       expect(state.strokeIndex).toBe(0);
       expect(state.frontier).toBeCloseTo(x, 9);
     }
-    for (let y = 0; y <= 50; y += 10) {
+    state = advanceMultiTrail(trail, state, 300, 150, FRAME);
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(0, 9);
+    for (let y = 10; y <= 50; y += 10) {
       state = advanceMultiTrail(trail, state, 150, y, FRAME);
     }
     expect(state.strokeIndex).toBe(1);
@@ -228,14 +231,19 @@ describe('multi-stroke trail', () => {
   it('keeps progress when the finger lifts between strokes and resumes mid-stroke', () => {
     const trail = createMultiTrail(crossedPaths(), CONFIG);
     let state = beginMultiStroke(MULTI_TRAIL_START);
-    for (let x = 10; x <= 300; x += 10) {
+    for (let x = 10; x <= 290; x += 10) {
       state = advanceMultiTrail(trail, state, x, 150, FRAME);
     }
     state = endMultiStroke(state);
     expect(state.tracing).toBe(false);
-    expect(state.frontier).toBeCloseTo(300, 9);
+    expect(state.frontier).toBeCloseTo(290, 9);
     const idle = advanceMultiTrail(trail, state, 150, 10, FRAME);
     expect(idle).toEqual(state);
+    state = beginMultiStroke(state);
+    state = advanceMultiTrail(trail, state, 300, 150, FRAME);
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(0, 9);
+    state = endMultiStroke(state);
     state = beginMultiStroke(state);
     for (let y = 10; y <= 30; y += 10) {
       state = advanceMultiTrail(trail, state, 150, y, FRAME);

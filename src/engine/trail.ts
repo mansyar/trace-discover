@@ -185,22 +185,17 @@ export function advanceMultiTrail(
   if (!stroke) {
     return state;
   }
-  if (state.frontier < stroke.total) {
-    const advanced = advanceTrail(stroke, state, x, y, dtSeconds);
-    if (advanced.frontier === state.frontier) {
-      return state;
-    }
-    return { frontier: advanced.frontier, strokeIndex: state.strokeIndex, tracing: true };
-  }
-  const next = trail.strokes[state.strokeIndex + 1];
-  if (!next) {
+  const advanced = advanceTrail(stroke, state, x, y, dtSeconds);
+  if (advanced.frontier === state.frontier) {
     return state;
   }
-  const handed = advanceTrail(next, { frontier: 0, tracing: true }, x, y, dtSeconds);
-  if (handed.frontier <= 0) {
-    return state;
+  if (advanced.frontier >= stroke.total && trail.strokes[state.strokeIndex + 1]) {
+    // Completed: hand over immediately so the next stroke lights up as the
+    // one to trace. The finger still has to start near its start point
+    // (the same tip-gap gate that guards every fresh stroke).
+    return { frontier: 0, strokeIndex: state.strokeIndex + 1, tracing: true };
   }
-  return { frontier: handed.frontier, strokeIndex: state.strokeIndex + 1, tracing: true };
+  return { frontier: advanced.frontier, strokeIndex: state.strokeIndex, tracing: true };
 }
 
 /** Point on the active stroke at the frontier, clamped to that stroke's extent. */

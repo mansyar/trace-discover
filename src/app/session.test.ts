@@ -205,7 +205,8 @@ describe('level session', () => {
     }
     session.pointerUp();
     expect(session.success).toBe(false);
-    expect(session.snapshot().multiState.strokeIndex).toBe(0);
+    // Completing the bar hands the glow over to the stem immediately.
+    expect(session.snapshot().multiState.strokeIndex).toBe(1);
     session.pointerDown(point(second, 0));
     for (let i = 2; i < second.length; i += 2) {
       session.pointerMove(point(second, i));
@@ -247,13 +248,10 @@ describe('level session', () => {
       throw new Error('num-4 must have a first stroke.');
     }
     session.pointerDown(point(first, 0));
-    for (let i = 2; i < first.length; i += 2) {
+    // Stops short of the end so this stroke is still the active one.
+    for (let i = 2; i < first.length - 4; i += 2) {
       session.pointerMove(point(first, i));
       session.update(16);
-      session.update(16);
-    }
-    session.pointerMove(point(first, first.length - 1));
-    for (let u = 0; u < 40; u += 1) {
       session.update(16);
     }
     session.pointerUp();
