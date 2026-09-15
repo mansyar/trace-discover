@@ -3,7 +3,13 @@
 // harness into a testable module. Owns the engine state; the shell renders
 // snapshots and forwards pointer input. Sound and character go through
 // injected deps so tests run headless with fakes.
-import { playCheckpointChime, playCompletion, type TonePlayer } from '../audio/synth';
+import {
+  playCheckpointChime,
+  playCompletion,
+  playCountedNotes,
+  type TonePlayer,
+} from '../audio/synth';
+import { type HopTimeline, hopPlacement } from '../character/hops';
 import {
   ASSIST_START,
   type AssistState,
@@ -14,9 +20,9 @@ import {
 import {
   CHECKPOINT_START,
   type CheckpointState,
-  type Checkpoints,
-  createCheckpoints,
-  evaluateCheckpoints,
+  createMultiCheckpoints,
+  evaluateMultiCheckpoints,
+  type MultiCheckpoints,
 } from '../engine/checkpoints';
 import {
   COMPLETION_START,
@@ -25,16 +31,16 @@ import {
   stepCompletion,
   travelProgress,
 } from '../engine/completion';
-import { pointAtLength } from '../engine/path';
 import {
-  advanceTrail,
-  beginStroke,
-  createTrail,
-  endStroke,
-  TRAIL_START,
-  type Trail,
-  type TrailState,
-  tipPosition,
+  advanceMultiTrail,
+  beginMultiStroke,
+  createMultiTrail,
+  endMultiStroke,
+  MULTI_TRAIL_START,
+  type MultiTrail,
+  type MultiTrailState,
+  multiTipPosition,
+  pointAtSequence,
 } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_WIDTH } from '../field';
@@ -63,6 +69,8 @@ export interface SessionCharacter {
 
 export interface SessionDeps {
   readonly character: SessionCharacter;
+  /** Counted reward plan for numerals (hop pacing + notes); absent in the worlds. */
+  readonly hopPlan?: HopTimeline;
   readonly onEvent: (event: SessionEvent) => void;
   readonly player: TonePlayer;
   /** Deterministic confetti seed (varies per level for QA replay). */
@@ -73,7 +81,7 @@ export interface SessionDeps {
 export interface SessionSnapshot {
   readonly assistState: AssistState;
   readonly charPos: Point;
-  readonly checkpoints: Checkpoints;
+  readonly checkpoints: MultiCheckpoints;
   readonly checkState: CheckpointState;
   readonly completion: CompletionState;
   readonly completionStarted: boolean;
@@ -83,8 +91,8 @@ export interface SessionSnapshot {
   /** Arc position the nudge dot should hint toward, or null when idle is short. */
   readonly nudgeAt: number | null;
   readonly tip: Point;
-  readonly trail: Trail;
-  readonly trailState: TrailState;
+  readonly multi: MultiTrail;
+  readonly multiState: MultiTrailState;
 }
 
 export interface LevelSession {
@@ -97,13 +105,19 @@ export interface LevelSession {
 }
 
 export function createSession(level: LevelDef, deps: SessionDeps): LevelSession {
-  const points = levelToPath(level);
+  const paths = levelToPath(level);
+  if (paths.length === 0) {
+    throw new Error(`Level ${level.id} has no strokes.`);
+  }
   const baseTolerance = FIELD_WIDTH * TOLERANCE_FRACTION;
-  let trail = createTrail(points, { tolerance: baseTolerance, maxAdvanceSpeed: MAX_ADVANCE_SPEED });
-  let trailState: TrailState = TRAIL_START;
+  let multi = createMultiTrail(paths, {
+    tolerance: baseTolerance,
+    maxAdvanceSpeed: MAX_ADVANCE_SPEED,
+  });
+  let multiState: MultiTrailState = MULTI_TRAIL_START;
   let assistState: AssistState = ASSIST_START;
   let checkState: CheckpointState = CHECKPOINT_START;
-  const checkpoints = createCheckpoints(trail, CHECKPOINT_COUNT);
+  const checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
   let completion: CompletionState = COMPLETION_START;
   let completionStarted = false;
   let confetti: ConfettiParticle[] = [];
@@ -117,7 +131,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
     const scale = toleranceScale(DEFAULT_ASSIST_CONFIG, assistState, deps.settings().easierTracing);
     if (scale !== toleranceScaleNow) {
       toleranceScaleNow = scale;
-      trail = createTrail(points, {
+      multi = createMultiTrail(paths, {
         tolerance: baseTolerance * scale,
         maxAdvanceSpeed: MAX_ADVANCE_SPEED,
       });
@@ -138,19 +152,31 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       glideToPark(dtMs);
       return;
     }
-    if (trailState.tracing && pointer) {
+    if (multiState.tracing && pointer) {
       ensureTolerance();
-      const next = advanceTrail(trail, trailState, pointer.x, pointer.y, dtMs / 1000);
-      const advanced = next.frontier > trailState.frontier;
-      trailState = next;
+      const beforeFrontier = multiState.frontier;
+      const beforeStroke = multiState.strokeIndex;
+      const next = advanceMultiTrail(multi, multiState, pointer.x, pointer.y, dtMs / 1000);
+      const advanced = next.frontier > beforeFrontier || next.strokeIndex > beforeStroke;
+      multiState = next;
       const step = stepAssists(
         DEFAULT_ASSIST_CONFIG,
         assistState,
-        { advanced, touching: true, frontier: trailState.frontier, total: trail.total },
+        {
+          advanced,
+          touching: true,
+          frontier: multiState.frontier,
+          strokeTotal: multi.strokes[multiState.strokeIndex]?.total ?? 0,
+        },
         dtMs,
       );
       assistState = step.state;
-      const result = evaluateCheckpoints(checkpoints, checkState, trailState.frontier);
+      const result = evaluateMultiCheckpoints(
+        checkpoints,
+        checkState,
+        multiState.strokeIndex,
+        multiState.frontier,
+      );
       checkState = result.state;
       for (const event of result.events) {
         if (event.type === 'checkpoint') {
@@ -164,7 +190,12 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       const step = stepAssists(
         DEFAULT_ASSIST_CONFIG,
         assistState,
-        { advanced: false, touching: false, frontier: trailState.frontier, total: trail.total },
+        {
+          advanced: false,
+          touching: false,
+          frontier: multiState.frontier,
+          strokeTotal: multi.strokes[multiState.strokeIndex]?.total ?? 0,
+        },
         dtMs,
       );
       assistState = step.state;
@@ -174,16 +205,34 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       deps.onEvent({ type: 'assist-widened' });
     }
     if (completionStarted) {
-      const step = stepCompletion(DEFAULT_COMPLETION_CONFIG, completion, dtMs, trail.total);
+      const step = stepCompletion(
+        DEFAULT_COMPLETION_CONFIG,
+        completion,
+        dtMs,
+        multi.total,
+        deps.hopPlan?.totalMs,
+      );
       completion = step.state;
       for (const event of step.events) {
         if (event === 'burst') {
-          const progress = travelProgress(completion, DEFAULT_COMPLETION_CONFIG, trail.total);
-          confetti = createConfetti(
-            CONFETTI_COUNT,
-            deps.seed,
-            pointAtLength(trail.points, trail.cumulative, trail.total * progress),
+          const burst = deps.hopPlan
+            ? hopPlacement(deps.hopPlan, deps.hopPlan.totalMs * DEFAULT_COMPLETION_CONFIG.burstAt)
+            : null;
+          const base = pointAtSequence(
+            multi,
+            multi.total *
+              (burst
+                ? burst.progress
+                : travelProgress(completion, DEFAULT_COMPLETION_CONFIG, multi.total)),
           );
+          confetti = createConfetti(CONFETTI_COUNT, deps.seed, {
+            x: base.x + (burst?.dx ?? 0),
+            y: base.y + (burst?.dy ?? 0),
+          });
+        } else if (event === 'hopStart') {
+          if (deps.hopPlan) {
+            playCountedNotes(deps.player, deps.hopPlan);
+          }
         } else if (event === 'celebrateStart') {
           deps.character.fire('celebrate');
           playCompletion(deps.player);
@@ -194,9 +243,13 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       }
       if (success) {
         glideToPark(dtMs);
+      } else if (deps.hopPlan && completion.stage === 'hop') {
+        const placement = hopPlacement(deps.hopPlan, completion.elapsedMs);
+        const base = pointAtSequence(multi, multi.total * placement.progress);
+        charPos = { x: base.x + placement.dx, y: base.y + placement.dy };
       } else {
-        const progress = travelProgress(completion, DEFAULT_COMPLETION_CONFIG, trail.total);
-        charPos = pointAtLength(trail.points, trail.cumulative, trail.total * progress);
+        const progress = travelProgress(completion, DEFAULT_COMPLETION_CONFIG, multi.total);
+        charPos = pointAtSequence(multi, multi.total * progress);
       }
     }
   };
@@ -210,14 +263,14 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
         return;
       }
       pointer = point;
-      trailState = beginStroke(trailState);
+      multiState = beginMultiStroke(multiState);
     },
     pointerMove: (point) => {
       pointer = point;
     },
     pointerUp: () => {
       pointer = null;
-      trailState = endStroke(trailState);
+      multiState = endMultiStroke(multiState);
     },
     snapshot: () => {
       const idleMs = assistState.idleMs;
@@ -229,15 +282,18 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
         completion,
         completionStarted,
         confetti,
-        frontier: trailState.frontier,
-        hintVisible: !trailState.tracing && idleMs >= DEFAULT_ASSIST_CONFIG.hintAfterMs,
+        frontier: multiState.frontier,
+        hintVisible: !multiState.tracing && idleMs >= DEFAULT_ASSIST_CONFIG.hintAfterMs,
         nudgeAt:
           idleMs >= DEFAULT_ASSIST_CONFIG.nudgeAfterMs
-            ? Math.min(trailState.frontier + DEFAULT_ASSIST_CONFIG.lookaheadPx, trail.total)
+            ? Math.min(
+                multiState.frontier + DEFAULT_ASSIST_CONFIG.lookaheadPx,
+                multi.strokes[multiState.strokeIndex]?.total ?? 0,
+              )
             : null,
-        tip: tipPosition(trail, trailState),
-        trail,
-        trailState,
+        tip: multiTipPosition(multi, multiState),
+        multi,
+        multiState,
       };
     },
     update,

@@ -1,9 +1,19 @@
-import type { Trail } from './trail';
+import type { MultiTrail, Trail } from './trail';
 
 /** Checkpoint layout: arc-length positions where progress events fire. */
 export interface Checkpoints {
   /** Crossing boundaries in order; the last one equals the trail's total length. */
   readonly boundaries: readonly number[];
+}
+
+/**
+ * Multi-stroke checkpoint layout: boundaries span the whole stroke sequence as
+ * global arc lengths; the last one equals the summed total. `strokeStarts`
+ * maps an active stroke (plus its frontier) onto that global arc.
+ */
+export interface MultiCheckpoints extends Checkpoints {
+  /** Global arc length at the start of each stroke (prefix sums). */
+  readonly strokeStarts: readonly number[];
 }
 
 /** Checkpoint progress for one level attempt. */
@@ -33,11 +43,7 @@ export interface CheckpointResult {
  * boundary equals the trail's total length and represents completion.
  */
 export function createCheckpoints(trail: Trail, count: number): Checkpoints {
-  const boundaries: number[] = [];
-  for (let i = 0; i < count; i += 1) {
-    boundaries.push(i === count - 1 ? trail.total : (trail.total * (i + 1)) / count);
-  }
-  return { boundaries };
+  return { boundaries: equalBoundaries(trail.total, count) };
 }
 
 /**
@@ -74,4 +80,43 @@ export function evaluateCheckpoints(
     state: { passed, completed: passed === checkpoints.boundaries.length },
     events,
   };
+}
+
+/**
+ * Divides the whole stroke sequence into `count` equal global arc-length
+ * checkpoints. The last boundary equals the sequence total and represents
+ * completion.
+ */
+export function createMultiCheckpoints(trail: MultiTrail, count: number): MultiCheckpoints {
+  const strokeStarts: number[] = [];
+  let start = 0;
+  for (const stroke of trail.strokes) {
+    strokeStarts.push(start);
+    start += stroke.total;
+  }
+  return { boundaries: equalBoundaries(trail.total, count), strokeStarts };
+}
+
+/**
+ * Evaluates a multi-stroke position against the boundary plan by mapping
+ * `(strokeIndex, frontier)` onto the global arc, so events fire in order
+ * across strokes and `complete` only lands after the final stroke.
+ */
+export function evaluateMultiCheckpoints(
+  checkpoints: MultiCheckpoints,
+  state: CheckpointState,
+  strokeIndex: number,
+  frontier: number,
+): CheckpointResult {
+  const start = checkpoints.strokeStarts[strokeIndex] ?? 0;
+  return evaluateCheckpoints(checkpoints, state, start + frontier);
+}
+
+/** Equal arc-length boundaries ending exactly at `total`. */
+function equalBoundaries(total: number, count: number): number[] {
+  const boundaries: number[] = [];
+  for (let i = 0; i < count; i += 1) {
+    boundaries.push(i === count - 1 ? total : (total * (i + 1)) / count);
+  }
+  return boundaries;
 }

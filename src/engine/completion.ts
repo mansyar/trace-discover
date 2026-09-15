@@ -73,12 +73,13 @@ function stageDurationMs(
   config: CompletionConfig,
   stage: CompletionStage,
   totalLength: number,
+  hopMs?: number,
 ): number {
   switch (stage) {
     case 'glow':
       return config.glowMs;
     case 'hop':
-      return hopDurationMs(config, totalLength);
+      return hopMs ?? hopDurationMs(config, totalLength);
     case 'celebrate':
       return config.celebrateMs;
     case 'confetti':
@@ -107,12 +108,14 @@ function nextStage(stage: CompletionStage): CompletionStage {
   }
 }
 
-/** Advances the timeline; large `dtMs` may cross several stages in one call. */
+/** Advances the timeline; large `dtMs` may cross several stages in one call.
+ *  `hopMs` overrides the hop stage duration (counted reward runs). */
 export function stepCompletion(
   config: CompletionConfig,
   state: CompletionState,
   dtMs: number,
   totalLength: number,
+  hopMs?: number,
 ): { readonly events: readonly CompletionEvent[]; readonly state: CompletionState } {
   const events: CompletionEvent[] = [];
   if (state.stage === 'done') {
@@ -123,7 +126,7 @@ export function stepCompletion(
   let elapsed = state.elapsedMs + dtMs;
 
   while (stage !== 'done') {
-    const duration = stageDurationMs(config, stage, totalLength);
+    const duration = stageDurationMs(config, stage, totalLength, hopMs);
     if (stage === 'hop' && !burstFired && elapsed >= duration * config.burstAt) {
       events.push('burst');
       burstFired = true;

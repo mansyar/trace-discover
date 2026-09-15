@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   awardBadge,
+  awardPackBadge,
   completeLevel,
+  completeNumeral,
   createDefaultSave,
+  hasNumeralSticker,
   hasSticker,
   loadSave,
   SAVE_KEY,
@@ -26,13 +29,14 @@ function createMemoryStorage(initial: Record<string, string> = {}): SaveStorage 
 }
 
 describe('createDefaultSave', () => {
-  it('returns a fresh v1 save with empty progress and default settings', () => {
+  it('returns a fresh v2 save with empty progress, pack and default settings', () => {
     expect(createDefaultSave()).toEqual({
       assistWidened: false,
       badges: [],
       completedLevels: [],
+      pack: { badge: false, cleared: [] },
       settings: { easierTracing: false, muted: false, volume: 1 },
-      version: 1,
+      version: 2,
     });
   });
 });
@@ -65,6 +69,40 @@ describe('loadSave', () => {
     expect(loadSave(storage)).toEqual(createDefaultSave());
   });
 
+  it('migrates a v1 save losslessly and adds a fresh pack section', () => {
+    const storage = createMemoryStorage({
+      [SAVE_KEY]:
+        '{"version":1,"assistWidened":true,"badges":["dino"],"completedLevels":["dino-1","dino-2"],"settings":{"easierTracing":true,"muted":true,"volume":0.5}}',
+    });
+    expect(loadSave(storage)).toEqual({
+      assistWidened: true,
+      badges: ['dino'],
+      completedLevels: ['dino-1', 'dino-2'],
+      pack: { badge: false, cleared: [] },
+      settings: { easierTracing: true, muted: true, volume: 0.5 },
+      version: 2,
+    });
+  });
+
+  it('defaults the pack section when it is missing from a v2 save', () => {
+    const storage = createMemoryStorage({ [SAVE_KEY]: '{"version":2}' });
+    expect(loadSave(storage).pack).toEqual({ badge: false, cleared: [] });
+  });
+
+  it('sanitizes hostile pack shapes instead of trusting them', () => {
+    const storage = createMemoryStorage({
+      [SAVE_KEY]: '{"version":2,"pack":{"badge":"yes","cleared":[3,"num-1"]}}',
+    });
+    expect(loadSave(storage).pack).toEqual({ badge: false, cleared: ['num-1'] });
+  });
+
+  it('round-trips v2 pack progress through the storage key', () => {
+    const storage = createMemoryStorage();
+    const saved = awardPackBadge(completeNumeral(createDefaultSave(), 'num-0'));
+    saveSave(storage, saved);
+    expect(loadSave(storage)).toEqual(saved);
+  });
+
   it('sanitizes hostile field shapes instead of trusting them', () => {
     const storage = createMemoryStorage({
       [SAVE_KEY]:
@@ -74,8 +112,9 @@ describe('loadSave', () => {
       assistWidened: false,
       badges: [],
       completedLevels: ['dino-1'],
+      pack: { badge: false, cleared: [] },
       settings: { easierTracing: false, muted: false, volume: 1 },
-      version: 1,
+      version: 2,
     });
   });
 
@@ -127,6 +166,31 @@ describe('awardBadge', () => {
   });
 });
 
+describe('completeNumeral', () => {
+  it('adds the numeral id once, idempotently and without mutation', () => {
+    const before = createDefaultSave();
+    const once = completeNumeral(before, 'num-4');
+    expect(once.pack.cleared).toEqual(['num-4']);
+    expect(completeNumeral(once, 'num-4').pack.cleared).toEqual(['num-4']);
+    expect(before.pack.cleared).toEqual([]);
+  });
+});
+
+describe('hasNumeralSticker', () => {
+  it('is false before the numeral is cleared and true after', () => {
+    const before = createDefaultSave();
+    expect(hasNumeralSticker(before, 'num-4')).toBe(false);
+    expect(hasNumeralSticker(completeNumeral(before, 'num-4'), 'num-4')).toBe(true);
+  });
+});
+
+describe('awardPackBadge', () => {
+  it('awards the pack badge once and is idempotent', () => {
+    expect(awardPackBadge(createDefaultSave()).pack.badge).toBe(true);
+    expect(awardPackBadge(awardPackBadge(createDefaultSave())).pack.badge).toBe(true);
+  });
+});
+
 describe('updateSettings', () => {
   it('merges partial settings over the existing ones', () => {
     const updated = updateSettings(createDefaultSave(), { muted: true });
@@ -139,5 +203,44 @@ describe('setAssistWidened', () => {
     const storage = createMemoryStorage();
     saveSave(storage, setAssistWidened(createDefaultSave(), true));
     expect(loadSave(storage).assistWidened).toBe(true);
+  });
+});
+
+describe('v1 fixture migration', () => {
+  it('upgrades a real v1 save losslessly, keeping every sticker and setting', () => {
+    // A save as the shipped v1 app wrote it: dino cleared end to end (badge
+    // plus bonus), one construction level, two animals levels, tuned settings.
+    const fixture = {
+      assistWidened: true,
+      badges: ['dino'],
+      completedLevels: [
+        'dino-1',
+        'dino-2',
+        'dino-3',
+        'dino-4',
+        'dino-bonus',
+        'construction-1',
+        'animals-1',
+        'animals-2',
+      ],
+      settings: { easierTracing: true, muted: false, volume: 0.7 },
+      version: 1,
+    };
+    const storage = createMemoryStorage({
+      'trace-discover-save-v1': JSON.stringify(fixture),
+    });
+
+    const migrated = loadSave(storage);
+
+    expect(migrated.assistWidened).toBe(true);
+    expect(migrated.badges).toEqual(['dino']);
+    expect(migrated.completedLevels).toEqual(fixture.completedLevels);
+    expect(migrated.settings).toEqual({ easierTracing: true, muted: false, volume: 0.7 });
+    expect(migrated.pack).toEqual({ badge: false, cleared: [] });
+    expect(migrated.version).toBe(2);
+
+    // Re-saving the migrated payload round-trips unchanged.
+    saveSave(storage, migrated);
+    expect(loadSave(storage)).toEqual(migrated);
   });
 });

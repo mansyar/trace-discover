@@ -3,13 +3,24 @@
 // Excluded from the production build (only index.html is built).
 import '../style.css';
 import { ASSIST_START, DEFAULT_ASSIST_CONFIG, stepAssists } from '../engine/assists';
-import { CHECKPOINT_START, createCheckpoints, evaluateCheckpoints } from '../engine/checkpoints';
+import {
+  CHECKPOINT_START,
+  createMultiCheckpoints,
+  evaluateMultiCheckpoints,
+} from '../engine/checkpoints';
 import { catmullRom, pointAtLength, resample } from '../engine/path';
-import { advanceTrail, beginStroke, createTrail, endStroke, TRAIL_START } from '../engine/trail';
+import {
+  advanceMultiTrail,
+  beginMultiStroke,
+  createMultiTrail,
+  endMultiStroke,
+  MULTI_TRAIL_START,
+  type MultiTrail,
+} from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
-import { drawPath, type PathStyle } from '../render/renderPath';
+import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
 
@@ -18,6 +29,7 @@ const TOLERANCE_FRACTION = 0.12;
 const AUTO_RESET_MS = 2000;
 
 // Demo level: a wavy S-curve stressing tolerance, the speed cap, and assists.
+// ?strokes=2 appends a loop stroke so multi-stroke hand-over can be feel-tested.
 const CONTROL_POINTS: readonly Point[] = [
   { x: 90, y: 150 },
   { x: 230, y: 230 },
@@ -26,6 +38,21 @@ const CONTROL_POINTS: readonly Point[] = [
   { x: 200, y: 700 },
   { x: 340, y: 780 },
 ];
+
+const query = new URLSearchParams(window.location.search);
+
+/** Loop stroke near the lower right: an easy hand-over target after the curve. */
+function loopPoints(): readonly Point[] {
+  const centerX = 300;
+  const centerY = 620;
+  const radius = 80;
+  const ring = Array.from({ length: 8 }, (_, index) => {
+    const angle = (Math.PI * 2 * index) / 8;
+    return { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius };
+  });
+  const first = ring[0];
+  return first ? [...ring, first] : ring;
+}
 
 const STYLE: PathStyle = {
   dotColor: '#6fa8d4',
@@ -44,14 +71,19 @@ const canvas = requireCanvas(document);
 const context = require2dContext(canvas);
 const logElement = document.querySelector('#log');
 
-const level = createTrail(resample(catmullRom(CONTROL_POINTS, 32), 8), {
-  maxAdvanceSpeed: 600,
-  tolerance: FIELD_WIDTH * TOLERANCE_FRACTION,
-});
-const checkpoints = createCheckpoints(level, CHECKPOINT_COUNT);
+const demoStrokes =
+  query.get('strokes') === '2' ? [CONTROL_POINTS, loopPoints()] : [CONTROL_POINTS];
+const multi = createMultiTrail(
+  demoStrokes.map((stroke) => resample(catmullRom(stroke, 32), 8)),
+  {
+    maxAdvanceSpeed: 600,
+    tolerance: FIELD_WIDTH * TOLERANCE_FRACTION,
+  },
+);
+const checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
 
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
-let trailState = TRAIL_START;
+let multiState = MULTI_TRAIL_START;
 let checkState = CHECKPOINT_START;
 let assistState = ASSIST_START;
 let pointer: Point | null = null;
@@ -71,7 +103,7 @@ function log(line: string): void {
 }
 
 function reset(): void {
-  trailState = TRAIL_START;
+  multiState = MULTI_TRAIL_START;
   checkState = CHECKPOINT_START;
   assistState = ASSIST_START;
   nudgeTarget = null;
@@ -79,17 +111,39 @@ function reset(): void {
   log('reset');
 }
 
+/** Arc length before the active stroke (prefix sum of earlier strokes). */
+function strokeStartArc(trail: MultiTrail, index: number): number {
+  let sum = 0;
+  for (let i = 0; i < index; i += 1) {
+    sum += trail.strokes[i]?.total ?? 0;
+  }
+  return sum;
+}
+
+/** Point at a global arc distance across the whole stroke sequence. */
+function pointAtSequence(trail: MultiTrail, distance: number): Point {
+  let remaining = distance;
+  for (const stroke of trail.strokes) {
+    if (remaining <= stroke.total) {
+      return pointAtLength(stroke.points, stroke.cumulative, remaining);
+    }
+    remaining -= stroke.total;
+  }
+  const last = trail.strokes[trail.strokes.length - 1];
+  return last ? pointAtLength(last.points, last.cumulative, last.total) : { x: 0, y: 0 };
+}
+
 const handlers: TraceHandlers = {
   onDown: (point) => {
     pointer = point;
-    trailState = beginStroke(trailState);
+    multiState = beginMultiStroke(multiState);
   },
   onMove: (point) => {
     pointer = point;
   },
   onUp: () => {
     pointer = null;
-    trailState = endStroke(trailState);
+    multiState = endMultiStroke(multiState);
   },
 };
 
@@ -125,9 +179,12 @@ function render(now: number): void {
   context.fillStyle = '#edf5d9';
   context.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
 
-  drawPath(context, level, trailState, STYLE);
+  drawMultiPath(context, multi, multiState, STYLE);
 
-  const start = pointAtLength(level.points, level.cumulative, 0);
+  const activeStroke = multi.strokes[multiState.strokeIndex];
+  const start = activeStroke
+    ? pointAtLength(activeStroke.points, activeStroke.cumulative, 0)
+    : { x: 0, y: 0 };
   context.beginPath();
   context.arc(start.x, start.y, 22 * pulse, 0, Math.PI * 2);
   context.fillStyle = '#e8c15a';
@@ -136,7 +193,10 @@ function render(now: number): void {
   context.strokeStyle = '#2e4a63';
   context.stroke();
 
-  const goal = pointAtLength(level.points, level.cumulative, level.total);
+  const lastStroke = multi.strokes[multi.strokes.length - 1];
+  const goal = lastStroke
+    ? pointAtLength(lastStroke.points, lastStroke.cumulative, lastStroke.total)
+    : { x: 0, y: 0 };
   context.beginPath();
   context.arc(goal.x, goal.y, 26, 0, Math.PI * 2);
   context.fillStyle = '#ffffff';
@@ -146,7 +206,10 @@ function render(now: number): void {
   context.stroke();
 
   if (nudgeTarget !== null) {
-    const target = pointAtLength(level.points, level.cumulative, nudgeTarget);
+    const target = pointAtSequence(
+      multi,
+      strokeStartArc(multi, multiState.strokeIndex) + nudgeTarget,
+    );
     context.beginPath();
     context.arc(target.x, target.y, 18 * pulse, 0, Math.PI * 2);
     context.fillStyle = 'rgba(232, 193, 90, 0.55)';
@@ -160,16 +223,23 @@ function frame(now: number): void {
   const dt = Math.min((now - lastTime) / 1000, 0.05);
   lastTime = now;
 
-  const before = trailState.frontier;
+  const beforeFrontier = multiState.frontier;
+  const beforeStroke = multiState.strokeIndex;
   if (pointer !== null) {
-    trailState = advanceTrail(level, trailState, pointer.x, pointer.y, dt);
+    multiState = advanceMultiTrail(multi, multiState, pointer.x, pointer.y, dt);
   }
-  const advanced = trailState.frontier > before;
+  const advanced = multiState.frontier > beforeFrontier || multiState.strokeIndex > beforeStroke;
+  const activeTotal = multi.strokes[multiState.strokeIndex]?.total ?? 0;
 
   const assist = stepAssists(
     DEFAULT_ASSIST_CONFIG,
     assistState,
-    { advanced, frontier: trailState.frontier, total: level.total, touching: pointer !== null },
+    {
+      advanced,
+      frontier: multiState.frontier,
+      strokeTotal: activeTotal,
+      touching: pointer !== null,
+    },
     dt * 1000,
   );
   assistState = assist.state;
@@ -180,7 +250,12 @@ function frame(now: number): void {
     nudgeTarget = null;
   }
 
-  const evaluated = evaluateCheckpoints(checkpoints, checkState, trailState.frontier);
+  const evaluated = evaluateMultiCheckpoints(
+    checkpoints,
+    checkState,
+    multiState.strokeIndex,
+    multiState.frontier,
+  );
   checkState = evaluated.state;
   for (const event of evaluated.events) {
     log(event.type === 'checkpoint' ? `chime ${event.index + 1}/${CHECKPOINT_COUNT}` : 'complete!');
@@ -200,6 +275,6 @@ function frame(now: number): void {
 window.addEventListener('resize', resize);
 resize();
 log(
-  `harness ready - ${CHECKPOINT_COUNT} checkpoints, tolerance ${Math.round(FIELD_WIDTH * TOLERANCE_FRACTION)}px`,
+  `harness ready - ${multi.strokes.length} stroke(s), ${CHECKPOINT_COUNT} checkpoints, tolerance ${Math.round(FIELD_WIDTH * TOLERANCE_FRACTION)}px`,
 );
 requestAnimationFrame(frame);

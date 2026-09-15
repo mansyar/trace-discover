@@ -47,10 +47,10 @@ export interface AssistInput {
   readonly advanced: boolean;
   /** Is a finger currently down? */
   readonly touching: boolean;
-  /** Current frontier arc position. */
+  /** Current frontier arc position within the active stroke. */
   readonly frontier: number;
-  /** Trail total length. */
-  readonly total: number;
+  /** Total arc length of the active stroke (the trail total for single-stroke levels). */
+  readonly strokeTotal: number;
 }
 
 /** Result of one assist step. */
@@ -62,9 +62,11 @@ export interface AssistStep {
 
 /**
  * Advances the assist timers. Nudges fire every `nudgeAfterMs` of continuous
- * idle (2 s, then 4 s, then 6 s, ...) and point just ahead of the frontier.
- * The hand hint shows whenever the child is stuck past `hintAfterMs` and not
- * touching; it hides the moment a finger lands.
+ * idle (2 s, then 4 s, then 6 s, ...) and point just ahead of the frontier
+ * within the active stroke, clamped to that stroke's end. Nudges and the
+ * widen counter persist across strokes within a level. The hand hint shows
+ * whenever the child is stuck past `hintAfterMs` and not touching; it hides
+ * the moment a finger lands.
  */
 export function stepAssists(
   config: AssistConfig,
@@ -77,7 +79,7 @@ export function stepAssists(
   let nudgesTotal = state.nudgesTotal;
   let nudgeTarget: number | null = null;
   if (!input.advanced && idleMs >= config.nudgeAfterMs * (nudgesThisIdle + 1)) {
-    nudgeTarget = Math.min(input.frontier + config.lookaheadPx, input.total);
+    nudgeTarget = Math.min(input.frontier + config.lookaheadPx, input.strokeTotal);
     nudgesThisIdle += 1;
     nudgesTotal += 1;
   }

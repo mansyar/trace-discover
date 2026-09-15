@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const URL = process.argv[2] ?? 'http://localhost:4173/';
+const LEVEL = process.argv[3] ?? 'dino-1';
 const OUT = path.join(HERE, 'qa-offline');
 
 const EDGE_PATHS = [
@@ -67,11 +68,15 @@ async function launch() {
   };
 
   await tap('splash');
-  await tap('theme:dino');
+  if (LEVEL.startsWith('num-')) {
+    await tap('pack');
+  } else {
+    await tap('theme:dino');
+  }
   await page.screenshot({ path: path.join(OUT, 'offline-theme.png') });
 
-  // Trace dino-1 with the real pointer path.
-  await tap('level:dino-1');
+  // Trace the chosen level with the real pointer path.
+  await tap(LEVEL.startsWith('num-') ? `numeral:${LEVEL}` : `level:${LEVEL}`);
   await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });
   const trace = await page.evaluate(() => {
     const field = window.__app.field();
@@ -103,8 +108,8 @@ async function launch() {
     .then(() => true)
     .catch(() => false);
   await page.waitForTimeout(1800);
-  await page.screenshot({ path: path.join(OUT, 'offline-dino-1-success.png') });
-  console.log('offline dino-1 trace:', success ? 'SUCCESS' : 'INCOMPLETE');
+  await page.screenshot({ path: path.join(OUT, `offline-${LEVEL}-success.png`) });
+  console.log(`offline ${LEVEL} trace:`, success ? 'SUCCESS' : 'INCOMPLETE');
   console.log('page errors:', errors.length === 0 ? '(none)' : errors.join(' | '));
   await browser.close();
   if (!success || errors.length > 0) {

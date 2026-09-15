@@ -2,8 +2,8 @@ import { chromium } from 'playwright-core';
 
 // Production app-loop QA: drives the real index.html from splash to badge to
 // bonus for every theme, tracing each level with a simulated fingertip.
-// Usage: `pnpm dev -- --port 5176` in one shell, then `node qa-app.mjs` here.
-const PORT = 5176;
+// Usage: `pnpm serve` (preview on 4173) then `node spike/qa-app.mjs [url]`.
+const BASE = process.argv[2] ?? 'http://localhost:4173';
 const THEMES = ['dino', 'construction', 'animals'];
 const MAINS = ['1', '2', '3', '4'];
 
@@ -72,21 +72,21 @@ const traceLevel = async (id) => {
   await page.mouse.up();
   await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
   await wait(1800); // completion choreography + mascot glide to its cheering spot
-  await page.screenshot({ path: `qa-app/${id}-success.png` });
+  await page.screenshot({ path: `spike/qa/qa-app/${id}-success.png` });
 };
 
-await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'load' });
+await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
 await wait(800);
-await page.screenshot({ path: 'qa-app/splash.png' });
+await page.screenshot({ path: 'spike/qa/qa-app/splash.png' });
 await tapTarget('splash');
 log(`splash -> ${(await screenOf()).name}`);
-await page.screenshot({ path: 'qa-app/menu.png' });
+await page.screenshot({ path: 'spike/qa/qa-app/menu.png' });
 
 for (const theme of THEMES) {
   await tapTarget(`theme:${theme}`);
   log(`${theme}: -> ${(await screenOf()).name}`);
-  await page.screenshot({ path: `qa-app/theme-${theme}.png` });
+  await page.screenshot({ path: `spike/qa/qa-app/theme-${theme}.png` });
   for (const n of MAINS) {
     const id = `${theme}-${n}`;
     const opened = await screenOf();
@@ -103,21 +103,21 @@ for (const theme of THEMES) {
       log(`${id}: TRACE SUCCESS`);
     } catch (e) {
       log(`${id}: TRACE FAILED`);
-      await page.screenshot({ path: `qa-app/${id}-stuck.png` });
+      await page.screenshot({ path: `spike/qa/qa-app/${id}-stuck.png` });
     }
     await tapTarget('success:next');
     await wait(300);
   }
   const afterMains = await screenOf();
   log(`${theme}: after L4 next -> ${afterMains.name}`);
-  await page.screenshot({ path: `qa-app/badge-${theme}.png` });
+  await page.screenshot({ path: `spike/qa/qa-app/badge-${theme}.png` });
   await tapTarget(`bonus:${theme}`);
   try {
     await traceLevel(`${theme}-bonus`);
     log(`${theme}-bonus: TRACE SUCCESS`);
   } catch (e) {
     log(`${theme}-bonus: TRACE FAILED`);
-    await page.screenshot({ path: `qa-app/${theme}-bonus-stuck.png` });
+    await page.screenshot({ path: `spike/qa/qa-app/${theme}-bonus-stuck.png` });
   }
   await tapTarget('success:home');
   await wait(300);
@@ -125,7 +125,7 @@ for (const theme of THEMES) {
   // Re-open the theme to capture filled sticker slots + badge.
   await tapTarget(`theme:${theme}`);
   await wait(400);
-  await page.screenshot({ path: `qa-app/theme-${theme}-done.png` });
+  await page.screenshot({ path: `spike/qa/qa-app/theme-${theme}-done.png` });
   await tapTarget('theme:home');
   await wait(300);
   log(`${theme}: back -> ${(await screenOf()).name}`);

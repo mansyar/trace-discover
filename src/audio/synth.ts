@@ -1,6 +1,8 @@
 // Pentatonic synth math kept pure for testing; the Web Audio player is a thin
 // adapter (createWebAudioPlayer) added when the first playable wires sound.
 
+import type { HopTimeline } from '../character/hops';
+
 /** One tone instruction, delay counted in seconds from "now". */
 export interface ToneSpec {
   readonly delay: number;
@@ -13,6 +15,18 @@ export interface ToneSpec {
 export interface TonePlayer {
   play(spec: ToneSpec): void;
 }
+
+/** One named instrument voice: tone length, loudness and waveform. */
+export interface InstrumentPreset {
+  readonly duration: number;
+  readonly gain: number;
+  readonly type: 'sine' | 'triangle';
+}
+
+/** Warm marimba-ish voice shared by the three worlds. */
+export const MARIMBA_PRESET: InstrumentPreset = { duration: 0.8, gain: 0.5, type: 'triangle' };
+/** Bright toy-piano/xylophone voice for the numbers pack. */
+export const TOY_PIANO_PRESET: InstrumentPreset = { duration: 0.5, gain: 0.45, type: 'triangle' };
 
 export const ATTACK_SECONDS = 0.006;
 const DECAY_TAU = 0.35;
@@ -42,17 +56,18 @@ export function envelopeGain(seconds: number): number {
   return Math.exp(-(seconds - ATTACK_SECONDS) / DECAY_TAU);
 }
 
-const CHIME_DURATION = 0.8;
-const CHIME_GAIN = 0.5;
-
 /** Ascending chime for one cleared checkpoint. */
-export function playCheckpointChime(player: TonePlayer, checkpointIndex: number): void {
+export function playCheckpointChime(
+  player: TonePlayer,
+  checkpointIndex: number,
+  preset: InstrumentPreset = MARIMBA_PRESET,
+): void {
   player.play({
     delay: 0,
-    duration: CHIME_DURATION,
+    duration: preset.duration,
     frequency: midiToFrequency(checkpointMidi(checkpointIndex)),
-    gain: CHIME_GAIN,
-    type: 'triangle',
+    gain: preset.gain,
+    type: preset.type,
   });
 }
 
@@ -81,6 +96,39 @@ export function playCompletion(player: TonePlayer): void {
       type: 'sine',
     });
   });
+}
+
+/** Counted completion notes: one toy-piano note per hop landing, ascending.
+ *  The 0 ring move gets a single note at its midpoint instead. */
+export function countedNoteSpecs(
+  timeline: HopTimeline,
+  preset: InstrumentPreset = TOY_PIANO_PRESET,
+): ToneSpec[] {
+  if (timeline.ring) {
+    return [noteSpec(0, timeline.totalMs / 2000, preset)];
+  }
+  return timeline.hops.map((hop, index) => noteSpec(index, hop.endMs / 1000, preset));
+}
+
+/** Plays the counted completion run through a player. */
+export function playCountedNotes(
+  player: TonePlayer,
+  timeline: HopTimeline,
+  preset: InstrumentPreset = TOY_PIANO_PRESET,
+): void {
+  for (const spec of countedNoteSpecs(timeline, preset)) {
+    player.play(spec);
+  }
+}
+
+function noteSpec(index: number, delay: number, preset: InstrumentPreset): ToneSpec {
+  return {
+    delay,
+    duration: preset.duration,
+    frequency: midiToFrequency(checkpointMidi(index)),
+    gain: preset.gain,
+    type: preset.type,
+  };
 }
 
 export interface UnlockGate {

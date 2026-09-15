@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { TonePlayer, ToneSpec } from '../audio/synth';
+import { TOY_PIANO_PRESET, type TonePlayer, type ToneSpec } from '../audio/synth';
+import { hopPlacement, hopTimeline } from '../character/hops';
+import { pointAtSequence } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { DINO_LEVELS } from '../themes/dino';
 import { type LevelDef, levelToPath } from '../themes/level';
+import { NUMERAL_LEVELS } from '../themes/numbers';
 import { createSession, type SessionEvent } from './session';
 
 function fakes() {
@@ -44,6 +47,22 @@ function level(index: number): LevelDef {
   return found;
 }
 
+function firstStroke(level: LevelDef): readonly Point[] {
+  const points = levelToPath(level)[0];
+  if (!points) {
+    throw new Error(`Level ${level.id} has no strokes.`);
+  }
+  return points;
+}
+
+function numeral(id: string): LevelDef {
+  const found = NUMERAL_LEVELS.find((candidate) => candidate.id === id);
+  if (!found) {
+    throw new Error(`Numeral ${id} is missing.`);
+  }
+  return found;
+}
+
 const DINO_1 = level(0);
 
 function tracePath(
@@ -51,7 +70,7 @@ function tracePath(
   stride: number,
   updatesPerMove: number,
 ): void {
-  const points = levelToPath(DINO_1);
+  const points = firstStroke(DINO_1);
   session.pointerDown(point(points, 0));
   for (let i = stride; i < points.length; i += stride) {
     session.pointerMove(point(points, i));
@@ -99,7 +118,7 @@ describe('level session', () => {
       seed: 7,
       settings: () => ({ easierTracing: false }),
     });
-    const points = levelToPath(DINO_1);
+    const points = firstStroke(DINO_1);
     session.pointerDown(point(points, 0));
     for (let i = 2; i < points.length / 2; i += 2) {
       session.pointerMove(point(points, i));
@@ -156,12 +175,223 @@ describe('level session', () => {
       seed: 7,
       settings: () => ({ easierTracing: false }),
     });
-    const points = levelToPath(DINO_1);
+    const points = firstStroke(DINO_1);
     session.pointerDown(point(points, points.length - 1));
     for (let u = 0; u < 120; u += 1) {
       session.update(16);
     }
     expect(session.success).toBe(false);
     expect(session.snapshot().frontier).toBe(0);
+  });
+
+  it('runs a two-stroke numeral as one session: hand-over, chimes, parked mascot', () => {
+    const f = fakes();
+    const numeral = NUMERAL_LEVELS.find((candidate) => candidate.id === 'num-4');
+    if (!numeral) {
+      throw new Error('Numeral num-4 is missing.');
+    }
+    const session = createSession(numeral, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const paths = levelToPath(numeral);
+    const first = paths[0];
+    const second = paths[1];
+    if (!first || !second) {
+      throw new Error('num-4 must have two strokes.');
+    }
+    session.pointerDown(point(first, 0));
+    for (let i = 2; i < first.length; i += 2) {
+      session.pointerMove(point(first, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerMove(point(first, first.length - 1));
+    for (let u = 0; u < 40; u += 1) {
+      session.update(16);
+    }
+    session.pointerUp();
+    expect(session.success).toBe(false);
+    // Completing the bar hands the glow over to the stem immediately.
+    expect(session.snapshot().multiState.strokeIndex).toBe(1);
+    session.pointerDown(point(second, 0));
+    for (let i = 2; i < second.length; i += 2) {
+      session.pointerMove(point(second, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerMove(point(second, second.length - 1));
+    for (let u = 0; u < 40; u += 1) {
+      session.update(16);
+    }
+    expect(session.snapshot().multiState.strokeIndex).toBe(1);
+    for (let u = 0; u < 500; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+    // 5 checkpoint chimes + 3 chord tones + 4 arpeggio notes.
+    expect(f.specs).toHaveLength(12);
+    expect(f.fired).toEqual(['celebrate']);
+    const charPos = session.snapshot().charPos;
+    expect(charPos.x).toBeCloseTo(215, 0);
+    expect(charPos.y).toBeCloseTo(410, 0);
+  });
+
+  it('clamps nudge hints to the active stroke', () => {
+    const f = fakes();
+    const numeral = NUMERAL_LEVELS.find((candidate) => candidate.id === 'num-4');
+    if (!numeral) {
+      throw new Error('Numeral num-4 is missing.');
+    }
+    const session = createSession(numeral, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const first = levelToPath(numeral)[0];
+    if (!first) {
+      throw new Error('num-4 must have a first stroke.');
+    }
+    session.pointerDown(point(first, 0));
+    // Stops short of the end so this stroke is still the active one.
+    for (let i = 2; i < first.length - 4; i += 2) {
+      session.pointerMove(point(first, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerUp();
+    for (let u = 0; u < 130; u += 1) {
+      session.update(16);
+    }
+    const snapshot = session.snapshot();
+    const active = snapshot.multi.strokes[0];
+    if (!active) {
+      throw new Error('num-4 must have a first stroke.');
+    }
+    expect(snapshot.nudgeAt).toBe(active.total);
+  });
+});
+
+describe('numeral reward plan', () => {
+  function traceNumeral(session: ReturnType<typeof createSession>, points: readonly Point[]): void {
+    session.pointerDown(point(points, 0));
+    for (let i = 2; i < points.length; i += 2) {
+      session.pointerMove(point(points, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerMove(point(points, points.length - 1));
+    for (let u = 0; u < 60; u += 1) {
+      session.update(16);
+    }
+    session.pointerUp();
+  }
+
+  function settleToReward(session: ReturnType<typeof createSession>): void {
+    for (let u = 0; u < 100 && session.snapshot().completion.stage !== 'hop'; u += 1) {
+      session.update(16);
+    }
+  }
+
+  it('schedules one toy-piano note per hop and lifts the guide along the arc', () => {
+    const f = fakes();
+    const plan = hopTimeline(3);
+    const target = numeral('num-3');
+    const session = createSession(target, {
+      character: f.character,
+      hopPlan: plan,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    traceNumeral(session, firstStroke(target));
+    settleToReward(session);
+    const toy = f.specs.filter(
+      (spec) => spec.type === TOY_PIANO_PRESET.type && spec.gain === TOY_PIANO_PRESET.gain,
+    );
+    expect(toy).toHaveLength(3);
+    toy.forEach((spec, index) => {
+      expect(spec.delay).toBeCloseTo((plan.hopMs * (index + 1)) / 1000, 9);
+    });
+    const frequencies = toy.map((spec) => spec.frequency);
+    expect(frequencies[1]).toBeGreaterThan(frequencies[0] ?? 0);
+    expect(frequencies[2]).toBeGreaterThan(frequencies[1] ?? 0);
+    for (let u = 0; u < 13; u += 1) {
+      session.update(16);
+    }
+    const mid = session.snapshot();
+    const placement = hopPlacement(plan, mid.completion.elapsedMs);
+    const base = pointAtSequence(mid.multi, mid.multi.total * placement.progress);
+    expect(base.y - mid.charPos.y).toBeGreaterThan(20);
+    expect(mid.charPos.x).toBeCloseTo(base.x, 3);
+    for (let u = 0; u < 400 && !session.success; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+    expect(f.fired).toEqual(['celebrate']);
+  });
+
+  it('gives 0 a single midpoint note on its ring move', () => {
+    const f = fakes();
+    const target = numeral('num-0');
+    const session = createSession(target, {
+      character: f.character,
+      hopPlan: hopTimeline(0),
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    traceNumeral(session, firstStroke(target));
+    settleToReward(session);
+    const toy = f.specs.filter(
+      (spec) => spec.type === TOY_PIANO_PRESET.type && spec.gain === TOY_PIANO_PRESET.gain,
+    );
+    expect(toy).toHaveLength(1);
+    expect(toy[0]?.delay).toBeCloseTo(0.45, 9);
+    for (let u = 0; u < 400 && !session.success; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+  });
+
+  it('lets easier tracing widen the corridor for numerals', () => {
+    const target = numeral('num-1');
+    const stroke = firstStroke(target);
+    const offset = 60;
+    const plain = fakes();
+    const eased = fakes();
+    const base = createSession(target, {
+      character: plain.character,
+      onEvent: (event) => void plain.events.push(event),
+      player: plain.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const wider = createSession(target, {
+      character: eased.character,
+      onEvent: (event) => void eased.events.push(event),
+      player: eased.player,
+      seed: 7,
+      settings: () => ({ easierTracing: true }),
+    });
+    const start = point(stroke, 0);
+    base.pointerDown(start);
+    wider.pointerDown(start);
+    for (let i = 1; i < stroke.length; i += 1) {
+      const p = point(stroke, i);
+      base.pointerMove({ x: p.x + offset, y: p.y });
+      wider.pointerMove({ x: p.x + offset, y: p.y });
+      base.update(16);
+      wider.update(16);
+    }
+    expect(base.snapshot().multiState.frontier).toBe(0);
+    expect(wider.snapshot().multiState.frontier).toBeGreaterThan(0);
   });
 });

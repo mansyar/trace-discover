@@ -5,12 +5,16 @@
 
 import {
   awardBadge,
+  awardPackBadge,
   completeLevel,
+  completeNumeral,
   createDefaultSave,
   type SaveData,
   updateSettings,
 } from '../save/store';
 import { nextLevelId, themeEntry } from '../themes/catalog';
+import { NUMBERS_PACK } from '../themes/numbers';
+import { nextPackLevelId, packLevelIds, shouldAwardPackBadge } from '../themes/pack';
 import { isBonusOpen, shouldAwardBadge } from '../themes/progress';
 import { changeVolume } from '../ui/parent';
 import type { ParentZoneAction } from '../ui/parentZone';
@@ -23,6 +27,7 @@ export type AppScreen =
   | { readonly name: 'level'; readonly themeId: string; readonly levelId: string }
   | { readonly name: 'success'; readonly themeId: string; readonly levelId: string }
   | { readonly name: 'badge'; readonly themeId: string }
+  | { readonly name: 'pack' }
   | { readonly name: 'parent'; readonly confirmReset: boolean; readonly showInstall: boolean };
 
 export interface AppState {
@@ -36,6 +41,8 @@ export type AppEvent =
   | { readonly type: 'splash-tap' }
   | { readonly type: 'open-theme'; readonly themeId: string }
   | { readonly type: 'theme-back' }
+  | { readonly type: 'open-pack' }
+  | { readonly type: 'pack-back' }
   | { readonly type: 'open-level'; readonly themeId: string; readonly levelId: string }
   | { readonly type: 'level-complete'; readonly themeId: string; readonly levelId: string }
   | {
@@ -53,11 +60,18 @@ export function startApp(save: SaveData): AppState {
   return { pendingBadge: null, save, screen: { name: 'splash' } };
 }
 
+const PACK_ID = NUMBERS_PACK.id;
+
 function mainIds(themeId: string): readonly string[] {
   return themeEntry(themeId)?.mainLevels.map((level) => level.id) ?? [];
 }
 
 function openLevel(state: AppState, themeId: string, levelId: string): AppState {
+  if (themeId === PACK_ID) {
+    return packLevelIds(NUMBERS_PACK).includes(levelId)
+      ? { ...state, screen: { name: 'level', themeId, levelId } }
+      : state;
+  }
   const entry = themeEntry(themeId);
   if (!entry) {
     return state;
@@ -74,6 +88,22 @@ function openLevel(state: AppState, themeId: string, levelId: string): AppState 
 }
 
 function completeLevelRun(state: AppState, themeId: string, levelId: string): AppState {
+  if (themeId === PACK_ID) {
+    const completed = completeNumeral(state.save, levelId);
+    if (!shouldAwardPackBadge(completed, NUMBERS_PACK)) {
+      return {
+        ...state,
+        save: completed,
+        screen: { name: 'success', themeId, levelId },
+      };
+    }
+    return {
+      ...state,
+      pendingBadge: PACK_ID,
+      save: awardPackBadge(completed),
+      screen: { name: 'success', themeId, levelId },
+    };
+  }
   const completed = completeLevel(state.save, levelId);
   if (!shouldAwardBadge(completed, themeId, mainIds(themeId))) {
     return {
@@ -96,6 +126,21 @@ function successAction(
   themeId: string,
   levelId: string,
 ): AppState {
+  if (themeId === PACK_ID) {
+    if (action === 'home') {
+      return { ...state, screen: { name: 'pack' } };
+    }
+    if (action === 'replay') {
+      return { ...state, screen: { name: 'level', themeId, levelId } };
+    }
+    if (state.pendingBadge === PACK_ID) {
+      return { ...state, pendingBadge: null, screen: { name: 'badge', themeId: PACK_ID } };
+    }
+    return {
+      ...state,
+      screen: { name: 'level', themeId, levelId: nextPackLevelId(NUMBERS_PACK, levelId) },
+    };
+  }
   if (action === 'home') {
     return { ...state, screen: { name: 'menu' } };
   }
@@ -173,6 +218,10 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
         : state;
     case 'theme-back':
       return { ...state, screen: { name: 'menu' } };
+    case 'open-pack':
+      return { ...state, screen: { name: 'pack' } };
+    case 'pack-back':
+      return { ...state, screen: { name: 'menu' } };
     case 'open-level':
       return openLevel(state, event.themeId, event.levelId);
     case 'level-complete':
@@ -180,6 +229,9 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'success-action':
       return successAction(state, event.action, event.themeId, event.levelId);
     case 'badge-tap': {
+      if (event.themeId === PACK_ID) {
+        return { ...state, screen: { name: 'pack' } };
+      }
       const entry = themeEntry(event.themeId);
       return entry
         ? { ...state, screen: { name: 'level', themeId: event.themeId, levelId: entry.bonus.id } }

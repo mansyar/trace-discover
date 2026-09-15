@@ -1,8 +1,10 @@
 // Versioned localStorage persistence for progress and parent settings.
 // Stickers are derived: clearing a level awards its sticker, so the sticker
 // set is exactly the completed-level set and can never drift out of sync.
+// The storage key keeps its original slot name; the payload `version` field
+// drives schema upgrades (v1 saves migrate losslessly, see sanitizeSave).
 export const SAVE_KEY = 'trace-discover-save-v1';
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface ParentSettings {
   readonly easierTracing: boolean;
@@ -10,12 +12,19 @@ export interface ParentSettings {
   readonly volume: number;
 }
 
+/** Numerals-pack progress: cleared numeral ids award their stickers. */
+export interface PackSave {
+  readonly badge: boolean;
+  readonly cleared: readonly string[];
+}
+
 export interface SaveData {
   readonly assistWidened: boolean;
   readonly badges: readonly string[];
   readonly completedLevels: readonly string[];
+  readonly pack: PackSave;
   readonly settings: ParentSettings;
-  readonly version: 1;
+  readonly version: 2;
 }
 
 // Minimal surface so tests can inject an in-memory fake; the real
@@ -30,6 +39,7 @@ export function createDefaultSave(): SaveData {
     assistWidened: false,
     badges: [],
     completedLevels: [],
+    pack: { badge: false, cleared: [] },
     settings: { easierTracing: false, muted: false, volume: 1 },
     version: SAVE_VERSION,
   };
@@ -77,6 +87,24 @@ export function setAssistWidened(save: SaveData, widened: boolean): SaveData {
   return { ...save, assistWidened: widened };
 }
 
+export function completeNumeral(save: SaveData, numeralId: string): SaveData {
+  if (save.pack.cleared.includes(numeralId)) {
+    return save;
+  }
+  return { ...save, pack: { ...save.pack, cleared: [...save.pack.cleared, numeralId] } };
+}
+
+export function hasNumeralSticker(save: SaveData, numeralId: string): boolean {
+  return save.pack.cleared.includes(numeralId);
+}
+
+export function awardPackBadge(save: SaveData): SaveData {
+  if (save.pack.badge) {
+    return save;
+  }
+  return { ...save, pack: { ...save.pack, badge: true } };
+}
+
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -104,12 +132,21 @@ function asSettings(value: unknown, fallback: ParentSettings): ParentSettings {
   return { easierTracing, muted, volume };
 }
 
+function asPack(value: unknown, fallback: PackSave): PackSave {
+  if (typeof value !== 'object' || value === null) {
+    return fallback;
+  }
+  const cleared = 'cleared' in value ? asStringArray(value.cleared) : fallback.cleared;
+  const badge = 'badge' in value && typeof value.badge === 'boolean' ? value.badge : fallback.badge;
+  return { badge, cleared };
+}
+
 function sanitizeSave(parsed: unknown): SaveData {
   const fallback = createDefaultSave();
   if (typeof parsed !== 'object' || parsed === null) {
     return fallback;
   }
-  if (!('version' in parsed) || parsed.version !== SAVE_VERSION) {
+  if (!('version' in parsed) || (parsed.version !== 1 && parsed.version !== SAVE_VERSION)) {
     return fallback;
   }
   const completedLevels =
@@ -121,5 +158,6 @@ function sanitizeSave(parsed: unknown): SaveData {
     'assistWidened' in parsed && typeof parsed.assistWidened === 'boolean'
       ? parsed.assistWidened
       : fallback.assistWidened;
-  return { assistWidened, badges, completedLevels, settings, version: SAVE_VERSION };
+  const pack = 'pack' in parsed ? asPack(parsed.pack, fallback.pack) : fallback.pack;
+  return { assistWidened, badges, completedLevels, pack, settings, version: SAVE_VERSION };
 }

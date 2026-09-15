@@ -4,11 +4,15 @@
 // zero-text — the parent zone is the one place labels are allowed.
 import { DEFAULT_COMPLETION_CONFIG } from '../engine/completion';
 import { pointAtLength } from '../engine/path';
+import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { drawPath, type PathStyle } from '../render/renderPath';
+import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
-import type { MenuLayout, SplashLayout } from '../ui/menu';
+import { levelToPath } from '../themes/level';
+import { NUMBERS_PACK, NUMERAL_LEVELS } from '../themes/numbers';
+import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
+import type { PackLayout } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SuccessLayout } from '../ui/success';
 import type { ThemeLayout } from '../ui/theme';
@@ -31,6 +35,11 @@ const PATH_STYLE: PathStyle = {
   tipColor: GOLD,
   tipRadius: 16,
 };
+
+/** Placeholder menu art: "1 2 3" drawn from the numeral level data. */
+const NUMERAL_MINI = new Map(
+  NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
+);
 
 /** Sticker fly-in target (top-right of the level screen). */
 export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
@@ -90,9 +99,10 @@ export function drawStar(
 export interface LevelArt {
   readonly backdrop: HTMLImageElement | null;
   readonly goal: HTMLImageElement | null;
+  readonly sticker: HTMLImageElement | null;
 }
 
-export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null };
+export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null, sticker: null };
 
 /** Paints the backdrop cover-cropped over the whole field. */
 function drawBackdrop(ctx: CanvasRenderingContext2D, image: HTMLImageElement): void {
@@ -223,10 +233,19 @@ export function drawSplash(ctx: CanvasRenderingContext2D, now: number, layout: S
   ctx.stroke();
 }
 
+/** Pack card extras: real art plus zero-text progress (first frames: null). */
+export interface PackMenuArt {
+  readonly image: HTMLImageElement | null;
+  readonly cleared: number;
+  readonly total: number;
+  readonly badge: boolean;
+}
+
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
   layout: MenuLayout,
   fills: readonly string[],
+  packArt?: PackMenuArt,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -236,7 +255,11 @@ export function drawMenu(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-    drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
+    if (card.themeId === NUMBERS_PACK.id) {
+      drawMenuPackCard(ctx, card, packArt);
+    } else {
+      drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
+    }
   });
   // Subtle grown-ups affordance: a quiet dot marking the two-finger hold
   // corner. Single taps here do nothing, so it never tempts little fingers.
@@ -248,6 +271,72 @@ export function drawMenu(
   ctx.fillStyle = NAVY;
   ctx.fill();
   ctx.restore();
+}
+
+/** Pack card: "123" art, a dot strip for cleared numerals, star on badge. */
+function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
+  const centerX = card.x + card.width / 2;
+  const image = art?.image;
+  if (image) {
+    const maxHeight = card.height - 58;
+    const maxWidth = card.width - 44;
+    const scale = Math.min(maxHeight / image.naturalHeight, maxWidth / image.naturalWidth);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    ctx.drawImage(
+      image,
+      centerX - width / 2,
+      card.y + 14 + (maxHeight - height) / 2,
+      width,
+      height,
+    );
+  } else {
+    drawMenuPackArt(ctx, card);
+  }
+  if (!art || art.cleared <= 0) {
+    return;
+  }
+  const spacing = 22;
+  const startX = centerX - (spacing * (art.total - 1)) / 2;
+  const dotY = card.y + card.height - 22;
+  for (let i = 0; i < art.total; i += 1) {
+    ctx.beginPath();
+    ctx.arc(startX + i * spacing, dotY, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = i < art.cleared ? NAVY : '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
+  if (art.badge) {
+    drawStar(ctx, card.x + card.width - 28, card.y + 28, 16);
+    ctx.fillStyle = GOLD;
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
+}
+
+/** Fallback "1 2 3" strokes for the first frames before the card art loads. */
+function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
+  const boxWidth = card.width / 4;
+  const startX = card.x + (card.width - boxWidth * 3) / 2;
+  const ids = ['num-1', 'num-2', 'num-3'];
+  ids.forEach((id, index) => {
+    const strokes = NUMERAL_MINI.get(id);
+    if (strokes) {
+      drawMiniNumeral(
+        ctx,
+        strokes,
+        startX + index * boxWidth + 6,
+        card.y + 12,
+        boxWidth - 12,
+        card.height - 24,
+        false,
+      );
+    }
+  });
 }
 
 function drawMiniTrail(
@@ -371,6 +460,133 @@ export function drawTheme(
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
+/** Paints a multi-stroke numeral scaled into a card with one shared transform. */
+function drawMiniNumeral(
+  ctx: CanvasRenderingContext2D,
+  strokes: readonly (readonly Point[])[],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  completed: boolean,
+): void {
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  for (const stroke of strokes) {
+    for (const point of stroke) {
+      minX = Math.min(minX, point.x);
+      minY = Math.min(minY, point.y);
+      maxX = Math.max(maxX, point.x);
+      maxY = Math.max(maxY, point.y);
+    }
+  }
+  const pad = 60;
+  const scale = Math.min(
+    width / Math.max(1, maxX - minX + pad),
+    height / Math.max(1, maxY - minY + pad),
+  );
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.clip();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (const stroke of strokes) {
+    stroke.forEach((point, index) => {
+      const px = x + width / 2 + (point.x - (minX + maxX) / 2) * scale;
+      const py = y + height / 2 + (point.y - (minY + maxY) / 2) * scale;
+      if (index === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        ctx.lineTo(px, py);
+      }
+    });
+  }
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 14;
+  ctx.stroke();
+  ctx.strokeStyle = completed ? '#f6b45a' : '#cfe3f2';
+  ctx.lineWidth = 9;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Pack screen: badge seal, 2x5 numeral grid, sticker shelf, home corner. */
+export function drawPack(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  layout: PackLayout,
+  stickers: readonly boolean[],
+  badgeEarned: boolean,
+  highlightBadge: boolean,
+  miniPaths: ReadonlyMap<string, readonly (readonly Point[])[]>,
+  stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+  badgeImage: HTMLImageElement | null = null,
+): void {
+  const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
+  if (badgeEarned && badgeImage) {
+    drawGoalArt(
+      ctx,
+      badgeImage,
+      layout.badge.x,
+      layout.badge.y,
+      layout.badge.radius * 2.2 * badgePulse,
+    );
+  } else {
+    drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius * badgePulse, badgeEarned);
+  }
+  layout.cards.forEach((card, index) => {
+    ctx.beginPath();
+    ctx.rect(card.x, card.y, card.width, card.height);
+    ctx.fillStyle = '#cfe3f2';
+    ctx.fill();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+    const strokes = miniPaths.get(card.numeralId);
+    if (strokes && strokes.length > 0) {
+      drawMiniNumeral(
+        ctx,
+        strokes,
+        card.x + 10,
+        card.y + 10,
+        card.width - 20,
+        card.height - 20,
+        stickers[index] ?? false,
+      );
+    }
+    if (stickers[index] === true) {
+      drawStar(ctx, card.x + card.width - 24, card.y + 24, 14);
+      ctx.fillStyle = GOLD;
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+    }
+  });
+  layout.slots.forEach((slot, index) => {
+    const earned = stickers[index] === true;
+    const card = layout.cards[index];
+    const sticker = card ? stickerImages.get(card.numeralId) : undefined;
+    if (earned && sticker) {
+      drawGoalArt(ctx, sticker, slot.x, slot.y, slot.radius * 2.48);
+    } else {
+      drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
+    }
+  });
+  ctx.beginPath();
+  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
 export function drawLevel(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -388,19 +604,24 @@ export function drawLevel(
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#ffd76a';
-    ctx.beginPath();
-    snap.trail.points.forEach((pathPoint, index) => {
-      if (index === 0) {
-        ctx.moveTo(pathPoint.x, pathPoint.y);
-      } else {
-        ctx.lineTo(pathPoint.x, pathPoint.y);
-      }
-    });
-    ctx.stroke();
+    for (const stroke of snap.multi.strokes) {
+      ctx.beginPath();
+      stroke.points.forEach((pathPoint, index) => {
+        if (index === 0) {
+          ctx.moveTo(pathPoint.x, pathPoint.y);
+        } else {
+          ctx.lineTo(pathPoint.x, pathPoint.y);
+        }
+      });
+      ctx.stroke();
+    }
     ctx.restore();
   }
-  drawPath(ctx, snap.trail, snap.trailState, PATH_STYLE);
-  const start = pointAtLength(snap.trail.points, snap.trail.cumulative, 0);
+  drawMultiPath(ctx, snap.multi, snap.multiState, PATH_STYLE);
+  const activeStroke = snap.multi.strokes[snap.multiState.strokeIndex];
+  const start = activeStroke
+    ? pointAtLength(activeStroke.points, activeStroke.cumulative, 0)
+    : { x: 0, y: 0 };
   ctx.beginPath();
   ctx.arc(start.x, start.y, 22 * pulse, 0, Math.PI * 2);
   ctx.fillStyle = GOLD;
@@ -408,7 +629,7 @@ export function drawLevel(
   ctx.lineWidth = 6;
   ctx.strokeStyle = NAVY;
   ctx.stroke();
-  const end = pointAtLength(snap.trail.points, snap.trail.cumulative, snap.trail.total);
+  const end = pointAtSequence(snap.multi, snap.multi.total);
   if (art.goal) {
     drawGoalArt(ctx, art.goal, end.x, end.y, 104);
   } else {
@@ -421,7 +642,10 @@ export function drawLevel(
     ctx.stroke();
   }
   if (snap.nudgeAt !== null && !snap.completionStarted) {
-    const target = pointAtLength(snap.trail.points, snap.trail.cumulative, snap.nudgeAt);
+    const target = pointAtSequence(
+      snap.multi,
+      strokeStartArc(snap.multi, snap.multiState.strokeIndex) + snap.nudgeAt,
+    );
     ctx.beginPath();
     ctx.arc(target.x, target.y, 18 * pulse, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(232, 193, 90, 0.55)';
@@ -443,9 +667,17 @@ export function drawLevel(
   if (stickerT !== null) {
     const sx = end.x + (STICKER_SLOT.x - end.x) * stickerT;
     const sy = end.y + (STICKER_SLOT.y - end.y) * stickerT - Math.sin(Math.PI * stickerT) * 70;
-    drawSeal(ctx, sx, sy, 26, true);
+    if (art.sticker) {
+      drawGoalArt(ctx, art.sticker, sx, sy, 64);
+    } else {
+      drawSeal(ctx, sx, sy, 26, true);
+    }
   } else if (snap.completionStarted && snap.completion.stage === 'done') {
-    drawSeal(ctx, STICKER_SLOT.x, STICKER_SLOT.y, 26, true);
+    if (art.sticker) {
+      drawGoalArt(ctx, art.sticker, STICKER_SLOT.x, STICKER_SLOT.y, 64);
+    } else {
+      drawSeal(ctx, STICKER_SLOT.x, STICKER_SLOT.y, 26, true);
+    }
   }
   for (const particle of snap.confetti) {
     ctx.save();
@@ -472,9 +704,17 @@ export function drawSuccess(ctx: CanvasRenderingContext2D, layout: SuccessLayout
   }
 }
 
-export function drawBadge(ctx: CanvasRenderingContext2D, now: number): void {
+export function drawBadge(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  art: HTMLImageElement | null = null,
+): void {
   const pulse = 1 + 0.08 * Math.sin(now / 280);
-  drawSeal(ctx, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * pulse, true);
+  if (art) {
+    drawGoalArt(ctx, art, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * 2.2 * pulse);
+  } else {
+    drawSeal(ctx, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * pulse, true);
+  }
   ctx.beginPath();
   ctx.arc(BADGE_HOME.x, BADGE_HOME.y, BADGE_HOME.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff';

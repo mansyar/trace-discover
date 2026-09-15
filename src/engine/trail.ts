@@ -119,6 +119,117 @@ function isFinishingClosedLoop(trail: Trail, state: TrailState, x: number, y: nu
   return Math.hypot(x - last.x, y - last.y) <= trail.config.tolerance;
 }
 
+/** Ready-to-trace path for a level with one or more ordered strokes. */
+export interface MultiTrail {
+  /** Prepared paths, one per stroke, traced in order. */
+  readonly strokes: readonly Trail[];
+  /** Sum of all stroke lengths (px). */
+  readonly total: number;
+  readonly config: TrailConfig;
+}
+
+/** Multi-stroke progress: the active stroke plus its frontier. */
+export interface MultiTrailState extends TrailState {
+  /** Index of the stroke currently being traced; only ever increases. */
+  readonly strokeIndex: number;
+}
+
+/** Fresh state for a new multi-stroke level attempt. */
+export const MULTI_TRAIL_START: MultiTrailState = {
+  frontier: 0,
+  strokeIndex: 0,
+  tracing: false,
+};
+
+/** Marks a finger down on a multi-stroke trail. */
+export function beginMultiStroke(state: MultiTrailState): MultiTrailState {
+  return { ...state, tracing: true };
+}
+
+/** Marks a finger up; per-stroke progress is kept. */
+export function endMultiStroke(state: MultiTrailState): MultiTrailState {
+  return { ...state, tracing: false };
+}
+
+/** Prepares each stroke (e.g. from `levelToPath`) for sequential tracing. */
+export function createMultiTrail(
+  strokePoints: readonly (readonly Point[])[],
+  config: TrailConfig,
+): MultiTrail {
+  const strokes = strokePoints.map((points) => createTrail(points, config));
+  return {
+    strokes,
+    total: strokes.reduce((sum, stroke) => sum + stroke.total, 0),
+    config,
+  };
+}
+
+/**
+ * Advances the frontier one frame on the active stroke. When that stroke
+ * reaches its end, tracing hands over to the next stroke immediately (the next
+ * stroke lights up as the active one); the finger must still start near its
+ * start point before the frontier advances (the same gates as a fresh touch
+ * apply). Completed strokes are never revisited, so the per-stroke frontier
+ * and the stroke index never decrease.
+ */
+export function advanceMultiTrail(
+  trail: MultiTrail,
+  state: MultiTrailState,
+  x: number,
+  y: number,
+  dtSeconds: number,
+): MultiTrailState {
+  if (!state.tracing) {
+    return state;
+  }
+  const stroke = trail.strokes[state.strokeIndex];
+  if (!stroke) {
+    return state;
+  }
+  const advanced = advanceTrail(stroke, state, x, y, dtSeconds);
+  if (advanced.frontier === state.frontier) {
+    return state;
+  }
+  if (advanced.frontier >= stroke.total && trail.strokes[state.strokeIndex + 1]) {
+    // Completed: hand over immediately so the next stroke lights up as the
+    // one to trace. The finger still has to start near its start point
+    // (the same tip-gap gate that guards every fresh stroke).
+    return { frontier: 0, strokeIndex: state.strokeIndex + 1, tracing: true };
+  }
+  return { frontier: advanced.frontier, strokeIndex: state.strokeIndex, tracing: true };
+}
+
+/** Point on the active stroke at the frontier, clamped to that stroke's extent. */
+export function multiTipPosition(trail: MultiTrail, state: MultiTrailState): Point {
+  const stroke = trail.strokes[state.strokeIndex];
+  if (!stroke) {
+    return { x: 0, y: 0 };
+  }
+  return pointAtLength(stroke.points, stroke.cumulative, state.frontier);
+}
+
+/** Arc length from the sequence start up to (but not including) one stroke. */
+export function strokeStartArc(trail: MultiTrail, index: number): number {
+  let start = 0;
+  for (let i = 0; i < index; i += 1) {
+    start += trail.strokes[i]?.total ?? 0;
+  }
+  return start;
+}
+
+/** Point on the whole sequence at a global arc distance, clamped to the end. */
+export function pointAtSequence(trail: MultiTrail, distance: number): Point {
+  let remaining = distance;
+  for (const stroke of trail.strokes) {
+    if (remaining <= stroke.total) {
+      return pointAtLength(stroke.points, stroke.cumulative, remaining);
+    }
+    remaining -= stroke.total;
+  }
+  const last = trail.strokes[trail.strokes.length - 1];
+  return last ? pointAtLength(last.points, last.cumulative, last.total) : { x: 0, y: 0 };
+}
+
 function arcLengthAt(trail: Trail, nearest: NearestResult): number {
   const segment = trail.segments[nearest.index];
   if (!segment) {
