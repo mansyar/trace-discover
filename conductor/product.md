@@ -2,39 +2,41 @@
 
 ## Description
 
-A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths across three playful worlds — 🦖 Dinosaur Trail, 🚜 Construction Site, and 🦁 Animal Friends. Each of the 12 levels (+3 bonus circles) pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops to its goal and celebrates, and a sticker flies into the theme's collection. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads — built at $0 with an agent-driven asset pipeline.
+A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles) and Numbers (0–9) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops to its goal and celebrates, and a content-neutral sticker flies into the pack's collection. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads — built at $0 with an agent-driven asset pipeline.
 
 ## Vision
 
 Give a 3.5-year-old a joyful first taste of "writing" — no text, no timers, no failure states. Every stroke she completes turns into music, motion, and a sticker.
 
-Long-term direction: a **letters & numbers tracing pack** that continues the stroke curriculum. The architecture (path engine + Rive characters + sticker loop) is designed so that pack is *content*, not code.
+Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 shipped). The architecture — skins × packs + path engine + Rive characters + sticker loop — is designed so new content and new skins are *pipeline work, not code*.
 
-*2026-09-15 — Numbers pack, Part 1 (numerals 0–9 with the star guide: pack screen, multi-stroke engine, counted reward) implemented on local branch `track/letters-numbers-pack` — awaiting the merge/release decision. Letters A–Z remain the planned follow-up.*
+*2026-09-15 — Numbers pack, Part 1 (numerals 0–9) merged via PR #2 and released as `v1.0.0` — production live at `trace-discover.pages.dev`. Letters A–Z remain the planned follow-up. In progress: track `skins-and-packs_20260915` decouples content from theme (packs × skins, save v3, content-first menu, per-skin audio).*
 
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
 - **Secondary — parents/caregivers**: safe, offline, no ads/accounts; settings behind a 2-finger gate; easy home-screen install.
 
-## Core Features (v1)
+## Core Features
 
-- 12 levels (3 themes × 4 stroke patterns: line, wave, arc, zigzag) + 1 bonus circle per theme
+- **Packs × skins architecture** — content and presentation are independent: the child picks *what to trace*; *who comes along* is a tap away
+  - **Packs:** Pre-writing (12 levels re-ramped small → medium → large; circles unlock at 4/8/12) · Numbers (0–9, toy-piano counted reward)
+  - **Skins:** 🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends — character, backdrop, accent, instrument; switchable anytime via the top-left button; persisted
 - Continuous trail-tip engine: forgiving start zone, capped speed (no skip-swipe), ~12% tolerance, paint-fill feedback
 - No-fail assists: lift keeps progress · star nudge at 2s · hand-hint at 4s · gentle auto-assist + parent toggle
-- Pentatonic audio: chime per checkpoint, chord resolve + fanfare on completion
-- Reward loop: sticker per level, badge + bonus pattern per theme
-- Zero-text UI: theme cards → level cards + sticker slots → 3-icon success screen
-- Parent zone (2-finger hold): volume, easier tracing, reset progress, install guide
+- Pentatonic audio per skin (marimba · bell · woodblock · kalimba): chime per checkpoint, chord resolve + fanfare on completion
+- Reward loop: content-neutral sticker per level, badge per pack; legacy world badges shown as display-only trophies
+- Zero-text, content-first UI: pack cards → level cards + sticker slots → 3-icon success screen; idle mascot on menu + pack screens
+- Parent zone (2-finger hold): volume, easier tracing, skin setter, trophies, reset progress, install guide
 - PWA: installable, standalone, fully offline after first load
 
 ## Success Criteria
 
 - **Independent play** — she can start and finish levels mostly unaided within a session or two of first contact; tolerance, hints, and assists do their job.
 
-## Out of Scope (v1)
+## Out of Scope
 
-Letters/numbers tracing · accounts/cloud sync · spoken voice/localization · store shipping/monetization · parent dashboards · additional themes.
+Letters A–Z tracing (next content pack) · additional skins beyond the four (contract + pipeline documented) · accounts/cloud sync · spoken voice/localization · store shipping/monetization · parent dashboards.
 
 ## Technical Constraints
 
