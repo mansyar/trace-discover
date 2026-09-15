@@ -340,4 +340,53 @@ describe('multi-stroke trail', () => {
     const empty = createMultiTrail([], CONFIG);
     expect(pointAtSequence(empty, 100)).toEqual({ x: 0, y: 0 });
   });
+
+  it('runs a generic three-stroke level (letters foundation)', () => {
+    // An L-shaped path split into three strokes - the engine must hand over
+    // twice and finish on the third, proving multi-stroke is not numeral-only.
+    const three = [
+      resample(
+        [
+          { x: 0, y: 150 },
+          { x: 250, y: 150 },
+        ],
+        10,
+      ),
+      resample(
+        [
+          { x: 250, y: 150 },
+          { x: 250, y: 350 },
+        ],
+        10,
+      ),
+      resample(
+        [
+          { x: 250, y: 350 },
+          { x: 400, y: 350 },
+        ],
+        10,
+      ),
+    ];
+    const trail = createMultiTrail(three, CONFIG);
+    let state = beginMultiStroke(MULTI_TRAIL_START);
+
+    for (let x = 10; x <= 250; x += 10) {
+      state = advanceMultiTrail(trail, state, x, 150, FRAME);
+    }
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(0, 6);
+
+    for (let y = 160; y <= 350; y += 10) {
+      state = advanceMultiTrail(trail, state, 250, y, FRAME);
+    }
+    expect(state.strokeIndex).toBe(2);
+    expect(state.frontier).toBeCloseTo(0, 6);
+
+    for (let x = 260; x <= 400; x += 10) {
+      state = advanceMultiTrail(trail, state, x, 350, FRAME);
+    }
+    expect(state.strokeIndex).toBe(2);
+    expect(state.frontier).toBeCloseTo(150, 6);
+    expect(multiTipPosition(trail, state)).toEqual({ x: 400, y: 350 });
+  });
 });
