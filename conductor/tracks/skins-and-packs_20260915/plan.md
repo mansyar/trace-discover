@@ -56,7 +56,7 @@
 - [x] Task: Device feel check via LAN — skin swap (incl. mid-trace) + audio timbres; record findings; tune if needed — owner verdict: all good, no tuning needed (Android + iPad, 2026-09-15)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Pre-writing re-ramp (content)
+## Phase 3 — Pre-writing re-ramp (content) [checkpoint: 17a3e9c]
 
 *Goal: the 12 slots form a real small→medium→large ramp; screenshots approved; feel checked.*
 
@@ -64,8 +64,8 @@
   - [x] Tests: control points within margins; ramp targets per block (line length, wave amplitude, arc rise, zigzag teeth, circle size); start/goal/direction conventions
   - [x] Implement per-block geometry; `validateLevel` clean; record the final table (track content note)
 - [x] Task: Headless screenshot QA per level — start/goal/direction + the ramp reads visually [17a3e9c]
-- [~] Task: Harness/device feel check via LAN — trace small/medium/large spot levels; tune values; record findings
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Harness/device feel check via LAN — trace small/medium/large spot levels; tune values; record findings — owner verdict: looks good, no tuning needed (Android + iPad, 2026-09-15)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Art batch: rewards, star backdrop, cards, face icons
 
