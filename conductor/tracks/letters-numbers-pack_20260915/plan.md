@@ -82,7 +82,7 @@
 - [x] Task: Persistence E2E — relaunch state + v1→v2 migration on a real v1 save fixture (TDD + manual) [0ec8bd7]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5 — Compliance & QA sweep
+## Phase 5 — Compliance & QA sweep [checkpoint: 3d5c1fa]
 
 *Goal: offline, zero-text, right-sized, measured — the pack ships within every v1 constraint.*
 
@@ -90,7 +90,7 @@
 - [x] Task: Zero-text + 90px audit of new surfaces (menu card, pack screen, success overlays) — screenshot evidence — audit 2026-09-15: vision reports "(no text)" on menu, pack and success screenshots; code scan: fillText only in parent-zone functions; targets: numeral cards 96px, home Ø90, success buttons Ø96, menu pack card full width (badge on the pack screen is display-only)
 - [x] Task: Perf spot-checks — multi-stroke rendering fps sampling (mid-range Android + base iPad), cold start; fix if warranted [a307ba8]
 - [x] Task: v1 regression sweep — 3 worlds + bonuses quick pass (screens harness + device spot-checks); full test suite green [3d5c1fa]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — Device validation & acceptance
 
