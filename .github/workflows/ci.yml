@@ -1,0 +1,56 @@
+# CI — runs on every PR to master, every push to master, and on demand.
+# Gates: Biome + tsc (`pnpm check`) -> Vitest with coverage (informational artifact) -> production build.
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Checks, tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm (version from packageManager)
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint and typecheck (Biome + tsc)
+        run: pnpm check
+
+      - name: Tests with coverage (Vitest)
+        run: pnpm test --coverage
+
+      - name: Production build (Vite)
+        run: pnpm build
+
+      - name: Upload coverage artifact (informational)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7
