@@ -11,9 +11,9 @@
 - [x] Task: Context docs resync — `tech-stack.md` (skins/packs architecture, save v3, character contract) + `product.md` (packs × skins framing; stale note refresh) — before implementation per workflow.md [df9752b]
   - [x] Update `tech-stack.md`: module map (`skins/`, `packs/`), save schema v3, character contract, asset pipeline notes
   - [x] Update `product.md`: description/direction around packs × skins; refresh the dated note; verify no contradictions
-- [ ] Task: Skins registry (TDD)
-  - [ ] Tests: four skins (dino, star, construction, animal) each carrying id/character/backdrop/accent/instrument; unique ids; lookup by id; contract fields present
-  - [ ] Implement `src/skins/` (star backdrop refs the future art path; placeholder until Phase 4)
+- [x] Task: Skins registry (TDD) [b347ef1]
+  - [x] Tests: four skins (dino, star, construction, animal) each carrying id/character/backdrop/accent/instrument; unique ids; lookup by id; contract fields present
+  - [x] Implement `src/skins/` (star backdrop refs the future art path; placeholder until Phase 4)
 - [ ] Task: Packs registry + pre-writing pack data (TDD)
   - [ ] Tests: pack entry shape; pre-writing holds 12 slots (`pre-1..pre-12`) + 3 circles (`pre-bonus-1..3`) in current slot order (geometry relabeled, re-ramp lands Phase 3); numbers folds in (`num-0..9`); ids unique; `validateLevel` clean for all
   - [ ] Implement `src/packs/` (level schema moves from `themes/level.ts`; `LevelDef.theme` removed)
