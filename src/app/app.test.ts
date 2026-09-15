@@ -124,8 +124,8 @@ describe('pack navigation', () => {
     expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-3' });
     app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-3' });
     expect(app.screen).toEqual({ name: 'success', themeId: 'numbers', levelId: 'num-3' });
-    expect(app.save.pack.cleared).toEqual(['num-3']);
-    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.completedLevels).toEqual(['num-3']);
+    expect(app.save.badges).toEqual([]);
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'home',
@@ -174,15 +174,14 @@ describe('pack navigation', () => {
     expect(app.screen).toEqual({ name: 'menu' });
   });
 
-  it('keeps world and pack progress in separate namespaces', () => {
+  it('records pack progress in the unified completed list', () => {
     const app = applyAppEvent(setup(), {
       type: 'level-complete',
       themeId: 'numbers',
       levelId: 'num-1',
     });
-    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.completedLevels).toEqual(['num-1']);
     expect(app.save.badges).toEqual([]);
-    expect(app.save.pack).toEqual({ badge: false, cleared: ['num-1'] });
   });
 
   it('resets pack progress only after the parent confirm tap', () => {
@@ -194,10 +193,10 @@ describe('pack navigation', () => {
     app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-2' });
     app = applyAppEvent(app, { type: 'parent-open' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
-    expect(app.save.pack.cleared).toEqual(['num-1', 'num-2']);
+    expect(app.save.completedLevels).toEqual(['num-1', 'num-2']);
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
-    expect(app.save.pack).toEqual({ badge: false, cleared: [] });
     expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.badges).toEqual([]);
   });
 });
 
@@ -217,11 +216,11 @@ describe('pack badge', () => {
     ]) {
       app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId });
     }
-    expect(app.save.pack.cleared).toHaveLength(9);
-    expect(app.save.pack.badge).toBe(false);
+    expect(app.save.completedLevels).toHaveLength(9);
+    expect(app.save.badges).toEqual([]);
     expect(app.pendingBadge).toBeNull();
     app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-9' });
-    expect(app.save.pack.badge).toBe(true);
+    expect(app.save.badges).toEqual(['numbers-badge']);
     expect(app.pendingBadge).toBe('numbers');
     expect(app.screen).toEqual({ name: 'success', themeId: 'numbers', levelId: 'num-9' });
     app = applyAppEvent(app, {

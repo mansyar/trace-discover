@@ -38,13 +38,13 @@ export function nextPackLevelId(entry: PackEntry, currentId: string): string {
 
 /** Numerals cleared so far. */
 export function packCompletedCount(save: SaveData, entry: PackEntry): number {
-  return entry.levels.filter((level) => save.pack.cleared.includes(level.id)).length;
+  return entry.levels.filter((level) => save.completedLevels.includes(level.id)).length;
 }
 
 export function isPackComplete(save: SaveData, entry: PackEntry): boolean {
-  return entry.levels.every((level) => save.pack.cleared.includes(level.id));
+  return entry.levels.every((level) => save.completedLevels.includes(level.id));
 }
 
 export function shouldAwardPackBadge(save: SaveData, entry: PackEntry): boolean {
-  return isPackComplete(save, entry) && !save.pack.badge;
+  return isPackComplete(save, entry) && !save.badges.includes(entry.badgeId);
 }

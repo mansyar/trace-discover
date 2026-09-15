@@ -34,7 +34,7 @@ import { type HopTimeline, hopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
-import { loadSave, saveSave, setAssistWidened } from './save/store';
+import { loadSave, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { allThemeIds, themeEntry } from './themes/catalog';
@@ -244,9 +244,7 @@ function startRun(
     },
     hopPlan,
     onEvent: (event) => {
-      if (event.type === 'assist-widened') {
-        commit({ ...app, save: setAssistWidened(app.save, true) });
-      } else if (session) {
+      if (event.type === 'level-done' && session) {
         commit(applyAppEvent(app, { type: 'level-complete', themeId, levelId }));
       }
     },
@@ -462,9 +460,9 @@ function render(now: number): void {
     preloadArt(cardUrl);
     drawMenu(trailContext, MENU, MENU_FILLS, {
       image: artCache.get(cardUrl) ?? null,
-      cleared: app.save.pack.cleared.length,
+      cleared: NUMERIC_IDS.filter((id) => app.save.completedLevels.includes(id)).length,
       total: NUMERIC_IDS.length,
-      badge: app.save.pack.badge,
+      badge: app.save.badges.includes(NUMBERS_PACK.badgeId),
     });
   } else if (screen.name === 'theme') {
     const entry = themeEntry(screen.themeId);
@@ -505,7 +503,7 @@ function render(now: number): void {
       now,
       PACK,
       packStickers(app.save, NUMERIC_IDS),
-      app.save.pack.badge,
+      app.save.badges.includes(NUMBERS_PACK.badgeId),
       app.pendingBadge === NUMBERS_PACK.id,
       NUMERAL_MINI,
       stickerImages,

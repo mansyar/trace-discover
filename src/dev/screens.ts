@@ -210,7 +210,7 @@ function drawTheme(): void {
 function drawPackPreview(): void {
   const layout = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
   const stickers = packStickers(save, NUMERALS);
-  if (save.pack.badge) {
+  if (save.badges.includes('numbers-badge')) {
     drawCircle(layout.badge.x, layout.badge.y, layout.badge.radius, GOLD);
   } else {
     drawDashedCircle(layout.badge.x, layout.badge.y, layout.badge.radius);
@@ -387,7 +387,7 @@ function tapPack(point: Point): void {
   const layout = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
   if (
     Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y) <= layout.badge.radius &&
-    save.pack.badge
+    save.badges.includes('numbers-badge')
   ) {
     const now = performance.now();
     if (now - lastBadgeTap < DOUBLE_TAP_MS) {
