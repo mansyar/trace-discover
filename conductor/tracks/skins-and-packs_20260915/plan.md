@@ -27,11 +27,11 @@
 - [x] Task: App routing generalization (TDD) — landed with the sweep commit to keep the tree green [272e377]
   - [x] Tests: pack-generic screens/events (no `PACK_ID` special-casing); success replay/next/home per pack; badge per pack; circle unlock gating
   - [x] Implement in `app/app.ts`
-- [~] Task: Content-first menu + pre-writing pack screen (zero-text)
+- [x] Task: Content-first menu + pre-writing pack screen (zero-text) [ad514f5]
   - [x] Menu: pack cards (Pre-writing, Numbers) in the existing card language; parent gate unchanged [272e377]
-  - [~] Pack screen: 12 cards + 12 sticker slots + badge + home; 90 px+ targets; safe-area + letterbox as v1 (currently drawn with the 2-column numbers layout; 12-slot grid + shelf sizing next)
-  - [~] Wire render + `main.ts`; screens-harness QA (wired in [272e377]; harness QA pending)
-- [ ] Task: Dev harness + spike QA script updates (new ids/screens; v2→v3 migration probe)
+  - [x] Pack screen: 12 cards + 12 sticker slots + badge + home; 90 px+ targets; safe-area + letterbox as v1 (3x4 grid + 6x2 shelf via pack layout options)
+  - [x] Wire render + `main.ts`; screens-harness QA (wired in [272e377]; QA probe spike/qa-pre-pack.mjs verified menu -> pack:pre -> level:pre-1, no page errors)
+- [~] Task: Dev harness + spike QA script updates (new ids/screens; v2→v3 migration probe)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Skins in motion: switching, mascot, audio, parent controls
