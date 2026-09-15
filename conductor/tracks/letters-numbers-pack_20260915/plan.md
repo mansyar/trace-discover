@@ -4,7 +4,7 @@
 
 **Delivery strategy:** foundation-first — multi-stroke engine & schema v2 (Phase 1) before any content; then a playable numeral slice in the dev harness to prove feel on the trickiest glyphs (4, 8) while content is still cheap to change (Phase 2); the reward layer next — star buddy, toy-piano preset, counted celebration (Phase 3); art batch + progress integration (Phase 4); compliance sweep (Phase 5); device validation with the toddler (Phase 6). Work stays local on `track/letters-numbers-pack` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Multi-stroke engine & schema v2 (TDD core)
+## Phase 1 - Multi-stroke engine & schema v2 (TDD core) [checkpoint: 5823b14]
 
 *Goal: an ordered multi-stroke level is fully traceable — engine, renderer, assists, checkpoints, save — with v1 content and behavior untouched.*
 
@@ -30,7 +30,7 @@
   - [x] Tests: additive pack fields; v1 → v2 lossless migration; corrupt-JSON recovery unchanged; existing consumers unaffected
   - [x] Implement in `save/store.ts`
 - [x] Task: Dev harness multi-stroke support (play/tune previews for multi-stroke levels) [5823b14]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Numbers pack slice (first playable)
 
