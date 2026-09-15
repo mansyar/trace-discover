@@ -111,7 +111,7 @@
 *Goal: proven on the actual hardware, with the actual toddler.*
 
 - [x] Task: Install on test Android phone + iPad; offline re-launch; gesture/rotation spot-checks — user-verified on both devices, all items pass; evidence in plan commit note
-- [ ] Task: Independent-play observation session → capture friction notes → fix pass
-- [ ] Task: Run every acceptance criterion (spec §Acceptance Criteria) and record evidence
-- [ ] Task: Final polish fixes; re-verify affected criteria
+- [x] Task: Independent-play observation session → capture friction notes → fix pass — toddler completed a level unaided; one polish note (excavator blink smoothness); evidence in plan commit note
+- [~] Task: Run every acceptance criterion (spec §Acceptance Criteria) and record evidence
+- [x] Task: Final polish fixes; re-verify affected criteria [b635899]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)

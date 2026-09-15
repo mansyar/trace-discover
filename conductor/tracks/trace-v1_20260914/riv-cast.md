@@ -8,7 +8,7 @@ are tracked in `public/rive/`.
 
 | Character | .riv bytes | Budget ≤ ~500 KB | Technique |
 |---|---|---|---|
-| Excavator "Scoop" (construction) | 477,640 (~466 KB) | ✅ | base + jump @448px, blink as feathered patch (47 KB vs 408 KB full-frame) |
+| Excavator "Scoop" (construction) | 454,122 (~444 KB) | ✅ | base + jump @448px, blink as feathered patch (23 KB 135×84 crop vs 408 KB full-frame) |
 | Lion cub (animals) | 457,734 (~447 KB) | ✅ | base + jump @416px, blink as feathered patch (44 KB) |
 | Triceratops (dino, Phase 3) | 699,844 (~683 KB) | ⚠️ over (grandfathered, see below) | base + jump + full-frame blink @600px |
 
@@ -41,6 +41,14 @@ screenshot last — the screenshot is always the source of truth.
   landed exact, then a -3 y nudge); final residual ~1px. Lesson: every
   regenerated source gets its own grid measurement — never inherit patch
   placement.
+- **Third calibration (tight-crop patch3):** re-cutting to a tighter eye rect
+  (135×84, margin 10) while carrying the patch2 node forward left the node
+  ~43 artboard-px off (-72,-44 vs the true -28.3,-35.2), so the patch
+  background doubled the mouth/arm/face. Restored exact centered-registration
+  (node = base + scale·(crop-center − base-center)), verified clean, then
+  confirmed a 6px eye-favoring shift reintroduces the seam — formula stands.
+  Lesson: recompute node placement from the crop rect on every re-cut; never
+  carry a node forward across a crop change.
 
 ## QA (all verified by looking at CLI screenshots)
 
@@ -60,6 +68,10 @@ screenshot last — the screenshot is always the source of truth.
   lashes on the exact 3/4 eye positions — no jump, no seam. Size 476,751
   bytes (still under ~500KB). Dino/lion keep their hold-key blinks (not
   flagged, out of scope).
+- **Phase 7 placement fix (2026-09-15):** the tight-crop patch3 shipped with
+  the patch2 node (-72,-44), misaligning mouth/arm/face. Reset to exact
+  registration (-28.3,-35.2); headless peak + in-app burst (mid-blink f02
+  vs rest f11) show lashes on pupils, no seam. Rebuilt 454,122 bytes.
 - **Lion**: seated rest, blink exact, celebrate paws-up swap with sparkles.
   416px sources chosen over 448px purely for the byte budget — visually
   identical at render scale.
