@@ -11,9 +11,9 @@
 - [x] Task: Update `tech-stack.md` (schema v2 notes, before implementation per workflow.md §7) [8f0e682]
   - [x] Add dated note: level schema v2 (ordered strokes), save schema v2 (additive pack fields + migration), pack screen pattern
   - [x] Verify: no contradiction with existing entries
-- [ ] Task: Level schema v2 — ordered strokes (TDD)
-  - [ ] Tests: per-stroke validation (non-empty, ≥2 control points, margins, finite), stroke order preserved, v1 `controlPoints` normalized to a single stroke, `levelToPath` per stroke
-  - [ ] Implement schema/types + validation in `themes/level.ts`
+- [x] Task: Level schema v2 — ordered strokes (TDD) [92fac21]
+  - [x] Tests: per-stroke validation (non-empty, ≥2 control points, margins, finite), stroke order preserved, v1 `controlPoints` normalized to a single stroke, `levelToPath` per stroke
+  - [x] Implement schema/types + validation in `themes/level.ts`
 - [ ] Task: Trail engine — multi-stroke sequencing (TDD)
   - [ ] Tests: stroke completed → advance to next; per-stroke frontier; lift keeps completed strokes and resumes mid-stroke; crossing-path fixture (figure-8 shape) tracking not corrupted by nearest-point ambiguity; progress never decreases; single-stroke parity with v1
   - [ ] Implement in `engine/trail.ts` (pure, frame-step API preserved)
