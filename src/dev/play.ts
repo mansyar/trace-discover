@@ -54,10 +54,10 @@ interface LevelEntry {
   readonly theme: ThemeDef;
 }
 
-// Numerals run on the dino as a placeholder guide until star.riv lands (Phase 3).
+// Numerals trace with the star guide; backdrop stays a placeholder until the Phase 4 art batch.
 const NUMBERS_THEME: ThemeDef = {
   backdrop: DINO_THEME.backdrop,
-  character: DINO_THEME.character,
+  character: 'star',
   id: 'numbers',
   name: 'Numbers',
 };

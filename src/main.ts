@@ -261,7 +261,7 @@ function enterNumeral(numeralId: string): void {
   startRun(
     level,
     { backdrop: '', goal: level.goalArt },
-    'dino',
+    'star',
     seed,
     NUMBERS_PACK.id,
     numeralId,
