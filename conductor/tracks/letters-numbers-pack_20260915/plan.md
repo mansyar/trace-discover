@@ -59,7 +59,7 @@
 *Goal: the reward layer live — star guide hops/celebrates; toy-piano preset; numeral-aware completion (N hops + N notes; 0 special).*
 
 - [x] Task: Star buddy asset pipeline — generate concepts (Workers AI) → pick variant → cutout → RML → build `star.riv` (verify/inspect/screenshot loop; ≤ ~500 KB) [5b565fd]
-- [ ] Task: Character wiring — idle + celebrate triggers; counted-hop sequencing (TDD)
+- [x] Task: Character wiring — idle + celebrate triggers; counted-hop sequencing (TDD) [bababb4]
   - [ ] Tests: N-hop timeline math (waypoints, burst point, pacing caps); 0 special-treatment timeline
   - [ ] Implement via the existing character abstraction (`character/`); harness preview
 - [ ] Task: Audio — toy-piano/xylophone preset + counted notes (TDD)
