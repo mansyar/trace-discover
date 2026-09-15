@@ -71,7 +71,7 @@
 
 *Goal: real art everywhere for the new model; screenshot-approved.*
 
-- [ ] Task: Reward art brief + batch — 12 + 3 content-neutral rewards (generate → cutout → optimize → composite → screenshot approval)
+- [~] Task: Reward art brief + batch — 12 + 3 content-neutral rewards (generate → cutout → optimize → composite → screenshot approval)
 - [ ] Task: Integrate rewards — goal art + sticker slots + fly-in for pre-writing; screens QA
 - [ ] Task: Star backdrop + pre-writing menu card art + four face icons; integrate; menu card final states for both packs
 - [ ] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded
