@@ -4,7 +4,7 @@
 
 **Delivery strategy:** host & gate first (Phase 1) so `master` is covered from day one; release automation second (Phase 2), where the fail-fast guards are proven with real bad tags *before* any deploy path exists; then the live end-to-end proof on `v1.0.0-rc.1` and handoff docs (Phase 3).
 
-## Phase 1 — GitHub Hosting & CI Gates
+## Phase 1 — GitHub Hosting & CI Gates [checkpoint: 7be8431]
 
 *Goal: public repo with PR/master gates that demonstrably fail on a bad change.*
 
