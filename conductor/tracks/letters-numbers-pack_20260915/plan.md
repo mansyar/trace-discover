@@ -79,7 +79,7 @@
 - [x] Task: Menu card final states — fresh / in-progress / badge; real art integrated [bac955e]
 - [x] Task: Parent zone — pack reset + easier-tracing coverage (TDD) [2d6498c]
   - [x] Tests: reset clears pack fields only after confirm; easier tracing affects numerals; volume/mute applies to the new preset
-- [ ] Task: Persistence E2E — relaunch state + v1→v2 migration on a real v1 save fixture (TDD + manual)
+- [x] Task: Persistence E2E — relaunch state + v1→v2 migration on a real v1 save fixture (TDD + manual) [0ec8bd7]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance & QA sweep
