@@ -31,8 +31,10 @@
   - [x] Menu: pack cards (Pre-writing, Numbers) in the existing card language; parent gate unchanged [272e377]
   - [x] Pack screen: 12 cards + 12 sticker slots + badge + home; 90 px+ targets; safe-area + letterbox as v1 (3x4 grid + 6x2 shelf via pack layout options)
   - [x] Wire render + `main.ts`; screens-harness QA (wired in [272e377]; QA probe spike/qa-pre-pack.mjs verified menu -> pack:pre -> level:pre-1, no page errors)
-- [~] Task: Dev harness + spike QA script updates (new ids/screens; v2→v3 migration probe)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Dev harness + spike QA script updates (new ids/screens; v2→v3 migration probe) [ae5e5e1]
+  - [x] All QA scripts re-pointed to packs × skins navigation (14 scripts); qa-persistence probes v1→v3 migration; qa-app drives the full pre-pack loop
+  - [x] Fix found during the sweep: pack badge spot opens the first unlocked circle (v1 parity, no dead-end) [922e740]
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Skins in motion: switching, mascot, audio, parent controls
 
