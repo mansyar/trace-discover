@@ -9,6 +9,7 @@ import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { drawPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { MenuLayout, SplashLayout } from '../ui/menu';
+import type { PackLayout } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SuccessLayout } from '../ui/success';
 import type { ThemeLayout } from '../ui/theme';
@@ -345,6 +346,129 @@ export function drawTheme(
     const earned = stickers[index] === true;
     const card = layout.cards[index];
     const image = card ? goalImages.get(card.levelId) : undefined;
+    if (earned && image) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.clip();
+      drawGoalArt(ctx, image, slot.x, slot.y, slot.radius * 2);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+    } else {
+      drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
+    }
+  });
+  ctx.beginPath();
+  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
+/** Paints a multi-stroke numeral scaled into a card with one shared transform. */
+function drawMiniNumeral(
+  ctx: CanvasRenderingContext2D,
+  strokes: readonly (readonly Point[])[],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  completed: boolean,
+): void {
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  for (const stroke of strokes) {
+    for (const point of stroke) {
+      minX = Math.min(minX, point.x);
+      minY = Math.min(minY, point.y);
+      maxX = Math.max(maxX, point.x);
+      maxY = Math.max(maxY, point.y);
+    }
+  }
+  const pad = 60;
+  const scale = Math.min(
+    width / Math.max(1, maxX - minX + pad),
+    height / Math.max(1, maxY - minY + pad),
+  );
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.clip();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (const stroke of strokes) {
+    stroke.forEach((point, index) => {
+      const px = x + width / 2 + (point.x - (minX + maxX) / 2) * scale;
+      const py = y + height / 2 + (point.y - (minY + maxY) / 2) * scale;
+      if (index === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        ctx.lineTo(px, py);
+      }
+    });
+  }
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 14;
+  ctx.stroke();
+  ctx.strokeStyle = completed ? '#f6b45a' : '#cfe3f2';
+  ctx.lineWidth = 9;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Pack screen: badge seal, 2x5 numeral grid, sticker shelf, home corner. */
+export function drawPack(
+  ctx: CanvasRenderingContext2D,
+  layout: PackLayout,
+  stickers: readonly boolean[],
+  badgeEarned: boolean,
+  miniPaths: ReadonlyMap<string, readonly (readonly Point[])[]>,
+  goalImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+): void {
+  drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius, badgeEarned);
+  layout.cards.forEach((card, index) => {
+    ctx.beginPath();
+    ctx.rect(card.x, card.y, card.width, card.height);
+    ctx.fillStyle = '#cfe3f2';
+    ctx.fill();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+    const strokes = miniPaths.get(card.numeralId);
+    if (strokes && strokes.length > 0) {
+      drawMiniNumeral(
+        ctx,
+        strokes,
+        card.x + 10,
+        card.y + 10,
+        card.width - 20,
+        card.height - 20,
+        stickers[index] ?? false,
+      );
+    }
+    if (stickers[index] === true) {
+      drawStar(ctx, card.x + card.width - 24, card.y + 24, 14);
+      ctx.fillStyle = GOLD;
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+    }
+  });
+  layout.slots.forEach((slot, index) => {
+    const earned = stickers[index] === true;
+    const card = layout.cards[index];
+    const image = card ? goalImages.get(card.numeralId) : undefined;
     if (earned && image) {
       ctx.save();
       ctx.beginPath();
