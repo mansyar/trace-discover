@@ -1,0 +1,52 @@
+# CD — tag-driven releases. A semver tag (v*.*.*) triggers: fail-fast validation -> quality gates
+# -> production build -> Cloudflare Pages deploy -> GitHub Release with generated notes.
+#
+# Stage note (track cicd-pipeline_20260915): this workflow lands guard-first. The guard is proven
+# with negative-control tags BEFORE the deploy and release steps are added (delivery strategy).
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+# Never cancel an in-flight release; a queued release is better than a half-finished one.
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Validate, build, deploy, release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Validate tag (strict semver + matches package.json)
+        id: tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "::error::Tag '$TAG' is not strict semver (expected vMAJOR.MINOR.PATCH[-prerelease]). Refusing to release."
+            exit 1
+          fi
+
+          PKG_VERSION="$(jq -r .version package.json)"
+          if [[ "$VERSION" != "$PKG_VERSION" ]]; then
+            echo "::error::Tag '$TAG' does not match package.json version '$PKG_VERSION'. Refusing to release."
+            exit 1
+          fi
+
+          PRERELEASE=false
+          if [[ "$VERSION" == *-* ]]; then PRERELEASE=true; fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Tag '$TAG' validated: version=$VERSION, prerelease=$PRERELEASE."
