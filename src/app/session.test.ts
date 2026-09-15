@@ -3,9 +3,9 @@ import { TOY_PIANO_PRESET, type TonePlayer, type ToneSpec } from '../audio/synth
 import { hopPlacement, hopTimeline } from '../character/hops';
 import { pointAtSequence } from '../engine/trail';
 import type { Point } from '../engine/types';
-import { DINO_LEVELS } from '../themes/dino';
-import { type LevelDef, levelToPath } from '../themes/level';
-import { NUMERAL_LEVELS } from '../themes/numbers';
+import { type LevelDef, levelToPath } from '../packs/level';
+import { NUMERAL_LEVELS } from '../packs/numbers';
+import { PRE_LEVELS } from '../packs/pre';
 import { createSession, type SessionEvent } from './session';
 
 function fakes() {
@@ -40,7 +40,7 @@ function point(points: readonly Point[], index: number): Point {
 }
 
 function level(index: number): LevelDef {
-  const found = DINO_LEVELS[index];
+  const found = PRE_LEVELS[index];
   if (!found) {
     throw new Error(`Dino level ${index} is missing.`);
   }

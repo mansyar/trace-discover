@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
 import { createDefaultSave } from '../save/store';
 import { type AppState, applyAppEvent, startApp } from './app';
 
@@ -7,87 +6,132 @@ function setup(): AppState {
   return startApp(createDefaultSave());
 }
 
+function preIds(count = 12): readonly string[] {
+  return Array.from({ length: count }, (_, index) => `pre-${index + 1}`);
+}
+
+function numIds(count = 10): readonly string[] {
+  return Array.from({ length: count }, (_, index) => `num-${index}`);
+}
+
+function completeAll(app: AppState, packId: string, ids: readonly string[]): AppState {
+  let next = app;
+  for (const levelId of ids) {
+    next = applyAppEvent(next, { type: 'level-complete', packId, levelId });
+  }
+  return next;
+}
+
 describe('app navigation', () => {
-  it('flows splash -> menu -> theme -> level -> success, saving the sticker', () => {
+  it('flows splash -> menu -> pack -> level -> success, saving the sticker', () => {
     let app = applyAppEvent(setup(), { type: 'splash-tap' });
     expect(app.screen.name).toBe('menu');
-    app = applyAppEvent(app, { type: 'open-theme', themeId: 'dino' });
-    expect(app.screen).toEqual({ name: 'theme', themeId: 'dino' });
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'dino', levelId: 'dino-1' });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'dino', levelId: 'dino-1' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId: 'dino-1' });
-    expect(app.screen).toEqual({ name: 'success', themeId: 'dino', levelId: 'dino-1' });
-    expect(app.save.completedLevels).toEqual(['dino-1']);
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'pre' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'pre' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'pre', levelId: 'pre-1' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'pre', levelId: 'pre-1' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'pre', levelId: 'pre-1' });
+    expect(app.screen).toEqual({ name: 'success', packId: 'pre', levelId: 'pre-1' });
+    expect(app.save.completedLevels).toEqual(['pre-1']);
     expect(app.save.badges).toEqual([]);
   });
 
   it('routes success actions to replay, next, and home', () => {
-    let app = setup();
-    app = applyAppEvent(app, { type: 'splash-tap' });
-    app = applyAppEvent(app, { type: 'open-theme', themeId: 'dino' });
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'dino', levelId: 'dino-2' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId: 'dino-2' });
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'pre' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'pre', levelId: 'pre-2' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'pre', levelId: 'pre-2' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'replay',
-      themeId: 'dino',
-      levelId: 'dino-2',
+      packId: 'pre',
+      levelId: 'pre-2',
     });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'dino', levelId: 'dino-2' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId: 'dino-2' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'pre', levelId: 'pre-2' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'next',
-      themeId: 'dino',
-      levelId: 'dino-2',
+      packId: 'pre',
+      levelId: 'pre-2',
     });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'dino', levelId: 'dino-3' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId: 'dino-3' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'pre', levelId: 'pre-3' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'home',
-      themeId: 'dino',
-      levelId: 'dino-3',
+      packId: 'pre',
+      levelId: 'pre-3',
     });
-    expect(app.screen).toEqual({ name: 'menu' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'pre' });
   });
 
-  it('celebrates the badge after the fourth level and opens the bonus from it', () => {
-    let app = setup();
-    for (const levelId of ['dino-1', 'dino-2', 'dino-3']) {
-      app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId });
-    }
+  it('awards the pre-writing badge on the twelfth level and celebrates on next', () => {
+    let app = completeAll(setup(), 'pre', preIds(11));
     expect(app.save.badges).toEqual([]);
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId: 'dino-4' });
-    expect(app.save.badges).toEqual(['dino']);
+    expect(app.pendingBadge).toBeNull();
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'pre', levelId: 'pre-12' });
+    expect(app.save.badges).toEqual(['pre-badge']);
+    expect(app.pendingBadge).toBe('pre-badge');
+    expect(app.screen).toEqual({ name: 'success', packId: 'pre', levelId: 'pre-12' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'next',
-      themeId: 'dino',
-      levelId: 'dino-4',
+      packId: 'pre',
+      levelId: 'pre-12',
     });
-    expect(app.screen).toEqual({ name: 'badge', themeId: 'dino' });
-    app = applyAppEvent(app, { type: 'badge-tap', themeId: 'dino' });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'dino', levelId: 'dino-bonus' });
+    expect(app.pendingBadge).toBeNull();
+    expect(app.screen).toEqual({ name: 'badge', packId: 'pre' });
   });
 
-  it('keeps the bonus locked until its theme is complete', () => {
-    let app = applyAppEvent(setup(), { type: 'splash-tap' });
-    app = applyAppEvent(app, { type: 'open-theme', themeId: 'dino' });
+  it('keeps a circle locked until its unlock threshold', () => {
+    let app = completeAll(setup(), 'pre', preIds(3));
     const before = app;
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'dino', levelId: 'dino-bonus' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'pre', levelId: 'pre-bonus-1' });
     expect(app).toBe(before);
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'pre', levelId: 'pre-4' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'pre', levelId: 'pre-bonus-1' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'pre', levelId: 'pre-bonus-1' });
   });
 
-  it('ignores unknown themes and levels', () => {
+  it('opens the first unlocked circle from the badge seal', () => {
+    let app = completeAll(setup(), 'pre', preIds());
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'pre',
+      levelId: 'pre-12',
+    });
+    expect(app.screen).toEqual({ name: 'badge', packId: 'pre' });
+    app = applyAppEvent(app, { type: 'badge-tap', packId: 'pre' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'pre', levelId: 'pre-bonus-1' });
+  });
+
+  it('falls back to the pack screen from the seal when no circle is unlocked', () => {
+    expect(applyAppEvent(setup(), { type: 'badge-tap', packId: 'pre' }).screen).toEqual({
+      name: 'pack',
+      packId: 'pre',
+    });
+  });
+
+  it('ignores unknown packs and levels', () => {
     let app = applyAppEvent(setup(), { type: 'splash-tap' });
     const before = app;
-    app = applyAppEvent(app, { type: 'open-theme', themeId: 'space' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'space' });
     expect(app).toBe(before);
-    app = applyAppEvent(app, { type: 'open-theme', themeId: 'dino' });
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'dino', levelId: 'dino-9' });
-    expect(app.screen).toEqual({ name: 'theme', themeId: 'dino' });
-    app = applyAppEvent(app, { type: 'theme-back' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'pre', levelId: 'pre-99' });
+    expect(app).toBe(before);
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'ghost', levelId: 'pre-1' });
+    expect(app).toBe(before);
+    app = applyAppEvent(app, { type: 'badge-tap', packId: 'ghost' });
+    expect(app).toBe(before);
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'ghost',
+      levelId: 'pre-1',
+    });
+    expect(app.screen).toEqual({ name: 'menu' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'pre' });
+    app = applyAppEvent(app, { type: 'pack-back' });
     expect(app.screen).toEqual({ name: 'menu' });
   });
 
@@ -97,15 +141,17 @@ describe('app navigation', () => {
     expect(app.screen.name).toBe('parent');
     app = applyAppEvent(app, { type: 'parent-action', action: 'volume-down' });
     expect(app.save.settings.volume).toBe(0.9);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-up' });
+    expect(app.save.settings.volume).toBe(1);
     app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
     expect(app.save.settings.muted).toBe(true);
     app = applyAppEvent(app, { type: 'parent-action', action: 'easier' });
     expect(app.save.settings.easierTracing).toBe(true);
     // Reset needs a confirm tap before it wipes progress.
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'dino', levelId: 'dino-1' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'pre', levelId: 'pre-1' });
     app = applyAppEvent(app, { type: 'parent-open' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
-    expect(app.save.completedLevels).toEqual(['dino-1']);
+    expect(app.save.completedLevels).toEqual(['pre-1']);
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     expect(app.save.completedLevels).toEqual([]);
     app = applyAppEvent(app, { type: 'parent-action', action: 'install' });
@@ -115,60 +161,59 @@ describe('app navigation', () => {
   });
 });
 
-describe('pack navigation', () => {
+describe('numbers pack navigation', () => {
   it('flows menu -> pack -> numeral -> success, saving the numeral sticker', () => {
     let app = applyAppEvent(setup(), { type: 'splash-tap' });
-    app = applyAppEvent(app, { type: 'open-pack' });
-    expect(app.screen).toEqual({ name: 'pack' });
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-3' });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-3' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-3' });
-    expect(app.screen).toEqual({ name: 'success', themeId: 'numbers', levelId: 'num-3' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'numbers' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'numbers' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'numbers', levelId: 'num-3' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'numbers', levelId: 'num-3' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'numbers', levelId: 'num-3' });
+    expect(app.screen).toEqual({ name: 'success', packId: 'numbers', levelId: 'num-3' });
     expect(app.save.completedLevels).toEqual(['num-3']);
     expect(app.save.badges).toEqual([]);
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'home',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-3',
     });
-    expect(app.screen).toEqual({ name: 'pack' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'numbers' });
   });
 
   it('routes numeral success actions to replay, next (wrapping) and home', () => {
-    let app = applyAppEvent(setup(), { type: 'open-pack' });
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-0' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-0' });
+    let app = applyAppEvent(setup(), { type: 'open-pack', packId: 'numbers' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'numbers', levelId: 'num-0' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'numbers', levelId: 'num-0' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'replay',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-0',
     });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-0' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-0' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'numbers', levelId: 'num-0' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'next',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-0',
     });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-1' });
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-9' });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-9' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'numbers', levelId: 'num-1' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'numbers', levelId: 'num-9' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'numbers', levelId: 'num-9' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'next',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-9',
     });
-    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-0' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'numbers', levelId: 'num-0' });
   });
 
   it('returns from the pack and ignores unknown numerals', () => {
-    let app = applyAppEvent(setup(), { type: 'open-pack' });
+    let app = applyAppEvent(setup(), { type: 'open-pack', packId: 'numbers' });
     const before = app;
-    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-42' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'numbers', levelId: 'num-42' });
     expect(app).toBe(before);
     app = applyAppEvent(app, { type: 'pack-back' });
     expect(app.screen).toEqual({ name: 'menu' });
@@ -177,7 +222,7 @@ describe('pack navigation', () => {
   it('records pack progress in the unified completed list', () => {
     const app = applyAppEvent(setup(), {
       type: 'level-complete',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-1',
     });
     expect(app.save.completedLevels).toEqual(['num-1']);
@@ -187,10 +232,10 @@ describe('pack navigation', () => {
   it('resets pack progress only after the parent confirm tap', () => {
     let app = applyAppEvent(setup(), {
       type: 'level-complete',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-1',
     });
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-2' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'numbers', levelId: 'num-2' });
     app = applyAppEvent(app, { type: 'parent-open' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     expect(app.save.completedLevels).toEqual(['num-1', 'num-2']);
@@ -201,71 +246,44 @@ describe('pack navigation', () => {
 });
 
 describe('pack badge', () => {
-  it('awards the pack badge on the tenth numeral and routes next to the celebration', () => {
-    let app = setup();
-    for (const levelId of [
-      'num-0',
-      'num-1',
-      'num-2',
-      'num-3',
-      'num-4',
-      'num-5',
-      'num-6',
-      'num-7',
-      'num-8',
-    ]) {
-      app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId });
-    }
+  it('awards the numbers badge on the tenth numeral and routes next to the celebration', () => {
+    let app = completeAll(setup(), 'numbers', numIds(9));
     expect(app.save.completedLevels).toHaveLength(9);
     expect(app.save.badges).toEqual([]);
     expect(app.pendingBadge).toBeNull();
-    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-9' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'numbers', levelId: 'num-9' });
     expect(app.save.badges).toEqual(['numbers-badge']);
-    expect(app.pendingBadge).toBe('numbers');
-    expect(app.screen).toEqual({ name: 'success', themeId: 'numbers', levelId: 'num-9' });
+    expect(app.pendingBadge).toBe('numbers-badge');
+    expect(app.screen).toEqual({ name: 'success', packId: 'numbers', levelId: 'num-9' });
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'next',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-9',
     });
     expect(app.pendingBadge).toBeNull();
-    expect(app.screen).toEqual({ name: 'badge', themeId: 'numbers' });
+    expect(app.screen).toEqual({ name: 'badge', packId: 'numbers' });
   });
 
-  it('keeps the badge pending on home and opens the collection from the seal', () => {
-    let app = setup();
-    for (const levelId of [
-      'num-0',
-      'num-1',
-      'num-2',
-      'num-3',
-      'num-4',
-      'num-5',
-      'num-6',
-      'num-7',
-      'num-8',
-      'num-9',
-    ]) {
-      app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId });
-    }
+  it('keeps the badge pending on home and opens the pack from the seal', () => {
+    let app = completeAll(setup(), 'numbers', numIds());
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'home',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-9',
     });
-    expect(app.screen).toEqual({ name: 'pack' });
-    expect(app.pendingBadge).toBe('numbers');
+    expect(app.screen).toEqual({ name: 'pack', packId: 'numbers' });
+    expect(app.pendingBadge).toBe('numbers-badge');
     app = applyAppEvent(app, {
       type: 'success-action',
       action: 'next',
-      themeId: 'numbers',
+      packId: 'numbers',
       levelId: 'num-9',
     });
-    expect(app.screen).toEqual({ name: 'badge', themeId: 'numbers' });
-    app = applyAppEvent(app, { type: 'badge-tap', themeId: 'numbers' });
-    expect(app.screen).toEqual({ name: 'pack' });
+    expect(app.screen).toEqual({ name: 'badge', packId: 'numbers' });
+    app = applyAppEvent(app, { type: 'badge-tap', packId: 'numbers' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'numbers' });
     app = applyAppEvent(app, { type: 'badge-exit' });
     expect(app.screen).toEqual({ name: 'menu' });
   });

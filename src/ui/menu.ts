@@ -1,11 +1,11 @@
 // Boot splash + main menu layout math (pure; canvas rendering defers to
-// shell wiring). Three theme cards stacked in a vertically centered block,
+// shell wiring). Content pack cards stacked in a vertically centered block,
 // plus an invisible parent-gate corner zone for the 2-finger hold.
 import type { Point } from '../engine/types';
 
 export interface MenuCard {
   readonly height: number;
-  readonly themeId: string;
+  readonly packId: string;
   readonly width: number;
   readonly x: number;
   readonly y: number;
@@ -37,15 +37,15 @@ const SIDE_MARGIN = 65;
 export function menuLayout(
   fieldWidth: number,
   fieldHeight: number,
-  themeIds: readonly string[],
+  packIds: readonly string[],
 ): MenuLayout {
   const cardWidth = fieldWidth - SIDE_MARGIN * 2;
-  const blockHeight = themeIds.length * CARD_HEIGHT + Math.max(0, themeIds.length - 1) * CARD_GAP;
+  const blockHeight = packIds.length * CARD_HEIGHT + Math.max(0, packIds.length - 1) * CARD_GAP;
   const startY = (fieldHeight - blockHeight) / 2;
-  const cards = themeIds.map(
-    (themeId, index): MenuCard => ({
+  const cards = packIds.map(
+    (packId, index): MenuCard => ({
       height: CARD_HEIGHT,
-      themeId,
+      packId,
       width: cardWidth,
       x: SIDE_MARGIN,
       y: startY + index * (CARD_HEIGHT + CARD_GAP),
@@ -65,7 +65,7 @@ export function hitMenuCard(layout: MenuLayout, point: Point): string | null {
       point.y >= entry.y &&
       point.y <= entry.y + entry.height,
   );
-  return card === undefined ? null : card.themeId;
+  return card === undefined ? null : card.packId;
 }
 
 export function inParentGate(layout: MenuLayout, point: Point): boolean {

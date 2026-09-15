@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import {
   completeLevel,
-  completeNumeral,
   createDefaultSave,
   loadSave,
   type SaveStorage,
@@ -50,7 +49,7 @@ function cardAt(current: PackLayout, index: number) {
 
 describe('packLayout', () => {
   it('returns one card per numeral id in order', () => {
-    expect(layout().cards.map((card) => card.numeralId)).toEqual(NUMERALS);
+    expect(layout().cards.map((card) => card.levelId)).toEqual(NUMERALS);
   });
 
   it('lays the ten numerals out in a 2-column grid', () => {
@@ -90,7 +89,7 @@ describe('packLayout', () => {
 
   it('gives every numeral a sticker slot below the grid, inside the field', () => {
     const current = layout();
-    expect(current.slots.map((slot) => slot.numeralId)).toEqual(NUMERALS);
+    expect(current.slots.map((slot) => slot.levelId)).toEqual(NUMERALS);
     const gridBottom = Math.max(...current.cards.map((card) => card.y + card.height));
     for (const slot of current.slots) {
       expect(slot.radius).toBeGreaterThan(0);
@@ -146,7 +145,7 @@ describe('packStickers', () => {
 
   it('lights the sticker when its numeral completes, surviving save and load', () => {
     const storage = createMemoryStorage();
-    saveSave(storage, completeNumeral(createDefaultSave(), 'num-4'));
+    saveSave(storage, completeLevel(createDefaultSave(), 'num-4'));
     expect(packStickers(loadSave(storage), NUMERALS)).toEqual([
       false,
       false,
@@ -161,8 +160,8 @@ describe('packStickers', () => {
     ]);
   });
 
-  it('ignores world-level completions', () => {
-    expect(packStickers(completeLevel(createDefaultSave(), 'dino-1'), NUMERALS)).toEqual(
+  it('ignores completions from other packs', () => {
+    expect(packStickers(completeLevel(createDefaultSave(), 'pre-1'), NUMERALS)).toEqual(
       Array.from({ length: 10 }, () => false),
     );
   });

@@ -7,15 +7,14 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { levelToPath } from '../packs/level';
+import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
-import { levelToPath } from '../themes/level';
-import { NUMBERS_PACK, NUMERAL_LEVELS } from '../themes/numbers';
 import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
 import type { PackLayout } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SuccessLayout } from '../ui/success';
-import type { ThemeLayout } from '../ui/theme';
 import type { SessionSnapshot } from './session';
 
 export const NAVY = '#2e4a63';
@@ -255,7 +254,7 @@ export function drawMenu(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-    if (card.themeId === NUMBERS_PACK.id) {
+    if (card.packId === NUMBERS_PACK.id) {
       drawMenuPackCard(ctx, card, packArt);
     } else {
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
@@ -337,127 +336,6 @@ function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
       );
     }
   });
-}
-
-function drawMiniTrail(
-  ctx: CanvasRenderingContext2D,
-  points: readonly Point[],
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  completed: boolean,
-): void {
-  let minX = Number.POSITIVE_INFINITY;
-  let minY = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY;
-  let maxY = Number.NEGATIVE_INFINITY;
-  for (const point of points) {
-    minX = Math.min(minX, point.x);
-    minY = Math.min(minY, point.y);
-    maxX = Math.max(maxX, point.x);
-    maxY = Math.max(maxY, point.y);
-  }
-  const pad = 24;
-  const scale = Math.min(
-    width / Math.max(1, maxX - minX + pad),
-    height / Math.max(1, maxY - minY + pad),
-  );
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, width, height);
-  ctx.clip();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  points.forEach((point, index) => {
-    const px = x + width / 2 + (point.x - (minX + maxX) / 2) * scale;
-    const py = y + height / 2 + (point.y - (minY + maxY) / 2) * scale;
-    if (index === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
-  });
-  ctx.strokeStyle = NAVY;
-  ctx.lineWidth = 14;
-  ctx.stroke();
-  ctx.strokeStyle = completed ? '#f6b45a' : '#cfe3f2';
-  ctx.lineWidth = 9;
-  ctx.stroke();
-  ctx.restore();
-}
-
-export function drawTheme(
-  ctx: CanvasRenderingContext2D,
-  now: number,
-  layout: ThemeLayout,
-  stickers: readonly boolean[],
-  badgeEarned: boolean,
-  highlightBadge: boolean,
-  miniPaths: ReadonlyMap<string, readonly Point[]>,
-  goalImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
-): void {
-  const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
-  drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius * badgePulse, badgeEarned);
-  layout.cards.forEach((card, index) => {
-    const levelId = card.levelId;
-    ctx.beginPath();
-    ctx.rect(card.x, card.y, card.width, card.height);
-    ctx.fillStyle = '#cfe3f2';
-    ctx.fill();
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = NAVY;
-    ctx.stroke();
-    const points = miniPaths.get(levelId);
-    if (points) {
-      drawMiniTrail(
-        ctx,
-        points,
-        card.x + 14,
-        card.y + 14,
-        card.width - 28,
-        card.height - 28,
-        stickers[index] ?? false,
-      );
-    }
-    if (stickers[index] === true) {
-      drawStar(ctx, card.x + card.width - 30, card.y + 30, 18);
-      ctx.fillStyle = GOLD;
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-    }
-  });
-  layout.slots.forEach((slot, index) => {
-    const earned = stickers[index] === true;
-    const card = layout.cards[index];
-    const image = card ? goalImages.get(card.levelId) : undefined;
-    if (earned && image) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.clip();
-      drawGoalArt(ctx, image, slot.x, slot.y, slot.radius * 2);
-      ctx.restore();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-    } else {
-      drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
-    }
-  });
-  ctx.beginPath();
-  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff';
-  ctx.fill();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = NAVY;
-  ctx.stroke();
-  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
 /** Paints a multi-stroke numeral scaled into a card with one shared transform. */
@@ -546,7 +424,7 @@ export function drawPack(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-    const strokes = miniPaths.get(card.numeralId);
+    const strokes = miniPaths.get(card.levelId);
     if (strokes && strokes.length > 0) {
       drawMiniNumeral(
         ctx,
@@ -570,7 +448,7 @@ export function drawPack(
   layout.slots.forEach((slot, index) => {
     const earned = stickers[index] === true;
     const card = layout.cards[index];
-    const sticker = card ? stickerImages.get(card.numeralId) : undefined;
+    const sticker = card ? stickerImages.get(card.levelId) : undefined;
     if (earned && sticker) {
       drawGoalArt(ctx, sticker, slot.x, slot.y, slot.radius * 2.48);
     } else {

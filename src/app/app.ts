@@ -1,21 +1,16 @@
-// Production app state machine (pure): splash -> menu -> theme -> level ->
-// success, with badge celebration, bonus unlock, and the parent zone. The
+// Production app state machine (pure): splash -> menu -> pack -> level ->
+// success, with badge celebration, circle unlocks, and the parent zone. The
 // shell renders the current screen and feeds tap/runtime events back in;
 // every transition and save update here is unit-tested.
-
+import { packById } from '../packs/catalog';
+import { bonusUnlocked, nextPackLevelId, shouldAwardPackBadge } from '../packs/progress';
 import {
   awardBadge,
-  awardPackBadge,
   completeLevel,
-  completeNumeral,
   createDefaultSave,
   type SaveData,
   updateSettings,
 } from '../save/store';
-import { nextLevelId, themeEntry } from '../themes/catalog';
-import { NUMBERS_PACK } from '../themes/numbers';
-import { nextPackLevelId, packLevelIds, shouldAwardPackBadge } from '../themes/pack';
-import { isBonusOpen, shouldAwardBadge } from '../themes/progress';
 import { changeVolume } from '../ui/parent';
 import type { ParentZoneAction } from '../ui/parentZone';
 import type { SuccessAction } from '../ui/success';
@@ -23,11 +18,10 @@ import type { SuccessAction } from '../ui/success';
 export type AppScreen =
   | { readonly name: 'splash' }
   | { readonly name: 'menu' }
-  | { readonly name: 'theme'; readonly themeId: string }
-  | { readonly name: 'level'; readonly themeId: string; readonly levelId: string }
-  | { readonly name: 'success'; readonly themeId: string; readonly levelId: string }
-  | { readonly name: 'badge'; readonly themeId: string }
-  | { readonly name: 'pack' }
+  | { readonly name: 'pack'; readonly packId: string }
+  | { readonly name: 'level'; readonly packId: string; readonly levelId: string }
+  | { readonly name: 'success'; readonly packId: string; readonly levelId: string }
+  | { readonly name: 'badge'; readonly packId: string }
   | { readonly name: 'parent'; readonly confirmReset: boolean; readonly showInstall: boolean };
 
 export interface AppState {
@@ -39,19 +33,17 @@ export interface AppState {
 
 export type AppEvent =
   | { readonly type: 'splash-tap' }
-  | { readonly type: 'open-theme'; readonly themeId: string }
-  | { readonly type: 'theme-back' }
-  | { readonly type: 'open-pack' }
+  | { readonly type: 'open-pack'; readonly packId: string }
   | { readonly type: 'pack-back' }
-  | { readonly type: 'open-level'; readonly themeId: string; readonly levelId: string }
-  | { readonly type: 'level-complete'; readonly themeId: string; readonly levelId: string }
+  | { readonly type: 'open-level'; readonly packId: string; readonly levelId: string }
+  | { readonly type: 'level-complete'; readonly packId: string; readonly levelId: string }
   | {
       readonly type: 'success-action';
       readonly action: SuccessAction;
-      readonly themeId: string;
+      readonly packId: string;
       readonly levelId: string;
     }
-  | { readonly type: 'badge-tap'; readonly themeId: string }
+  | { readonly type: 'badge-tap'; readonly packId: string }
   | { readonly type: 'badge-exit' }
   | { readonly type: 'parent-open' }
   | { readonly type: 'parent-action'; readonly action: ParentZoneAction };
@@ -60,105 +52,80 @@ export function startApp(save: SaveData): AppState {
   return { pendingBadge: null, save, screen: { name: 'splash' } };
 }
 
-const PACK_ID = NUMBERS_PACK.id;
-
-function mainIds(themeId: string): readonly string[] {
-  return themeEntry(themeId)?.mainLevels.map((level) => level.id) ?? [];
-}
-
-function openLevel(state: AppState, themeId: string, levelId: string): AppState {
-  if (themeId === PACK_ID) {
-    return packLevelIds(NUMBERS_PACK).includes(levelId)
-      ? { ...state, screen: { name: 'level', themeId, levelId } }
+/** Main levels are always open; circles unlock at their pack thresholds. */
+function openLevel(state: AppState, packId: string, levelId: string): AppState {
+  const pack = packById(packId);
+  if (!pack) {
+    return state;
+  }
+  const bonusIndex = pack.bonuses.findIndex((level) => level.id === levelId);
+  if (bonusIndex >= 0) {
+    return bonusUnlocked(state.save, pack, bonusIndex)
+      ? { ...state, screen: { name: 'level', packId, levelId } }
       : state;
   }
-  const entry = themeEntry(themeId);
-  if (!entry) {
+  if (!pack.levels.some((level) => level.id === levelId)) {
     return state;
   }
-  const known =
-    entry.mainLevels.some((level) => level.id === levelId) || entry.bonus.id === levelId;
-  if (!known) {
-    return state;
-  }
-  if (entry.bonus.id === levelId && !isBonusOpen(state.save, themeId, mainIds(themeId))) {
-    return state;
-  }
-  return { ...state, screen: { name: 'level', themeId, levelId } };
+  return { ...state, screen: { name: 'level', packId, levelId } };
 }
 
-function completeLevelRun(state: AppState, themeId: string, levelId: string): AppState {
-  if (themeId === PACK_ID) {
-    const completed = completeNumeral(state.save, levelId);
-    if (!shouldAwardPackBadge(completed, NUMBERS_PACK)) {
-      return {
-        ...state,
-        save: completed,
-        screen: { name: 'success', themeId, levelId },
-      };
-    }
-    return {
-      ...state,
-      pendingBadge: PACK_ID,
-      save: awardPackBadge(completed),
-      screen: { name: 'success', themeId, levelId },
-    };
+function completeLevelRun(state: AppState, packId: string, levelId: string): AppState {
+  const pack = packById(packId);
+  if (!pack) {
+    return state;
   }
   const completed = completeLevel(state.save, levelId);
-  if (!shouldAwardBadge(completed, themeId, mainIds(themeId))) {
-    return {
-      ...state,
-      save: completed,
-      screen: { name: 'success', themeId, levelId },
-    };
+  if (!shouldAwardPackBadge(completed, pack)) {
+    return { ...state, save: completed, screen: { name: 'success', packId, levelId } };
   }
   return {
     ...state,
-    pendingBadge: themeId,
-    save: awardBadge(completed, themeId),
-    screen: { name: 'success', themeId, levelId },
+    pendingBadge: pack.badgeId,
+    save: awardBadge(completed, pack.badgeId),
+    screen: { name: 'success', packId, levelId },
   };
 }
 
 function successAction(
   state: AppState,
   action: SuccessAction,
-  themeId: string,
+  packId: string,
   levelId: string,
 ): AppState {
-  if (themeId === PACK_ID) {
-    if (action === 'home') {
-      return { ...state, screen: { name: 'pack' } };
-    }
-    if (action === 'replay') {
-      return { ...state, screen: { name: 'level', themeId, levelId } };
-    }
-    if (state.pendingBadge === PACK_ID) {
-      return { ...state, pendingBadge: null, screen: { name: 'badge', themeId: PACK_ID } };
-    }
-    return {
-      ...state,
-      screen: { name: 'level', themeId, levelId: nextPackLevelId(NUMBERS_PACK, levelId) },
-    };
+  const pack = packById(packId);
+  if (!pack) {
+    return { ...state, screen: { name: 'menu' } };
   }
   if (action === 'home') {
-    return { ...state, screen: { name: 'menu' } };
+    return { ...state, screen: { name: 'pack', packId } };
   }
   if (action === 'replay') {
-    return { ...state, screen: { name: 'level', themeId, levelId } };
+    return { ...state, screen: { name: 'level', packId, levelId } };
   }
-  if (state.pendingBadge === themeId) {
-    return { ...state, pendingBadge: null, screen: { name: 'badge', themeId } };
+  if (state.pendingBadge === pack.badgeId) {
+    return { ...state, pendingBadge: null, screen: { name: 'badge', packId } };
   }
-  const entry = themeEntry(themeId);
-  if (!entry) {
-    return { ...state, screen: { name: 'menu' } };
-  }
-  const bonusOpen = isBonusOpen(state.save, themeId, mainIds(themeId));
   return {
     ...state,
-    screen: { name: 'level', themeId, levelId: nextLevelId(entry, levelId, bonusOpen) },
+    screen: { name: 'level', packId, levelId: nextPackLevelId(state.save, pack, levelId) },
   };
+}
+
+/** Badge seal: circles open the first unlocked bonus; other packs go back. */
+function badgeTap(state: AppState, packId: string): AppState {
+  const pack = packById(packId);
+  if (!pack) {
+    return state;
+  }
+  const index = pack.bonuses.findIndex((_, bonusIndex) =>
+    bonusUnlocked(state.save, pack, bonusIndex),
+  );
+  const bonus = index >= 0 ? pack.bonuses[index] : undefined;
+  if (!bonus) {
+    return { ...state, screen: { name: 'pack', packId } };
+  }
+  return { ...state, screen: { name: 'level', packId, levelId: bonus.id } };
 }
 
 function parentAction(state: AppState, action: ParentZoneAction): AppState {
@@ -212,31 +179,20 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
   switch (event.type) {
     case 'splash-tap':
       return state.screen.name === 'splash' ? { ...state, screen: { name: 'menu' } } : state;
-    case 'open-theme':
-      return themeEntry(event.themeId)
-        ? { ...state, screen: { name: 'theme', themeId: event.themeId } }
-        : state;
-    case 'theme-back':
-      return { ...state, screen: { name: 'menu' } };
     case 'open-pack':
-      return { ...state, screen: { name: 'pack' } };
+      return packById(event.packId)
+        ? { ...state, screen: { name: 'pack', packId: event.packId } }
+        : state;
     case 'pack-back':
       return { ...state, screen: { name: 'menu' } };
     case 'open-level':
-      return openLevel(state, event.themeId, event.levelId);
+      return openLevel(state, event.packId, event.levelId);
     case 'level-complete':
-      return completeLevelRun(state, event.themeId, event.levelId);
+      return completeLevelRun(state, event.packId, event.levelId);
     case 'success-action':
-      return successAction(state, event.action, event.themeId, event.levelId);
-    case 'badge-tap': {
-      if (event.themeId === PACK_ID) {
-        return { ...state, screen: { name: 'pack' } };
-      }
-      const entry = themeEntry(event.themeId);
-      return entry
-        ? { ...state, screen: { name: 'level', themeId: event.themeId, levelId: entry.bonus.id } }
-        : state;
-    }
+      return successAction(state, event.action, event.packId, event.levelId);
+    case 'badge-tap':
+      return badgeTap(state, event.packId);
     case 'badge-exit':
       return { ...state, screen: { name: 'menu' } };
     case 'parent-open':

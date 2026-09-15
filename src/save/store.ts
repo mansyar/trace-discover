@@ -8,7 +8,6 @@
 // animals +8, bonuses in world order) and numerals move into the same
 // completed list. The storage key keeps its original slot name; the payload
 // `version` field drives schema upgrades.
-import { NUMBERS_PACK } from '../packs/numbers';
 import { skinById } from '../skins/skins';
 
 export const SAVE_KEY = 'trace-discover-save-v1';
@@ -100,21 +99,6 @@ export function updateSettings(save: SaveData, partial: Partial<ParentSettings>)
   return { ...save, settings: { ...save.settings, ...partial } };
 }
 
-// Transitional bridges for the numerals flows; the consumer sweep replaces
-// their callers with the pack-generic stores above.
-
-export function completeNumeral(save: SaveData, numeralId: string): SaveData {
-  return completeLevel(save, numeralId);
-}
-
-export function hasNumeralSticker(save: SaveData, numeralId: string): boolean {
-  return hasSticker(save, numeralId);
-}
-
-export function awardPackBadge(save: SaveData): SaveData {
-  return awardBadge(save, NUMBERS_PACK.badgeId);
-}
-
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -198,7 +182,7 @@ function migrateLegacySave(parsed: object, settings: ParentSettings): SaveData {
   const pack = 'pack' in parsed ? parsed.pack : undefined;
   const badges = 'badges' in parsed ? asStringArray(parsed.badges) : [];
   return {
-    badges: asPackBadgeEarned(pack) ? [NUMBERS_PACK.badgeId] : [],
+    badges: asPackBadgeEarned(pack) ? ['numbers-badge'] : [],
     completedLevels: [...migrateLevelIds(levels), ...migrateLevelIds(asClearedList(pack))],
     settings,
     trophies: badges.filter((id) => LEGACY_THEME_IDS.has(id)),

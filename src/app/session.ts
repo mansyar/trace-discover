@@ -44,8 +44,8 @@ import {
 } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_WIDTH } from '../field';
+import { type LevelDef, levelToPath } from '../packs/level';
 import { type ConfettiParticle, createConfetti, stepConfetti } from '../render/confetti';
-import { type LevelDef, levelToPath } from '../themes/level';
 
 export const CHECKPOINT_COUNT = 6;
 const TOLERANCE_FRACTION = 0.12;

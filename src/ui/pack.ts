@@ -1,20 +1,20 @@
 // Pack screen layout math (pure; canvas rendering defers to shell wiring).
 // Ten numeral cards in a 2x5 toddler-sized grid, a two-row sticker shelf,
 // and the pack badge spot on top. Sticker state reads straight from the
-// save v2 via hasNumeralSticker: a cleared numeral shows its sticker.
+// save via hasSticker: a cleared level shows its sticker.
 import type { Point } from '../engine/types';
-import { hasNumeralSticker, type SaveData } from '../save/store';
+import { hasSticker, type SaveData } from '../save/store';
 
 export interface PackCard {
   readonly height: number;
-  readonly numeralId: string;
+  readonly levelId: string;
   readonly width: number;
   readonly x: number;
   readonly y: number;
 }
 
 export interface PackSlot {
-  readonly numeralId: string;
+  readonly levelId: string;
   readonly radius: number;
   readonly x: number;
   readonly y: number;
@@ -56,14 +56,14 @@ const SLOTS_PER_ROW = 5;
 export function packLayout(
   fieldWidth: number,
   fieldHeight: number,
-  numeralIds: readonly string[],
+  levelIds: readonly string[],
 ): PackLayout {
   const gridWidth = COLUMNS * CARD_SIZE + (COLUMNS - 1) * CARD_GAP;
   const gridStartX = (fieldWidth - gridWidth) / 2;
-  const cards = numeralIds.map(
-    (numeralId, index): PackCard => ({
+  const cards = levelIds.map(
+    (levelId, index): PackCard => ({
       height: CARD_SIZE,
-      numeralId,
+      levelId,
       width: CARD_SIZE,
       x: gridStartX + (index % COLUMNS) * (CARD_SIZE + CARD_GAP),
       y: GRID_TOP + Math.floor(index / COLUMNS) * (CARD_SIZE + CARD_GAP),
@@ -71,9 +71,9 @@ export function packLayout(
   );
   const slotRowWidth = SLOTS_PER_ROW * SLOT_RADIUS * 2 + (SLOTS_PER_ROW - 1) * SLOT_GAP;
   const slotStartX = (fieldWidth - slotRowWidth) / 2;
-  const slots = numeralIds.map(
-    (numeralId, index): PackSlot => ({
-      numeralId,
+  const slots = levelIds.map(
+    (levelId, index): PackSlot => ({
+      levelId,
       radius: SLOT_RADIUS,
       x: slotStartX + SLOT_RADIUS + (index % SLOTS_PER_ROW) * (SLOT_RADIUS * 2 + SLOT_GAP),
       y: SLOT_TOP + Math.floor(index / SLOTS_PER_ROW) * (SLOT_RADIUS * 2 + SLOT_ROW_GAP),
@@ -95,7 +95,7 @@ export function hitPackCard(layout: PackLayout, point: Point): string | null {
       point.y >= entry.y &&
       point.y <= entry.y + entry.height,
   );
-  return card === undefined ? null : card.numeralId;
+  return card === undefined ? null : card.levelId;
 }
 
 /** True when the point lands on the home corner button. */
@@ -103,6 +103,6 @@ export function hitPackHome(layout: PackLayout, point: Point): boolean {
   return Math.hypot(point.x - layout.home.x, point.y - layout.home.y) <= layout.home.radius;
 }
 
-export function packStickers(save: SaveData, numeralIds: readonly string[]): readonly boolean[] {
-  return numeralIds.map((numeralId) => hasNumeralSticker(save, numeralId));
+export function packStickers(save: SaveData, levelIds: readonly string[]): readonly boolean[] {
+  return levelIds.map((levelId) => hasSticker(save, levelId));
 }

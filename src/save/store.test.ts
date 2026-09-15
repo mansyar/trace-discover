@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   awardBadge,
-  awardPackBadge,
   completeLevel,
-  completeNumeral,
   createDefaultSave,
-  hasNumeralSticker,
   hasSticker,
   loadSave,
   SAVE_KEY,
@@ -206,31 +203,6 @@ describe('awardBadge', () => {
     const once = awardBadge(createDefaultSave(), 'pre-badge');
     expect(once.badges).toEqual(['pre-badge']);
     expect(awardBadge(once, 'pre-badge').badges).toEqual(['pre-badge']);
-  });
-});
-
-describe('completeNumeral', () => {
-  it('records the numeral in the unified completed list, idempotently', () => {
-    const before = createDefaultSave();
-    const once = completeNumeral(before, 'num-4');
-    expect(once.completedLevels).toEqual(['num-4']);
-    expect(completeNumeral(once, 'num-4').completedLevels).toEqual(['num-4']);
-    expect(before.completedLevels).toEqual([]);
-  });
-});
-
-describe('hasNumeralSticker', () => {
-  it('is false before the numeral is cleared and true after', () => {
-    const before = createDefaultSave();
-    expect(hasNumeralSticker(before, 'num-4')).toBe(false);
-    expect(hasNumeralSticker(completeNumeral(before, 'num-4'), 'num-4')).toBe(true);
-  });
-});
-
-describe('awardPackBadge', () => {
-  it('awards the numbers badge once and is idempotent', () => {
-    expect(awardPackBadge(createDefaultSave()).badges).toEqual(['numbers-badge']);
-    expect(awardPackBadge(awardPackBadge(createDefaultSave())).badges).toEqual(['numbers-badge']);
   });
 });
 
