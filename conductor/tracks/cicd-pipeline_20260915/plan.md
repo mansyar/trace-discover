@@ -52,9 +52,9 @@
   - [x] Bump `package.json` → `1.0.0-rc.1` (`chore(release): 1.0.0-rc.1`), pushed to `master` [e4fb31d]
   - [x] Tag + push `v1.0.0-rc.1`; CD run [34920856339] green: guards passed, gates ran, deploy succeeded to the `rc` preview, URL captured (`deploy.url` → summary + release body)
   - [x] Verify: prerelease exists with generated notes + `Deployed at https://rc.trace-discover.pages.dev`; preview serves PWA (HTTP 200) with offline cold-start intact (`spike/qa-offline.mjs`: booted from precache, dino-1 traced SUCCESS, zero page errors); production untouched (no new Production deployment; site still `47747df` build); CI [34920853873] green; evidence recorded in plan + git note
-- [ ] Task: Documentation alignment — release runbook
-  - [ ] Rewrite `workflow.md` "Deployment Workflow" → real runbook (bump → PR/merge → tag → push → observe → verify; rollback = promote a previous Pages deployment / re-tag a fixed build)
-  - [ ] `tech-stack.md` CI/CD section reflects what actually shipped (dated note); track docs list secret names, project name, production branch, URLs
-- [ ] Task: Handoff — stable-release checklist for the maintainer
+- [x] Task: Documentation alignment — release runbook [a0660d8]
+  - [x] Rewrite `workflow.md` "Deployment Workflow" → real runbook: pre-release checklist → bump → annotated tag → push → observe → verify; rollback via Pages deployment promotion / revert+bump+re-tag; never move or delete released tags; no hand-deploys to production
+  - [x] `tech-stack.md` CI/CD section reflects shipped reality (dated note with the live v1.0.0-rc.1 proof); secret names, project, production branch and URLs recorded in spec/plan/tech-stack
+- [~] Task: Handoff — stable-release checklist for the maintainer
   - [ ] Write the `v1.0.0` cut checklist (after the v1 track is formally closed) incl. RC tag disposition; verify it satisfies every spec acceptance criterion
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
