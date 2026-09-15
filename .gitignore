@@ -39,3 +39,13 @@ spike/lion/*.png
 spike/pnpm-lock.yaml
 spike/web/*.html
 spike/web/package.json
+!spike/dino3/dino.png
+!spike/dino4/dino.png
+!spike/dino4/jump.png
+!spike/dino4/blink.png
+!spike/lion/lion.png
+!spike/lion/jump.png
+!spike/lion/blinkpatch.png
+!spike/excavator/excavator.png
+!spike/excavator/jump.png
+!spike/excavator/blinkpatch3.png
