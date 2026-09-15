@@ -25,7 +25,7 @@
 - **No UI framework** — vanilla TS + Canvas 2D API; screens = full-canvas overlays managed by a typed state machine
 - **Characters: Rive** — `@rive-app/canvas-lite` 2.42.1 (MIT, ~222 KB brotli) as an npm dependency; script-free `.riv` assets; host TS fires state-machine triggers
 - **Audio: Web Audio API** — synthesized pentatonic sounds; unlocked on first touch
-- **Paths:** code-drawn Canvas trail engine (Path2D, paint-fill, magnetism)
+- **Paths:** code-drawn Canvas trail engine (Path2D, paint-fill, magnetism); level schema v2 — ordered multi-stroke levels (v1 single-stroke content unchanged, engine extended with per-stroke frontiers)
 
 ## Backend
 
@@ -33,7 +33,7 @@
 
 ## Data & Persistence
 
-**localStorage** — typed save schema: cleared levels, stickers, auto-assist state, parent settings.
+**localStorage** — typed save schema v2: cleared levels, stickers, auto-assist state, parent settings + additive `pack` section (numerals cleared, numeral stickers, pack badge); v1 saves migrate losslessly.
 
 ## PWA & Hosting
 
@@ -64,6 +64,8 @@
 - **Toolchain parity:** CI = `ubuntu-latest` + Node 24 + pnpm 12.4.1 (from `packageManager`, frozen lockfile); `wrangler` pinned exactly (`npx wrangler@4.131.2`)
 
 *2026-09-15 — Added (track `cicd-pipeline_20260915`): GitHub Actions CI + tag-driven CD to Cloudflare Pages, with GitHub Release notes. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Verified live same day: `v1.0.0-rc.1` → run 34920856339 deployed to the rc preview and created the prerelease; production untouched.*
+
+*2026-09-15 — Updated (track `letters-numbers-pack_20260915`): level schema v2 — ordered multi-stroke levels (single-stroke v1 content unchanged, per-stroke frontiers in the trail engine); save schema v2 — additive `pack` section (numerals cleared, numeral stickers, pack badge) with lossless v1→v2 migration; dedicated zero-text "123" pack screen pattern (numerals as drawn art, cream shell). Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
 
 ## Constraints
 
