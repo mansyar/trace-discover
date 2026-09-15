@@ -51,8 +51,8 @@
 - [x] Task: Audio — per-skin instrument presets (TDD) [a2b7796]
   - [x] Tests: preset registry (marimba · bell · woodblock · kalimba); chimes + completion accept the skin preset; counted notes stay toy piano; volume/mute unaffected
   - [x] Implement in `audio/synth.ts` + wiring
-- [~] Task: Parent zone — skin setter + trophy row + reset coverage (TDD)
-  - [ ] Tests: setter writes `settings.skin`; trophies display-only; reset clears packs/badges/trophies after confirm; volume/mute still apply per skin
+- [x] Task: Parent zone — skin setter + trophy row + reset coverage (TDD) [947747e]
+  - [x] Tests: setter writes `settings.skin`; trophies display-only; reset clears packs/badges/trophies after confirm; volume/mute still apply per skin
 - [ ] Task: Device feel check via LAN — skin swap (incl. mid-trace) + audio timbres; record findings; tune if needed
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
