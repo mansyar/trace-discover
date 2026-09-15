@@ -28,7 +28,7 @@ import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
-import { createUnlockGate } from './audio/synth';
+import { createUnlockGate, presetForInstrument } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
 import { type HopTimeline, hopTimeline } from './character/hops';
@@ -355,6 +355,7 @@ function startRun(
       fire: (trigger) => character?.fire(trigger) ?? false,
     },
     hopPlan,
+    instrument: () => presetForInstrument(activeSkin().instrument),
     onEvent: (event) => {
       if (event.type === 'level-done' && session) {
         commit(applyAppEvent(app, { type: 'level-complete', packId, levelId }));

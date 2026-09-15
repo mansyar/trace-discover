@@ -2,7 +2,7 @@
 // Content (levels, progress, rewards) is pack-owned — see `src/packs/`.
 
 /** Instrument voice id; the audio presets live in `audio/synth.ts`. */
-export type InstrumentId = 'marimba' | 'bell' | 'woodblock' | 'kalimba';
+import type { InstrumentId } from '../audio/synth';
 
 export interface SkinDef {
   readonly accent: string;

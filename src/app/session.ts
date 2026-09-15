@@ -4,6 +4,7 @@
 // snapshots and forwards pointer input. Sound and character go through
 // injected deps so tests run headless with fakes.
 import {
+  type InstrumentPreset,
   playCheckpointChime,
   playCompletion,
   playCountedNotes,
@@ -71,6 +72,8 @@ export interface SessionDeps {
   readonly character: SessionCharacter;
   /** Counted reward plan for numerals (hop pacing + notes); absent in the worlds. */
   readonly hopPlan?: HopTimeline;
+  /** Active skin's voice for chimes + completion; defaults to the marimba. */
+  readonly instrument?: () => InstrumentPreset;
   readonly onEvent: (event: SessionEvent) => void;
   readonly player: TonePlayer;
   /** Deterministic confetti seed (varies per level for QA replay). */
@@ -180,7 +183,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       checkState = result.state;
       for (const event of result.events) {
         if (event.type === 'checkpoint') {
-          playCheckpointChime(deps.player, event.index);
+          playCheckpointChime(deps.player, event.index, deps.instrument?.());
         } else {
           completionStarted = true;
           completion = COMPLETION_START;
@@ -235,7 +238,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
           }
         } else if (event === 'celebrateStart') {
           deps.character.fire('celebrate');
-          playCompletion(deps.player);
+          playCompletion(deps.player, deps.instrument?.());
         } else if (event === 'done') {
           success = true;
           deps.onEvent({ type: 'level-done' });

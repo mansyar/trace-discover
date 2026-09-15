@@ -10,6 +10,7 @@ import {
   playCheckpointChime,
   playCompletion,
   playCountedNotes,
+  presetForInstrument,
   TOY_PIANO_PRESET,
   type ToneSpec,
 } from './synth';
@@ -175,5 +176,58 @@ describe('toy piano counted notes', () => {
     }
     expect(swap.duration).toBe(TOY_PIANO_PRESET.duration);
     expect(swap.gain).toBe(TOY_PIANO_PRESET.gain);
+  });
+});
+
+describe('instrument preset registry', () => {
+  const IDS = ['marimba', 'bell', 'woodblock', 'kalimba'] as const;
+
+  it('maps every instrument id to a usable preset', () => {
+    for (const id of IDS) {
+      const preset = presetForInstrument(id);
+      expect(preset.duration).toBeGreaterThan(0);
+      expect(preset.gain).toBeGreaterThan(0);
+      expect(['sine', 'triangle']).toContain(preset.type);
+    }
+  });
+
+  it('keeps the marimba voice identical to the original world preset', () => {
+    expect(presetForInstrument('marimba')).toEqual(MARIMBA_PRESET);
+  });
+
+  it('gives each instrument its own character', () => {
+    expect(presetForInstrument('woodblock').duration).toBeLessThan(
+      presetForInstrument('marimba').duration,
+    );
+    expect(presetForInstrument('bell').type).toBe('sine');
+    expect(presetForInstrument('kalimba').type).toBe('sine');
+  });
+
+  it('colors the completion chord with the preset timbre and keeps the sparkle', () => {
+    const player = recordingPlayer();
+    playCompletion(player, presetForInstrument('bell'));
+    const chord = player.played.slice(0, 3);
+    expect(chord).toHaveLength(3);
+    for (const spec of chord) {
+      expect(spec.type).toBe('sine');
+      expect(spec.duration).toBe(1.3);
+    }
+    expect(player.played.length).toBeGreaterThan(3);
+    for (const spec of player.played.slice(3)) {
+      expect(spec.type).toBe('sine');
+    }
+  });
+
+  it('plays checkpoint chimes with the given preset voice', () => {
+    const player = recordingPlayer();
+    const woodblock = presetForInstrument('woodblock');
+    playCheckpointChime(player, 0, woodblock);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.duration).toBe(woodblock.duration);
+    expect(spec.gain).toBe(woodblock.gain);
+    expect(spec.type).toBe(woodblock.type);
   });
 });
