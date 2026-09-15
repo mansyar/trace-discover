@@ -1,6 +1,6 @@
 // Dev-only playable harness: every level end to end (trace -> chimes ->
 // hop -> celebrate -> confetti -> sticker -> success) for feel testing and QA.
-// ?level=<id> selects any of the 15 levels (default dino-1); next cycles all.
+// ?level=<id> selects any of the 25 levels (15 world + 10 numerals; default dino-1).
 // Excluded from the production build (only index.html builds).
 import '../style.css';
 import { createTonePlayer } from '../audio/player';
@@ -43,6 +43,7 @@ import { ANIMAL_LEVELS, ANIMALS_THEME } from '../themes/animals';
 import { CONSTRUCTION_LEVELS, CONSTRUCTION_THEME } from '../themes/construction';
 import { DINO_LEVELS, DINO_THEME } from '../themes/dino';
 import { type LevelDef, levelToPath, type ThemeDef } from '../themes/level';
+import { NUMERAL_LEVELS } from '../themes/numbers';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
 type AssistState = typeof ASSIST_START;
@@ -53,10 +54,19 @@ interface LevelEntry {
   readonly theme: ThemeDef;
 }
 
+// Numerals run on the dino as a placeholder guide until star.riv lands (Phase 3).
+const NUMBERS_THEME: ThemeDef = {
+  backdrop: DINO_THEME.backdrop,
+  character: DINO_THEME.character,
+  id: 'numbers',
+  name: 'Numbers',
+};
+
 const ALL_LEVELS: readonly LevelEntry[] = [
   ...DINO_LEVELS.map((level) => ({ level, theme: DINO_THEME })),
   ...CONSTRUCTION_LEVELS.map((level) => ({ level, theme: CONSTRUCTION_THEME })),
   ...ANIMAL_LEVELS.map((level: LevelDef) => ({ level, theme: ANIMALS_THEME })),
+  ...NUMERAL_LEVELS.map((level) => ({ level, theme: NUMBERS_THEME })),
 ];
 
 const query = new URLSearchParams(window.location.search);
@@ -160,6 +170,7 @@ interface QaHook {
   readonly isSuccess: () => boolean;
   readonly levelId: string;
   readonly path: readonly Point[];
+  readonly strokes: readonly (readonly Point[])[];
   readonly field: Rect;
   readonly stage: () => string;
 }
@@ -177,6 +188,7 @@ function refreshQa(): void {
     isSuccess: () => play.success,
     levelId: play.level.id,
     path: play.multi.strokes[0]?.points ?? [],
+    strokes: play.multi.strokes.map((stroke) => stroke.points),
     stage: () => play.completion?.stage ?? '(none)',
   };
 }

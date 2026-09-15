@@ -17,7 +17,7 @@ Source of truth for numeral authoring, the art batch, and the `star.riv` build. 
 
 ## Numeral forms (locked)
 
-Simplest toddler forms: 1 plain · 2 smooth curve + base · 3 two right bumps · 4 open-top two-stroke · 5 flag + belly · 7 no crossbar · 8 two stacked loops · 0/6/9 circles per conventions below.
+Simplest toddler forms: 1 plain · 2 smooth curve + base · 3 two right bumps · 4 open-top two-stroke · 5 top bar + left descent + bowl · 7 no crossbar · 8 two stacked loops · 0/6/9 circles per conventions below.
 
 ## Formation table
 
@@ -28,7 +28,7 @@ Simplest toddler forms: 1 plain · 2 smooth curve + base · 3 two right bumps ·
 | 2 | 1 | Start upper-left; upper bump arcs right and around; sweep down-left; flat base left → right | upper-left | 4 | 2 apples |
 | 3 | 1 | Two right bumps: upper arc, back to the middle, lower arc, settle lower-left | upper-left | 4 | 3 balloons |
 | 4 | 2 | Stroke 1: diagonal down-left, then horizontal bar right (elbow). Stroke 2: tall vertical stem top → bottom, crossing the bar near its right end | elbow (upper right of bar) | 5 | 4 blocks |
-| 5 | 1 | Top bar left → right; down-left leg to the middle; belly sweeps right-around-down, closing toward lower-left | top-left | 4 | 5 stars |
+| 5 | 1 | Start top-right; bar traced right → left; descent down the left side; bowl sweeps clockwise (right, around the bottom) back up to a terminal below the descent's foot | top right | 4 | 5 stars |
 | 6 | 1 | Long CCW sweep: across the top, down the left, around the bottom, up the right, closing a loop at the bottom | top-right | 5 | 6 balls |
 | 7 | 1 | Top bar left → right; diagonal down-left; no crossbar | top-left | 3 | 7 flowers |
 | 8 | 2 | Stroke 1: upper loop CCW. Stroke 2: lower loop CCW; loops meet at the waist (author tangent — slight overlap OK if screenshots read better; engine crossing coverage is the figure-8 fixture) | upper loop top | 6 | 8 bubbles |
@@ -41,8 +41,8 @@ Goal art refs: `/art/goal/num-<digit>.png` (doubles as the sticker — numeral +
 ## Stroke-direction checklist (validate per numeral)
 
 - [ ] 0: start top, closes CCW; ordered checkpoints advance left → bottom → right → top
-- [ ] 1, 4-stem, 7-diagonal: top → bottom strokes; 7 bar and 5 top bar left → right
-- [ ] 2/3/5: horizontal elements left → right; right-hand bumps sweep clockwise
+- [ ] 1, 4-stem, 7-diagonal: top → bottom strokes; 7 bar left → right; 5 bar traced right → left
+- [ ] 2/3: horizontal elements left → right; right-hand bumps sweep clockwise; 5 bowl sweeps clockwise from the descent's foot
 - [ ] 6/9 loops and 8's two loops: CCW; 8 completes the upper loop before the lower
 - [ ] Multi-stroke order: 4 = elbow → stem; 8 = upper → lower; 9 = loop → stem
 - [ ] `validateLevel` passes (margin, no duplicates, ≥2 points per stroke); `levelToPath` resamples at 8px
