@@ -40,10 +40,10 @@
 
 *Goal: any skin, anywhere — tap-to-cycle on every child screen, persisted; idle mascot on menu/pack screens; per-skin instruments; mid-trace swaps with celebration guard.*
 
-- [ ] Task: Skin button — cycle logic + persistence (TDD)
-  - [ ] Tests: cycle order dino→star→construction→animal (wrap); 400 ms debounce; written to `settings.skin`; default dino
-  - [ ] Implement button zone/hit-test (`ui/`), render (face icon + poof + pop), tap routing on every child screen
-- [ ] Task: Skin-driven rendering (TDD)
+- [x] Task: Skin button — cycle logic + persistence (TDD) [b743810]
+  - [x] Tests: cycle order dino→star→construction→animal (wrap); 400 ms debounce; written to `settings.skin`; default dino
+  - [x] Implement button zone/hit-test (`ui/`), render (face icon + poof + pop), tap routing on every child screen
+- [~] Task: Skin-driven rendering (TDD)
   - [ ] Tests: backdrop/character/accent resolution from the active skin per screen; swap-decision helper — mid-trace applies immediately, defers while the completion sequence runs, applies when it ends
   - [ ] Implement in `app/render.ts` + `main.ts` wiring + session guard
 - [ ] Task: Idle mascot on menu + pack screens
