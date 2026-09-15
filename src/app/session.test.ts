@@ -360,4 +360,38 @@ describe('numeral reward plan', () => {
     }
     expect(session.success).toBe(true);
   });
+
+  it('lets easier tracing widen the corridor for numerals', () => {
+    const target = numeral('num-1');
+    const stroke = firstStroke(target);
+    const offset = 60;
+    const plain = fakes();
+    const eased = fakes();
+    const base = createSession(target, {
+      character: plain.character,
+      onEvent: (event) => void plain.events.push(event),
+      player: plain.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const wider = createSession(target, {
+      character: eased.character,
+      onEvent: (event) => void eased.events.push(event),
+      player: eased.player,
+      seed: 7,
+      settings: () => ({ easierTracing: true }),
+    });
+    const start = point(stroke, 0);
+    base.pointerDown(start);
+    wider.pointerDown(start);
+    for (let i = 1; i < stroke.length; i += 1) {
+      const p = point(stroke, i);
+      base.pointerMove({ x: p.x + offset, y: p.y });
+      wider.pointerMove({ x: p.x + offset, y: p.y });
+      base.update(16);
+      wider.update(16);
+    }
+    expect(base.snapshot().multiState.frontier).toBe(0);
+    expect(wider.snapshot().multiState.frontier).toBeGreaterThan(0);
+  });
 });

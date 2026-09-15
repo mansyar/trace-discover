@@ -184,6 +184,21 @@ describe('pack navigation', () => {
     expect(app.save.badges).toEqual([]);
     expect(app.save.pack).toEqual({ badge: false, cleared: ['num-1'] });
   });
+
+  it('resets pack progress only after the parent confirm tap', () => {
+    let app = applyAppEvent(setup(), {
+      type: 'level-complete',
+      themeId: 'numbers',
+      levelId: 'num-1',
+    });
+    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-2' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.pack.cleared).toEqual(['num-1', 'num-2']);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.pack).toEqual({ badge: false, cleared: [] });
+    expect(app.save.completedLevels).toEqual([]);
+  });
 });
 
 describe('pack badge', () => {

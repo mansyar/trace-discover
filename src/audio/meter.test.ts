@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { hopTimeline } from '../character/hops';
 import { withVolume } from './meter';
-import type { TonePlayer, ToneSpec } from './synth';
+import { playCountedNotes, TOY_PIANO_PRESET, type TonePlayer, type ToneSpec } from './synth';
 
 const SPEC: ToneSpec = { delay: 0, duration: 0.3, frequency: 523.25, gain: 0.4, type: 'triangle' };
 
@@ -34,5 +35,21 @@ describe('withVolume', () => {
     settings = { muted: false, volume: 0 };
     player.play(SPEC);
     expect(inner.specs).toEqual([]);
+  });
+
+  it('meters the counted toy-piano notes like any other tone', () => {
+    const inner = recordingPlayer();
+    let settings = { muted: false, volume: 0.5 };
+    const player = withVolume(inner, () => settings);
+    playCountedNotes(player, hopTimeline(3));
+    expect(inner.specs).toHaveLength(3);
+    expect(inner.specs.map((spec) => spec.gain)).toEqual([
+      TOY_PIANO_PRESET.gain * 0.5,
+      TOY_PIANO_PRESET.gain * 0.5,
+      TOY_PIANO_PRESET.gain * 0.5,
+    ]);
+    settings = { muted: true, volume: 0.5 };
+    playCountedNotes(player, hopTimeline(2));
+    expect(inner.specs).toHaveLength(3);
   });
 });
