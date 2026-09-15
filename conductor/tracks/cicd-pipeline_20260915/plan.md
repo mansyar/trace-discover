@@ -22,7 +22,7 @@
 - [x] Task: Negative control — a failing PR fails CI
   - [x] PR #1 (`qa/ci-negative-control`) proven red/green in sequence: failing test → red at `Tests with coverage` [34919251028]; broken type → red at `Lint and typecheck` (tsc TS2322) [34919310152]; misformatted file → red at `Lint and typecheck` (Biome formatter, log-verified) [34919357599]; cleanup commit → all gates green [34919423243]
   - [x] Incident from this control: transient artifact-finalize 403 failed the green run → upload step hardened non-blocking [7be8431]; job rerun of the identical commit succeeded — PR #1 closed without merging (2026-09-15), branch deleted (local + remote)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Release Automation (CD on tag) [checkpoint: f203e10]
 
@@ -41,8 +41,8 @@
   - [x] Flags verified against installed wrangler (`--project-name`, `--branch`, `--commit-hash`, `--commit-message` all present); actionlint clean; live proof lands in Phase 3
 - [x] Task: GitHub Release creation with notes [f203e10]
   - [x] Release step added: `gh release create "$TAG" --title "$TAG" --generate-notes` (+ `--prerelease` when tag contains `-`); body appended with `Deployed at <url>` via `gh release edit`; summary line written [f203e10]
-  - [ ] (Deferred — Phase 3) Verify via `gh release view`: prerelease flag, generated notes, URL line
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Verified in Phase 3 on `v1.0.0-rc.1`: prerelease flag true, generated notes present, `Deployed at https://rc.trace-discover.pages.dev` line appended (`gh release view`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — End-to-End Release Proof & Handoff [checkpoint: 8a43f1f]
 
@@ -57,4 +57,7 @@
   - [x] `tech-stack.md` CI/CD section reflects shipped reality (dated note with the live v1.0.0-rc.1 proof); secret names, project, production branch and URLs recorded in spec/plan/tech-stack
 - [x] Task: Handoff — stable-release checklist for the maintainer [8a43f1f]
   - [x] Write the `v1.0.0` cut checklist (after the v1 track is formally closed) incl. RC tag disposition; verify it satisfies every spec acceptance criterion — `handoff.md`: preconditions, cut steps, rollback, and an acceptance trace mapping all spec criteria to run/release evidence
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions f3f68cb
