@@ -36,7 +36,7 @@
   - [x] Fix found during the sweep: pack badge spot opens the first unlocked circle (v1 parity, no dead-end) [922e740]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Skins in motion: switching, mascot, audio, parent controls
+## Phase 2 — Skins in motion: switching, mascot, audio, parent controls [checkpoint: 947747e]
 
 *Goal: any skin, anywhere — tap-to-cycle on every child screen, persisted; idle mascot on menu/pack screens; per-skin instruments; mid-trace swaps with celebration guard.*
 
@@ -53,8 +53,8 @@
   - [x] Implement in `audio/synth.ts` + wiring
 - [x] Task: Parent zone — skin setter + trophy row + reset coverage (TDD) [947747e]
   - [x] Tests: setter writes `settings.skin`; trophies display-only; reset clears packs/badges/trophies after confirm; volume/mute still apply per skin
-- [ ] Task: Device feel check via LAN — skin swap (incl. mid-trace) + audio timbres; record findings; tune if needed
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Device feel check via LAN — skin swap (incl. mid-trace) + audio timbres; record findings; tune if needed — owner verdict: all good, no tuning needed (Android + iPad, 2026-09-15)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Pre-writing re-ramp (content)
 
