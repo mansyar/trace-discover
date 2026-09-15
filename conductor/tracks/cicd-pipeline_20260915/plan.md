@@ -8,12 +8,12 @@
 
 *Goal: public repo with PR/master gates that demonstrably fail on a bad change.*
 
-- [ ] Task: Document the CI/CD stack in `tech-stack.md` (before implementation, per workflow.md §7)
-  - [ ] Add CI/CD section: GitHub Actions (public repo), Node 24 + pnpm pins from `packageManager`, exact `wrangler` pin, release conventions (semver tags, auto notes)
-  - [ ] Verify: dated change note present; no contradiction with existing entries
-- [ ] Task: Publish the repository to GitHub
-  - [ ] `gh auth setup-git` if the credential helper isn't wired; create public `mansyar/trace-discover` (`gh repo create --source . --remote origin --push`) — full history, default branch `master`
-  - [ ] Verify: `gh repo view` (public, `master`), `origin` set, Actions enabled (`gh api`)
+- [x] Task: Document the CI/CD stack in `tech-stack.md` (before implementation, per workflow.md §7) [f1ca4b7]
+  - [x] Add CI/CD section: GitHub Actions (public repo), Node 24 + pnpm pins from `packageManager`, exact `wrangler` pin, release conventions (semver tags, auto notes)
+  - [x] Verify: dated change note present; no contradiction with existing entries
+- [x] Task: Publish the repository to GitHub — AMENDED: maintainer pre-created public `mansyar/trace-discover` (2026-09-15); origin attached, full history pushed and verified
+  - [x] Verify: repo public, default branch `master`, Actions enabled (`gh api`); `origin` configured; remote sync = local `master` (pushed `f1ca4b7`)
+  - [x] Secrets `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` present (`gh secret list`, set by maintainer) — CD prerequisites landed early
 - [ ] Task: CI workflow — checks on PR & master
   - [ ] Author `.github/workflows/ci.yml`: triggers `pull_request→master`, `push→master`, `workflow_dispatch`; `concurrency` cancel-in-progress; `permissions: contents: read`; `ubuntu-latest`; `timeout-minutes: 15`
   - [ ] Steps: checkout → `pnpm/action-setup` (reads `packageManager`) → `setup-node` 24 + pnpm cache → `pnpm install --frozen-lockfile` → `pnpm check` → tests with coverage (verify `pnpm test --coverage` passthrough; fallback `pnpm exec vitest run --coverage`) → `pnpm build` → upload `coverage/` artifact (informational, no threshold)
