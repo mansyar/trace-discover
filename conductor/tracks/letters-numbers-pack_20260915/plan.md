@@ -51,7 +51,7 @@
 - [x] Task: Menu pack card + navigation wiring (TDD) [5122e66]
   - [x] Tests: menu → pack → numeral → success → pack transitions; replay/next/home behavior for numerals
   - [x] Implement card (placeholder "123" art) + flow wiring
-- [ ] Task: Device feel check via LAN — trace 3 (easy), 4 (two-stroke), 8 (crossing); tune tolerance/speed/nudge if needed; record findings
+- [x] Task: Device feel check via LAN — trace 3 (easy), 4 (two-stroke), 8 (crossing); tune tolerance/speed/nudge if needed; record findings [1886ae1]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Star buddy, audio & counted celebration
