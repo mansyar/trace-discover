@@ -115,3 +115,6 @@
 - [x] Task: Run every acceptance criterion (spec §Acceptance Criteria) and record evidence — 1 offline both devices ✅ · 2 12+3 end-to-end ✅ · 3 zero-text audit [0817931] ✅ · 4 toddler ≥1 level unaided ✅ · 5 assists fire ✅ · 6 reset restores fresh state ✅ (user-verified "All working") · 7 NFR/dist 31 entries ~3.8MB ✅ · 8 check 70 clean + 224/224 tests ✅
 - [x] Task: Final polish fixes; re-verify affected criteria [b635899, 0a1f6ea, 925d57b, 47747df]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions [742fe2a] — removed the dead router module (`src/app/router.ts` + tests); documented the `art.ts` cast
