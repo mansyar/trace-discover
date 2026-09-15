@@ -45,9 +45,9 @@
 - [x] Task: Author numeral level data 0–9 [67b692e]
   - [x] Implement level defs per content doc (strokes, goal placement) with `validateLevel` clean
   - [x] Headless screenshot QA per numeral (start/goal/direction)
-- [ ] Task: Pack screen UI (zero-text)
-  - [ ] 10 numeral cards + 10 sticker slots + badge spot; cleared state shows sticker; 90px+ targets; safe-area + letterbox as v1
-  - [ ] Wired to save v2 progress; screens-harness QA
+- [x] Task: Pack screen UI (zero-text) [3d67c35]
+  - [x] 10 numeral cards + 10 sticker slots + badge spot; cleared state shows sticker; 90px+ targets; safe-area + letterbox as v1
+  - [x] Wired to save v2 progress; screens-harness QA
 - [ ] Task: Menu pack card + navigation wiring (TDD)
   - [ ] Tests: menu → pack → numeral → success → pack transitions; replay/next/home behavior for numerals
   - [ ] Implement card (placeholder "123" art) + flow wiring
