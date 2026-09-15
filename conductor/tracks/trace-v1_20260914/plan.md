@@ -106,12 +106,12 @@
 - [x] Task: Cloudflare Pages deploy config (static `dist/`) + dry run — no config needed (single root route, relative paths); dry-run passed on final bytes; deploy steps in plan commit note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 7 — Device Validation & Acceptance
+## Phase 7 — Device Validation & Acceptance [checkpoint: 47747df]
 
 *Goal: proven on the actual hardware, with the actual toddler.*
 
 - [x] Task: Install on test Android phone + iPad; offline re-launch; gesture/rotation spot-checks — user-verified on both devices, all items pass; evidence in plan commit note
 - [x] Task: Independent-play observation session → capture friction notes → fix pass — toddler completed a level unaided; one polish note (excavator blink smoothness); evidence in plan commit note
-- [~] Task: Run every acceptance criterion (spec §Acceptance Criteria) and record evidence
-- [x] Task: Final polish fixes; re-verify affected criteria [b635899]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Run every acceptance criterion (spec §Acceptance Criteria) and record evidence — 1 offline both devices ✅ · 2 12+3 end-to-end ✅ · 3 zero-text audit [0817931] ✅ · 4 toddler ≥1 level unaided ✅ · 5 assists fire ✅ · 6 reset restores fresh state ✅ (user-verified "All working") · 7 NFR/dist 31 entries ~3.8MB ✅ · 8 check 70 clean + 224/224 tests ✅
+- [x] Task: Final polish fixes; re-verify affected criteria [b635899, 0a1f6ea, 925d57b, 47747df]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
