@@ -75,7 +75,7 @@
 *Goal: real art everywhere + full persistence — the pack is feature-complete.*
 
 - [x] Task: Art batch via Workers AI — "123" card/header art, 10 goal arts (numeral + count vignette), 10 stickers, pack badge → cutout/optimize/composite → screenshot approval [3a9bcac]
-- [ ] Task: Goal + sticker art integration — renderer goal art, sticker slots, fly-in; pack badge award flow (10th sticker → pack celebration → badge, mirroring themes)
+- [x] Task: Goal + sticker art integration — renderer goal art, sticker slots, fly-in; pack badge award flow (10th sticker → pack celebration → badge, mirroring themes) [7600ea6]
 - [ ] Task: Menu card final states — fresh / in-progress / badge; real art integrated
 - [ ] Task: Parent zone — pack reset + easier-tracing coverage (TDD)
   - [ ] Tests: reset clears pack fields only after confirm; easier tracing affects numerals; volume/mute applies to the new preset
