@@ -46,9 +46,9 @@
 - [x] Task: Skin-driven rendering (TDD) [98888d1]
   - [x] Tests: backdrop/character/accent resolution from the active skin per screen; swap-decision helper — mid-trace applies immediately, defers while the completion sequence runs, applies when it ends
   - [x] Implement in `app/render.ts` + `main.ts` wiring + session guard
-- [~] Task: Idle mascot on menu + pack screens
-  - [ ] Character idles (parked) outside levels; placeholder star backdrop until Phase 4 art
-- [ ] Task: Audio — per-skin instrument presets (TDD)
+- [x] Task: Idle mascot on menu + pack screens [67ba2b5]
+  - [x] Character idles (parked) outside levels; placeholder star backdrop until Phase 4 art
+- [~] Task: Audio — per-skin instrument presets (TDD)
   - [ ] Tests: preset registry (marimba · bell · woodblock · kalimba); chimes + completion accept the skin preset; counted notes stay toy piano; volume/mute unaffected
   - [ ] Implement in `audio/synth.ts` + wiring
 - [ ] Task: Parent zone — skin setter + trophy row + reset coverage (TDD)
