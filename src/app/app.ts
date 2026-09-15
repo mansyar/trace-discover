@@ -5,6 +5,7 @@
 
 import {
   awardBadge,
+  awardPackBadge,
   completeLevel,
   completeNumeral,
   createDefaultSave,
@@ -13,7 +14,7 @@ import {
 } from '../save/store';
 import { nextLevelId, themeEntry } from '../themes/catalog';
 import { NUMBERS_PACK } from '../themes/numbers';
-import { nextPackLevelId, packLevelIds } from '../themes/pack';
+import { nextPackLevelId, packLevelIds, shouldAwardPackBadge } from '../themes/pack';
 import { isBonusOpen, shouldAwardBadge } from '../themes/progress';
 import { changeVolume } from '../ui/parent';
 import type { ParentZoneAction } from '../ui/parentZone';
@@ -88,9 +89,18 @@ function openLevel(state: AppState, themeId: string, levelId: string): AppState 
 
 function completeLevelRun(state: AppState, themeId: string, levelId: string): AppState {
   if (themeId === PACK_ID) {
+    const completed = completeNumeral(state.save, levelId);
+    if (!shouldAwardPackBadge(completed, NUMBERS_PACK)) {
+      return {
+        ...state,
+        save: completed,
+        screen: { name: 'success', themeId, levelId },
+      };
+    }
     return {
       ...state,
-      save: completeNumeral(state.save, levelId),
+      pendingBadge: PACK_ID,
+      save: awardPackBadge(completed),
       screen: { name: 'success', themeId, levelId },
     };
   }
@@ -122,6 +132,9 @@ function successAction(
     }
     if (action === 'replay') {
       return { ...state, screen: { name: 'level', themeId, levelId } };
+    }
+    if (state.pendingBadge === PACK_ID) {
+      return { ...state, pendingBadge: null, screen: { name: 'badge', themeId: PACK_ID } };
     }
     return {
       ...state,
@@ -216,6 +229,9 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'success-action':
       return successAction(state, event.action, event.themeId, event.levelId);
     case 'badge-tap': {
+      if (event.themeId === PACK_ID) {
+        return { ...state, screen: { name: 'pack' } };
+      }
       const entry = themeEntry(event.themeId);
       return entry
         ? { ...state, screen: { name: 'level', themeId: event.themeId, levelId: entry.bonus.id } }

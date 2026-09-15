@@ -185,3 +185,74 @@ describe('pack navigation', () => {
     expect(app.save.pack).toEqual({ badge: false, cleared: ['num-1'] });
   });
 });
+
+describe('pack badge', () => {
+  it('awards the pack badge on the tenth numeral and routes next to the celebration', () => {
+    let app = setup();
+    for (const levelId of [
+      'num-0',
+      'num-1',
+      'num-2',
+      'num-3',
+      'num-4',
+      'num-5',
+      'num-6',
+      'num-7',
+      'num-8',
+    ]) {
+      app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId });
+    }
+    expect(app.save.pack.cleared).toHaveLength(9);
+    expect(app.save.pack.badge).toBe(false);
+    expect(app.pendingBadge).toBeNull();
+    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-9' });
+    expect(app.save.pack.badge).toBe(true);
+    expect(app.pendingBadge).toBe('numbers');
+    expect(app.screen).toEqual({ name: 'success', themeId: 'numbers', levelId: 'num-9' });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      themeId: 'numbers',
+      levelId: 'num-9',
+    });
+    expect(app.pendingBadge).toBeNull();
+    expect(app.screen).toEqual({ name: 'badge', themeId: 'numbers' });
+  });
+
+  it('keeps the badge pending on home and opens the collection from the seal', () => {
+    let app = setup();
+    for (const levelId of [
+      'num-0',
+      'num-1',
+      'num-2',
+      'num-3',
+      'num-4',
+      'num-5',
+      'num-6',
+      'num-7',
+      'num-8',
+      'num-9',
+    ]) {
+      app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId });
+    }
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'home',
+      themeId: 'numbers',
+      levelId: 'num-9',
+    });
+    expect(app.screen).toEqual({ name: 'pack' });
+    expect(app.pendingBadge).toBe('numbers');
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      themeId: 'numbers',
+      levelId: 'num-9',
+    });
+    expect(app.screen).toEqual({ name: 'badge', themeId: 'numbers' });
+    app = applyAppEvent(app, { type: 'badge-tap', themeId: 'numbers' });
+    expect(app.screen).toEqual({ name: 'pack' });
+    app = applyAppEvent(app, { type: 'badge-exit' });
+    expect(app.screen).toEqual({ name: 'menu' });
+  });
+});

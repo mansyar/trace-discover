@@ -154,7 +154,13 @@ function preloadArt(url: string): void {
 }
 
 /** Art refs for the active session's level; null once the session hands off. */
-let levelArtUrls: { backdrop: string; goal: string } | null = null;
+let levelArtUrls: { backdrop: string; goal: string; sticker?: string } | null = null;
+
+function packBadgeArt(): HTMLImageElement | null {
+  const url = '/art/pack/badge.png';
+  preloadArt(url);
+  return artCache.get(url) ?? null;
+}
 
 function currentLevelArt(): LevelArt {
   if (!levelArtUrls) {
@@ -163,6 +169,7 @@ function currentLevelArt(): LevelArt {
   return {
     backdrop: artCache.get(levelArtUrls.backdrop) ?? null,
     goal: artCache.get(levelArtUrls.goal) ?? null,
+    sticker: levelArtUrls.sticker ? (artCache.get(levelArtUrls.sticker) ?? null) : null,
   };
 }
 
@@ -207,7 +214,7 @@ function enterLevel(themeId: string, levelId: string): void {
 /** Shared level boot: art preload, mascot swap, and the tracing session. */
 function startRun(
   level: LevelDef,
-  art: { backdrop: string; goal: string },
+  art: { backdrop: string; goal: string; sticker?: string },
   characterName: string,
   seed: number,
   themeId: string,
@@ -220,6 +227,9 @@ function startRun(
     preloadArt(art.backdrop);
   }
   preloadArt(art.goal);
+  if (art.sticker) {
+    preloadArt(art.sticker);
+  }
   hideCharacter();
   charCanvas.style.display = 'block';
   character = loadCharacter({
@@ -265,7 +275,7 @@ function enterNumeral(numeralId: string): void {
   const seed = 7 + NUMERIC_IDS.indexOf(numeralId) * 13;
   startRun(
     level,
-    { backdrop: '', goal: level.goalArt },
+    { backdrop: '', goal: level.goalArt, sticker: `/art/sticker/${numeralId}.png` },
     'star',
     seed,
     NUMBERS_PACK.id,
@@ -359,6 +369,11 @@ const handlers: TraceHandlers = {
       const homeDistance = Math.hypot(point.x - BADGE_HOME.x, point.y - BADGE_HOME.y);
       if (homeDistance <= BADGE_HOME.radius) {
         commit(applyAppEvent(app, { type: 'badge-exit' }));
+        pop();
+        return;
+      }
+      if (screen.themeId === NUMBERS_PACK.id) {
+        commit(applyAppEvent(app, { type: 'badge-tap', themeId: screen.themeId }));
         pop();
         return;
       }
@@ -469,21 +484,25 @@ function render(now: number): void {
       goalImages,
     );
   } else if (screen.name === 'pack') {
-    const goalImages = new Map<string, HTMLImageElement>();
+    const stickerImages = new Map<string, HTMLImageElement>();
     for (const numeral of NUMERAL_LEVELS) {
-      preloadArt(numeral.goalArt);
-      const image = artCache.get(numeral.goalArt);
+      const url = `/art/sticker/${numeral.id}.png`;
+      preloadArt(url);
+      const image = artCache.get(url);
       if (image) {
-        goalImages.set(numeral.id, image);
+        stickerImages.set(numeral.id, image);
       }
     }
     drawPack(
       trailContext,
+      now,
       PACK,
       packStickers(app.save, NUMERIC_IDS),
       app.save.pack.badge,
+      app.pendingBadge === NUMBERS_PACK.id,
       NUMERAL_MINI,
-      goalImages,
+      stickerImages,
+      packBadgeArt(),
     );
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
@@ -497,7 +516,7 @@ function render(now: number): void {
     drawLevel(trailContext, now, session.snapshot(), currentLevelArt());
     drawSuccess(trailContext, SUCCESS);
   } else if (screen.name === 'badge') {
-    drawBadge(trailContext, now);
+    drawBadge(trailContext, now, screen.themeId === NUMBERS_PACK.id ? packBadgeArt() : null);
   } else if (screen.name === 'parent') {
     drawParent(trailContext, PARENT, app.save.settings, screen.confirmReset, screen.showInstall);
   }

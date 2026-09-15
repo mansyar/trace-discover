@@ -99,9 +99,10 @@ export function drawStar(
 export interface LevelArt {
   readonly backdrop: HTMLImageElement | null;
   readonly goal: HTMLImageElement | null;
+  readonly sticker: HTMLImageElement | null;
 }
 
-export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null };
+export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null, sticker: null };
 
 /** Paints the backdrop cover-cropped over the whole field. */
 function drawBackdrop(ctx: CanvasRenderingContext2D, image: HTMLImageElement): void {
@@ -462,13 +463,27 @@ function drawMiniNumeral(
 /** Pack screen: badge seal, 2x5 numeral grid, sticker shelf, home corner. */
 export function drawPack(
   ctx: CanvasRenderingContext2D,
+  now: number,
   layout: PackLayout,
   stickers: readonly boolean[],
   badgeEarned: boolean,
+  highlightBadge: boolean,
   miniPaths: ReadonlyMap<string, readonly (readonly Point[])[]>,
-  goalImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+  stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+  badgeImage: HTMLImageElement | null = null,
 ): void {
-  drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius, badgeEarned);
+  const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
+  if (badgeEarned && badgeImage) {
+    drawGoalArt(
+      ctx,
+      badgeImage,
+      layout.badge.x,
+      layout.badge.y,
+      layout.badge.radius * 2.2 * badgePulse,
+    );
+  } else {
+    drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius * badgePulse, badgeEarned);
+  }
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
     ctx.rect(card.x, card.y, card.width, card.height);
@@ -501,19 +516,9 @@ export function drawPack(
   layout.slots.forEach((slot, index) => {
     const earned = stickers[index] === true;
     const card = layout.cards[index];
-    const image = card ? goalImages.get(card.numeralId) : undefined;
-    if (earned && image) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.clip();
-      drawGoalArt(ctx, image, slot.x, slot.y, slot.radius * 2);
-      ctx.restore();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
+    const sticker = card ? stickerImages.get(card.numeralId) : undefined;
+    if (earned && sticker) {
+      drawGoalArt(ctx, sticker, slot.x, slot.y, slot.radius * 2.48);
     } else {
       drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
     }
@@ -608,9 +613,17 @@ export function drawLevel(
   if (stickerT !== null) {
     const sx = end.x + (STICKER_SLOT.x - end.x) * stickerT;
     const sy = end.y + (STICKER_SLOT.y - end.y) * stickerT - Math.sin(Math.PI * stickerT) * 70;
-    drawSeal(ctx, sx, sy, 26, true);
+    if (art.sticker) {
+      drawGoalArt(ctx, art.sticker, sx, sy, 64);
+    } else {
+      drawSeal(ctx, sx, sy, 26, true);
+    }
   } else if (snap.completionStarted && snap.completion.stage === 'done') {
-    drawSeal(ctx, STICKER_SLOT.x, STICKER_SLOT.y, 26, true);
+    if (art.sticker) {
+      drawGoalArt(ctx, art.sticker, STICKER_SLOT.x, STICKER_SLOT.y, 64);
+    } else {
+      drawSeal(ctx, STICKER_SLOT.x, STICKER_SLOT.y, 26, true);
+    }
   }
   for (const particle of snap.confetti) {
     ctx.save();
@@ -637,9 +650,17 @@ export function drawSuccess(ctx: CanvasRenderingContext2D, layout: SuccessLayout
   }
 }
 
-export function drawBadge(ctx: CanvasRenderingContext2D, now: number): void {
+export function drawBadge(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  art: HTMLImageElement | null = null,
+): void {
   const pulse = 1 + 0.08 * Math.sin(now / 280);
-  drawSeal(ctx, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * pulse, true);
+  if (art) {
+    drawGoalArt(ctx, art, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * 2.2 * pulse);
+  } else {
+    drawSeal(ctx, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * pulse, true);
+  }
   ctx.beginPath();
   ctx.arc(BADGE_HOME.x, BADGE_HOME.y, BADGE_HOME.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff';
