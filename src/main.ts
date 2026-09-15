@@ -41,7 +41,14 @@ import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
 import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
-import { hitPackCard, hitPackHome, type PackLayout, packLayout, packStickers } from './ui/pack';
+import {
+  hitPackCard,
+  hitPackHome,
+  type PackLayout,
+  type PackLayoutOptions,
+  packLayout,
+  packStickers,
+} from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import { hitParentZone, parentZoneLayout } from './ui/parentZone';
 import { hitSuccessButton, successLayout } from './ui/success';
@@ -68,6 +75,10 @@ const MENU = menuLayout(
   PACKS.map((pack) => pack.id),
 );
 const MENU_FILLS = PACKS.map((pack) => pack.menuFill);
+// Grid shape per pack: pre-writing carries 12 levels (3 columns), numbers 10.
+const PACK_GRID: Readonly<Record<string, PackLayoutOptions>> = {
+  pre: { columns: 3, slotsPerRow: 6 },
+};
 const PACK_LAYOUTS = new Map<string, PackLayout>(
   PACKS.map(
     (pack) =>
@@ -77,6 +88,7 @@ const PACK_LAYOUTS = new Map<string, PackLayout>(
           FIELD_WIDTH,
           FIELD_HEIGHT,
           pack.levels.map((level) => level.id),
+          PACK_GRID[pack.id],
         ),
       ] as const,
   ),

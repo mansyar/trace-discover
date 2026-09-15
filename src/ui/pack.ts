@@ -1,7 +1,7 @@
 // Pack screen layout math (pure; canvas rendering defers to shell wiring).
-// Ten numeral cards in a 2x5 toddler-sized grid, a two-row sticker shelf,
-// and the pack badge spot on top. Sticker state reads straight from the
-// save via hasSticker: a cleared level shows its sticker.
+// Content pack cards in a toddler-sized grid (columns configurable per pack),
+// a sticker shelf below, and the pack badge spot on top. Sticker state reads
+// straight from the save via hasSticker: a cleared level shows its sticker.
 import type { Point } from '../engine/types';
 import { hasSticker, type SaveData } from '../save/store';
 
@@ -39,11 +39,16 @@ export interface PackLayout {
   readonly slots: readonly PackSlot[];
 }
 
+export interface PackLayoutOptions {
+  readonly columns?: number;
+  readonly slotsPerRow?: number;
+}
+
 const BADGE_RADIUS = 44;
 const BADGE_Y = 72;
 const CARD_GAP = 14;
 const CARD_SIZE = 96;
-const COLUMNS = 2;
+const DEFAULT_COLUMNS = 2;
 const GRID_TOP = 128;
 const HOME_MARGIN = 56;
 const HOME_RADIUS = 45;
@@ -51,32 +56,35 @@ const SLOT_GAP = 16;
 const SLOT_RADIUS = 20;
 const SLOT_ROW_GAP = 4;
 const SLOT_TOP = 692;
-const SLOTS_PER_ROW = 5;
+const DEFAULT_SLOTS_PER_ROW = 5;
 
 export function packLayout(
   fieldWidth: number,
   fieldHeight: number,
   levelIds: readonly string[],
+  options: PackLayoutOptions = {},
 ): PackLayout {
-  const gridWidth = COLUMNS * CARD_SIZE + (COLUMNS - 1) * CARD_GAP;
+  const columns = options.columns ?? DEFAULT_COLUMNS;
+  const slotsPerRow = options.slotsPerRow ?? DEFAULT_SLOTS_PER_ROW;
+  const gridWidth = columns * CARD_SIZE + (columns - 1) * CARD_GAP;
   const gridStartX = (fieldWidth - gridWidth) / 2;
   const cards = levelIds.map(
     (levelId, index): PackCard => ({
       height: CARD_SIZE,
       levelId,
       width: CARD_SIZE,
-      x: gridStartX + (index % COLUMNS) * (CARD_SIZE + CARD_GAP),
-      y: GRID_TOP + Math.floor(index / COLUMNS) * (CARD_SIZE + CARD_GAP),
+      x: gridStartX + (index % columns) * (CARD_SIZE + CARD_GAP),
+      y: GRID_TOP + Math.floor(index / columns) * (CARD_SIZE + CARD_GAP),
     }),
   );
-  const slotRowWidth = SLOTS_PER_ROW * SLOT_RADIUS * 2 + (SLOTS_PER_ROW - 1) * SLOT_GAP;
+  const slotRowWidth = slotsPerRow * SLOT_RADIUS * 2 + (slotsPerRow - 1) * SLOT_GAP;
   const slotStartX = (fieldWidth - slotRowWidth) / 2;
   const slots = levelIds.map(
     (levelId, index): PackSlot => ({
       levelId,
       radius: SLOT_RADIUS,
-      x: slotStartX + SLOT_RADIUS + (index % SLOTS_PER_ROW) * (SLOT_RADIUS * 2 + SLOT_GAP),
-      y: SLOT_TOP + Math.floor(index / SLOTS_PER_ROW) * (SLOT_RADIUS * 2 + SLOT_ROW_GAP),
+      x: slotStartX + SLOT_RADIUS + (index % slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_GAP),
+      y: SLOT_TOP + Math.floor(index / slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_ROW_GAP),
     }),
   );
   return {
