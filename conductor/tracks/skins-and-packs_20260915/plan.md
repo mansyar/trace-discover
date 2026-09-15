@@ -63,8 +63,8 @@
 - [x] Task: Ramp geometry table + level data (TDD) [9024c24]
   - [x] Tests: control points within margins; ramp targets per block (line length, wave amplitude, arc rise, zigzag teeth, circle size); start/goal/direction conventions
   - [x] Implement per-block geometry; `validateLevel` clean; record the final table (track content note)
-- [~] Task: Headless screenshot QA per level — start/goal/direction + the ramp reads visually
-- [ ] Task: Harness/device feel check via LAN — trace small/medium/large spot levels; tune values; record findings
+- [x] Task: Headless screenshot QA per level — start/goal/direction + the ramp reads visually [17a3e9c]
+- [~] Task: Harness/device feel check via LAN — trace small/medium/large spot levels; tune values; record findings
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Art batch: rewards, star backdrop, cards, face icons
