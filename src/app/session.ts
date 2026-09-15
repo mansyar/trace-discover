@@ -97,7 +97,10 @@ export interface LevelSession {
 }
 
 export function createSession(level: LevelDef, deps: SessionDeps): LevelSession {
-  const points = levelToPath(level);
+  const [points] = levelToPath(level);
+  if (!points) {
+    throw new Error(`Level ${level.id} has no strokes.`);
+  }
   const baseTolerance = FIELD_WIDTH * TOLERANCE_FRACTION;
   let trail = createTrail(points, { tolerance: baseTolerance, maxAdvanceSpeed: MAX_ADVANCE_SPEED });
   let trailState: TrailState = TRAIL_START;

@@ -44,6 +44,14 @@ function level(index: number): LevelDef {
   return found;
 }
 
+function firstStroke(level: LevelDef): readonly Point[] {
+  const points = levelToPath(level)[0];
+  if (!points) {
+    throw new Error(`Level ${level.id} has no strokes.`);
+  }
+  return points;
+}
+
 const DINO_1 = level(0);
 
 function tracePath(
@@ -51,7 +59,7 @@ function tracePath(
   stride: number,
   updatesPerMove: number,
 ): void {
-  const points = levelToPath(DINO_1);
+  const points = firstStroke(DINO_1);
   session.pointerDown(point(points, 0));
   for (let i = stride; i < points.length; i += stride) {
     session.pointerMove(point(points, i));
@@ -99,7 +107,7 @@ describe('level session', () => {
       seed: 7,
       settings: () => ({ easierTracing: false }),
     });
-    const points = levelToPath(DINO_1);
+    const points = firstStroke(DINO_1);
     session.pointerDown(point(points, 0));
     for (let i = 2; i < points.length / 2; i += 2) {
       session.pointerMove(point(points, i));
@@ -156,7 +164,7 @@ describe('level session', () => {
       seed: 7,
       settings: () => ({ easierTracing: false }),
     });
-    const points = levelToPath(DINO_1);
+    const points = firstStroke(DINO_1);
     session.pointerDown(point(points, points.length - 1));
     for (let u = 0; u < 120; u += 1) {
       session.update(16);

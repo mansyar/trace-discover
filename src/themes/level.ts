@@ -4,12 +4,13 @@ import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 
 /** A playable level: authoring-time data only; runtime builds the trail from it. */
 export interface LevelDef {
-  readonly controlPoints: readonly Point[];
   readonly goal: Point;
   /** Bundle path of the goal vignette drawn at the trail end (and as its sticker). */
   readonly goalArt: string;
   readonly id: string;
   readonly stroke: StrokePattern;
+  /** Ordered strokes traced in sequence; v1 content converts to exactly one. */
+  readonly strokes: readonly (readonly Point[])[];
   readonly theme: string;
 }
 
@@ -41,22 +42,30 @@ export function validateLevel(level: LevelDef): string[] {
   if (level.id === '') {
     problems.push('missing id');
   }
-  if (level.controlPoints.length < 2) {
-    problems.push('needs at least 2 control points');
+  if (level.strokes.length === 0) {
+    problems.push('needs at least one stroke');
     return problems;
   }
-  level.controlPoints.forEach((point, index) => {
-    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
-      problems.push(`non-finite control point at index ${index}`);
+  level.strokes.forEach((stroke, strokeIndex) => {
+    if (stroke.length < 2) {
+      problems.push(`stroke ${strokeIndex} needs at least 2 control points`);
       return;
     }
-    if (outsideMargin(point)) {
-      problems.push(`control point ${index} outside field margin`);
-    }
-    const previous = level.controlPoints[index - 1];
-    if (previous && previous.x === point.x && previous.y === point.y) {
-      problems.push(`duplicate consecutive control point at index ${index}`);
-    }
+    stroke.forEach((point, index) => {
+      if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+        problems.push(`stroke ${strokeIndex} non-finite control point at index ${index}`);
+        return;
+      }
+      if (outsideMargin(point)) {
+        problems.push(`stroke ${strokeIndex} control point ${index} outside field margin`);
+      }
+      const previous = stroke[index - 1];
+      if (previous && previous.x === point.x && previous.y === point.y) {
+        problems.push(
+          `stroke ${strokeIndex} duplicate consecutive control point at index ${index}`,
+        );
+      }
+    });
   });
   if (!Number.isFinite(level.goal.x) || !Number.isFinite(level.goal.y)) {
     problems.push('non-finite goal');
@@ -69,7 +78,9 @@ export function validateLevel(level: LevelDef): string[] {
   return problems;
 }
 
-/** Smooths the control points and resamples them to constant pixel spacing. */
-export function levelToPath(level: LevelDef): Point[] {
-  return resample(catmullRom(level.controlPoints, SEGMENT_SAMPLES), POINT_SPACING);
+/** Smooths and resamples each stroke in order; v1 levels yield exactly one path. */
+export function levelToPath(level: LevelDef): Point[][] {
+  return level.strokes.map((stroke) =>
+    resample(catmullRom(stroke, SEGMENT_SAMPLES), POINT_SPACING),
+  );
 }

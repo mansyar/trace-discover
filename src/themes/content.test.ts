@@ -1,14 +1,22 @@
 import { describe, expect, it } from 'vitest';
 
+import type { Point } from '../engine/types';
 import { ANIMAL_LEVELS, ANIMALS_THEME } from './animals';
 import { CONSTRUCTION_LEVELS, CONSTRUCTION_THEME } from './construction';
 import { DINO_LEVELS, DINO_THEME } from './dino';
-import type { LevelDef } from './level';
-import { validateLevel } from './level';
+import { type LevelDef, validateLevel } from './level';
+
+function strokePoints(level: LevelDef): readonly Point[] {
+  const points = level.strokes[0];
+  if (!points) {
+    throw new Error(`Level ${level.id} has no strokes.`);
+  }
+  return points;
+}
 
 function expectStrictlyIncreasingX(level: LevelDef): void {
   let previous = Number.NEGATIVE_INFINITY;
-  for (const point of level.controlPoints) {
+  for (const point of strokePoints(level)) {
     expect(point.x).toBeGreaterThan(previous);
     previous = point.x;
   }
@@ -41,20 +49,22 @@ function expectFullRamp(levels: readonly LevelDef[], theme: string): void {
     expect(validateLevel(level)).toEqual([]);
     expect(level.theme).toBe(theme);
     expect(level.goalArt).toBe(`/art/goal/${level.id}.png`);
+    expect(level.strokes).toHaveLength(1);
   }
 }
 
 function expectCircleBonus(level: LevelDef, id: string): void {
   expect(level.id).toBe(id);
   expect(level.stroke).toBe('circle');
-  expect(level.controlPoints.length).toBeGreaterThanOrEqual(5);
-  const first = level.controlPoints[0];
-  const last = level.controlPoints[level.controlPoints.length - 1];
+  const points = strokePoints(level);
+  expect(points.length).toBeGreaterThanOrEqual(5);
+  const first = points[0];
+  const last = points[points.length - 1];
   if (!first || !last) {
     throw new Error('missing endpoints');
   }
   // Starts at the top and closes the loop.
-  for (const point of level.controlPoints) {
+  for (const point of points) {
     expect(point.y).toBeGreaterThanOrEqual(first.y);
   }
   expect(last).toEqual(first);
@@ -78,7 +88,7 @@ describe('construction theme', () => {
       throw new Error('missing L3');
     }
     expectStrictlyIncreasingX(level);
-    const [start, ...rest] = level.controlPoints;
+    const [start, ...rest] = strokePoints(level);
     const end = rest[rest.length - 1];
     if (!start || !end) {
       throw new Error('missing endpoints');
@@ -94,7 +104,7 @@ describe('construction theme', () => {
       throw new Error('missing L4');
     }
     expectStrictlyIncreasingX(level);
-    expect(countFlips(level.controlPoints.map((point) => point.y))).toBeGreaterThanOrEqual(3);
+    expect(countFlips(strokePoints(level).map((point) => point.y))).toBeGreaterThanOrEqual(3);
   });
 
   it('bonus is a closed top-start circle', () => {
@@ -123,7 +133,7 @@ describe('animals theme', () => {
       throw new Error('missing L3');
     }
     expectStrictlyIncreasingX(level);
-    const [start, ...rest] = level.controlPoints;
+    const [start, ...rest] = strokePoints(level);
     const end = rest[rest.length - 1];
     if (!start || !end) {
       throw new Error('missing endpoints');
@@ -139,7 +149,7 @@ describe('animals theme', () => {
       throw new Error('missing L4');
     }
     expectStrictlyIncreasingX(level);
-    expect(countFlips(level.controlPoints.map((point) => point.y))).toBeGreaterThanOrEqual(3);
+    expect(countFlips(strokePoints(level).map((point) => point.y))).toBeGreaterThanOrEqual(3);
   });
 
   it('bonus is a closed top-start circle', () => {

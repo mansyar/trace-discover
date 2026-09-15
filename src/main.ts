@@ -84,7 +84,10 @@ function miniPaths(themeId: string): ReadonlyMap<string, readonly Point[]> {
   const entry = themeEntry(themeId);
   const paths = new Map<string, readonly Point[]>();
   for (const level of entry?.mainLevels ?? []) {
-    paths.set(level.id, levelToPath(level));
+    const [path] = levelToPath(level);
+    if (path) {
+      paths.set(level.id, path);
+    }
   }
   miniCache.set(themeId, paths);
   return paths;

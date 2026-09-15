@@ -5,15 +5,17 @@ import { DINO_LEVELS, DINO_THEME } from './dino';
 import { type LevelDef, levelToPath, validateLevel } from './level';
 
 const VALID: LevelDef = {
-  controlPoints: [
-    { x: 60, y: 430 },
-    { x: 215, y: 430 },
-    { x: 370, y: 430 },
-  ],
   goal: { x: 370, y: 430 },
   goalArt: '/art/goal/test-1.png',
   id: 'test-1',
   stroke: 'line',
+  strokes: [
+    [
+      { x: 60, y: 430 },
+      { x: 215, y: 430 },
+      { x: 370, y: 430 },
+    ],
+  ],
   theme: 'test',
 };
 
@@ -26,46 +28,70 @@ describe('validateLevel', () => {
     expect(validateLevel({ ...VALID, id: '' })).toContain('missing id');
   });
 
-  it('flags fewer than two control points', () => {
-    expect(validateLevel({ ...VALID, controlPoints: [{ x: 100, y: 100 }] })).toContain(
-      'needs at least 2 control points',
+  it('flags a level without strokes', () => {
+    expect(validateLevel({ ...VALID, strokes: [] })).toContain('needs at least one stroke');
+  });
+
+  it('flags a stroke with fewer than two control points', () => {
+    expect(validateLevel({ ...VALID, strokes: [[{ x: 100, y: 100 }]] })).toContain(
+      'stroke 0 needs at least 2 control points',
     );
   });
 
-  it('flags duplicated consecutive control points', () => {
+  it('flags duplicated consecutive control points per stroke', () => {
     const level: LevelDef = {
       ...VALID,
-      controlPoints: [
-        { x: 60, y: 430 },
-        { x: 60, y: 430 },
-        { x: 370, y: 430 },
+      strokes: [
+        [
+          { x: 60, y: 430 },
+          { x: 215, y: 430 },
+        ],
+        [
+          { x: 60, y: 430 },
+          { x: 60, y: 430 },
+          { x: 370, y: 430 },
+        ],
       ],
     };
-    expect(validateLevel(level)).toContain('duplicate consecutive control point at index 1');
+    expect(validateLevel(level)).toContain(
+      'stroke 1 duplicate consecutive control point at index 1',
+    );
   });
 
-  it('flags non-finite coordinates', () => {
+  it('flags non-finite coordinates per stroke', () => {
     const level: LevelDef = {
       ...VALID,
-      controlPoints: [
-        { x: Number.NaN, y: 430 },
-        { x: 370, y: 430 },
+      strokes: [
+        [
+          { x: 60, y: 430 },
+          { x: 370, y: 430 },
+        ],
+        [
+          { x: Number.NaN, y: 430 },
+          { x: 370, y: 430 },
+        ],
       ],
     };
-    expect(validateLevel(level)).toContain('non-finite control point at index 0');
+    expect(validateLevel(level)).toEqual(['stroke 1 non-finite control point at index 0']);
   });
 
-  it('flags points outside the field margin', () => {
+  it('flags points outside the field margin per stroke', () => {
     const level: LevelDef = {
       ...VALID,
-      controlPoints: [
-        { x: 5, y: 430 },
-        { x: FIELD_WIDTH + 10, y: FIELD_HEIGHT + 10 },
+      strokes: [
+        [
+          { x: 5, y: 430 },
+          { x: 370, y: 430 },
+        ],
+        [
+          { x: 60, y: 430 },
+          { x: FIELD_WIDTH + 10, y: FIELD_HEIGHT + 10 },
+        ],
       ],
     };
     const problems = validateLevel(level);
-    expect(problems).toContain('control point 0 outside field margin');
-    expect(problems).toContain('control point 1 outside field margin');
+    expect(problems).toContain('stroke 0 control point 0 outside field margin');
+    expect(problems).toContain('stroke 1 control point 1 outside field margin');
   });
 
   it('flags a goal outside the field margin', () => {
@@ -76,8 +102,13 @@ describe('validateLevel', () => {
 });
 
 describe('levelToPath', () => {
-  it('smooths and resamples control points to constant spacing', () => {
-    const points = levelToPath(VALID);
+  it('smooths and resamples each stroke to constant spacing', () => {
+    const paths = levelToPath(VALID);
+    expect(paths).toHaveLength(1);
+    const points = paths[0];
+    if (!points) {
+      throw new Error('missing path');
+    }
     expect(points.length).toBeGreaterThan(2);
     const first = points[0];
     const last = points[points.length - 1];
@@ -101,6 +132,33 @@ describe('levelToPath', () => {
       expect(interval).toBeCloseTo(firstInterval, 6);
     }
   });
+
+  it('returns one path per stroke in order', () => {
+    const level: LevelDef = {
+      ...VALID,
+      strokes: [
+        [
+          { x: 60, y: 300 },
+          { x: 370, y: 300 },
+        ],
+        [
+          { x: 370, y: 500 },
+          { x: 60, y: 500 },
+        ],
+      ],
+    };
+    const paths = levelToPath(level);
+    expect(paths).toHaveLength(2);
+    const firstPath = paths[0];
+    const secondPath = paths[1];
+    if (!firstPath || !secondPath) {
+      throw new Error('missing paths');
+    }
+    expect(firstPath[0]).toEqual({ x: 60, y: 300 });
+    expect(firstPath[firstPath.length - 1]).toEqual({ x: 370, y: 300 });
+    expect(secondPath[0]).toEqual({ x: 370, y: 500 });
+    expect(secondPath[secondPath.length - 1]).toEqual({ x: 60, y: 500 });
+  });
 });
 
 describe('dino theme', () => {
@@ -109,11 +167,11 @@ describe('dino theme', () => {
     expect(DINO_THEME.character).toBe('dino');
   });
 
-  it('has at least two valid levels', () => {
-    expect(DINO_LEVELS.length).toBeGreaterThanOrEqual(2);
+  it('converts v1 levels to exactly one stroke each, all valid', () => {
     for (const level of DINO_LEVELS) {
       expect(validateLevel(level)).toEqual([]);
       expect(level.theme).toBe('dino');
+      expect(level.strokes).toHaveLength(1);
     }
   });
 
@@ -123,8 +181,12 @@ describe('dino theme', () => {
       throw new Error('missing L1');
     }
     expect(level.stroke).toBe('line');
-    const first = level.controlPoints[0];
-    const last = level.controlPoints[level.controlPoints.length - 1];
+    const stroke = level.strokes[0];
+    if (!stroke) {
+      throw new Error('missing stroke');
+    }
+    const first = stroke[0];
+    const last = stroke[stroke.length - 1];
     if (!first || !last) {
       throw new Error('missing endpoints');
     }
@@ -137,12 +199,16 @@ describe('dino theme', () => {
       throw new Error('missing L2');
     }
     expect(level.stroke).toBe('wave');
+    const stroke = level.strokes[0];
+    if (!stroke) {
+      throw new Error('missing stroke');
+    }
     let previous = Number.NEGATIVE_INFINITY;
-    for (const point of level.controlPoints) {
+    for (const point of stroke) {
       expect(point.x).toBeGreaterThan(previous);
       previous = point.x;
     }
-    const ys = level.controlPoints.map((point) => point.y);
+    const ys = stroke.map((point) => point.y);
     expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThanOrEqual(80);
   });
 });

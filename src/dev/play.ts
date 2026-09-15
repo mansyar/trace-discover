@@ -180,7 +180,11 @@ function freshPlay(index: number): Play {
     throw new Error('missing level');
   }
   const { level } = entry;
-  const trail = createTrail(levelToPath(level), {
+  const [points] = levelToPath(level);
+  if (!points) {
+    throw new Error(`Level ${level.id} has no strokes.`);
+  }
+  const trail = createTrail(points, {
     maxAdvanceSpeed: 600,
     tolerance: FIELD_WIDTH * TOLERANCE_FRACTION,
   });
