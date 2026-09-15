@@ -17,9 +17,9 @@
 - [x] Task: Trail engine — multi-stroke sequencing (TDD) [0fe3b9f]
   - [x] Tests: stroke completed → advance to next; per-stroke frontier; lift keeps completed strokes and resumes mid-stroke; crossing-path fixture (figure-8 shape) tracking not corrupted by nearest-point ambiguity; progress never decreases; single-stroke parity with v1
   - [x] Implement in `engine/trail.ts` (pure, frame-step API preserved)
-- [ ] Task: Checkpoints & completion across strokes (TDD)
-  - [ ] Tests: per-stroke segment boundaries, ordered chime events across the sequence, completion only after the final stroke
-  - [ ] Implement in `engine/checkpoints.ts`
+- [x] Task: Checkpoints & completion across strokes (TDD) [a35e939]
+  - [x] Tests: per-stroke segment boundaries, ordered chime events across the sequence, completion only after the final stroke
+  - [x] Implement in `engine/checkpoints.ts`
 - [ ] Task: Assists across strokes (TDD)
   - [ ] Tests: nudge/hint target the active stroke; auto-assist counter across strokes; parent override still effective
   - [ ] Implement in `engine/assists.ts`
