@@ -53,6 +53,18 @@
 - **LAN test server** for real devices (Android Chrome, iPad Safari)
 - **Targets:** Android Chrome phones + iPads (Safari PWA); DPR-aware canvas + letterbox layout
 
+## CI/CD
+
+- **GitHub Actions** — repository `mansyar/trace-discover` (public; free-tier runners)
+  - **CI** (`.github/workflows/ci.yml`): on PR → `master`, push → `master`, manual dispatch — `pnpm check` → tests + coverage (artifact, informational) → `pnpm build`
+  - **CD** (`.github/workflows/release.yml`): on semver tags `v*.*.*` — fail-fast validation (strict semver + tag == `package.json#version`) → same quality gates → `wrangler pages deploy`
+- **Deploy target:** Cloudflare Pages project `trace-discover` (direct upload; `trace-discover.pages.dev`); stable tags → production branch, prerelease tags → `rc` preview URL
+- **Secrets (Actions):** `CLOUDFLARE_API_TOKEN` (Account · Cloudflare Pages · Edit) + `CLOUDFLARE_ACCOUNT_ID`
+- **Releases:** semver tags are the release trigger; GitHub Release with auto-generated notes + deployed URL
+- **Toolchain parity:** CI = `ubuntu-latest` + Node 24 + pnpm 12.4.1 (from `packageManager`, frozen lockfile); `wrangler` pinned exactly (`npx wrangler@4.131.2`)
+
+*2026-09-15 — Added (track `cicd-pipeline_20260915`): GitHub Actions CI + tag-driven CD to Cloudflare Pages, with GitHub Release notes. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+
 ## Constraints
 
 $0 lane · characters ≤ ~500 KB · whole app offline-cacheable (target < ~10–15 MB)
