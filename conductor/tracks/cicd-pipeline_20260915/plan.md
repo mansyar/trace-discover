@@ -55,6 +55,6 @@
 - [x] Task: Documentation alignment — release runbook [a0660d8]
   - [x] Rewrite `workflow.md` "Deployment Workflow" → real runbook: pre-release checklist → bump → annotated tag → push → observe → verify; rollback via Pages deployment promotion / revert+bump+re-tag; never move or delete released tags; no hand-deploys to production
   - [x] `tech-stack.md` CI/CD section reflects shipped reality (dated note with the live v1.0.0-rc.1 proof); secret names, project, production branch and URLs recorded in spec/plan/tech-stack
-- [~] Task: Handoff — stable-release checklist for the maintainer
-  - [ ] Write the `v1.0.0` cut checklist (after the v1 track is formally closed) incl. RC tag disposition; verify it satisfies every spec acceptance criterion
+- [x] Task: Handoff — stable-release checklist for the maintainer [8a43f1f]
+  - [x] Write the `v1.0.0` cut checklist (after the v1 track is formally closed) incl. RC tag disposition; verify it satisfies every spec acceptance criterion — `handoff.md`: preconditions, cut steps, rollback, and an acceptance trace mapping all spec criteria to run/release evidence
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
