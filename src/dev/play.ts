@@ -8,7 +8,12 @@ import { createUnlockGate, playCheckpointChime, playCompletion } from '../audio/
 import { canvasLiteFactory } from '../character/adapter';
 import { loadCharacter } from '../character/character';
 import { ASSIST_START, DEFAULT_ASSIST_CONFIG, stepAssists } from '../engine/assists';
-import { CHECKPOINT_START, createCheckpoints, evaluateCheckpoints } from '../engine/checkpoints';
+import {
+  CHECKPOINT_START,
+  createMultiCheckpoints,
+  evaluateMultiCheckpoints,
+  type MultiCheckpoints,
+} from '../engine/checkpoints';
 import {
   COMPLETION_START,
   type CompletionEvent,
@@ -18,12 +23,20 @@ import {
   travelProgress,
 } from '../engine/completion';
 import { pointAtLength } from '../engine/path';
-import { advanceTrail, beginStroke, createTrail, endStroke, TRAIL_START } from '../engine/trail';
+import {
+  advanceMultiTrail,
+  beginMultiStroke,
+  createMultiTrail,
+  endMultiStroke,
+  MULTI_TRAIL_START,
+  type MultiTrail,
+  type MultiTrailState,
+} from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
 import { type ConfettiParticle, createConfetti, stepConfetti } from '../render/confetti';
-import { drawPath, type PathStyle } from '../render/renderPath';
+import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
 import { ANIMAL_LEVELS, ANIMALS_THEME } from '../themes/animals';
@@ -32,8 +45,6 @@ import { DINO_LEVELS, DINO_THEME } from '../themes/dino';
 import { type LevelDef, levelToPath, type ThemeDef } from '../themes/level';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
-type Trail = ReturnType<typeof createTrail>;
-type TrailState = typeof TRAIL_START;
 type AssistState = typeof ASSIST_START;
 type CheckpointState = typeof CHECKPOINT_START;
 
@@ -83,9 +94,9 @@ const STYLE: PathStyle = {
 };
 
 interface Play {
-  readonly checkpoints: ReturnType<typeof createCheckpoints>;
+  readonly checkpoints: MultiCheckpoints;
   readonly level: LevelDef;
-  readonly trail: Trail;
+  readonly multi: MultiTrail;
   assistState: AssistState;
   charPos: Point;
   checkState: CheckpointState;
@@ -93,7 +104,7 @@ interface Play {
   confetti: readonly ConfettiParticle[];
   stickerT: number | null;
   success: boolean;
-  trailState: TrailState;
+  multiState: MultiTrailState;
 }
 
 function requireElement<T>(value: T | null, message: string): T {
@@ -165,13 +176,39 @@ function refreshQa(): void {
     field,
     isSuccess: () => play.success,
     levelId: play.level.id,
-    path: play.trail.points,
+    path: play.multi.strokes[0]?.points ?? [],
     stage: () => play.completion?.stage ?? '(none)',
   };
 }
 
 function endPoint(): Point {
-  return pointAtLength(play.trail.points, play.trail.cumulative, play.trail.total);
+  const last = play.multi.strokes[play.multi.strokes.length - 1];
+  if (!last) {
+    return { x: 0, y: 0 };
+  }
+  return pointAtLength(last.points, last.cumulative, last.total);
+}
+
+/** Arc length before the active stroke (prefix sum of earlier strokes). */
+function strokeStartArc(multi: MultiTrail, index: number): number {
+  let sum = 0;
+  for (let i = 0; i < index; i += 1) {
+    sum += multi.strokes[i]?.total ?? 0;
+  }
+  return sum;
+}
+
+/** Point at a global arc distance across the whole stroke sequence. */
+function pointAtSequence(multi: MultiTrail, distance: number): Point {
+  let remaining = distance;
+  for (const stroke of multi.strokes) {
+    if (remaining <= stroke.total) {
+      return pointAtLength(stroke.points, stroke.cumulative, remaining);
+    }
+    remaining -= stroke.total;
+  }
+  const last = multi.strokes[multi.strokes.length - 1];
+  return last ? pointAtLength(last.points, last.cumulative, last.total) : { x: 0, y: 0 };
 }
 
 function freshPlay(index: number): Play {
@@ -180,11 +217,11 @@ function freshPlay(index: number): Play {
     throw new Error('missing level');
   }
   const { level } = entry;
-  const [points] = levelToPath(level);
-  if (!points) {
+  const paths = levelToPath(level);
+  if (paths.length === 0) {
     throw new Error(`Level ${level.id} has no strokes.`);
   }
-  const trail = createTrail(points, {
+  const multi = createMultiTrail(paths, {
     maxAdvanceSpeed: 600,
     tolerance: FIELD_WIDTH * TOLERANCE_FRACTION,
   });
@@ -192,14 +229,14 @@ function freshPlay(index: number): Play {
     assistState: ASSIST_START,
     charPos: { ...TRACE_PARK },
     checkState: CHECKPOINT_START,
-    checkpoints: createCheckpoints(trail, CHECKPOINT_COUNT),
+    checkpoints: createMultiCheckpoints(multi, CHECKPOINT_COUNT),
     completion: null,
     confetti: [],
     level,
+    multi,
+    multiState: MULTI_TRAIL_START,
     stickerT: null,
     success: false,
-    trail,
-    trailState: TRAIL_START,
   };
 }
 
@@ -229,7 +266,7 @@ const handlers: TraceHandlers = {
       return;
     }
     pointer = point;
-    play.trailState = beginStroke(play.trailState);
+    play.multiState = beginMultiStroke(play.multiState);
   },
   onMove: (point) => {
     if (!play.success && play.completion === null) {
@@ -242,7 +279,7 @@ const handlers: TraceHandlers = {
       return;
     }
     pointer = null;
-    play.trailState = endStroke(play.trailState);
+    play.multiState = endMultiStroke(play.multiState);
   },
 };
 
@@ -274,18 +311,21 @@ function resize(): void {
 }
 
 function traceStep(dt: number): void {
-  const before = play.trailState.frontier;
+  const beforeFrontier = play.multiState.frontier;
+  const beforeStroke = play.multiState.strokeIndex;
   if (pointer !== null) {
-    play.trailState = advanceTrail(play.trail, play.trailState, pointer.x, pointer.y, dt);
+    play.multiState = advanceMultiTrail(play.multi, play.multiState, pointer.x, pointer.y, dt);
   }
-  const advanced = play.trailState.frontier > before;
+  const advanced =
+    play.multiState.frontier > beforeFrontier || play.multiState.strokeIndex > beforeStroke;
+  const activeTotal = play.multi.strokes[play.multiState.strokeIndex]?.total ?? 0;
   const assist = stepAssists(
     DEFAULT_ASSIST_CONFIG,
     play.assistState,
     {
       advanced,
-      frontier: play.trailState.frontier,
-      strokeTotal: play.trail.total,
+      frontier: play.multiState.frontier,
+      strokeTotal: activeTotal,
       touching: pointer !== null,
     },
     dt * 1000,
@@ -298,10 +338,11 @@ function traceStep(dt: number): void {
     nudgeTarget = null;
   }
 
-  const evaluated = evaluateCheckpoints(
+  const evaluated = evaluateMultiCheckpoints(
     play.checkpoints,
     play.checkState,
-    play.trailState.frontier,
+    play.multiState.strokeIndex,
+    play.multiState.frontier,
   );
   play.checkState = evaluated.state;
   for (const event of evaluated.events) {
@@ -313,7 +354,7 @@ function traceStep(dt: number): void {
     } else {
       log('complete!');
       pointer = null;
-      play.trailState = endStroke(play.trailState);
+      play.multiState = endMultiStroke(play.multiState);
       play.completion = COMPLETION_START;
     }
   }
@@ -357,7 +398,7 @@ function completionStep(dt: number): void {
     DEFAULT_COMPLETION_CONFIG,
     play.completion,
     dt * 1000,
-    play.trail.total,
+    play.multi.total,
   );
   play.completion = stepped.state;
   for (const event of stepped.events) {
@@ -366,14 +407,10 @@ function completionStep(dt: number): void {
 
   const stage = play.completion.stage;
   if (stage === 'glow') {
-    play.charPos = pointAtLength(play.trail.points, play.trail.cumulative, 0);
+    play.charPos = pointAtSequence(play.multi, 0);
   } else if (stage === 'hop') {
-    const progress = travelProgress(play.completion, DEFAULT_COMPLETION_CONFIG, play.trail.total);
-    play.charPos = pointAtLength(
-      play.trail.points,
-      play.trail.cumulative,
-      play.trail.total * progress,
-    );
+    const progress = travelProgress(play.completion, DEFAULT_COMPLETION_CONFIG, play.multi.total);
+    play.charPos = pointAtSequence(play.multi, play.multi.total * progress);
   } else if (!play.success) {
     // Pre-success the mascot waits at the goal; once success lands, charPos is
     // owned by the glide below (resetting to the goal every frame would pin it
@@ -487,21 +524,26 @@ function render(now: number): void {
     trailContext.lineCap = 'round';
     trailContext.lineJoin = 'round';
     trailContext.strokeStyle = '#ffd76a';
-    trailContext.beginPath();
-    play.trail.points.forEach((pathPoint, index) => {
-      if (index === 0) {
-        trailContext.moveTo(pathPoint.x, pathPoint.y);
-      } else {
-        trailContext.lineTo(pathPoint.x, pathPoint.y);
-      }
-    });
-    trailContext.stroke();
+    for (const stroke of play.multi.strokes) {
+      trailContext.beginPath();
+      stroke.points.forEach((pathPoint, index) => {
+        if (index === 0) {
+          trailContext.moveTo(pathPoint.x, pathPoint.y);
+        } else {
+          trailContext.lineTo(pathPoint.x, pathPoint.y);
+        }
+      });
+      trailContext.stroke();
+    }
     trailContext.restore();
   }
 
-  drawPath(trailContext, play.trail, play.trailState, STYLE);
+  drawMultiPath(trailContext, play.multi, play.multiState, STYLE);
 
-  const start = pointAtLength(play.trail.points, play.trail.cumulative, 0);
+  const activeStroke = play.multi.strokes[play.multiState.strokeIndex];
+  const start = activeStroke
+    ? pointAtLength(activeStroke.points, activeStroke.cumulative, 0)
+    : { x: 0, y: 0 };
   trailContext.beginPath();
   trailContext.arc(start.x, start.y, 22 * pulse, 0, Math.PI * 2);
   trailContext.fillStyle = '#e8c15a';
@@ -520,7 +562,10 @@ function render(now: number): void {
   trailContext.stroke();
 
   if (nudgeTarget !== null && play.completion === null) {
-    const target = pointAtLength(play.trail.points, play.trail.cumulative, nudgeTarget);
+    const target = pointAtSequence(
+      play.multi,
+      strokeStartArc(play.multi, play.multiState.strokeIndex) + nudgeTarget,
+    );
     trailContext.beginPath();
     trailContext.arc(target.x, target.y, 18 * pulse, 0, Math.PI * 2);
     trailContext.fillStyle = 'rgba(232, 193, 90, 0.55)';
