@@ -4,11 +4,14 @@
 // zero-text — the parent zone is the one place labels are allowed.
 import { DEFAULT_COMPLETION_CONFIG } from '../engine/completion';
 import { pointAtLength } from '../engine/path';
+import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { drawPath, type PathStyle } from '../render/renderPath';
+import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
-import type { MenuLayout, SplashLayout } from '../ui/menu';
+import { levelToPath } from '../themes/level';
+import { NUMBERS_PACK, NUMERAL_LEVELS } from '../themes/numbers';
+import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
 import type { PackLayout } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SuccessLayout } from '../ui/success';
@@ -32,6 +35,11 @@ const PATH_STYLE: PathStyle = {
   tipColor: GOLD,
   tipRadius: 16,
 };
+
+/** Placeholder menu art: "1 2 3" drawn from the numeral level data. */
+const NUMERAL_MINI = new Map(
+  NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
+);
 
 /** Sticker fly-in target (top-right of the level screen). */
 export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
@@ -237,7 +245,11 @@ export function drawMenu(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-    drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
+    if (card.themeId === NUMBERS_PACK.id) {
+      drawMenuPackArt(ctx, card);
+    } else {
+      drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
+    }
   });
   // Subtle grown-ups affordance: a quiet dot marking the two-finger hold
   // corner. Single taps here do nothing, so it never tempts little fingers.
@@ -249,6 +261,27 @@ export function drawMenu(
   ctx.fillStyle = NAVY;
   ctx.fill();
   ctx.restore();
+}
+
+/** Placeholder "1 2 3" card art until the Phase 4 art batch lands. */
+function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
+  const boxWidth = card.width / 4;
+  const startX = card.x + (card.width - boxWidth * 3) / 2;
+  const ids = ['num-1', 'num-2', 'num-3'];
+  ids.forEach((id, index) => {
+    const strokes = NUMERAL_MINI.get(id);
+    if (strokes) {
+      drawMiniNumeral(
+        ctx,
+        strokes,
+        startX + index * boxWidth + 6,
+        card.y + 12,
+        boxWidth - 12,
+        card.height - 24,
+        false,
+      );
+    }
+  });
 }
 
 function drawMiniTrail(
@@ -512,19 +545,24 @@ export function drawLevel(
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#ffd76a';
-    ctx.beginPath();
-    snap.trail.points.forEach((pathPoint, index) => {
-      if (index === 0) {
-        ctx.moveTo(pathPoint.x, pathPoint.y);
-      } else {
-        ctx.lineTo(pathPoint.x, pathPoint.y);
-      }
-    });
-    ctx.stroke();
+    for (const stroke of snap.multi.strokes) {
+      ctx.beginPath();
+      stroke.points.forEach((pathPoint, index) => {
+        if (index === 0) {
+          ctx.moveTo(pathPoint.x, pathPoint.y);
+        } else {
+          ctx.lineTo(pathPoint.x, pathPoint.y);
+        }
+      });
+      ctx.stroke();
+    }
     ctx.restore();
   }
-  drawPath(ctx, snap.trail, snap.trailState, PATH_STYLE);
-  const start = pointAtLength(snap.trail.points, snap.trail.cumulative, 0);
+  drawMultiPath(ctx, snap.multi, snap.multiState, PATH_STYLE);
+  const activeStroke = snap.multi.strokes[snap.multiState.strokeIndex];
+  const start = activeStroke
+    ? pointAtLength(activeStroke.points, activeStroke.cumulative, 0)
+    : { x: 0, y: 0 };
   ctx.beginPath();
   ctx.arc(start.x, start.y, 22 * pulse, 0, Math.PI * 2);
   ctx.fillStyle = GOLD;
@@ -532,7 +570,7 @@ export function drawLevel(
   ctx.lineWidth = 6;
   ctx.strokeStyle = NAVY;
   ctx.stroke();
-  const end = pointAtLength(snap.trail.points, snap.trail.cumulative, snap.trail.total);
+  const end = pointAtSequence(snap.multi, snap.multi.total);
   if (art.goal) {
     drawGoalArt(ctx, art.goal, end.x, end.y, 104);
   } else {
@@ -545,7 +583,10 @@ export function drawLevel(
     ctx.stroke();
   }
   if (snap.nudgeAt !== null && !snap.completionStarted) {
-    const target = pointAtLength(snap.trail.points, snap.trail.cumulative, snap.nudgeAt);
+    const target = pointAtSequence(
+      snap.multi,
+      strokeStartArc(snap.multi, snap.multiState.strokeIndex) + snap.nudgeAt,
+    );
     ctx.beginPath();
     ctx.arc(target.x, target.y, 18 * pulse, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(232, 193, 90, 0.55)';

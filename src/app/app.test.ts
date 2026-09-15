@@ -114,3 +114,74 @@ describe('app navigation', () => {
     expect(app.screen).toEqual({ name: 'menu' });
   });
 });
+
+describe('pack navigation', () => {
+  it('flows menu -> pack -> numeral -> success, saving the numeral sticker', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'open-pack' });
+    expect(app.screen).toEqual({ name: 'pack' });
+    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-3' });
+    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-3' });
+    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-3' });
+    expect(app.screen).toEqual({ name: 'success', themeId: 'numbers', levelId: 'num-3' });
+    expect(app.save.pack.cleared).toEqual(['num-3']);
+    expect(app.save.completedLevels).toEqual([]);
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'home',
+      themeId: 'numbers',
+      levelId: 'num-3',
+    });
+    expect(app.screen).toEqual({ name: 'pack' });
+  });
+
+  it('routes numeral success actions to replay, next (wrapping) and home', () => {
+    let app = applyAppEvent(setup(), { type: 'open-pack' });
+    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-0' });
+    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-0' });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'replay',
+      themeId: 'numbers',
+      levelId: 'num-0',
+    });
+    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-0' });
+    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-0' });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      themeId: 'numbers',
+      levelId: 'num-0',
+    });
+    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-1' });
+    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-9' });
+    app = applyAppEvent(app, { type: 'level-complete', themeId: 'numbers', levelId: 'num-9' });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      themeId: 'numbers',
+      levelId: 'num-9',
+    });
+    expect(app.screen).toEqual({ name: 'level', themeId: 'numbers', levelId: 'num-0' });
+  });
+
+  it('returns from the pack and ignores unknown numerals', () => {
+    let app = applyAppEvent(setup(), { type: 'open-pack' });
+    const before = app;
+    app = applyAppEvent(app, { type: 'open-level', themeId: 'numbers', levelId: 'num-42' });
+    expect(app).toBe(before);
+    app = applyAppEvent(app, { type: 'pack-back' });
+    expect(app.screen).toEqual({ name: 'menu' });
+  });
+
+  it('keeps world and pack progress in separate namespaces', () => {
+    const app = applyAppEvent(setup(), {
+      type: 'level-complete',
+      themeId: 'numbers',
+      levelId: 'num-1',
+    });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.badges).toEqual([]);
+    expect(app.save.pack).toEqual({ badge: false, cleared: ['num-1'] });
+  });
+});

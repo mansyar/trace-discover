@@ -3,6 +3,7 @@ import type { TonePlayer, ToneSpec } from '../audio/synth';
 import type { Point } from '../engine/types';
 import { DINO_LEVELS } from '../themes/dino';
 import { type LevelDef, levelToPath } from '../themes/level';
+import { NUMERAL_LEVELS } from '../themes/numbers';
 import { createSession, type SessionEvent } from './session';
 
 function fakes() {
@@ -171,5 +172,99 @@ describe('level session', () => {
     }
     expect(session.success).toBe(false);
     expect(session.snapshot().frontier).toBe(0);
+  });
+
+  it('runs a two-stroke numeral as one session: hand-over, chimes, parked mascot', () => {
+    const f = fakes();
+    const numeral = NUMERAL_LEVELS.find((candidate) => candidate.id === 'num-4');
+    if (!numeral) {
+      throw new Error('Numeral num-4 is missing.');
+    }
+    const session = createSession(numeral, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const paths = levelToPath(numeral);
+    const first = paths[0];
+    const second = paths[1];
+    if (!first || !second) {
+      throw new Error('num-4 must have two strokes.');
+    }
+    session.pointerDown(point(first, 0));
+    for (let i = 2; i < first.length; i += 2) {
+      session.pointerMove(point(first, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerMove(point(first, first.length - 1));
+    for (let u = 0; u < 40; u += 1) {
+      session.update(16);
+    }
+    session.pointerUp();
+    expect(session.success).toBe(false);
+    expect(session.snapshot().multiState.strokeIndex).toBe(0);
+    session.pointerDown(point(second, 0));
+    for (let i = 2; i < second.length; i += 2) {
+      session.pointerMove(point(second, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerMove(point(second, second.length - 1));
+    for (let u = 0; u < 40; u += 1) {
+      session.update(16);
+    }
+    expect(session.snapshot().multiState.strokeIndex).toBe(1);
+    for (let u = 0; u < 500; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+    // 5 checkpoint chimes + 3 chord tones + 4 arpeggio notes.
+    expect(f.specs).toHaveLength(12);
+    expect(f.fired).toEqual(['celebrate']);
+    const charPos = session.snapshot().charPos;
+    expect(charPos.x).toBeCloseTo(215, 0);
+    expect(charPos.y).toBeCloseTo(410, 0);
+  });
+
+  it('clamps nudge hints to the active stroke', () => {
+    const f = fakes();
+    const numeral = NUMERAL_LEVELS.find((candidate) => candidate.id === 'num-4');
+    if (!numeral) {
+      throw new Error('Numeral num-4 is missing.');
+    }
+    const session = createSession(numeral, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const first = levelToPath(numeral)[0];
+    if (!first) {
+      throw new Error('num-4 must have a first stroke.');
+    }
+    session.pointerDown(point(first, 0));
+    for (let i = 2; i < first.length; i += 2) {
+      session.pointerMove(point(first, i));
+      session.update(16);
+      session.update(16);
+    }
+    session.pointerMove(point(first, first.length - 1));
+    for (let u = 0; u < 40; u += 1) {
+      session.update(16);
+    }
+    session.pointerUp();
+    for (let u = 0; u < 130; u += 1) {
+      session.update(16);
+    }
+    const snapshot = session.snapshot();
+    const active = snapshot.multi.strokes[0];
+    if (!active) {
+      throw new Error('num-4 must have a first stroke.');
+    }
+    expect(snapshot.nudgeAt).toBe(active.total);
   });
 });

@@ -11,6 +11,8 @@ import {
   endStroke,
   MULTI_TRAIL_START,
   multiTipPosition,
+  pointAtSequence,
+  strokeStartArc,
   TRAIL_START,
   tipPosition,
 } from './trail';
@@ -315,5 +317,19 @@ describe('multi-stroke trail', () => {
     const state = beginMultiStroke(MULTI_TRAIL_START);
     expect(multiTipPosition(empty, state)).toEqual({ x: 0, y: 0 });
     expect(advanceMultiTrail(empty, state, 10, 10, FRAME)).toEqual(state);
+  });
+
+  it('measures stroke start arcs and points along the whole sequence', () => {
+    const trail = createMultiTrail(crossedPaths(), CONFIG);
+    expect(strokeStartArc(trail, 0)).toBe(0);
+    expect(strokeStartArc(trail, 1)).toBeCloseTo(300, 9);
+    expect(strokeStartArc(trail, 2)).toBeCloseTo(600, 9);
+    expect(pointAtSequence(trail, 0)).toEqual({ x: 0, y: 150 });
+    expect(pointAtSequence(trail, 150)).toEqual({ x: 150, y: 150 });
+    expect(pointAtSequence(trail, 300)).toEqual({ x: 300, y: 150 });
+    expect(pointAtSequence(trail, 450)).toEqual({ x: 150, y: 150 });
+    expect(pointAtSequence(trail, 900)).toEqual({ x: 150, y: 300 });
+    const empty = createMultiTrail([], CONFIG);
+    expect(pointAtSequence(empty, 100)).toEqual({ x: 0, y: 0 });
   });
 });

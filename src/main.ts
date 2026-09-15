@@ -14,6 +14,7 @@ import {
   drawBadge,
   drawLevel,
   drawMenu,
+  drawPack,
   drawParent,
   drawSplash,
   drawSuccess,
@@ -36,9 +37,12 @@ import { loadSave, saveSave, setAssistWidened } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { allThemeIds, themeEntry } from './themes/catalog';
-import { levelToPath } from './themes/level';
+import { type LevelDef, levelToPath } from './themes/level';
+import { NUMBERS_PACK, NUMERAL_LEVELS } from './themes/numbers';
+import { packLevelIds } from './themes/pack';
 import { isBonusOpen } from './themes/progress';
 import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
+import { hitPackCard, hitPackHome, packLayout, packStickers } from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import { hitParentZone, parentZoneLayout } from './ui/parentZone';
 import { hitSuccessButton, successLayout } from './ui/success';
@@ -60,8 +64,16 @@ function requireCharCanvas(doc: Document): HTMLCanvasElement {
 }
 
 const THEME_IDS = allThemeIds();
-const MENU = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, THEME_IDS);
-const MENU_FILLS = THEME_IDS.map((id) => themeEntry(id)?.menuFill ?? '#ffffff');
+const NUMERIC_IDS = packLevelIds(NUMBERS_PACK);
+const MENU = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, [...THEME_IDS, NUMBERS_PACK.id]);
+const MENU_FILLS = [
+  ...THEME_IDS.map((id) => themeEntry(id)?.menuFill ?? '#ffffff'),
+  NUMBERS_PACK.menuFill,
+];
+const PACK = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERIC_IDS);
+const NUMERAL_MINI = new Map(
+  NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
+);
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const SPLASH = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const PARENT = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
@@ -179,18 +191,41 @@ function enterLevel(themeId: string, levelId: string): void {
   if (app.screen.name !== 'level') {
     return;
   }
-  levelArtUrls = { backdrop: entry.theme.backdrop, goal: level.goalArt };
-  preloadArt(entry.theme.backdrop);
-  preloadArt(level.goalArt);
+  const seed = 7 + mainIds.indexOf(levelId) * 13;
+  startRun(
+    level,
+    { backdrop: entry.theme.backdrop, goal: level.goalArt },
+    entry.theme.character,
+    seed,
+    themeId,
+    levelId,
+    player,
+  );
+}
+
+/** Shared level boot: art preload, mascot swap, and the tracing session. */
+function startRun(
+  level: LevelDef,
+  art: { backdrop: string; goal: string },
+  characterName: string,
+  seed: number,
+  themeId: string,
+  levelId: string,
+  player: TonePlayer,
+): void {
+  levelArtUrls = art;
+  if (art.backdrop) {
+    preloadArt(art.backdrop);
+  }
+  preloadArt(art.goal);
   hideCharacter();
   charCanvas.style.display = 'block';
   character = loadCharacter({
     canvas: charCanvas,
     riveFactory: canvasLiteFactory,
-    src: `/rive/${entry.theme.character}.riv`,
+    src: `/rive/${characterName}.riv`,
     stateMachine: 'State Machine 1',
   });
-  const seed = 7 + mainIds.indexOf(levelId) * 13;
   session = createSession(level, {
     character: {
       fire: (trigger) => character?.fire(trigger) ?? false,
@@ -208,6 +243,40 @@ function enterLevel(themeId: string, levelId: string): void {
   });
 }
 
+/** Numerals run the shared level flow; star.riv lands in Phase 3 (dino placeholder). */
+function enterNumeral(numeralId: string): void {
+  const level = NUMERAL_LEVELS.find((candidate) => candidate.id === numeralId);
+  if (!level) {
+    return;
+  }
+  const player = ensureAudio();
+  if (!player) {
+    return;
+  }
+  commit(applyAppEvent(app, { type: 'open-level', themeId: NUMBERS_PACK.id, levelId: numeralId }));
+  if (app.screen.name !== 'level') {
+    return;
+  }
+  const seed = 7 + NUMERIC_IDS.indexOf(numeralId) * 13;
+  startRun(
+    level,
+    { backdrop: '', goal: level.goalArt },
+    'dino',
+    seed,
+    NUMBERS_PACK.id,
+    numeralId,
+    player,
+  );
+}
+
+function enterScreenLevel(themeId: string, levelId: string): void {
+  if (themeId === NUMBERS_PACK.id) {
+    enterNumeral(levelId);
+  } else {
+    enterLevel(themeId, levelId);
+  }
+}
+
 const handlers: TraceHandlers = {
   onDown: (point) => {
     ensureAudio();
@@ -216,9 +285,22 @@ const handlers: TraceHandlers = {
       commit(applyAppEvent(app, { type: 'splash-tap' }));
       pop();
     } else if (screen.name === 'menu') {
-      const themeId = hitMenuCard(MENU, point);
-      if (themeId) {
-        commit(applyAppEvent(app, { type: 'open-theme', themeId }));
+      const cardId = hitMenuCard(MENU, point);
+      if (cardId === NUMBERS_PACK.id) {
+        commit(applyAppEvent(app, { type: 'open-pack' }));
+        pop();
+      } else if (cardId) {
+        commit(applyAppEvent(app, { type: 'open-theme', themeId: cardId }));
+        pop();
+      }
+    } else if (screen.name === 'pack') {
+      const numeralId = hitPackCard(PACK, point);
+      if (numeralId) {
+        enterNumeral(numeralId);
+        return;
+      }
+      if (hitPackHome(PACK, point)) {
+        commit(applyAppEvent(app, { type: 'pack-back' }));
         pop();
       }
     } else if (screen.name === 'theme') {
@@ -257,7 +339,7 @@ const handlers: TraceHandlers = {
           pop();
           const next = app.screen;
           if (next.name === 'level') {
-            enterLevel(next.themeId, next.levelId);
+            enterScreenLevel(next.themeId, next.levelId);
           } else if (next.name !== 'success') {
             hideCharacter();
             session = null;
@@ -380,6 +462,23 @@ function render(now: number): void {
       miniPaths(screen.themeId),
       goalImages,
     );
+  } else if (screen.name === 'pack') {
+    const goalImages = new Map<string, HTMLImageElement>();
+    for (const numeral of NUMERAL_LEVELS) {
+      preloadArt(numeral.goalArt);
+      const image = artCache.get(numeral.goalArt);
+      if (image) {
+        goalImages.set(numeral.id, image);
+      }
+    }
+    drawPack(
+      trailContext,
+      PACK,
+      packStickers(app.save, NUMERIC_IDS),
+      app.save.pack.badge,
+      NUMERAL_MINI,
+      goalImages,
+    );
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
     drawLevel(trailContext, now, snap, currentLevelArt());
@@ -420,6 +519,7 @@ declare global {
       readonly field: () => Rect;
       readonly path: () => readonly Point[];
       readonly screen: () => AppState['screen'];
+      readonly strokes: () => readonly (readonly Point[])[];
       readonly success: () => boolean;
       readonly targets: () => readonly {
         readonly id: string;
@@ -443,12 +543,22 @@ function screenTargets(): AppTarget[] {
   }
   if (screen.name === 'menu') {
     const cards = MENU.cards.map((card) => ({
-      id: `theme:${card.themeId}`,
+      id: card.themeId === NUMBERS_PACK.id ? 'pack' : `theme:${card.themeId}`,
       x: card.x + card.width / 2,
       y: card.y + card.height / 2,
     }));
     const gate = MENU.parentGate;
     return [...cards, { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 }];
+  }
+  if (screen.name === 'pack') {
+    return [
+      ...PACK.cards.map((card) => ({
+        id: `numeral:${card.numeralId}`,
+        x: card.x + card.width / 2,
+        y: card.y + card.height / 2,
+      })),
+      { id: 'pack:home', x: PACK.home.x, y: PACK.home.y },
+    ];
   }
   if (screen.name === 'theme') {
     const entry = themeEntry(screen.themeId);
@@ -497,8 +607,9 @@ function screenTargets(): AppTarget[] {
 
 window.__app = {
   field: () => ({ ...field }),
-  path: () => (session ? session.snapshot().trail.points : []),
+  path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
   screen: () => app.screen,
+  strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),
   success: () => session?.success ?? false,
   targets: () => screenTargets(),
 };

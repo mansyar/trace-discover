@@ -212,6 +212,28 @@ export function multiTipPosition(trail: MultiTrail, state: MultiTrailState): Poi
   return pointAtLength(stroke.points, stroke.cumulative, state.frontier);
 }
 
+/** Arc length from the sequence start up to (but not including) one stroke. */
+export function strokeStartArc(trail: MultiTrail, index: number): number {
+  let start = 0;
+  for (let i = 0; i < index; i += 1) {
+    start += trail.strokes[i]?.total ?? 0;
+  }
+  return start;
+}
+
+/** Point on the whole sequence at a global arc distance, clamped to the end. */
+export function pointAtSequence(trail: MultiTrail, distance: number): Point {
+  let remaining = distance;
+  for (const stroke of trail.strokes) {
+    if (remaining <= stroke.total) {
+      return pointAtLength(stroke.points, stroke.cumulative, remaining);
+    }
+    remaining -= stroke.total;
+  }
+  const last = trail.strokes[trail.strokes.length - 1];
+  return last ? pointAtLength(last.points, last.cumulative, last.total) : { x: 0, y: 0 };
+}
+
 function arcLengthAt(trail: Trail, nearest: NearestResult): number {
   const segment = trail.segments[nearest.index];
   if (!segment) {
