@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { resample } from './path';
 import {
+  advanceMultiTrail,
   advanceTrail,
+  beginMultiStroke,
   beginStroke,
+  createMultiTrail,
   createTrail,
+  endMultiStroke,
   endStroke,
+  MULTI_TRAIL_START,
+  multiTipPosition,
   TRAIL_START,
   tipPosition,
 } from './trail';
@@ -157,5 +163,157 @@ describe('trail-tip state machine', () => {
       CONFIG,
     );
     expect(tipPosition(trail, { frontier: 0, tracing: false })).toEqual({ x: 5, y: 5 });
+  });
+});
+
+describe('multi-stroke trail', () => {
+  /** Two crossing 300 px strokes (figure-8 waist): horizontal, then vertical. */
+  function crossedPaths(): Point[][] {
+    return [
+      resample(
+        [
+          { x: 0, y: 150 },
+          { x: 300, y: 150 },
+        ],
+        10,
+      ),
+      resample(
+        [
+          { x: 150, y: 0 },
+          { x: 150, y: 300 },
+        ],
+        10,
+      ),
+    ];
+  }
+
+  function completedFirstStroke() {
+    const trail = createMultiTrail(crossedPaths(), CONFIG);
+    let state = beginMultiStroke(MULTI_TRAIL_START);
+    for (let x = 10; x <= 300; x += 10) {
+      state = advanceMultiTrail(trail, state, x, 150, FRAME);
+    }
+    return { trail, state };
+  }
+
+  it('prepares each stroke and sums the total length', () => {
+    const trail = createMultiTrail(crossedPaths(), CONFIG);
+    expect(trail.strokes).toHaveLength(2);
+    expect(trail.strokes[0]?.total).toBeCloseTo(300, 9);
+    expect(trail.strokes[1]?.total).toBeCloseTo(300, 9);
+    expect(trail.total).toBeCloseTo(600, 9);
+    expect(trail.strokes[0]?.points.length).toBe(31);
+    const empty = createMultiTrail([], CONFIG);
+    expect(empty.strokes).toHaveLength(0);
+    expect(empty.total).toBe(0);
+  });
+
+  it('keeps the frontier per stroke, completes stroke 0, then hands over to stroke 1', () => {
+    const trail = createMultiTrail(crossedPaths(), CONFIG);
+    let state = beginMultiStroke(MULTI_TRAIL_START);
+    for (let x = 10; x <= 300; x += 10) {
+      state = advanceMultiTrail(trail, state, x, 150, FRAME);
+      expect(state.strokeIndex).toBe(0);
+      expect(state.frontier).toBeCloseTo(x, 9);
+    }
+    for (let y = 0; y <= 50; y += 10) {
+      state = advanceMultiTrail(trail, state, 150, y, FRAME);
+    }
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(50, 9);
+  });
+
+  it('keeps progress when the finger lifts between strokes and resumes mid-stroke', () => {
+    const trail = createMultiTrail(crossedPaths(), CONFIG);
+    let state = beginMultiStroke(MULTI_TRAIL_START);
+    for (let x = 10; x <= 300; x += 10) {
+      state = advanceMultiTrail(trail, state, x, 150, FRAME);
+    }
+    state = endMultiStroke(state);
+    expect(state.tracing).toBe(false);
+    expect(state.frontier).toBeCloseTo(300, 9);
+    const idle = advanceMultiTrail(trail, state, 150, 10, FRAME);
+    expect(idle).toEqual(state);
+    state = beginMultiStroke(state);
+    for (let y = 10; y <= 30; y += 10) {
+      state = advanceMultiTrail(trail, state, 150, y, FRAME);
+    }
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(30, 9);
+    state = endMultiStroke(state);
+    state = beginMultiStroke(state);
+    for (let y = 40; y <= 60; y += 10) {
+      state = advanceMultiTrail(trail, state, 150, y, FRAME);
+    }
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(60, 9);
+  });
+
+  it('does not snap to an already-completed stroke at a crossing (figure-8 waist)', () => {
+    const { trail, state: completed } = completedFirstStroke();
+    let state = completed;
+    const frontiers: number[] = [];
+    for (let y = 10; y <= 300; y += 10) {
+      state = advanceMultiTrail(trail, state, 150, y, FRAME);
+      frontiers.push(state.frontier);
+    }
+    expect(state.strokeIndex).toBe(1);
+    expect(state.frontier).toBeCloseTo(300, 9);
+    // The crossing point at (150, 150) is arc 150 on the active stroke.
+    expect(frontiers[14]).toBeCloseTo(150, 9);
+    for (let i = 1; i < frontiers.length; i += 1) {
+      const previous = frontiers[i - 1] ?? 0;
+      const current = frontiers[i] ?? 0;
+      expect(current).toBeGreaterThanOrEqual(previous);
+      expect(current - previous).toBeLessThanOrEqual(10 + 1e-9);
+    }
+  });
+
+  it('never decreases progress or stroke index on backward drags', () => {
+    const { trail, state: completed } = completedFirstStroke();
+    let state = beginMultiStroke(endMultiStroke(completed));
+    for (let y = 10; y <= 60; y += 10) {
+      state = advanceMultiTrail(trail, state, 150, y, FRAME);
+    }
+    expect(state.frontier).toBeCloseTo(60, 9);
+    state = advanceMultiTrail(trail, state, 150, 20, FRAME);
+    expect(state.frontier).toBeCloseTo(60, 9);
+    expect(state.strokeIndex).toBe(1);
+    for (let y = 70; y <= 300; y += 10) {
+      state = advanceMultiTrail(trail, state, 150, y, FRAME);
+    }
+    expect(state.frontier).toBeCloseTo(300, 9);
+    const beyond = advanceMultiTrail(trail, state, 150, 300, FRAME);
+    expect(beyond.strokeIndex).toBe(1);
+  });
+
+  it('keeps a single-stroke multi trail at parity with the v1 trail', () => {
+    const path = straightPath();
+    const single = createTrail(path, CONFIG);
+    const multi = createMultiTrail([path], CONFIG);
+    let v1 = beginStroke(TRAIL_START);
+    let v2 = beginMultiStroke(MULTI_TRAIL_START);
+    const gestures: ReadonlyArray<readonly [number, number]> = [
+      [25, 0],
+      [25, 0],
+      [25, 0],
+      [400, 0],
+      [5, 0],
+      [45, 0],
+    ];
+    for (const [x, y] of gestures) {
+      v1 = advanceTrail(single, v1, x, y, FRAME);
+      v2 = advanceMultiTrail(multi, v2, x, y, FRAME);
+      expect(v2.frontier).toBeCloseTo(v1.frontier, 9);
+      expect(v2.strokeIndex).toBe(0);
+      expect(multiTipPosition(multi, v2)).toEqual(tipPosition(single, v1));
+    }
+  });
+
+  it('handles an empty multi trail', () => {
+    const empty = createMultiTrail([], CONFIG);
+    const state = beginMultiStroke(MULTI_TRAIL_START);
+    expect(multiTipPosition(empty, state)).toEqual({ x: 0, y: 0 });
+    expect(advanceMultiTrail(empty, state, 10, 10, FRAME)).toEqual(state);
   });
 });

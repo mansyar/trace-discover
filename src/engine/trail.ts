@@ -119,6 +119,99 @@ function isFinishingClosedLoop(trail: Trail, state: TrailState, x: number, y: nu
   return Math.hypot(x - last.x, y - last.y) <= trail.config.tolerance;
 }
 
+/** Ready-to-trace path for a level with one or more ordered strokes. */
+export interface MultiTrail {
+  /** Prepared paths, one per stroke, traced in order. */
+  readonly strokes: readonly Trail[];
+  /** Sum of all stroke lengths (px). */
+  readonly total: number;
+  readonly config: TrailConfig;
+}
+
+/** Multi-stroke progress: the active stroke plus its frontier. */
+export interface MultiTrailState extends TrailState {
+  /** Index of the stroke currently being traced; only ever increases. */
+  readonly strokeIndex: number;
+}
+
+/** Fresh state for a new multi-stroke level attempt. */
+export const MULTI_TRAIL_START: MultiTrailState = {
+  frontier: 0,
+  strokeIndex: 0,
+  tracing: false,
+};
+
+/** Marks a finger down on a multi-stroke trail. */
+export function beginMultiStroke(state: MultiTrailState): MultiTrailState {
+  return { ...state, tracing: true };
+}
+
+/** Marks a finger up; per-stroke progress is kept. */
+export function endMultiStroke(state: MultiTrailState): MultiTrailState {
+  return { ...state, tracing: false };
+}
+
+/** Prepares each stroke (e.g. from `levelToPath`) for sequential tracing. */
+export function createMultiTrail(
+  strokePoints: readonly (readonly Point[])[],
+  config: TrailConfig,
+): MultiTrail {
+  const strokes = strokePoints.map((points) => createTrail(points, config));
+  return {
+    strokes,
+    total: strokes.reduce((sum, stroke) => sum + stroke.total, 0),
+    config,
+  };
+}
+
+/**
+ * Advances the frontier one frame on the active stroke. Once that stroke is
+ * complete, a finger within tolerance of the next stroke's start hands tracing
+ * over to it (the same gates as a fresh touch apply). Completed strokes are
+ * never revisited, so the per-stroke frontier and the stroke index never
+ * decrease.
+ */
+export function advanceMultiTrail(
+  trail: MultiTrail,
+  state: MultiTrailState,
+  x: number,
+  y: number,
+  dtSeconds: number,
+): MultiTrailState {
+  if (!state.tracing) {
+    return state;
+  }
+  const stroke = trail.strokes[state.strokeIndex];
+  if (!stroke) {
+    return state;
+  }
+  if (state.frontier < stroke.total) {
+    const advanced = advanceTrail(stroke, state, x, y, dtSeconds);
+    if (advanced.frontier === state.frontier) {
+      return state;
+    }
+    return { frontier: advanced.frontier, strokeIndex: state.strokeIndex, tracing: true };
+  }
+  const next = trail.strokes[state.strokeIndex + 1];
+  if (!next) {
+    return state;
+  }
+  const handed = advanceTrail(next, { frontier: 0, tracing: true }, x, y, dtSeconds);
+  if (handed.frontier <= 0) {
+    return state;
+  }
+  return { frontier: handed.frontier, strokeIndex: state.strokeIndex + 1, tracing: true };
+}
+
+/** Point on the active stroke at the frontier, clamped to that stroke's extent. */
+export function multiTipPosition(trail: MultiTrail, state: MultiTrailState): Point {
+  const stroke = trail.strokes[state.strokeIndex];
+  if (!stroke) {
+    return { x: 0, y: 0 };
+  }
+  return pointAtLength(stroke.points, stroke.cumulative, state.frontier);
+}
+
 function arcLengthAt(trail: Trail, nearest: NearestResult): number {
   const segment = trail.segments[nearest.index];
   if (!segment) {
