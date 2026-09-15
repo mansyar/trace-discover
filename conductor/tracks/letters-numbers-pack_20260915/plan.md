@@ -65,8 +65,8 @@
 - [x] Task: Audio — toy-piano/xylophone preset + counted notes (TDD) [c71b09d]
   - [x] Tests: preset note/envelope params within the pentatonic mapping; completion N-note run (0 variant); existing presets untouched
   - [x] Implement in `audio/synth.ts` (+ preset registry)
-- [ ] Task: Completion choreography integration — glow → N counted hops with notes → celebrate → confetti → sticker fly-in → success
-  - [ ] Replace the placeholder reward path in the app loop; wire the 0 treatment; screens QA
+- [x] Task: Completion choreography integration — glow → N counted hops with notes → celebrate → confetti → sticker fly-in → success [bbd9e43]
+  - [x] Replace the placeholder reward path in the app loop; wire the 0 treatment; screens QA
 - [ ] Task: Device feel check of the full loop via LAN → tune N-hop pacing (e.g., cap) if needed; record findings
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
