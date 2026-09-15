@@ -39,9 +39,9 @@
 - [x] Task: Content doc — numeral formation table (`content.md` in this track folder) [25a17ab]
   - [x] Author 0–9: stroke order/direction, start marks, stroke counts (4 = two strokes), checkpoint counts, goal refs
   - [x] Stroke-direction checklist mirroring the v1 content workflow (0 = top CCW; 1 = top→bottom; …)
-- [ ] Task: Pack catalogue + progress model (TDD)
-  - [ ] Tests: pack entry shape (pack id, 10 numerals, badge); playable ids; next-level wrap 0→…→9; progress read from save v2; badge-on-all-10 logic
-  - [ ] Implement pack catalogue (`themes/catalog.ts` extension or new pack module)
+- [x] Task: Pack catalogue + progress model (TDD) [7af8a91]
+  - [x] Tests: pack entry shape (pack id, 10 numerals, badge); playable ids; next-level wrap 0→…→9; progress read from save v2; badge-on-all-10 logic
+  - [x] Implement pack catalogue (`themes/catalog.ts` extension or new pack module)
 - [ ] Task: Author numeral level data 0–9
   - [ ] Implement level defs per content doc (strokes, goal placement) with `validateLevel` clean
   - [ ] Headless screenshot QA per numeral (start/goal/direction)
