@@ -28,3 +28,14 @@ spike/gen/
 spike/ref/
 spike/package-lock.json
 spike/web/package-lock.json
+spike/dino/.gitignore
+spike/dino2/.gitignore
+spike/dino3/.gitignore
+spike/dino3/dino.png
+spike/dino4/.gitignore
+spike/dino4/*.png
+spike/excavator/*.png
+spike/lion/*.png
+spike/pnpm-lock.yaml
+spike/web/*.html
+spike/web/package.json
