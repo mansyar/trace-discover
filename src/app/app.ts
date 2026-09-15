@@ -3,7 +3,12 @@
 // shell renders the current screen and feeds tap/runtime events back in;
 // every transition and save update here is unit-tested.
 import { packById } from '../packs/catalog';
-import { bonusUnlocked, nextPackLevelId, shouldAwardPackBadge } from '../packs/progress';
+import {
+  bonusUnlocked,
+  firstUnlockedBonusId,
+  nextPackLevelId,
+  shouldAwardPackBadge,
+} from '../packs/progress';
 import {
   awardBadge,
   completeLevel,
@@ -118,14 +123,11 @@ function badgeTap(state: AppState, packId: string): AppState {
   if (!pack) {
     return state;
   }
-  const index = pack.bonuses.findIndex((_, bonusIndex) =>
-    bonusUnlocked(state.save, pack, bonusIndex),
-  );
-  const bonus = index >= 0 ? pack.bonuses[index] : undefined;
-  if (!bonus) {
+  const bonusId = firstUnlockedBonusId(state.save, pack);
+  if (!bonusId) {
     return { ...state, screen: { name: 'pack', packId } };
   }
-  return { ...state, screen: { name: 'level', packId, levelId: bonus.id } };
+  return { ...state, screen: { name: 'level', packId, levelId: bonusId } };
 }
 
 function parentAction(state: AppState, action: ParentZoneAction): AppState {

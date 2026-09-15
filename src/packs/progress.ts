@@ -32,6 +32,12 @@ export function bonusUnlocked(save: ProgressSave, pack: PackEntry, index: number
   return completedCount(save, pack) >= threshold;
 }
 
+/** Id of the first open circle, or null when none are unlocked yet. */
+export function firstUnlockedBonusId(save: ProgressSave, pack: PackEntry): string | null {
+  const index = pack.bonuses.findIndex((_, bonusIndex) => bonusUnlocked(save, pack, bonusIndex));
+  return index >= 0 ? (pack.bonuses[index]?.id ?? null) : null;
+}
+
 /** Play order for a pack: main levels first, then circles once unlocked. */
 function playOrderIds(save: ProgressSave, pack: PackEntry): string[] {
   const ids = pack.levels.map((level) => level.id);

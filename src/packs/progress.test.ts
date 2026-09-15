@@ -7,6 +7,7 @@ import { PRE_LEVELS, PRE_PACK } from './pre';
 import {
   bonusUnlocked,
   completedCount,
+  firstUnlockedBonusId,
   isPackComplete,
   nextPackLevelId,
   type ProgressSave,
@@ -116,5 +117,20 @@ describe('nextPackLevelId', () => {
     const save = saveWith([]);
     expect(nextPackLevelId(save, NUMBERS_PACK, 'num-0')).toBe('num-1');
     expect(nextPackLevelId(save, NUMBERS_PACK, 'num-9')).toBe('num-0');
+  });
+});
+
+describe('firstUnlockedBonusId', () => {
+  it('is null until the first threshold is reached', () => {
+    expect(firstUnlockedBonusId(saveWith(firstPreIds(3)), PRE_PACK)).toBeNull();
+  });
+
+  it('returns the first open circle id from its threshold on', () => {
+    expect(firstUnlockedBonusId(saveWith(firstPreIds(4)), PRE_PACK)).toBe('pre-bonus-1');
+    expect(firstUnlockedBonusId(saveWith(firstPreIds(12)), PRE_PACK)).toBe('pre-bonus-1');
+  });
+
+  it('is null for a pack without circles', () => {
+    expect(firstUnlockedBonusId(saveWith(allNumbersIds()), NUMBERS_PACK)).toBeNull();
   });
 });

@@ -36,6 +36,7 @@ import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input
 import { allPacks, packById } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
 import { NUMBERS_PACK } from './packs/numbers';
+import { firstUnlockedBonusId } from './packs/progress';
 import { loadSave, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
@@ -311,6 +312,22 @@ const handlers: TraceHandlers = {
       if (hitPackHome(layout, point)) {
         commit(applyAppEvent(app, { type: 'pack-back' }));
         pop();
+        return;
+      }
+      const pack = packById(screen.packId);
+      const badgeDistance = Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y);
+      if (
+        pack &&
+        firstUnlockedBonusId(app.save, pack) !== null &&
+        badgeDistance <= layout.badge.radius + 8
+      ) {
+        commit(applyAppEvent(app, { type: 'badge-tap', packId: screen.packId }));
+        const badgeNext = app.screen;
+        if (badgeNext.name === 'level') {
+          enterPackLevel(badgeNext.packId, badgeNext.levelId);
+        } else {
+          pop();
+        }
       }
     } else if (screen.name === 'level' || screen.name === 'success') {
       if (!session) {
@@ -542,6 +559,7 @@ function screenTargets(): AppTarget[] {
         x: card.x + card.width / 2,
         y: card.y + card.height / 2,
       })),
+      { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
       { id: 'pack:home', x: layout.home.x, y: layout.home.y },
     ];
   }
