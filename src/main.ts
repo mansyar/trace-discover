@@ -24,6 +24,7 @@ import {
   NO_LEVEL_ART,
 } from './app/render';
 import { createSession, type LevelSession } from './app/session';
+import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
@@ -128,6 +129,8 @@ let detachInput = (): void => {};
 let lastTime = performance.now();
 let lastSkinTap: number | null = null;
 let skinPoofAt: number | null = null;
+let currentRun: { level: LevelDef; packId: string; levelId: string } | null = null;
+let pendingSkinSwap = false;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -220,6 +223,26 @@ function activeSkin(): SkinDef {
   return fallback;
 }
 
+/** Re-resolves the running level against the active skin after a swap. */
+function reloadLevelSkin(): void {
+  if (!session || !currentRun) {
+    return;
+  }
+  const presentation = levelPresentation(activeSkin(), currentRun.level);
+  levelArtUrls = presentation;
+  preloadArt(presentation.backdrop);
+  preloadArt(presentation.goal);
+  preloadArt(presentation.sticker);
+  hideCharacter();
+  charCanvas.style.display = 'block';
+  character = loadCharacter({
+    canvas: charCanvas,
+    riveFactory: canvasLiteFactory,
+    src: `/rive/${presentation.character}.riv`,
+    stateMachine: 'State Machine 1',
+  });
+}
+
 /** Numerals celebrate with counted hops; other levels use the default plan. */
 function hopPlanFor(packId: string, levelId: string): HopTimeline | undefined {
   if (packId !== NUMBERS_PACK.id) {
@@ -249,10 +272,11 @@ function enterPackLevel(packId: string, levelId: string): void {
   const skin = activeSkin();
   const index = pack.levels.findIndex((candidate) => candidate.id === levelId);
   const seed = 7 + (index >= 0 ? index : pack.levels.length) * 13;
+  const presentation = levelPresentation(skin, level);
   startRun(
     level,
-    { backdrop: skin.backdrop, goal: level.goalArt, sticker: `/art/sticker/${levelId}.png` },
-    skin.character,
+    presentation,
+    presentation.character,
     seed,
     packId,
     levelId,
@@ -273,6 +297,7 @@ function startRun(
   hopPlan?: HopTimeline,
 ): void {
   levelArtUrls = art;
+  currentRun = { level, packId, levelId };
   if (art.backdrop) {
     preloadArt(art.backdrop);
   }
@@ -314,6 +339,19 @@ const handlers: TraceHandlers = {
         skinPoofAt = tapNow;
         commit(applyAppEvent(app, { type: 'skin-cycle' }));
         pop();
+        const cycling = app.screen;
+        if ((cycling.name === 'level' || cycling.name === 'success') && session) {
+          if (
+            shouldDeferSkinSwap({
+              completionStarted: session.snapshot().completionStarted,
+              success: session.success,
+            })
+          ) {
+            pendingSkinSwap = true;
+          } else {
+            reloadLevelSkin();
+          }
+        }
       }
       return;
     }
@@ -374,6 +412,8 @@ const handlers: TraceHandlers = {
             hideCharacter();
             session = null;
             levelArtUrls = null;
+            currentRun = null;
+            pendingSkinSwap = false;
           }
         }
         return;
@@ -459,6 +499,22 @@ function frame(now: number): void {
   if ((app.screen.name === 'level' || app.screen.name === 'success') && session) {
     session.update(dtMs);
   }
+  if (pendingSkinSwap) {
+    if (!session) {
+      pendingSkinSwap = false;
+    } else {
+      const snap = session.snapshot();
+      if (
+        !shouldDeferSkinSwap({
+          completionStarted: snap.completionStarted,
+          success: session.success,
+        })
+      ) {
+        pendingSkinSwap = false;
+        reloadLevelSkin();
+      }
+    }
+  }
   render(now);
   requestAnimationFrame(frame);
 }
@@ -472,13 +528,19 @@ function render(now: number): void {
   } else if (screen.name === 'menu') {
     const cardUrl = '/art/pack/card.png';
     preloadArt(cardUrl);
-    drawMenu(trailContext, MENU, MENU_FILLS, {
-      image: artCache.get(cardUrl) ?? null,
-      cleared: NUMBERS_PACK.levels.filter((level) => app.save.completedLevels.includes(level.id))
-        .length,
-      total: NUMBERS_PACK.levels.length,
-      badge: app.save.badges.includes(NUMBERS_PACK.badgeId),
-    });
+    drawMenu(
+      trailContext,
+      MENU,
+      MENU_FILLS,
+      {
+        image: artCache.get(cardUrl) ?? null,
+        cleared: NUMBERS_PACK.levels.filter((level) => app.save.completedLevels.includes(level.id))
+          .length,
+        total: NUMBERS_PACK.levels.length,
+        badge: app.save.badges.includes(NUMBERS_PACK.badgeId),
+      },
+      activeSkin().accent,
+    );
   } else if (screen.name === 'pack') {
     const pack = packById(screen.packId);
     const layout = PACK_LAYOUTS.get(screen.packId);
@@ -503,6 +565,7 @@ function render(now: number): void {
         PACK_MINIS.get(pack.id) ?? new Map(),
         stickerImages,
         packBadgeArt(pack.id),
+        activeSkin().accent,
       );
     }
   } else if (screen.name === 'level' && session) {

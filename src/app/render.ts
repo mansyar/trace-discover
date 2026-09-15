@@ -315,11 +315,30 @@ export interface PackMenuArt {
   readonly badge: boolean;
 }
 
+/** Skin accent tag: a small identity chip on each pack card. */
+function drawAccentTag(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  accent: string,
+): void {
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, height / 2);
+  ctx.fillStyle = accent;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+}
+
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
   layout: MenuLayout,
   fills: readonly string[],
   packArt?: PackMenuArt,
+  accent?: string,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -329,6 +348,9 @@ export function drawMenu(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
+    if (accent) {
+      drawAccentTag(ctx, card.x + 16, card.y + 14, 44, 12, accent);
+    }
     if (card.packId === NUMBERS_PACK.id) {
       drawMenuPackCard(ctx, card, packArt);
     } else {
@@ -478,6 +500,7 @@ export function drawPack(
   miniPaths: ReadonlyMap<string, readonly (readonly Point[])[]>,
   stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
   badgeImage: HTMLImageElement | null = null,
+  accent?: string,
 ): void {
   const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
   if (badgeEarned && badgeImage) {
@@ -499,6 +522,9 @@ export function drawPack(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
+    if (accent) {
+      drawAccentTag(ctx, card.x + 10, card.y + 10, 30, 9, accent);
+    }
     const strokes = miniPaths.get(card.levelId);
     if (strokes && strokes.length > 0) {
       drawMiniNumeral(
