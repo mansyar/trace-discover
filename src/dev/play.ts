@@ -285,7 +285,7 @@ function traceStep(dt: number): void {
     {
       advanced,
       frontier: play.trailState.frontier,
-      total: play.trail.total,
+      strokeTotal: play.trail.total,
       touching: pointer !== null,
     },
     dt * 1000,

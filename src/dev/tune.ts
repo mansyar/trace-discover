@@ -169,7 +169,12 @@ function frame(now: number): void {
   const assist = stepAssists(
     DEFAULT_ASSIST_CONFIG,
     assistState,
-    { advanced, frontier: trailState.frontier, total: level.total, touching: pointer !== null },
+    {
+      advanced,
+      frontier: trailState.frontier,
+      strokeTotal: level.total,
+      touching: pointer !== null,
+    },
     dt * 1000,
   );
   assistState = assist.state;

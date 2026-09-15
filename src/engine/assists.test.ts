@@ -8,7 +8,7 @@ function idle(frontier: number, dtMs: number) {
   return stepAssists(
     CONFIG,
     ASSIST_START,
-    { advanced: false, touching: false, frontier, total: TOTAL },
+    { advanced: false, touching: false, frontier, strokeTotal: TOTAL },
     dtMs,
   );
 }
@@ -33,7 +33,7 @@ describe('assists', () => {
     step = stepAssists(
       CONFIG,
       step.state,
-      { advanced: false, touching: false, frontier: 0, total: TOTAL },
+      { advanced: false, touching: false, frontier: 0, strokeTotal: TOTAL },
       2000,
     );
     expect(step.nudgeTarget).not.toBeNull();
@@ -41,7 +41,7 @@ describe('assists', () => {
     step = stepAssists(
       CONFIG,
       step.state,
-      { advanced: false, touching: false, frontier: 0, total: TOTAL },
+      { advanced: false, touching: false, frontier: 0, strokeTotal: TOTAL },
       2000,
     );
     expect(step.nudgeTarget).not.toBeNull();
@@ -54,7 +54,7 @@ describe('assists', () => {
     const progressed = stepAssists(
       CONFIG,
       nudged.state,
-      { advanced: true, touching: true, frontier: 10, total: TOTAL },
+      { advanced: true, touching: true, frontier: 10, strokeTotal: TOTAL },
       16,
     );
     expect(progressed.state.idleMs).toBe(0);
@@ -62,7 +62,7 @@ describe('assists', () => {
     const waiting = stepAssists(
       CONFIG,
       progressed.state,
-      { advanced: false, touching: true, frontier: 10, total: TOTAL },
+      { advanced: false, touching: true, frontier: 10, strokeTotal: TOTAL },
       1999,
     );
     expect(waiting.nudgeTarget).toBeNull();
@@ -74,7 +74,7 @@ describe('assists', () => {
     const touching = stepAssists(
       CONFIG,
       shown.state,
-      { advanced: false, touching: true, frontier: 0, total: TOTAL },
+      { advanced: false, touching: true, frontier: 0, strokeTotal: TOTAL },
       16,
     );
     expect(touching.state.hintVisible).toBe(false);
@@ -86,7 +86,7 @@ describe('assists', () => {
     const progressed = stepAssists(
       CONFIG,
       shown.state,
-      { advanced: true, touching: false, frontier: 20, total: TOTAL },
+      { advanced: true, touching: false, frontier: 20, strokeTotal: TOTAL },
       16,
     );
     expect(progressed.state.hintVisible).toBe(false);
@@ -97,14 +97,14 @@ describe('assists', () => {
     step = stepAssists(
       CONFIG,
       step.state,
-      { advanced: false, touching: false, frontier: 0, total: TOTAL },
+      { advanced: false, touching: false, frontier: 0, strokeTotal: TOTAL },
       2000,
     );
     expect(toleranceScale(CONFIG, step.state, false)).toBe(1);
     step = stepAssists(
       CONFIG,
       step.state,
-      { advanced: false, touching: false, frontier: 0, total: TOTAL },
+      { advanced: false, touching: false, frontier: 0, strokeTotal: TOTAL },
       2000,
     );
     expect(step.state.nudgesTotal).toBe(3);
@@ -114,5 +114,79 @@ describe('assists', () => {
   it('lets the parent override widen tolerance from the start', () => {
     expect(toleranceScale(CONFIG, ASSIST_START, true)).toBe(CONFIG.widenFactor);
     expect(toleranceScale(CONFIG, ASSIST_START, false)).toBe(1);
+  });
+});
+
+describe('multi-stroke assists', () => {
+  const config = DEFAULT_ASSIST_CONFIG;
+
+  it('targets the nudge just ahead of the frontier within the active stroke', () => {
+    const clamped = stepAssists(
+      config,
+      ASSIST_START,
+      { advanced: false, touching: false, frontier: 100, strokeTotal: 200 },
+      2000,
+    );
+    expect(clamped.nudgeTarget).toBe(200);
+    const ahead = stepAssists(
+      config,
+      ASSIST_START,
+      { advanced: false, touching: false, frontier: 0, strokeTotal: 200 },
+      2000,
+    );
+    expect(ahead.nudgeTarget).toBe(120);
+  });
+
+  it('keeps the auto-assist counter and widening across strokes', () => {
+    let step = stepAssists(
+      config,
+      ASSIST_START,
+      { advanced: false, touching: false, frontier: 0, strokeTotal: 200 },
+      2000,
+    );
+    step = stepAssists(
+      config,
+      step.state,
+      { advanced: false, touching: false, frontier: 0, strokeTotal: 200 },
+      2000,
+    );
+    expect(step.state.nudgesTotal).toBe(2);
+    // Stroke advance: the caller reports progress into the next stroke.
+    step = stepAssists(
+      config,
+      step.state,
+      { advanced: true, touching: true, frontier: 10, strokeTotal: 300 },
+      16,
+    );
+    expect(step.state.idleMs).toBe(0);
+    expect(step.state.nudgesTotal).toBe(2);
+    expect(toleranceScale(config, step.state, false)).toBe(1);
+    step = stepAssists(
+      config,
+      step.state,
+      { advanced: false, touching: false, frontier: 10, strokeTotal: 300 },
+      2000,
+    );
+    expect(step.nudgeTarget).toBe(130);
+    expect(step.state.nudgesTotal).toBe(3);
+    expect(toleranceScale(config, step.state, false)).toBe(config.widenFactor);
+  });
+
+  it('keeps the parent override effective across strokes', () => {
+    let step = stepAssists(
+      config,
+      ASSIST_START,
+      { advanced: false, touching: false, frontier: 0, strokeTotal: 200 },
+      2000,
+    );
+    step = stepAssists(
+      config,
+      step.state,
+      { advanced: true, touching: true, frontier: 10, strokeTotal: 300 },
+      16,
+    );
+    expect(step.state.nudgesTotal).toBe(1);
+    expect(toleranceScale(config, step.state, true)).toBe(config.widenFactor);
+    expect(toleranceScale(config, step.state, false)).toBe(1);
   });
 });

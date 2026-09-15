@@ -149,7 +149,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       const step = stepAssists(
         DEFAULT_ASSIST_CONFIG,
         assistState,
-        { advanced, touching: true, frontier: trailState.frontier, total: trail.total },
+        { advanced, touching: true, frontier: trailState.frontier, strokeTotal: trail.total },
         dtMs,
       );
       assistState = step.state;
@@ -167,7 +167,12 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       const step = stepAssists(
         DEFAULT_ASSIST_CONFIG,
         assistState,
-        { advanced: false, touching: false, frontier: trailState.frontier, total: trail.total },
+        {
+          advanced: false,
+          touching: false,
+          frontier: trailState.frontier,
+          strokeTotal: trail.total,
+        },
         dtMs,
       );
       assistState = step.state;
