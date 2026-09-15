@@ -6,3 +6,25 @@ dist/
 .vite/
 *.local
 coverage/
+
+# QA spike: sources are text, art/screenshots stay out (see riv-cast.md)
+.cf_token
+.inspect.json
+inspect.json
+spike/**/build/
+spike/**/meas-*.png
+spike/**/grid-*.png
+spike/**/blinkcheck*.png
+spike/**/blinkfull*.png
+spike/**/reg-*.png
+spike/qa/
+spike/qa-app/
+spike/qa-offline/
+spike/qa-viewport/
+spike/web/vendor/
+spike/web/*.riv
+spike/web/*.png
+spike/gen/
+spike/ref/
+spike/package-lock.json
+spike/web/package-lock.json
