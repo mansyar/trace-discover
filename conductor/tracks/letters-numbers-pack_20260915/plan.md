@@ -97,6 +97,6 @@
 *Goal: proven on real hardware with the actual toddler; every acceptance criterion traced to evidence.*
 
 - [x] Task: Install/offline re-check on Android + iPad with pack assets cached; rotation/gesture spot-checks — evidence: both devices user-confirmed 2026-09-15 (double refresh picked up the pack build; airplane-mode relaunch boots and plays fully offline; rotation letterboxes cleanly; stray touches leave progress intact) — evidence in plan commit note
-- [ ] Task: Independent-play session — toddler completes ≥1 numeral unaided; multi-stroke (4) + crossing (8) verified; friction notes → polish pass
+- [x] Task: Independent-play session — toddler completes ≥1 numeral unaided; multi-stroke (4) + crossing (8) verified; friction notes → polish pass — evidence: 2026-09-15 session - toddler completed numerals unaided; the two-stroke 4 and crossing 8 both played correctly; no friction notes (no polish pass needed)
 - [ ] Task: Acceptance criteria 1–8 evidence recorded (plan + git note)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
