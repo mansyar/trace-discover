@@ -27,7 +27,7 @@
 *Goal: all 26 letters authored per the content doc — school-style stroke order, field-sized glyphs with inter-stroke gaps clear of tolerance zones; `ABC`/`MOM`/`ZOO` authored; screenshots approved; trickiest glyphs feel-checked on device.*
 
 - [x] Task: Content doc — letter formation table (`content.md`): stroke order/direction per letter, start marks, stroke counts, checkpoint tables, object list, bonus designs [ffad1a1]
-- [ ] Task: Author letter glyphs A–Z (TDD)
+- [x] Task: Author letter glyphs A–Z (TDD) [693198b]
   - [ ] Tests: stroke counts + order per content doc (E = 4, T = 2, …); margins; inter-stroke gaps clear of tolerance zones; `validateLevel` clean for all 26; multi-stroke sequencing parity
   - [ ] Implement geometries (chunky, field-sized); record the final table in `content.md`
 - [ ] Task: Headless screenshot QA per letter — start/goal/direction + glyph legibility
