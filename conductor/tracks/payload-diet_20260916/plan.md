@@ -42,7 +42,7 @@
 
 *Goal: measured, verified, documented — acceptance criteria 1–8 traced to evidence.*
 
-- [ ] Task: Full gates — `CI=true pnpm check && CI=true pnpm test`, `pnpm build`, `pnpm budget`; before/after table recorded (dist, entries, per-category, `dino.riv` bytes); coverage recorded
-- [ ] Task: QA sweep — app/letters journey + `qa-offline` (WebP precached; offline cold start) + `qa-perf` spot-check (boot within baseline); screenshots; device pass Android + iPad (owner)
+- [x] Task: Full gates — `CI=true pnpm check && CI=true pnpm test`, `pnpm build`, `pnpm budget`; before/after table recorded (dist, entries, per-category, `dino.riv` bytes); coverage recorded [dcbc731]
+- [~] Task: QA sweep — app/letters journey + `qa-offline` (WebP precached; offline cold start) + `qa-perf` spot-check (boot within baseline); screenshots; device pass Android + iPad (owner)
 - [ ] Task: Docs close-out + acceptance evidence (criteria 1–8) + git notes
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
