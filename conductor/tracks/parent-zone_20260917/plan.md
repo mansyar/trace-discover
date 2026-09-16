@@ -62,17 +62,19 @@ one-finger hold fails device tuning.
 
 ## Phase 3: One-time parent hint (discoverability)
 
-- [~] Task 1: Flag lifecycle (TDD)
-  - [ ] Red: `parent-open` sets flag + persists immediately; reset preserves;
-        hint predicate false after open, true when absent
-  - [ ] Green: `src/app/app.ts`
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 2: Hint rendering + wiring
-  - [ ] Menu hint near the gate corner (small parent-text card; non-blocking —
-        not in `targets()`); copy placeholder pending owner screenshot approval
-  - [ ] Screenshots: fresh save (hint) → after open + reload (gone)
-  - [ ] Commit + git note
+- [x] Task 1: Flag lifecycle (TDD) (8bc0123)
+  - [x] Red: `parent-open` sets flag + predicate tests (reset-preserve already
+        covered by the Phase 1 app test)
+  - [x] Green: `src/app/app.ts` (`parent-open` marks the flag;
+        `shouldShowParentHint`)
+  - [x] Verify coverage (app.ts 97.4% stmts / 95.8% branch)
+  - [x] Commit + git note
+- [x] Task 2: Hint rendering + wiring (923dc4f)
+  - [x] Menu hint near the gate corner (small parent-text card; non-blocking —
+        not in `targets()`); copy "Hold here to open / Grown-ups" owner-approved;
+        corner dot pulses while the hint is up (a3e2550)
+  - [x] Screenshots: fresh save (hint + pulse) → after open + reload (gone)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Zone finish — section cards + reactive feedback
