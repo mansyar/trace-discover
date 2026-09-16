@@ -36,14 +36,14 @@
 - [x] Task: Docs close-out — `dev/README.md` QA inventory gains `qa-update` (canonical); tech-stack note finalized; acceptance evidence for criteria 1–6, 8 pre-recorded
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Device validation & acceptance
+## Phase 4 — Device validation & acceptance [checkpoint: 8d64ec7]
 
 *Goal: the guarantees hold on real target devices (Android phone + iPad), including airplane mode and mid-update sessions.*
 
 - [x] Task: Real-device pass over LAN (`pnpm serve`) — open on Android + iPad: gameplay + persistence eyeball; owner-chosen scope 2026-09-16 (no preview deploy) — SW/offline device checks deferred, mechanics proven by desktop probes (`qa-update` 14/14 + `qa-offline`); recommend an rc/production re-check after merge/release
 - [x] Task: Device persistence & resilience spot checks — complete a level, close the app, reopen (LAN scope: no offline check over HTTP) → progress persists; visual/zero-text audit shows no change
 - [x] Task: Acceptance criteria 1–8 evidence recorded (plan + git note) — incl. dist/precache numbers and the mid-update-session note
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Acceptance Evidence
 
