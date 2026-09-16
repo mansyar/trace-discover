@@ -5,7 +5,7 @@
 
 ## Overview
 
-The letters pack pushed the offline bundle to **~10.31 MB / 148 precache entries** — at the floor of the product's `< ~10–15 MB` constraint — while the raster art that dominates it (`public/art`: 115 PNG + 4 JPG = 6.39 MB) still ships in legacy formats. A fifth skin and any future pack land on top of that. This chore re-encodes all shipped raster art to WebP (same dimensions, quality tuned per class), fixes the asset pipeline so future batches emit WebP by default, rebuilds `dino.riv` to the cast's patch-technique standard (699 KB → target ~460 KB; closing the standing accepted deviation), and adds a `pnpm budget` guard + CI gate so the payload can't silently regress. **No child-visible behavior change** — formats, path literals, and guard wiring only.
+The letters pack grew the offline bundle to **9.26 MB / 133 precache entries** (measured on the v1.2.0 build; earlier docs cited a larger ~10.31 MB / 148 figure the fresh build does not reproduce — see the track's `measurements.md`) — near the floor of the product's `< ~10–15 MB` constraint — while the raster art that dominates it (`public/art`: 115 PNG + 4 JPG = 6.39 MB) still ships in legacy formats. A fifth skin and any future pack land on top of that. This chore re-encodes all shipped raster art to WebP (same dimensions, quality tuned per class), fixes the asset pipeline so future batches emit WebP by default, rebuilds `dino.riv` to the cast's patch-technique standard (699 KB → target ~460 KB; closing the standing accepted deviation), and adds a `pnpm budget` guard + CI gate so the payload can't silently regress. **No child-visible behavior change** — formats, path literals, and guard wiring only.
 
 ## Design decisions (locked)
 
@@ -34,11 +34,11 @@ The letters pack pushed the offline bundle to **~10.31 MB / 148 precache entries
 
 ## Non-Functional Requirements
 
-- Zero visual regressions (per-class approvals + device pass) · dist ≤ ~7.7 MB (−≥25%; stretch ≤ ~7 MB) · offline cold-start probe green · cold boot within baseline (qa-perf spot-check) · suite green with only URL-literal edits · >80% coverage on new logic · `pnpm check` clean · no content/behavior change.
+- Zero visual regressions (per-class approvals + device pass) · dist ≤ 6.95 MB (≥25% below the measured 9.26 MB baseline; stretch ≤ ~6.4 MB) · offline cold-start probe green · cold boot within baseline (qa-perf spot-check) · suite green with only URL-literal edits · >80% coverage on new logic · `pnpm check` clean · no content/behavior change.
 
 ## Acceptance Criteria
 
-1. dist ≤ 7.7 MB (−≥25% from ~10.31 MB); before/after recorded.
+1. dist ≤ 6.95 MB (≥25% below the measured v1.2.0 baseline of 9.26 MB / 133 precache entries; stretch ≤ ~6.4 MB); before/after recorded (see `measurements.md`).
 2. No `.png`/`.jpg` under `public/art/**` (icons excluded); zero stale references (`git grep` + reference test).
 3. Owner-approved side-by-sides per class; Android + iPad visual pass.
 4. `dino.riv` ≤ 500 KB (target ~460 KB) with screenshots + in-app burst verified.
