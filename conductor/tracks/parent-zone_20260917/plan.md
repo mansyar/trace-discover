@@ -37,13 +37,14 @@ one-finger hold fails device tuning.
 
 ## Phase 2: Gate redesign — one-finger hold, progress ring, open feedback
 
-- [ ] Task 1: Gate logic (TDD)
-  - [ ] Red: single qualifying pointer drives the hold; release before threshold
-        drains/resets with no open; open fires once at threshold; progress 0→1
-  - [ ] Green: `src/ui/parent.ts` (`PARENT_HOLD_MS` → ~2.5s target, progress
-        helper, single-pointer semantics)
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+- [x] Task 1: Gate logic (TDD) (b8c6c38)
+  - [x] Red: release drains gradually (and resumes from the drained level) with
+        no open; open fires once at threshold
+  - [x] Green: `src/ui/parent.ts` (`PARENT_HOLD_MS` = 2500 target, drain at 5×
+        fill rate, `holdProgress` helper; single-pointer shell semantics land
+        in Task 3)
+  - [x] Verify coverage (100% on parent.ts)
+  - [x] Commit + git note
 - [ ] Task 2: Ring + open feedback rendering
   - [ ] Corner arc that fills with the hold / drains on release + small sparkle
         burst on open (reuse particle helpers)
