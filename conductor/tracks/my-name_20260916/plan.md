@@ -15,7 +15,7 @@ speed untouched).
 
 ## Phase 1: Context docs resync + name persistence foundation
 
-- [ ] Task 1: Context docs resync
+- [x] Task 1: Context docs resync (1b72be6)
   - [ ] product.md: add My Name to core features + dated note (previous tracks'
         note style)
   - [ ] tech-stack.md: additive `name` save field, runtime name-pack
