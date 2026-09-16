@@ -26,6 +26,7 @@ import {
   type LevelArt,
   NO_LEVEL_ART,
   type PackMenuArt,
+  type ParentPress,
 } from './app/render';
 import { hopPlanFor } from './app/runPlan';
 import { createSession, type LevelSession } from './app/session';
@@ -195,6 +196,7 @@ let pendingSkinSwap = false;
 let idleCharFor: string | null = null;
 let gateBurst: readonly ConfettiParticle[] = [];
 let gateBurstAgeMs = 0;
+let parentPress: ParentPress | null = null;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -638,6 +640,7 @@ const handlers: TraceHandlers = {
       }
       const action = hitParentZone(PARENT, point);
       if (action) {
+        parentPress = { action, atMs: performance.now() };
         commit(applyAppEvent(app, { type: 'parent-action', action }));
         if (action !== 'done') {
           pop();
@@ -821,6 +824,7 @@ function render(now: number): void {
       activeSkin(),
       artCache.get(activeSkin().face) ?? null,
       app.save.trophies,
+      parentPress,
     );
     if (screen.showName) {
       drawNameOverlay(trailContext, currentNameOverlay());
