@@ -32,8 +32,8 @@
 
 - [~] Task: Full gates — `CI=true pnpm check && CI=true pnpm test` (+ coverage) and `pnpm build`; record dist size + precache entries vs baseline (6.71 MB · 76 entries)
 - [ ] Task: Offline completeness — `qa-offline` green (SW cold-start → offline trace); assert precache covers every runtime asset reachable from boot/menu/pack/level; fix any gap found
-- [ ] Task: Zero-text & surface audit — no new UI/strings (changes confined to registration/config/save); `qa-screens` spot-run shows key screens unchanged
-- [ ] Task: Docs close-out — `dev/README.md` QA inventory gains `qa-update` (canonical); tech-stack note finalized; acceptance evidence for criteria 1–6, 8 pre-recorded
+- [x] Task: Zero-text & surface audit — no new UI/strings (changes confined to registration/config/save); `qa-screens` spot-run shows key screens unchanged
+- [x] Task: Docs close-out — `dev/README.md` QA inventory gains `qa-update` (canonical); tech-stack note finalized; acceptance evidence for criteria 1–6, 8 pre-recorded
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Device validation & acceptance
@@ -44,3 +44,16 @@
 - [ ] Task: Device persistence & resilience spot checks — complete a level, kill app, relaunch offline → progress persists; visual/zero-text audit shows no change
 - [ ] Task: Acceptance criteria 1–8 evidence recorded (plan + git note) — incl. dist/precache numbers and the mid-update-session note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Acceptance Evidence
+
+*Pre-recorded Phase 3 (automated); device items close in Phase 4.*
+
+1. **`sw.js` audit** — no ungated `skipWaiting` (the `SKIP_WAITING` message gate is inert — the app never sends it); `clientsClaim` present for first-launch control (refined during Phase 1 — see checkpoint note); precache + navigation fallback + `cleanupOutdatedCaches` intact. `qa-update` audit checks GREEN.
+2. **Two-state update probe** — `qa-update.mjs` 14/14 GREEN: mid-session update never swaps versions (no controllerchange/reload); after all pages close, relaunch serves the updated version; airplane-mode relaunch boots from precache.
+3. **Quota/denied writes** — unit tests + `qa-persistence` Part C: no throw; level completes with no error state; nothing persisted while denied; after prototype restore the next write persists the whole session.
+4. **Persist request** — unit tests: requested when available and unpersisted; silent no-op when absent; rejections ignored.
+5. **Storage-unavailable boot** — unit tests + `qa-persistence` Part D: boot → menu → pack with `localStorage` accessor throwing; no error state.
+6. **Suites + probe** — full suite green (33 files / 333 tests); `pnpm check` clean; coverage 98.24% stmts / 90.8% branch; `qa-persistence` 13/13 ok.
+7. *(Device pass — Phase 4.)*
+8. **dist / precache** — dist 6.71 MB · 78 files; precache 76 entries (6855.12 KiB) — unchanged vs baseline; offline audit: every dist runtime asset precached (`sw.js` + workbox runtime excluded by design); `qa-offline` green (offline cold-start → `pre-1` trace SUCCESS).
