@@ -26,16 +26,16 @@ conflicts, resolved by preserving both behaviors.
 
 ## Phase 1: Context docs resync + character contract
 
-- [ ] Task 1: Docs resync
-  - [ ] `tech-stack.md`: character contract (autoplay idle + `celebrate` +
+- [x] Task 1: Docs resync (9d25aee)
+  - [x] `tech-stack.md`: character contract (autoplay idle + `celebrate` +
         `giggle` triggers; blinkpatch parity; entrance / tap / celebration
         semantics; QA additions), dated note
-  - [ ] `product.md`: character-presence wording + dated note (entrances, tap
+  - [x] `product.md`: character-presence wording + dated note (entrances, tap
         reactions, per-cast flourishes, idle life)
-  - [ ] `product-guidelines.md`: motion/audio lines for tap reactions +
+  - [x] `product-guidelines.md`: motion/audio lines for tap reactions +
         entrance (minimal; only where wording requires)
-  - [ ] README sync if character wording is touched
-  - [ ] Commit + git note
+  - [x] README: reviewed — no character-wording sync needed
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: App-side delight core (TDD)
