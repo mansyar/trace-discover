@@ -8,11 +8,11 @@
 
 *Goal: the context docs describe the fifth skin before implementation; the stylized character master exists in the house art language and is approved by the owner — the hard gate before any build work.*
 
-- [ ] Task: Context docs resync — before implementation per workflow.md
-  - [ ] `product.md`: fifth skin noted (description/features); out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
-  - [ ] `tech-stack.md`: skins list gains teddy; instruments list gains `musicbox`; dated note
-  - [ ] `dev/README.md`: character workspace list gains teddy
-- [ ] Task: Reference prep + stylization candidates — `gen2.mjs` img2img from the reference photo (prereq: `dev/.cf_token` present in this worktree, untracked); tune strength/seed; candidates inspected; raw reference + raws stay untracked
+- [x] Task: Context docs resync — before implementation per workflow.md [ea47a7f]
+  - [x] `product.md`: fifth skin noted (description/features); out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
+  - [x] `tech-stack.md`: skins list gains teddy; instruments list gains `musicbox`; dated note
+  - [x] `dev/README.md`: character workspace list gains teddy
+- [~] Task: Reference prep + stylization candidates — `gen2.mjs` img2img from the reference photo (prereq: `dev/.cf_token` present in this worktree, untracked); tune strength/seed; candidates inspected; raw reference + raws stay untracked
 - [ ] Task: **Owner approval of the stylized master (hard gate)** — explicit yes recorded as evidence; no cutout/pose/Rive work until given
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
