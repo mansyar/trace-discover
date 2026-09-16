@@ -49,7 +49,7 @@
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; dist + precache entries recorded vs baseline (6.71 MB / 76 entries) — `pnpm build` green; precache **79 entries / 7,413.33 KiB**; dist **7.26 MB / 81 files** (Δ ≈ +0.55 MB / +3 entries vs the repo-organization baseline); `teddy.riv` + `bg/teddy.jpg` + `face/teddy.png` all IN precache (spot-checked in `dist/sw.js`); NFR (< ~10–15 MB offline) respected
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5 — Compliance, QA & acceptance
+## Phase 5 — Compliance, QA & acceptance [checkpoint: 5d8a846]
 
 *Goal: every acceptance criterion traced to evidence; proven on device.*
 
