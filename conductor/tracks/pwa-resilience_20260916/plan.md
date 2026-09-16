@@ -45,6 +45,9 @@
 - [x] Task: Acceptance criteria 1–8 evidence recorded (plan + git note) — incl. dist/precache numbers and the mid-update-session note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 47425e6
+
 ## Acceptance Evidence
 
 *Pre-recorded Phase 3 (automated); device items close in Phase 4.*
