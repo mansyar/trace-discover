@@ -37,7 +37,7 @@
 - [x] Task: Music-box preset (TDD) [2a17f29]
   - [x] Tests: `InstrumentId` includes `musicbox`; preset = soft sine, long decay ~1.5 s, gentle gain; chimes + completion resolve through it; counted toy-piano notes unchanged; volume/mute respected — red 3 failures → green (volume/mute + counted notes covered by existing meter/player tests)
   - [x] Implement `src/audio/synth.ts` — `musicbox: { duration: 1.5, gain: 0.3, type: 'sine' }`
-- [ ] Task: Wiring sweep — `.riv` src resolution (`public/rive/teddy.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include teddy; QA/harness enumerations updated where they list skins
+- [x] Task: Wiring sweep — `.riv` src resolution (`public/rive/teddy.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include teddy; QA/harness enumerations updated where they list skins — audit: everything resolves through the registry (`main.ts` `/rive/${character}.riv` + `SKINS` face preload + `levelPresentation` backdrop; both setters call `nextSkinId`); QA/harness greps checked (no four-skin assumption); `faces.mjs` teddy row deferred to Phase 4 (needs the head crop); no product-code change required — the drop-in contract held
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Remaining art: bedroom backdrop + face icon
