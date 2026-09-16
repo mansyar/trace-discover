@@ -12,7 +12,7 @@
 - [x] Task: Baseline measurement — `pnpm build`; record dist total bytes, precache entry count, and per-category breakdown (art 6.39 MB · rive 1.87 MB · other) as the before/after reference [503b817]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [40ae0c8]
 
-## Phase 2 — Shipped art re-encode + reference integration
+## Phase 2 — Shipped art re-encode + reference integration [checkpoint: dced3d3]
 
 *Goal: `public/art/**` is all WebP at identical dimensions; every reference follows; suite green.*
 
@@ -20,7 +20,7 @@
 - [x] Task: Art-reference test (TDD: Red first) — every app-referenced art URL resolves to an existing `public/` file with the expected extension; **Red** while legacy `.png`/`.jpg` refs or files remain; hostile case (missing file) must fail [3af4ca5]
 - [x] Task: Approve & migrate — owner side-by-side approval per class → reference sweep (`src/{packs,app,skins}` literals + pinned tests; Workbox `globPatterns` += `webp`; dev tooling reads; `git grep` clean) → delete originals → suite **Green** (+gap check: no legacy raster under `public/art/**`) [b7edb71]
 - [x] Task: Pipeline forward-fix — shipped-art emitters (`opt-art` / `opt-pre` / `card` / `gen-rewards` / `faces` / `vignette` / `letters-compose`) default to WebP with the tuned per-class qualities; `dev/README.md` documents the shipped-format policy (mechanical verification: re-run one emitter on a sample asset) [dced3d3]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [dced3d3]
 
 ## Phase 3 — `dino.riv` rebuild
 
