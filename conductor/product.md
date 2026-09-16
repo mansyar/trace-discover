@@ -14,7 +14,7 @@ Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 s
 
 *2026-09-16 — Repo-organization chore (track `repo-organization_20260916`) completed on branch `track/repo-organization`: dev tooling consolidated under `dev/` (tools · qa · harness · characters · art-src) with runbooks in root `README.md` + `dev/README.md`; dead legacy art and raw generation sources pruned. No product behavior change; dist 7.77 → 6.71 MB; awaiting the merge/release decision.*
 
-*2026-09-16 — Fifth skin in progress (track `teddy-skin_20260916`): `teddy` — a family teddy plush restyled through the $0 pipeline (cozy-bedroom backdrop, music-box voice) — joins the skin cycle on branch `track/teddy-skin`; presentation-only per the drop-in contract.*
+*2026-09-16 — Fifth skin (track `teddy-skin_20260916`) completed on branch `track/teddy-skin`: `teddy` — a family teddy plush restyled through the img2img pipeline (owner-approved master → cutout → Rive) — joins the skin cycle with its cozy-bedroom backdrop, face icon, and music-box voice — the first full proof that new skins are pipeline work, not code. Implemented + acceptance-passed (Android + iPad, speaker check); dist 7.26 MB / precache 79 entries; awaiting the merge/release decision.*
 
 ## Target Audience
 
