@@ -19,7 +19,12 @@ import {
   type SplashLayout,
 } from '../ui/menu';
 import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
-import type { NameOverlayLayout, ParentZoneLayout } from '../ui/parentZone';
+import type {
+  NameOverlayLayout,
+  ParentZoneAction,
+  ParentZoneLayout,
+  ZoneCard,
+} from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
@@ -883,6 +888,9 @@ export function drawBadge(
   drawActionIcon(ctx, 'home', BADGE_HOME.x, BADGE_HOME.y);
 }
 
+/** Duration of the pressed-control pop, in ms. */
+const PRESS_PULSE_MS = 240;
+
 function drawZoneButton(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -891,9 +899,11 @@ function drawZoneButton(
   active: boolean,
   glyph: string,
   label: string,
+  pressT = 0,
 ): void {
+  const pop = 1 + 0.08 * Math.sin(Math.PI * Math.max(0, Math.min(1, pressT)));
   ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.arc(x, y, radius * pop, 0, Math.PI * 2);
   ctx.fillStyle = active ? GOLD : '#ffffff';
   ctx.fill();
   ctx.lineWidth = 6;
@@ -904,8 +914,37 @@ function drawZoneButton(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(glyph, x, y + 2);
-  ctx.font = '22px system-ui, sans-serif';
-  ctx.fillText(label, x, y + radius + 24);
+  if (label) {
+    ctx.font = '22px system-ui, sans-serif';
+    ctx.fillText(label, x, y + radius + 24);
+  }
+}
+
+/** State of the pressed-control pop (set by the shell on each parent tap). */
+export interface ParentPress {
+  readonly action: ParentZoneAction;
+  readonly atMs: number;
+}
+
+/** Rounded section panel + its label (parent copy lives on the parent screen). */
+function drawZoneCard(ctx: CanvasRenderingContext2D, card: ZoneCard): void {
+  ctx.beginPath();
+  ctx.roundRect(card.rect.x, card.rect.y, card.rect.width, card.rect.height, 18);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = '20px system-ui, sans-serif';
+  const mini = card.rect.width < 160;
+  ctx.textAlign = mini ? 'center' : 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(
+    card.label,
+    mini ? card.rect.x + card.rect.width / 2 : card.rect.x + 20,
+    card.rect.y + 22,
+  );
 }
 
 export function drawParent(
@@ -918,14 +957,22 @@ export function drawParent(
   skin: SkinDef,
   skinFace: HTMLImageElement | null,
   trophies: readonly string[],
+  pressed: ParentPress | null = null,
 ): void {
+  const pressT = (action: ParentZoneAction): number => {
+    if (!pressed || pressed.action !== action) {
+      return 0;
+    }
+    return 1 - Math.min(1, Math.max(0, (now - pressed.atMs) / PRESS_PULSE_MS));
+  };
   ctx.fillStyle = NAVY;
   ctx.font = '30px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('Grown-ups', FIELD_WIDTH / 2, 70);
-  ctx.font = '24px system-ui, sans-serif';
-  ctx.fillText('Sound', FIELD_WIDTH / 2, 175);
+  for (const card of layout.cards) {
+    drawZoneCard(ctx, card);
+  }
   drawZoneButton(
     ctx,
     layout.volumeDown.x,
@@ -933,7 +980,8 @@ export function drawParent(
     layout.volumeDown.radius,
     false,
     '−',
-    'quieter',
+    '',
+    pressT('volume-down'),
   );
   drawZoneButton(
     ctx,
@@ -942,7 +990,8 @@ export function drawParent(
     layout.mute.radius,
     settings.muted,
     settings.muted ? '✕' : '♪',
-    'mute',
+    '',
+    pressT('mute'),
   );
   drawZoneButton(
     ctx,
@@ -951,13 +1000,9 @@ export function drawParent(
     layout.volumeUp.radius,
     false,
     '+',
-    'louder',
+    '',
+    pressT('volume-up'),
   );
-  ctx.font = '24px system-ui, sans-serif';
-  ctx.fillStyle = NAVY;
-  ctx.textAlign = 'left';
-  ctx.fillText('Tracing', 40, 325);
-  ctx.textAlign = 'center';
   drawZoneButton(
     ctx,
     layout.easier.x,
@@ -966,6 +1011,7 @@ export function drawParent(
     settings.easierTracing,
     '★',
     settings.easierTracing ? 'easier: on' : 'easier: off',
+    pressT('easier'),
   );
   const skinButton = layout.skin;
   drawSkinButton(
@@ -982,33 +1028,44 @@ export function drawParent(
   ctx.textBaseline = 'middle';
   ctx.fillText('skin', skinButton.x, skinButton.y + skinButton.radius + 24);
   const nameButton = layout.name;
-  drawZoneButton(ctx, nameButton.x, nameButton.y, nameButton.radius, false, '✎', 'name');
-  ctx.font = '24px system-ui, sans-serif';
-  ctx.fillText('Trophies', FIELD_WIDTH / 2, 648);
-  layout.trophies.forEach((slot, index) => {
-    ctx.beginPath();
-    if (index < trophies.length) {
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-      drawStar(ctx, slot.x, slot.y, slot.radius - 8);
-      ctx.fillStyle = GOLD;
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-    } else {
-      ctx.setLineDash([8, 6]);
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(46, 74, 99, 0.35)';
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-  });
+  drawZoneButton(
+    ctx,
+    nameButton.x,
+    nameButton.y,
+    nameButton.radius,
+    false,
+    '✎',
+    'name',
+    pressT('name'),
+  );
+  if (!confirmReset) {
+    ctx.font = '24px system-ui, sans-serif';
+    ctx.fillText('Trophies', FIELD_WIDTH / 2, 672);
+    layout.trophies.forEach((slot, index) => {
+      ctx.beginPath();
+      if (index < trophies.length) {
+        ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = NAVY;
+        ctx.stroke();
+        drawStar(ctx, slot.x, slot.y, slot.radius - 8);
+        ctx.fillStyle = GOLD;
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = NAVY;
+        ctx.stroke();
+      } else {
+        ctx.setLineDash([8, 6]);
+        ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(46, 74, 99, 0.35)';
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+  }
   drawZoneButton(
     ctx,
     layout.reset.x,
@@ -1017,6 +1074,7 @@ export function drawParent(
     confirmReset,
     '↺',
     confirmReset ? 'tap again!' : 'restart',
+    pressT('reset'),
   );
   drawZoneButton(
     ctx,
@@ -1026,21 +1084,33 @@ export function drawParent(
     showInstall,
     '⤓',
     'install',
+    pressT('install'),
   );
-  drawZoneButton(ctx, layout.done.x, layout.done.y, layout.done.radius, false, '✓', 'done');
+  drawZoneButton(
+    ctx,
+    layout.done.x,
+    layout.done.y,
+    layout.done.radius,
+    false,
+    '✓',
+    'done',
+    pressT('done'),
+  );
   if (confirmReset) {
+    ctx.beginPath();
+    ctx.roundRect(40, 648, FIELD_WIDTH - 80, 64, 16);
     ctx.fillStyle = 'rgba(46, 74, 99, 0.85)';
-    ctx.fillRect(40, 640, FIELD_WIDTH - 80, 90);
+    ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = '24px system-ui, sans-serif';
-    ctx.fillText('Erase all stickers? Tap restart again.', FIELD_WIDTH / 2, 686);
+    ctx.font = '22px system-ui, sans-serif';
+    ctx.fillText('Erase all stickers? Tap restart again.', FIELD_WIDTH / 2, 680);
   }
   if (showInstall) {
     ctx.beginPath();
-    ctx.rect(40, 120, FIELD_WIDTH - 80, 620);
+    ctx.roundRect(40, 120, FIELD_WIDTH - 80, 620, 18);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
     ctx.fill();
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 4;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
     ctx.fillStyle = NAVY;

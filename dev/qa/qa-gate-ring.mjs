@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// One-off gate-feedback evidence (parent-zone Phase 2):
+// One-off gate + parent-zone evidence (parent-zone Phases 2-4):
 // 1) screens harness: static ring (0.6) + burst preview on the menu mock;
 // 2) live app: hold the gate 1.6s (ring mid-fill) then complete the 2.5s
-//    hold and shoot the opened parent zone with its burst.
+//    hold and shoot the opened parent zone with its burst + zone states.
 // Usage: dev server on :5199, then `node dev/qa/qa-gate-ring.mjs`.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
@@ -85,6 +85,20 @@ console.log(`screen after 3.0s hold: ${screenName}`);
 if (screenName !== 'parent') {
   throw new Error(`ASSERT: expected parent screen after the hold, got ${screenName}`);
 }
+
+// Zone finish evidence: default, muted, easier on, restart confirm, install.
+await appPage.screenshot({ path: path.join(OUT, 'zone-default.png') });
+await tapTarget('parent:mute');
+await appPage.screenshot({ path: path.join(OUT, 'zone-muted.png') });
+await tapTarget('parent:easier');
+await appPage.screenshot({ path: path.join(OUT, 'zone-easier.png') });
+await tapTarget('parent:reset');
+await appPage.screenshot({ path: path.join(OUT, 'zone-confirm.png') });
+await tapTarget('parent:install');
+await appPage.screenshot({ path: path.join(OUT, 'zone-install.png') });
+console.log(
+  'zone shots: out/zone-default.png, zone-muted.png, zone-easier.png, zone-confirm.png, zone-install.png',
+);
 
 // Hint lifecycle: the flag persisted on open, so a reloaded menu hides it.
 const persisted = await appPage.evaluate(() => {
