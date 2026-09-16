@@ -65,7 +65,14 @@ async function launch() {
 
 function startServer(root) {
   const server = http.createServer(async (req, res) => {
-    let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    let p = new URL(req.url, 'http://x').pathname;
+    try {
+      p = decodeURIComponent(p);
+    } catch {
+      res.writeHead(400);
+      res.end('bad request');
+      return;
+    }
     if (p === '/' || p === '') p = '/index.html';
     const file = path.normalize(path.join(root, p));
     if (!file.startsWith(root)) {
@@ -112,6 +119,7 @@ const fetchManifest = async (page) =>
   // all instances close — never mid-session.
   const sw = fs.readFileSync(path.join(SANDBOX, 'sw.js'), 'utf8');
   const registerScript = fs.readFileSync(path.join(SANDBOX, 'registerSW.js'), 'utf8');
+  // Matches only ungated forms; keep in sync if Workbox changes its emission style.
   check(
     'audit: no ungated skipWaiting (waits for every instance to close)',
     !/skipWaiting\(\s*\)\s*[,;)]/.test(sw),
