@@ -87,7 +87,7 @@
 - [x] Task: Regression sweep — stroke feel/assists/completion parity; numbers unchanged; full suite green; QA script suite pass — 320/320; qa-numerals + qa-pack-app green (numbers unchanged); qa-app full pre pack green [946eb8c]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 6 — Device validation & acceptance
+## Phase 6 — Device validation & acceptance [checkpoint: 857c1ec]
 
 *Goal: proven on real hardware with the toddler; every acceptance criterion traced to evidence.*
 
@@ -95,7 +95,7 @@
 - [x] Task: On-device save migration — real v2 save → updated app: progress + trophies intact; reset verified — owner device pass: ALL GOOD (migration where an old save existed; reset intact)
 - [x] Task: Independent-play session — toddler completes a re-ramped level; mid-trace skin swap; friction notes → polish — owner report: ALL GOOD, no friction notes, no polish needed
 - [x] Task: Acceptance criteria 1–9 evidence recorded (plan + git note) — evidence below
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 **Acceptance evidence (2026-09-16):**
 1. Four skins × both packs playable incl. star backdrop — qa-pre-pack scenarios 1-5; qa-app full pre pack (dino); qa-pack-app numbers flow; star backdrop + all art integrated [946eb8c].
