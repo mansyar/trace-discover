@@ -54,9 +54,9 @@ speed untouched).
 
 ## Phase 3: App wiring — menu, pack screen, rewards, level flow
 
-- [ ] Task 1: Dynamic menu (TDD): 3→4 cards when set; name drawn as mini-glyph
-      fallback; progress dot + gold star; gone on clear
-- [ ] Task 2: Pack screen + flow (TDD): 1-level pack layout; open/replay/home;
+- [x] Task 1: Dynamic menu (TDD): 3→4 cards when set; name drawn as mini-glyph
+      fallback; progress dot + gold star; gone on clear (b82a6d4)
+- [~] Task 2: Pack screen + flow (TDD): 1-level pack layout; open/replay/home;
       sticker `name-1`; badge ceremony via existing `pendingBadge`;
       `screenTargets` additions
 - [ ] Task 3: Wiring sweep — audit every `PACKS`/`allPacks()` consumer (MENU
