@@ -45,17 +45,19 @@ one-finger hold fails device tuning.
         in Task 3)
   - [x] Verify coverage (100% on parent.ts)
   - [x] Commit + git note
-- [ ] Task 2: Ring + open feedback rendering
-  - [ ] Corner arc that fills with the hold / drains on release + small sparkle
-        burst on open (reuse particle helpers)
-  - [ ] Screenshot evidence (harness)
-  - [ ] Commit + git note
-- [ ] Task 3: Shell wiring
-  - [ ] `main.ts`: one-finger gate bookkeeping (≥1 pointer that started in the
+- [x] Task 2: Ring + open feedback rendering (c6d6e45)
+  - [x] Corner arc that fills with the hold / drains on release + small sparkle
+        burst on open (reuse particle helpers; `drawParticles` extracted)
+  - [x] Screenshot evidence (harness; `qa-gate-ring.mjs` → out/menu-gate-ring.png,
+        ring + burst visually confirmed)
+  - [x] Commit + git note
+- [x] Task 3: Shell wiring (eb22ea0)
+  - [x] `main.ts`: one-finger gate bookkeeping (≥1 pointer that started in the
         zone; up/cancel clears; resets off-menu); pop + burst on open;
         `targets()` `gate` id unchanged
-  - [ ] Screenshots (mid-hold ring on a phone viewport)
-  - [ ] Commit + git note
+  - [x] Screenshots (mid-hold ring + opened zone; out/live-gate-*.png, visually
+        confirmed)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: One-time parent hint (discoverability)
