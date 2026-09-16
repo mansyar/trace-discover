@@ -20,7 +20,7 @@
   - [ ] Implement layout config (card size, per-row centering, page slicing, pager) + render + main wiring; screens-harness QA (menu → pack:abc → level:abc-a)
 - [x] Task: Menu card + navigation wiring (TDD) — third card appended (rough "ABC" art); menu → pack → letter → success; replay/next/home; badge reachability [8023792]
 - [x] Task: Dev harness + spike QA script updates for the `abc` pack [7ef4777]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Letter content: school-style glyphs & sequences [checkpoint: 9b14bec]
 
@@ -33,7 +33,7 @@
 - [x] Task: Headless screenshot QA per letter [e313d8b] — start/goal/direction + glyph legibility
 - [x] Task: Author bonus sequences `ABC` / `MOM` / `ZOO` (TDD) — generous sizing, ordered multi-stroke; validate + screenshot QA [dbb70f6]
 - [x] Task: Device feel check via LAN — trace E (4-stroke), S (curve), A (diagonals); tune if needed; record findings [9b14bec]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Reward layer: per-stroke hops, stickers, badge & seals [checkpoint: 53c4379]
 
@@ -44,7 +44,7 @@
   - [ ] Implement in `character/hops.ts` + session/app wiring
 - [x] Task: Sticker/badge/bonus flow integration — per-letter sticker fly-in; badge at 26; bonus seals (`ABC`/`MOM`/`ZOO`) mirror the numbers badge flow; screens QA [53c4379]
 - [x] Task: Device feel check via LAN — completion hops (E vs C) + bonus unlock loop; tune pacing; record findings [53c4379]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Art batch: objects, stickers, bonuses, card, badge [checkpoint: 2f7a37d]
 
@@ -53,7 +53,7 @@
 - [x] Task: Art batch — 26 goal vignettes + 26 stickers (object-per-letter) + 3 bonus arts + menu card + pack badge (generate → cutout → optimize → composite → screenshot approval) [2f7a37d]
 - [x] Task: Integrate art — goal art, sticker slots, card states (fresh/in-progress/badge), bonus arts; screens QA [2f7a37d]
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded; optimization pass if approaching budget [e9a2748]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance & QA sweep [checkpoint: 3af9fd6]
 
@@ -64,9 +64,9 @@
 - [x] Task: Perf spot-checks — 26-card pack screen, cold start, fps (mid-range Android + base iPad); fix if warranted [ad8543a]
 - [x] Task: Regression sweep — pre-writing + numbers + all four skins parity; full suite + QA scripts [e9d2701]
 - [x] Task: Docs close-out — `product.md` dated note (letters shipped); track docs final [3af9fd6]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 6 — Device validation & acceptance
+## Phase 6 — Device validation & acceptance [checkpoint: ec043cf]
 
 *Goal: proven on real hardware with the toddler; every acceptance criterion traced to evidence.*
 
@@ -74,4 +74,4 @@
 - [x] Task: Independent-play session — toddler traces ≥1 letter unaided; bonus unlock state; friction notes → polish [ec043cf]
 - [x] Task: Acceptance criteria 1–9 evidence recorded (plan + git note) [ec043cf]
   - Evidence: grid/pager/landing + all 29 levels swept SUCCESS + bonus gating/seal + E=4/C=1 hops (tests + device) + four-skin parity + persistence suite + offline probe & airplane-mode trace + art/zero-text/90 px/dist 10.31 MB/perf p95 4.3 ms + 366/366 suite, pre 15/15, numbers 4/4 + toddler traced unaided. Full table: git note on `ec043cf`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
