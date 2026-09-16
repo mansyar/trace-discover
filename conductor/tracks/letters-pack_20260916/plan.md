@@ -12,7 +12,7 @@
 - [x] Task: Pack registration + letter level skeletons (TDD) [dc46475]
   - [ ] Tests: `abc` pack entry — 26 levels `abc-a..abc-z` in A–Z order (rough geometry, refined Phase 2), bonuses `abc-bonus-1..3`, badge `abc-badge`, `bonusUnlocks [9,18,26]`; ids unique; `validateLevel` clean; `playOrderIds` + wrap behavior
   - [ ] Implement `src/packs/letters.ts` + register in `catalog.ts`
-- [ ] Task: Third-pack generalization audit (TDD)
+- [x] Task: Third-pack generalization audit (TDD) [f5e5d22]
   - [ ] Tests: pack-generic art paths for a third pack (`card-abc.png`, `abc-badge.png`), routing/success/badge flows, hop-plan dispatch; numerals' intentional special-casing pinned
   - [ ] Sweep `main.ts`, `app/`, `packs/`, `render/`, `session`; fix accidental coupling; document what stays pack-specific
 - [ ] Task: Pack screen — 26-card grid + sticker shelf + badge (layout math TDD)
