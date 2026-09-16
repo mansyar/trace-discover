@@ -18,7 +18,7 @@
 - [x] Task: Pack screen — 26 cards across two pages + per-page shelf + badge (layout math TDD) [f25a948]
   - [ ] Tests: 4-per-row math (12 then 14, rows 4+4+4+2), centered Y-Z finale pair, ≥90 px card + pager targets, pager hit zones + landing page (first unfinished), shelf/badge zones, cleared → sticker; cream shell (numbers pattern)
   - [ ] Implement layout config (card size, per-row centering, page slicing, pager) + render + main wiring; screens-harness QA (menu → pack:abc → level:abc-a)
-- [ ] Task: Menu card + navigation wiring (TDD) — third card appended (rough "ABC" art); menu → pack → letter → success; replay/next/home; badge reachability
+- [x] Task: Menu card + navigation wiring (TDD) — third card appended (rough "ABC" art); menu → pack → letter → success; replay/next/home; badge reachability [8023792]
 - [ ] Task: Dev harness + spike QA script updates for the `abc` pack
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
