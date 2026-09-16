@@ -40,7 +40,7 @@
 - [x] Task: Wiring sweep — `.riv` src resolution (`public/rive/teddy.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include teddy; QA/harness enumerations updated where they list skins — audit: everything resolves through the registry (`main.ts` `/rive/${character}.riv` + `SKINS` face preload + `levelPresentation` backdrop; both setters call `nextSkinId`); QA/harness greps checked (no four-skin assumption); `faces.mjs` teddy row deferred to Phase 4 (needs the head crop); no product-code change required — the drop-in contract held
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Remaining art: bedroom backdrop + face icon
+## Phase 4 — Remaining art: bedroom backdrop + face icon [checkpoint: ed2546b]
 
 *Goal: all teddy art integrated and screenshot-approved; precache/size recorded.*
 
@@ -53,7 +53,7 @@
 
 *Goal: every acceptance criterion traced to evidence; proven on device.*
 
-- [ ] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded
+- [~] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded
 - [ ] Task: Teddy spot-sweep — skin cycle reaches teddy; one teddy level traced to completion (hop + celebrate); screenshots menu/pack/level/success; zero-text audit; offline probe (`qa-offline.mjs`) covers new assets
 - [ ] Task: Perf spot-check — cold boot / fps sampling; device findings folded into the owner pass
 - [ ] Task: Owner device pass — one teddy level on Android + iPad; music-box speaker check; verdict recorded
