@@ -24,7 +24,7 @@ gate/zone files (`src/ui/parent*.ts`, `store.ts`, its probes) — this track
 avoids them; if parent-zone lands first, expect small `main.ts` + probe merge
 conflicts, resolved by preserving both behaviors.
 
-## Phase 1: Context docs resync + character contract
+## Phase 1: Context docs resync + character contract [checkpoint: 9d25aee]
 
 - [x] Task 1: Docs resync (9d25aee)
   - [x] `tech-stack.md`: character contract (autoplay idle + `celebrate` +
