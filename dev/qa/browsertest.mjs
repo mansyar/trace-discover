@@ -1,5 +1,6 @@
 import { chromium } from 'playwright-core';
 
+// STALE (see dev/README.md): served the removed spike/web/ page. If run, it writes ./web/*.png relative to CWD.
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const logs = [];
 let browser;

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const URL = process.argv[2] ?? 'http://localhost:4173/';
 const LEVEL = process.argv[3] ?? 'pre-1';
-const DIST = path.join(HERE, '..', 'dist');
+const DIST = path.join(HERE, '..', '..', 'dist');
 
 const EDGE_PATHS = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',

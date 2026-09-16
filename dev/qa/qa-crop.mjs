@@ -11,8 +11,8 @@ const EDGE_PATHS = [
 ];
 
 (async () => {
-  const src = process.argv[2] ?? path.join(HERE, 'qa', 'blinkseq', 'f15.png');
-  const out = process.argv[3] ?? path.join(HERE, 'qa', 'blink-zoom.png');
+  const src = process.argv[2] ?? path.join(HERE, 'out', 'blinkseq', 'f15.png');
+  const out = process.argv[3] ?? path.join(HERE, 'out', 'blink-zoom.png');
   let browser = null;
   for (const exe of EDGE_PATHS) {
     if (fs.existsSync(exe)) {
@@ -28,6 +28,7 @@ const EDGE_PATHS = [
   });
   // Mascot sits ~x150-290, y700-830 in the 430x900 frame; 2x => x300-580, y1400-1660.
   await page.evaluate(() => window.scrollTo(250, 1360));
+  fs.mkdirSync(path.dirname(out), { recursive: true });
   await page.screenshot({ path: out });
   console.log(`wrote ${out}`);
   await browser.close();

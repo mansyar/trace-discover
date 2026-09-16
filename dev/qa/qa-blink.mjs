@@ -28,7 +28,8 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   });
   await page.waitForFunction(() => window.__qa !== undefined, null, { timeout: 30000 });
   await wait(7000);
-  await page.screenshot({ path: path.join(HERE, 'qa', 'blink-eased.png') });
+  fs.mkdirSync(path.join(HERE, 'out'), { recursive: true });
+  await page.screenshot({ path: path.join(HERE, 'out', 'blink-eased.png') });
   console.log(`page errors: ${pageErrors.length === 0 ? '(none)' : pageErrors.join(' | ')}`);
   await browser.close();
 })().catch((error) => {

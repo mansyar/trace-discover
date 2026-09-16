@@ -1,4 +1,11 @@
 import { chromium } from 'playwright-core';
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const OUT = path.join(HERE, 'out', 'levels');
+mkdirSync(OUT, { recursive: true });
 
 const LEVELS = [
   'pre-1', 'pre-2', 'pre-3', 'pre-4', 'pre-5', 'pre-6',
@@ -31,7 +38,7 @@ for (const id of LEVELS) {
     logs.push(`${id}: WRONG LEVEL (${qa.levelId})`);
     continue;
   }
-  await page.screenshot({ path: `qa/${id}-rest.png` });
+  await page.screenshot({ path: `${OUT}/${id}-rest.png` });
   const errs = await page.evaluate(() => document.getElementById('log').textContent.split('\n').filter((l) => /error|fail/i.test(l)).join(' ; ') || '(none)');
   logs.push(`${id}: rest ok (${qa.n} pts) errors: ${errs}`);
 
@@ -65,12 +72,12 @@ for (const id of LEVELS) {
     try {
       await page.waitForFunction(() => window.__qa.isSuccess(), null, { timeout: 30000 });
       await wait(1500); // let the mascot glide to its cheering spot before judging
-      await page.screenshot({ path: `qa/${id}-success.png` });
+      await page.screenshot({ path: `${OUT}/${id}-success.png` });
       logs.push(`${id}: TRACE SUCCESS`);
     } catch (e) {
       const state = await page.evaluate(() => document.getElementById('log').textContent.replace(/\n/g, ' | '));
       logs.push(`${id}: TRACE FAILED -- ${state}`);
-      await page.screenshot({ path: `qa/${id}-stuck.png` });
+      await page.screenshot({ path: `${OUT}/${id}-stuck.png` });
     }
   }
 }
