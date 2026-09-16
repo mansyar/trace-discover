@@ -21,9 +21,9 @@
 
 *Goal: no storage condition can crash or silently wedge a session; the save asks the browser to persist; the app is fully playable with no storage at all.*
 
-- [ ] Task: Tests-first (RED) in `src/save/` — `saveSave` never throws on quota/denied (in-memory continuation; later writes still attempt and persist); storage acquisition falls back when `localStorage` access throws; `requestPersistence` best-effort (called when available & unpersisted; silent no-op otherwise; rejections swallowed)
-- [ ] Task: Implement (GREEN) — `src/save/storage.ts` (`acquireSaveStorage` with in-memory fallback + `requestPersistence`); guard the write path; wire `main.ts` boot (`loadSave`/`commit` use the acquired storage; persist requested once)
-- [ ] Task: Extend `dev/qa/qa-persistence.mjs` — quota-denied simulation (patch `Storage.prototype.setItem` in-page): level completes, app continues silently; prototype restored → subsequent saves persist; storage-unavailable boot shows no error state
+- [x] Task: Tests-first (RED) in `src/save/` — `saveSave` never throws on quota/denied (in-memory continuation; later writes still attempt and persist); storage acquisition falls back when `localStorage` access throws; `requestPersistence` best-effort (called when available & unpersisted; silent no-op otherwise; rejections swallowed) [97f12ae]
+- [x] Task: Implement (GREEN) — `src/save/storage.ts` (`acquireSaveStorage` with in-memory fallback + `requestPersistence`); guard the write path; wire `main.ts` boot (`loadSave`/`commit` use the acquired storage; persist requested once) [5618af5]
+- [x] Task: Extend `dev/qa/qa-persistence.mjs` — quota-denied simulation (patch `Storage.prototype.setItem` in-page): level completes, app continues silently; prototype restored → subsequent saves persist; storage-unavailable boot shows no error state [0b69a21]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Compliance & regression sweep
