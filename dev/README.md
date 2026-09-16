@@ -12,7 +12,7 @@ purpose.
 | `tools/` | $0 asset pipeline — Workers AI generation, cutout/optimize/composite, batch composers |
 | `qa/` | Headless-Edge (playwright-core) verification scripts + probes; outputs in `qa/out/` (git-ignored) |
 | `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery) · `tune.html` (feel tuning) — served by the Vite dev server |
-| `characters/` | Rive authoring workspaces (dino · star · excavator · lion); each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
+| `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
 `package.json` carries the `playwright-core` dependency for the QA scripts —
@@ -71,7 +71,12 @@ Start the right server first, then run the script (most accept a URL argument).
 
 *Status legend: **canonical** = kept and referenced · **one-off** = kept for
 reference · **utility** = reusable helper · **stale** = superseded, candidates
-for removal. Statuses are re-confirmed in the track's Phase 2–4 sweep.*
+for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
+2026-09-16).*
+
+> First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
+> cold Vite optimize right after the dev server starts — warm the server (load
+> `/dev/harness/play.html` once) or simply re-run; warm runs are green.
 
 ## Art-source policy
 
@@ -79,5 +84,9 @@ for removal. Statuses are re-confirmed in the track's Phase 2–4 sweep.*
   (what the shipped art was built from)
 - Raw generations (flux originals) stay **untracked** — regenerate with
   `tools/gen.mjs` when needed
+- `art-src/nums/`: `clean-*` cutouts + `vig-*`/card composites are kept; the
+  raw `goal-*` / `sticker-*` / `numeral-*` / `obj-*` / `badge-*` layers were
+  removed 2026-09-16 (nothing consumes them — `card.mjs` and `vignette.mjs`
+  read `clean-*` only)
 - Characters: shipped `.riv` binaries live in `public/rive/`; authoring sources
   live in `characters/<name>/`
