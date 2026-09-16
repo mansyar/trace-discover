@@ -34,8 +34,8 @@
 
 *Goal: the diet can't silently regress — checked locally and in CI, with fail behavior proven.*
 
-- [ ] Task: `dev/tools/dist-budget.mjs` + `pnpm budget` — dist total + precache entries with breakdown; ceilings derived from the measured post-diet build (documented headroom); clear failure message (mechanical verification: pass + negative control with a temporarily lowered ceiling)
-- [ ] Task: Docs + CI wiring — ceilings/rationale in `README.md` + `dev/README.md` + `tech-stack.md`; `ci.yml` step after build runs `pnpm budget`; local negative-control evidence recorded (actual CI failure proof lands with the owner's first push)
+- [x] Task: `dev/tools/dist-budget.mjs` + `pnpm budget` — dist total + precache entries with breakdown; ceilings derived from the measured post-diet build (documented headroom); clear failure message (mechanical verification: pass + negative control with a temporarily lowered ceiling) [aa7ebae]
+- [x] Task: Docs + CI wiring — ceilings/rationale in `README.md` + `dev/README.md` + `tech-stack.md`; `ci.yml` step after build runs `pnpm budget`; local negative-control evidence recorded (actual CI failure proof lands with the owner's first push) [d65e8f6]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance & close-out
