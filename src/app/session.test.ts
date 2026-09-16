@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { TOY_PIANO_PRESET, type TonePlayer, type ToneSpec } from '../audio/synth';
+import {
+  presetForInstrument,
+  TOY_PIANO_PRESET,
+  type TonePlayer,
+  type ToneSpec,
+} from '../audio/synth';
 import { hopPlacement, hopTimeline } from '../character/hops';
 import { pointAtSequence } from '../engine/trail';
 import type { Point } from '../engine/types';
-import { DINO_LEVELS } from '../themes/dino';
-import { type LevelDef, levelToPath } from '../themes/level';
-import { NUMERAL_LEVELS } from '../themes/numbers';
+import { type LevelDef, levelToPath } from '../packs/level';
+import { NUMERAL_LEVELS } from '../packs/numbers';
+import { PRE_LEVELS } from '../packs/pre';
 import { createSession, type SessionEvent } from './session';
 
 function fakes() {
@@ -40,7 +45,7 @@ function point(points: readonly Point[], index: number): Point {
 }
 
 function level(index: number): LevelDef {
-  const found = DINO_LEVELS[index];
+  const found = PRE_LEVELS[index];
   if (!found) {
     throw new Error(`Dino level ${index} is missing.`);
   }
@@ -393,5 +398,30 @@ describe('numeral reward plan', () => {
     }
     expect(base.snapshot().multiState.frontier).toBe(0);
     expect(wider.snapshot().multiState.frontier).toBeGreaterThan(0);
+  });
+});
+
+describe('skin instrument audio', () => {
+  it('plays chimes and completion through the skin instrument preset', () => {
+    const f = fakes();
+    const session = createSession(DINO_1, {
+      character: f.character,
+      instrument: () => presetForInstrument('bell'),
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    tracePath(session, 2, 2);
+    for (let u = 0; u < 400; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+    expect(f.specs).toHaveLength(12);
+    const bellChimes = f.specs.filter((spec) => spec.duration === 1.4);
+    expect(bellChimes).toHaveLength(5);
+    for (const spec of f.specs) {
+      expect(spec.type).toBe('sine');
+    }
   });
 });

@@ -17,8 +17,8 @@ function cardAt(layout: MenuLayout, index: number) {
 }
 
 describe('menuLayout', () => {
-  it('returns one card per theme id in order', () => {
-    expect(layout().cards.map((card) => card.themeId)).toEqual(THEMES);
+  it('returns one card per pack id in order', () => {
+    expect(layout().cards.map((card) => card.packId)).toEqual(THEMES);
   });
 
   it('keeps every card at toddler size (90px minimum on both dims)', () => {
@@ -63,7 +63,7 @@ describe('menuLayout', () => {
 });
 
 describe('hitMenuCard', () => {
-  it('hits each card center with its theme id', () => {
+  it('hits each card center with its pack id', () => {
     const current = layout();
     current.cards.forEach((card, index) => {
       expect(

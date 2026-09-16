@@ -137,7 +137,7 @@ async function finishTrace(trace, toClient, fromIndex) {
   page = await browser.newPage({ viewport: { width: 430, height: 900 } });
   page.on('pageerror', (error) => pageErrors.push(String(error)));
 
-  // 1. Phone portrait: menu targets + full dino-1 loop.
+  // 1. Phone portrait: menu targets + full pre-1 loop.
   await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__app && window.__app.screen, null, {
     timeout: 30000,
@@ -145,37 +145,37 @@ async function finishTrace(trace, toClient, fromIndex) {
   await wait(800);
   await checkTargetsInside('portrait menu');
   await tapTarget('splash');
-  await tapTarget('theme:dino');
-  await checkTargetsInside('portrait theme');
-  await tapTarget('level:dino-1');
-  const t1 = await traceCurrentLevel('dino-1');
+  await tapTarget('pack:pre');
+  await checkTargetsInside('portrait pack');
+  await tapTarget('level:pre-1');
+  const t1 = await traceCurrentLevel('pre-1');
   await finishTrace(t1.trace, t1.toClient, 1);
-  console.log('portrait dino-1: TRACE SUCCESS');
+  console.log('portrait pre-1: TRACE SUCCESS');
   await page.screenshot({ path: path.join(OUT, 'portrait-success.png') });
 
-  // 2. iPad landscape: full construction-1 loop.
+  // 2. iPad landscape: full pre-5 loop.
   await page.setViewportSize({ width: 1180, height: 820 });
   await wait(600);
   await tapTarget('success:home');
   await checkTargetsInside('landscape menu');
   await page.screenshot({ path: path.join(OUT, 'landscape-menu.png') });
-  await tapTarget('theme:construction');
-  await checkTargetsInside('landscape theme');
-  await tapTarget('level:construction-1');
+  await tapTarget('pack:pre');
+  await checkTargetsInside('landscape pack');
+  await tapTarget('level:pre-5');
   await checkTargetsInside('landscape level');
-  const t2 = await traceCurrentLevel('construction-1');
+  const t2 = await traceCurrentLevel('pre-5');
   await finishTrace(t2.trace, t2.toClient, 1);
-  console.log('landscape construction-1: TRACE SUCCESS');
+  console.log('landscape pre-5: TRACE SUCCESS');
   await checkTargetsInside('landscape success');
   await page.screenshot({ path: path.join(OUT, 'landscape-success.png') });
 
-  // 3. Rotation mid-trace: start dino-2 in portrait, rotate, finish.
+  // 3. Rotation mid-trace: start pre-2 in portrait, rotate, finish.
   await tapTarget('success:home');
   await page.setViewportSize({ width: 430, height: 900 });
   await wait(600);
-  await tapTarget('theme:dino');
-  await tapTarget('level:dino-2');
-  const t3 = await traceCurrentLevel('dino-2');
+  await tapTarget('pack:pre');
+  await tapTarget('level:pre-2');
+  const t3 = await traceCurrentLevel('pre-2');
   const half = Math.floor(t3.trace.pts.length / 2);
   const partial = t3.trace.pts.slice(1, half);
   for (const p of partial) {
@@ -187,7 +187,7 @@ async function finishTrace(trace, toClient, fromIndex) {
   await wait(600);
   await checkTargetsInside('rotated mid-trace');
   await finishTrace(t3.trace, t3.toClient, half);
-  console.log('rotation dino-2: TRACE SUCCESS');
+  console.log('rotation pre-2: TRACE SUCCESS');
   await page.screenshot({ path: path.join(OUT, 'rotation-success.png') });
 
   if (pageErrors.length > 0) {

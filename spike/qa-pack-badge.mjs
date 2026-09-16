@@ -81,9 +81,9 @@ try {
   await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
   await tapTarget('splash');
   log(`splash -> ${(await screenOf()).name}`);
-  await tapTarget('pack');
+  await tapTarget('pack:numbers');
   log(`menu -> ${(await screenOf()).name}`);
-  await tapTarget('numeral:num-0');
+  await tapTarget('level:num-0');
   for (const id of NUMERALS) {
     try {
       await traceStrokes();
@@ -105,7 +105,7 @@ try {
   if (finalScreen.name === 'badge') {
     await page.screenshot({ path: resolve(OUT, 'pack-badge-celebration.png') });
     log('badge celebration shown');
-    await tapTarget(`bonus:${finalScreen.themeId}`);
+    await tapTarget('badge:seal');
     log(`seal -> ${JSON.stringify(await screenOf())}`);
     await page.screenshot({ path: resolve(OUT, 'pack-after-badge.png') });
   }

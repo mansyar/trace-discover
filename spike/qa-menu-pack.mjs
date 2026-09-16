@@ -22,24 +22,31 @@ async function launch() {
   }
 }
 
-const saveFor = (cleared, badge) =>
+const saveFor = (completedLevels, badges) =>
   JSON.stringify({
-    assistWidened: false,
-    badges: [],
-    completedLevels: [],
-    pack: { badge, cleared },
-    settings: { easierTracing: false, muted: false, volume: 1 },
-    version: 2,
+    badges,
+    completedLevels,
+    settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+    trophies: [],
+    version: 3,
   });
 
 const states = [
   ['pack-menu-fresh.png', null],
-  ['pack-menu-progress.png', saveFor(['num-0', 'num-1', 'num-2', 'num-3'], false)],
+  [
+    'pack-menu-progress.png',
+    saveFor(['pre-1', 'pre-2', 'pre-3', 'pre-4', 'num-0', 'num-1'], []),
+  ],
   [
     'pack-menu-badge.png',
     saveFor(
-      ['num-0', 'num-1', 'num-2', 'num-3', 'num-4', 'num-5', 'num-6', 'num-7', 'num-8', 'num-9'],
-      true,
+      [
+        'pre-1', 'pre-2', 'pre-3', 'pre-4', 'pre-5', 'pre-6',
+        'pre-7', 'pre-8', 'pre-9', 'pre-10', 'pre-11', 'pre-12',
+        'num-0', 'num-1', 'num-2', 'num-3', 'num-4',
+        'num-5', 'num-6', 'num-7', 'num-8', 'num-9',
+      ],
+      ['pre-badge', 'numbers-badge'],
     ),
   ],
 ];

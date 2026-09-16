@@ -11,11 +11,12 @@ describe('parent zone', () => {
       layout.volumeUp,
       layout.mute,
       layout.easier,
+      layout.skin,
       layout.reset,
       layout.install,
       layout.done,
     ];
-    expect(buttons).toHaveLength(7);
+    expect(buttons).toHaveLength(8);
     for (const button of buttons) {
       expect(button.radius * 2).toBeGreaterThanOrEqual(90);
       expect(button.x - button.radius).toBeGreaterThanOrEqual(0);
@@ -31,5 +32,22 @@ describe('parent zone', () => {
     expect(hitParentZone(layout, { x: layout.mute.x, y: layout.mute.y })).toBe('mute');
     expect(hitParentZone(layout, { x: layout.reset.x, y: layout.reset.y })).toBe('reset');
     expect(hitParentZone(layout, { x: FIELD_WIDTH / 2, y: 40 })).toBeNull();
+  });
+
+  it('hits the skin setter', () => {
+    const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    expect(hitParentZone(layout, { x: layout.skin.x, y: layout.skin.y })).toBe('skin');
+  });
+
+  it('shows three display-only trophy slots that never steal taps', () => {
+    const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    expect(layout.trophies).toHaveLength(3);
+    layout.trophies.forEach((slot) => {
+      expect(slot.x - slot.radius).toBeGreaterThanOrEqual(0);
+      expect(slot.x + slot.radius).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(slot.y - slot.radius).toBeGreaterThanOrEqual(0);
+      expect(slot.y + slot.radius).toBeLessThanOrEqual(FIELD_HEIGHT);
+      expect(hitParentZone(layout, { x: slot.x, y: slot.y })).toBeNull();
+    });
   });
 });

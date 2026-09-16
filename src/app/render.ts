@@ -7,15 +7,17 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { levelToPath } from '../packs/level';
+import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
+import { mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
-import { levelToPath } from '../themes/level';
-import { NUMBERS_PACK, NUMERAL_LEVELS } from '../themes/numbers';
+import type { SkinDef } from '../skins/skins';
 import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
 import type { PackLayout } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
+import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
-import type { ThemeLayout } from '../ui/theme';
 import type { SessionSnapshot } from './session';
 
 export const NAVY = '#2e4a63';
@@ -47,6 +49,79 @@ export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
 /** Home button on the badge screen (bottom-center). */
 export const BADGE_HOME = { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 90, radius: 48 };
 export const BADGE_SEAL = { x: FIELD_WIDTH / 2, y: 380, radius: 110 };
+
+/** Top-left skin switch: face icon in a ring, poofing outward on cycle. */
+export function drawSkinButton(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  zone: SkinButtonZone,
+  skin: SkinDef,
+  face: HTMLImageElement | null,
+  poofStartedAt: number | null,
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  if (face) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y, zone.radius - 8, 0, Math.PI * 2);
+    ctx.clip();
+    const size = (zone.radius - 8) * 2;
+    ctx.drawImage(face, zone.x - zone.radius + 8, zone.y - zone.radius + 8, size, size);
+    ctx.restore();
+  } else {
+    // Drawn face until the Phase 4 icon batch ships.
+    ctx.fillStyle = skin.accent;
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y, zone.radius - 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = NAVY;
+    ctx.beginPath();
+    ctx.arc(zone.x - 12, zone.y - 8, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(zone.x + 12, zone.y - 8, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(zone.x, zone.y + 4, 15, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  }
+  if (poofStartedAt !== null) {
+    const progress = (now - poofStartedAt) / 450;
+    if (progress >= 0 && progress < 1) {
+      ctx.globalAlpha = 1 - progress;
+      ctx.beginPath();
+      ctx.arc(zone.x, zone.y, zone.radius + 20 * progress, 0, Math.PI * 2);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = skin.accent;
+      ctx.stroke();
+      ctx.fillStyle = skin.accent;
+      for (let i = 0; i < 6; i += 1) {
+        const angle = (Math.PI * 2 * i) / 6 + progress * 0.8;
+        const radius = zone.radius + 10 + 26 * progress;
+        ctx.beginPath();
+        ctx.arc(
+          zone.x + Math.cos(angle) * radius,
+          zone.y + Math.sin(angle) * radius,
+          5 * (1 - progress),
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+  ctx.restore();
+}
 
 /** Paints the cream shell, installs the field transform, and clips to the field. */
 export function beginField(
@@ -241,11 +316,30 @@ export interface PackMenuArt {
   readonly badge: boolean;
 }
 
+/** Skin accent tag: a small identity chip on each pack card. */
+function drawAccentTag(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  accent: string,
+): void {
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, height / 2);
+  ctx.fillStyle = accent;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+}
+
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
   layout: MenuLayout,
   fills: readonly string[],
-  packArt?: PackMenuArt,
+  packArts?: ReadonlyMap<string, PackMenuArt>,
+  accent?: string,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -255,8 +349,12 @@ export function drawMenu(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-    if (card.themeId === NUMBERS_PACK.id) {
-      drawMenuPackCard(ctx, card, packArt);
+    if (accent) {
+      drawAccentTag(ctx, card.x + 16, card.y + 14, 44, 12, accent);
+    }
+    const art = packArts?.get(card.packId);
+    if (art) {
+      drawMenuPackCard(ctx, card, art);
     } else {
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
     }
@@ -273,7 +371,7 @@ export function drawMenu(
   ctx.restore();
 }
 
-/** Pack card: "123" art, a dot strip for cleared numerals, star on badge. */
+/** Pack card: pack art (numbers falls back to "123" strokes), a progress dot strip, star on badge. */
 function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
   const centerX = card.x + card.width / 2;
   const image = art?.image;
@@ -290,8 +388,10 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
       width,
       height,
     );
-  } else {
+  } else if (card.packId === NUMBERS_PACK.id) {
     drawMenuPackArt(ctx, card);
+  } else {
+    drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
   }
   if (!art || art.cleared <= 0) {
     return;
@@ -337,127 +437,6 @@ function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
       );
     }
   });
-}
-
-function drawMiniTrail(
-  ctx: CanvasRenderingContext2D,
-  points: readonly Point[],
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  completed: boolean,
-): void {
-  let minX = Number.POSITIVE_INFINITY;
-  let minY = Number.POSITIVE_INFINITY;
-  let maxX = Number.NEGATIVE_INFINITY;
-  let maxY = Number.NEGATIVE_INFINITY;
-  for (const point of points) {
-    minX = Math.min(minX, point.x);
-    minY = Math.min(minY, point.y);
-    maxX = Math.max(maxX, point.x);
-    maxY = Math.max(maxY, point.y);
-  }
-  const pad = 24;
-  const scale = Math.min(
-    width / Math.max(1, maxX - minX + pad),
-    height / Math.max(1, maxY - minY + pad),
-  );
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, width, height);
-  ctx.clip();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  points.forEach((point, index) => {
-    const px = x + width / 2 + (point.x - (minX + maxX) / 2) * scale;
-    const py = y + height / 2 + (point.y - (minY + maxY) / 2) * scale;
-    if (index === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
-  });
-  ctx.strokeStyle = NAVY;
-  ctx.lineWidth = 14;
-  ctx.stroke();
-  ctx.strokeStyle = completed ? '#f6b45a' : '#cfe3f2';
-  ctx.lineWidth = 9;
-  ctx.stroke();
-  ctx.restore();
-}
-
-export function drawTheme(
-  ctx: CanvasRenderingContext2D,
-  now: number,
-  layout: ThemeLayout,
-  stickers: readonly boolean[],
-  badgeEarned: boolean,
-  highlightBadge: boolean,
-  miniPaths: ReadonlyMap<string, readonly Point[]>,
-  goalImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
-): void {
-  const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
-  drawSeal(ctx, layout.badge.x, layout.badge.y, layout.badge.radius * badgePulse, badgeEarned);
-  layout.cards.forEach((card, index) => {
-    const levelId = card.levelId;
-    ctx.beginPath();
-    ctx.rect(card.x, card.y, card.width, card.height);
-    ctx.fillStyle = '#cfe3f2';
-    ctx.fill();
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = NAVY;
-    ctx.stroke();
-    const points = miniPaths.get(levelId);
-    if (points) {
-      drawMiniTrail(
-        ctx,
-        points,
-        card.x + 14,
-        card.y + 14,
-        card.width - 28,
-        card.height - 28,
-        stickers[index] ?? false,
-      );
-    }
-    if (stickers[index] === true) {
-      drawStar(ctx, card.x + card.width - 30, card.y + 30, 18);
-      ctx.fillStyle = GOLD;
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-    }
-  });
-  layout.slots.forEach((slot, index) => {
-    const earned = stickers[index] === true;
-    const card = layout.cards[index];
-    const image = card ? goalImages.get(card.levelId) : undefined;
-    if (earned && image) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.clip();
-      drawGoalArt(ctx, image, slot.x, slot.y, slot.radius * 2);
-      ctx.restore();
-      ctx.beginPath();
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-    } else {
-      drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
-    }
-  });
-  ctx.beginPath();
-  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff';
-  ctx.fill();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = NAVY;
-  ctx.stroke();
-  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
 /** Paints a multi-stroke numeral scaled into a card with one shared transform. */
@@ -525,6 +504,7 @@ export function drawPack(
   miniPaths: ReadonlyMap<string, readonly (readonly Point[])[]>,
   stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
   badgeImage: HTMLImageElement | null = null,
+  accent?: string,
 ): void {
   const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
   if (badgeEarned && badgeImage) {
@@ -546,7 +526,10 @@ export function drawPack(
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-    const strokes = miniPaths.get(card.numeralId);
+    if (accent) {
+      drawAccentTag(ctx, card.x + 10, card.y + 10, 30, 9, accent);
+    }
+    const strokes = miniPaths.get(card.levelId);
     if (strokes && strokes.length > 0) {
       drawMiniNumeral(
         ctx,
@@ -570,7 +553,7 @@ export function drawPack(
   layout.slots.forEach((slot, index) => {
     const earned = stickers[index] === true;
     const card = layout.cards[index];
-    const sticker = card ? stickerImages.get(card.numeralId) : undefined;
+    const sticker = card ? stickerImages.get(card.levelId) : undefined;
     if (earned && sticker) {
       drawGoalArt(ctx, sticker, slot.x, slot.y, slot.radius * 2.48);
     } else {
@@ -587,14 +570,43 @@ export function drawPack(
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
+/** Drawn stand-in while a skin's backdrop art has not shipped yet. */
+function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent: string): void {
+  const gradient = ctx.createLinearGradient(0, 0, 0, FIELD_HEIGHT);
+  gradient.addColorStop(0, '#20264d');
+  gradient.addColorStop(1, '#4a3b6b');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  const random = mulberry32(7);
+  ctx.fillStyle = '#ffe9a8';
+  for (let i = 0; i < 26; i += 1) {
+    const x = random() * FIELD_WIDTH;
+    const y = random() * FIELD_HEIGHT;
+    const radius = 1.5 + random() * 2.5;
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(now / 600 + i);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  ctx.arc(FIELD_WIDTH / 2, 150, 64, 0, Math.PI * 2);
+  ctx.fillStyle = accent;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
 export function drawLevel(
   ctx: CanvasRenderingContext2D,
   now: number,
   snap: SessionSnapshot,
   art: LevelArt = NO_LEVEL_ART,
+  skin?: SkinDef,
 ): void {
   if (art.backdrop) {
     drawBackdrop(ctx, art.backdrop);
+  } else if (skin) {
+    drawDuskPlaceholder(ctx, now, skin.accent);
   }
   const pulse = 1 + 0.12 * Math.sin(now / 300);
   if (snap.completionStarted && snap.completion.stage === 'glow') {
@@ -752,10 +764,14 @@ function drawZoneButton(
 
 export function drawParent(
   ctx: CanvasRenderingContext2D,
+  now: number,
   layout: ParentZoneLayout,
   settings: ParentSettings,
   confirmReset: boolean,
   showInstall: boolean,
+  skin: SkinDef,
+  skinFace: HTMLImageElement | null,
+  trophies: readonly string[],
 ): void {
   ctx.fillStyle = NAVY;
   ctx.font = '30px system-ui, sans-serif';
@@ -793,7 +809,9 @@ export function drawParent(
   );
   ctx.font = '24px system-ui, sans-serif';
   ctx.fillStyle = NAVY;
-  ctx.fillText('Tracing', FIELD_WIDTH / 2, 322);
+  ctx.textAlign = 'left';
+  ctx.fillText('Tracing', 40, 400);
+  ctx.textAlign = 'center';
   drawZoneButton(
     ctx,
     layout.easier.x,
@@ -803,6 +821,46 @@ export function drawParent(
     '★',
     settings.easierTracing ? 'easier: on' : 'easier: off',
   );
+  const skinButton = layout.skin;
+  drawSkinButton(
+    ctx,
+    now,
+    { radius: skinButton.radius, x: skinButton.x, y: skinButton.y },
+    skin,
+    skinFace,
+    null,
+  );
+  ctx.fillStyle = NAVY;
+  ctx.font = '22px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('skin', skinButton.x, skinButton.y + skinButton.radius + 24);
+  ctx.font = '24px system-ui, sans-serif';
+  ctx.fillText('Trophies', FIELD_WIDTH / 2, 648);
+  layout.trophies.forEach((slot, index) => {
+    ctx.beginPath();
+    if (index < trophies.length) {
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+      drawStar(ctx, slot.x, slot.y, slot.radius - 8);
+      ctx.fillStyle = GOLD;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = NAVY;
+      ctx.stroke();
+    } else {
+      ctx.setLineDash([8, 6]);
+      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(46, 74, 99, 0.35)';
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  });
   drawZoneButton(
     ctx,
     layout.reset.x,

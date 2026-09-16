@@ -1,18 +1,20 @@
-// Dev-only preview for the Phase 4/2 screens (menu / theme / pack / success).
+// Dev-only preview for the shell screens (menu / pack / success).
 // Draws the real layout modules through the real pointer pipeline and
-// wires card taps to the real localStorage save: tapping a level or numeral
-// card completes it (sticker lights), finishing a set earns its badge,
-// double-tapping the badge resets progress. ?screen=theme|pack picks the
-// starting screen for headless screenshots.
+// wires card taps to the real localStorage save: tapping a card completes
+// its level (sticker lights), finishing a pack earns its badge,
+// double-tapping the badge resets progress. ?screen=menu|pack|success picks
+// the starting screen for headless screenshots.
 import '../style.css';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
+import { allPacks } from '../packs/catalog';
+import { levelToPath } from '../packs/level';
+import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
+import { shouldAwardPackBadge } from '../packs/progress';
 import {
   awardBadge,
-  awardPackBadge,
   completeLevel,
-  completeNumeral,
   createDefaultSave,
   loadSave,
   type SaveData,
@@ -20,24 +22,18 @@ import {
 } from '../save/store';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
-import { levelToPath } from '../themes/level';
-import { NUMBERS_PACK, NUMERAL_LEVELS } from '../themes/numbers';
-import { shouldAwardPackBadge } from '../themes/pack';
-import { isThemeComplete, shouldAwardBadge } from '../themes/progress';
 import { hitMenuCard, inParentGate, menuLayout } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
-import { hitThemeCard, themeLayout, themeStickers } from '../ui/theme';
 
-type PreviewScreen = 'menu' | 'pack' | 'success' | 'theme';
+type PreviewScreen = 'menu' | 'pack' | 'success';
 
-const THEME_IDS = ['dino', 'construction', 'animals'];
-const DINO_IDS = ['dino-1', 'dino-2', 'dino-3', 'dino-4'];
+const PACK_IDS = allPacks().map((pack) => pack.id);
 const NUMERALS = NUMERAL_LEVELS.map((level) => level.id);
 const NUMERAL_STROKES = new Map(
   NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
 );
-const MENU_FILLS = ['#8ecae6', '#ffd166', '#90be6d'];
+const MENU_FILLS = allPacks().map((pack) => pack.menuFill);
 const NAVY = '#2e4a63';
 const GOLD = '#e8c15a';
 const CREAM = '#f6e3b8';
@@ -51,7 +47,7 @@ const lines: string[] = [];
 
 let screen: PreviewScreen = 'menu';
 const wanted = new URLSearchParams(window.location.search).get('screen');
-if (wanted === 'theme' || wanted === 'success' || wanted === 'pack') {
+if (wanted === 'success' || wanted === 'pack') {
   screen = wanted;
 }
 let save: SaveData = loadSave(localStorage);
@@ -168,7 +164,7 @@ function drawSuccessIcon(action: SuccessAction, x: number, y: number): void {
 }
 
 function drawMenu(): void {
-  const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, THEME_IDS);
+  const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, PACK_IDS);
   layout.cards.forEach((card, index) => {
     drawCard(card.x, card.y, card.width, card.height, MENU_FILLS[index] ?? '#ffffff');
     drawMenuIcon(index, card.x + card.width / 2, card.y + card.height / 2);
@@ -185,39 +181,17 @@ function drawMenu(): void {
   context.setLineDash([]);
 }
 
-function drawTheme(): void {
-  const layout = themeLayout(FIELD_WIDTH, FIELD_HEIGHT, DINO_IDS);
-  const stickers = themeStickers(save, DINO_IDS);
-  const badged = save.badges.includes('dino');
-  if (badged) {
-    drawCircle(layout.badge.x, layout.badge.y, layout.badge.radius, GOLD);
-  } else {
-    drawDashedCircle(layout.badge.x, layout.badge.y, layout.badge.radius);
-  }
-  layout.cards.forEach((card) => {
-    drawCard(card.x, card.y, card.width, card.height, '#cfe3f2');
-    drawCircle(card.x + card.width / 2, card.y + card.height / 2, 30, '#6fa8d4');
-  });
-  layout.slots.forEach((slot, index) => {
-    if (stickers[index] === true) {
-      drawCircle(slot.x, slot.y, slot.radius, GOLD);
-    } else {
-      drawDashedCircle(slot.x, slot.y, slot.radius);
-    }
-  });
-}
-
 function drawPackPreview(): void {
   const layout = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
   const stickers = packStickers(save, NUMERALS);
-  if (save.pack.badge) {
+  if (save.badges.includes('numbers-badge')) {
     drawCircle(layout.badge.x, layout.badge.y, layout.badge.radius, GOLD);
   } else {
     drawDashedCircle(layout.badge.x, layout.badge.y, layout.badge.radius);
   }
   layout.cards.forEach((card, index) => {
     drawCard(card.x, card.y, card.width, card.height, '#cfe3f2');
-    const strokes = NUMERAL_STROKES.get(card.numeralId);
+    const strokes = NUMERAL_STROKES.get(card.levelId);
     if (strokes) {
       drawNumeralMini(
         strokes,
@@ -328,8 +302,6 @@ function render(): void {
   context.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
   if (screen === 'menu') {
     drawMenu();
-  } else if (screen === 'theme') {
-    drawTheme();
   } else if (screen === 'pack') {
     drawPackPreview();
   } else {
@@ -340,8 +312,6 @@ function render(): void {
 
 function cycle(): void {
   if (screen === 'menu') {
-    screen = 'theme';
-  } else if (screen === 'theme') {
     screen = 'pack';
   } else if (screen === 'pack') {
     screen = 'success';
@@ -351,43 +321,11 @@ function cycle(): void {
   log(`preview: ${screen}`);
 }
 
-function tapTheme(point: Point): void {
-  const layout = themeLayout(FIELD_WIDTH, FIELD_HEIGHT, DINO_IDS);
-  if (
-    Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y) <= layout.badge.radius &&
-    save.badges.includes('dino')
-  ) {
-    const now = performance.now();
-    if (now - lastBadgeTap < DOUBLE_TAP_MS) {
-      save = createDefaultSave();
-      saveSave(localStorage, save);
-      log('progress reset');
-    }
-    lastBadgeTap = now;
-    return;
-  }
-  const levelId = hitThemeCard(layout, point);
-  if (levelId === null) {
-    return;
-  }
-  save = completeLevel(save, levelId);
-  if (shouldAwardBadge(save, 'dino', DINO_IDS)) {
-    save = awardBadge(save, 'dino');
-    log(`complete ${levelId} — badge earned, bonus open`);
-  } else {
-    log(`complete ${levelId} — sticker on`);
-  }
-  saveSave(localStorage, save);
-  if (isThemeComplete(save, DINO_IDS)) {
-    log(`stickers: ${themeStickers(save, DINO_IDS).join(',')}`);
-  }
-}
-
 function tapPack(point: Point): void {
   const layout = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
   if (
     Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y) <= layout.badge.radius &&
-    save.pack.badge
+    save.badges.includes(NUMBERS_PACK.badgeId)
   ) {
     const now = performance.now();
     if (now - lastBadgeTap < DOUBLE_TAP_MS) {
@@ -398,16 +336,16 @@ function tapPack(point: Point): void {
     lastBadgeTap = now;
     return;
   }
-  const numeralId = hitPackCard(layout, point);
-  if (numeralId === null) {
+  const levelId = hitPackCard(layout, point);
+  if (levelId === null) {
     return;
   }
-  save = completeNumeral(save, numeralId);
+  save = completeLevel(save, levelId);
   if (shouldAwardPackBadge(save, NUMBERS_PACK)) {
-    save = awardPackBadge(save);
-    log(`complete ${numeralId} — pack badge earned`);
+    save = awardBadge(save, NUMBERS_PACK.badgeId);
+    log(`complete ${levelId} — pack badge earned`);
   } else {
-    log(`complete ${numeralId} — sticker on`);
+    log(`complete ${levelId} — sticker on`);
   }
   saveSave(localStorage, save);
 }
@@ -419,18 +357,16 @@ function onTap(point: Point): void {
     return;
   }
   if (screen === 'menu') {
-    const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, THEME_IDS);
+    const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, PACK_IDS);
     if (inParentGate(layout, point)) {
       log('parent gate tapped (2-finger hold opens it in the shell)');
     } else {
-      const themeId = hitMenuCard(layout, point);
-      if (themeId !== null) {
-        log(`open theme ${themeId}`);
-        screen = 'theme';
+      const packId = hitMenuCard(layout, point);
+      if (packId !== null) {
+        log(`open pack ${packId}`);
+        screen = 'pack';
       }
     }
-  } else if (screen === 'theme') {
-    tapTheme(point);
   } else if (screen === 'pack') {
     tapPack(point);
   } else {
@@ -439,7 +375,7 @@ function onTap(point: Point): void {
       screen = 'menu';
       log('success: home');
     } else if (action === 'next') {
-      screen = 'theme';
+      screen = 'pack';
       log('success: next');
     } else if (action === 'replay') {
       log('success: replay');

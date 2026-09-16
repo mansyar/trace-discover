@@ -26,6 +26,8 @@
 - **Characters: Rive** — `@rive-app/canvas-lite` 2.42.1 (MIT, ~222 KB brotli) as an npm dependency; script-free `.riv` assets; host TS fires state-machine triggers
 - **Audio: Web Audio API** — synthesized pentatonic sounds; unlocked on first touch
 - **Paths:** code-drawn Canvas trail engine (Path2D, paint-fill, magnetism); level schema v2 — ordered multi-stroke levels (v1 single-stroke content unchanged, engine extended with per-stroke frontiers)
+- **Skins × packs:** content and presentation are orthogonal. `src/skins/` — four skins (dino, star, construction, animal), each carrying a character `.riv`, backdrop, accent, instrument preset, face icon; no levels. `src/packs/` — ordered packs (Pre-writing 12+3, circles unlocking at 4/8/12; Numbers 10); level ids `pre-1..12` / `pre-bonus-1..3` / `num-0..9`; progress + rewards are pack-owned, the skin is cosmetic + persisted (`settings.skin`); replaces the fused `themes/` modules
+- **Character contract:** every skin's `.riv` exposes the same state machine — autoplay idle + `celebrate` trigger; hop placement stays canvas-transform based — making new skins drop-in via the asset pipeline
 
 ## Backend
 
@@ -33,7 +35,7 @@
 
 ## Data & Persistence
 
-**localStorage** — typed save schema v2: cleared levels, stickers, auto-assist state, parent settings + additive `pack` section (numerals cleared, numeral stickers, pack badge); v1 saves migrate losslessly.
+**localStorage** — typed save schema v3: unified `completedLevels` (all packs), `badges` (per pack), `trophies` (legacy world badges, display-only), `settings` (incl. `skin`). Lossless v2→v3 migration (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3` in theme order, `num-*` preserved; world badges→trophies); v1 saves continue to migrate through; hostile-input sanitizing preserved. The write-only `assistWidened` flag is dropped (widening is computed per level at runtime).
 
 ## PWA & Hosting
 
@@ -45,6 +47,7 @@
 - **Rive CLI 1.0.2** — agent-authored RML scenes; local `--once` builds; verify/inspect/screenshot loop
 - **Cloudflare Workers AI** — flux-1-schnell (txt2img) + flux-2-klein-4b (img2img)
 - **Node tools** (in repo): `gen` / `gen2` / `cutout` / `composite` / `gridshot` / `serve` / `browsertest`
+- **Asset batches:** per track — characters (`.riv`), backdrops, goal art, stickers, card art, icons; each asset lands via generate → cutout → optimize → composite → screenshot approval
 
 ## Dev Tooling & Testing
 
@@ -65,7 +68,9 @@
 
 *2026-09-15 — Added (track `cicd-pipeline_20260915`): GitHub Actions CI + tag-driven CD to Cloudflare Pages, with GitHub Release notes. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Verified live same day: `v1.0.0-rc.1` → run 34920856339 deployed to the rc preview and created the prerelease; production untouched.*
 
-*2026-09-15 — Updated (track `letters-numbers-pack_20260915`): level schema v2 — ordered multi-stroke levels (single-stroke v1 content unchanged, per-stroke frontiers in the trail engine); save schema v2 — additive `pack` section (numerals cleared, numeral stickers, pack badge) with lossless v1→v2 migration; dedicated zero-text "123" pack screen pattern (numerals as drawn art, cream shell). Implemented and acceptance-passed 2026-09-15 (Phase 6: numerals 0–9 + `star.riv` guide, dist 6.25 MB); awaits the merge/release decision. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+*2026-09-15 — Updated (track `letters-numbers-pack_20260915`): level schema v2 — ordered multi-stroke levels (single-stroke v1 content unchanged, per-stroke frontiers in the trail engine); save schema v2 — additive `pack` section (numerals cleared, numeral stickers, pack badge) with lossless v1→v2 migration; dedicated zero-text "123" pack screen pattern (numerals as drawn art, cream shell). Implemented and acceptance-passed 2026-09-15 (Phase 6: numerals 0–9 + `star.riv` guide, dist 6.25 MB); merged via PR #2 and released as `v1.0.0` (production live). Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+
+*2026-09-15 — Updated (track `skins-and-packs_20260915`): content/theme decoupling — `skins/` (dino · star · construction · animal) × `packs/` (pre-writing, numbers) registries; save schema v3 with lossless v2→v3 migration; character contract (autoplay idle + `celebrate` trigger) documented for drop-in skins; per-skin instruments (marimba · bell · woodblock · kalimba); content-first menu + top-left skin switch button (tap-to-cycle, persisted). Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/skins-and-packs` (2026-09-16): implemented + acceptance-passed (Android + iPad, toddler session); dist 7.77 MB / 91 precache entries; awaiting the merge/release decision.*
 
 ## Constraints
 

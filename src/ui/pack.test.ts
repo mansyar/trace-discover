@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import {
   completeLevel,
-  completeNumeral,
   createDefaultSave,
   loadSave,
   type SaveStorage,
@@ -22,6 +21,8 @@ const NUMERALS = [
   'num-8',
   'num-9',
 ];
+
+const PRE_IDS = Array.from({ length: 12 }, (_, index) => `pre-${index + 1}`);
 
 function createMemoryStorage(initial: Record<string, string> = {}): SaveStorage {
   const data = new Map<string, string>(Object.entries(initial));
@@ -50,7 +51,7 @@ function cardAt(current: PackLayout, index: number) {
 
 describe('packLayout', () => {
   it('returns one card per numeral id in order', () => {
-    expect(layout().cards.map((card) => card.numeralId)).toEqual(NUMERALS);
+    expect(layout().cards.map((card) => card.levelId)).toEqual(NUMERALS);
   });
 
   it('lays the ten numerals out in a 2-column grid', () => {
@@ -90,7 +91,7 @@ describe('packLayout', () => {
 
   it('gives every numeral a sticker slot below the grid, inside the field', () => {
     const current = layout();
-    expect(current.slots.map((slot) => slot.numeralId)).toEqual(NUMERALS);
+    expect(current.slots.map((slot) => slot.levelId)).toEqual(NUMERALS);
     const gridBottom = Math.max(...current.cards.map((card) => card.y + card.height));
     for (const slot of current.slots) {
       expect(slot.radius).toBeGreaterThan(0);
@@ -146,7 +147,7 @@ describe('packStickers', () => {
 
   it('lights the sticker when its numeral completes, surviving save and load', () => {
     const storage = createMemoryStorage();
-    saveSave(storage, completeNumeral(createDefaultSave(), 'num-4'));
+    saveSave(storage, completeLevel(createDefaultSave(), 'num-4'));
     expect(packStickers(loadSave(storage), NUMERALS)).toEqual([
       false,
       false,
@@ -161,9 +162,64 @@ describe('packStickers', () => {
     ]);
   });
 
-  it('ignores world-level completions', () => {
-    expect(packStickers(completeLevel(createDefaultSave(), 'dino-1'), NUMERALS)).toEqual(
+  it('ignores completions from other packs', () => {
+    expect(packStickers(completeLevel(createDefaultSave(), 'pre-1'), NUMERALS)).toEqual(
       Array.from({ length: 10 }, () => false),
     );
+  });
+});
+
+describe('packLayout (pre-writing configuration)', () => {
+  function preLayout(): PackLayout {
+    return packLayout(FIELD_WIDTH, FIELD_HEIGHT, PRE_IDS, { columns: 3, slotsPerRow: 6 });
+  }
+
+  it('lays twelve levels out in a 3-column grid', () => {
+    const current = preLayout();
+    expect(current.cards.map((card) => card.levelId)).toEqual(PRE_IDS);
+    const rows = new Set(current.cards.map((card) => card.y));
+    expect(rows.size).toBe(4);
+    expect(cardAt(current, 0).y).toBe(cardAt(current, 1).y);
+    expect(cardAt(current, 1).y).toBe(cardAt(current, 2).y);
+    expect(cardAt(current, 0).x).not.toBe(cardAt(current, 1).x);
+    expect(cardAt(current, 1).x).not.toBe(cardAt(current, 2).x);
+  });
+
+  it('keeps every card at toddler size, inside the field, and un-overlapped', () => {
+    const current = preLayout();
+    for (const card of current.cards) {
+      expect(card.width).toBeGreaterThanOrEqual(90);
+      expect(card.height).toBeGreaterThanOrEqual(90);
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.y).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(card.y + card.height).toBeLessThanOrEqual(FIELD_HEIGHT);
+    }
+    for (let a = 0; a < current.cards.length; a++) {
+      for (let b = a + 1; b < current.cards.length; b++) {
+        const first = cardAt(current, a);
+        const second = cardAt(current, b);
+        const separated =
+          first.x + first.width <= second.x ||
+          second.x + second.width <= first.x ||
+          first.y + first.height <= second.y ||
+          second.y + second.height <= first.y;
+        expect(separated).toBe(true);
+      }
+    }
+  });
+
+  it('gives twelve slots in two rows of six below the grid', () => {
+    const current = preLayout();
+    expect(current.slots.map((slot) => slot.levelId)).toEqual(PRE_IDS);
+    const slotRows = new Set(current.slots.map((slot) => slot.y));
+    expect(slotRows.size).toBe(2);
+    const gridBottom = Math.max(...current.cards.map((card) => card.y + card.height));
+    for (const slot of current.slots) {
+      expect(slot.y - slot.radius).toBeGreaterThanOrEqual(gridBottom);
+      expect(slot.x - slot.radius).toBeGreaterThanOrEqual(0);
+      expect(slot.x + slot.radius).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(slot.y + slot.radius).toBeLessThanOrEqual(current.home.y - current.home.radius);
+    }
   });
 });

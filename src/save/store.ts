@@ -1,30 +1,31 @@
 // Versioned localStorage persistence for progress and parent settings.
 // Stickers are derived: clearing a level awards its sticker, so the sticker
 // set is exactly the completed-level set and can never drift out of sync.
-// The storage key keeps its original slot name; the payload `version` field
-// drives schema upgrades (v1 saves migrate losslessly, see sanitizeSave).
+// v3 unifies progress across packs (`completedLevels`), keeps pack badges in
+// `badges`, stores superseded world badges as display-only `trophies`, and
+// carries the active skin in settings. v1/v2 saves migrate losslessly: world
+// ids become pre-writing slots (`dino-N` -> `pre-N`, construction +4,
+// animals +8, bonuses in world order) and numerals move into the same
+// completed list. The storage key keeps its original slot name; the payload
+// `version` field drives schema upgrades.
+import { skinById } from '../skins/skins';
+
 export const SAVE_KEY = 'trace-discover-save-v1';
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface ParentSettings {
   readonly easierTracing: boolean;
   readonly muted: boolean;
+  readonly skin: string;
   readonly volume: number;
 }
 
-/** Numerals-pack progress: cleared numeral ids award their stickers. */
-export interface PackSave {
-  readonly badge: boolean;
-  readonly cleared: readonly string[];
-}
-
 export interface SaveData {
-  readonly assistWidened: boolean;
   readonly badges: readonly string[];
   readonly completedLevels: readonly string[];
-  readonly pack: PackSave;
   readonly settings: ParentSettings;
-  readonly version: 2;
+  readonly trophies: readonly string[];
+  readonly version: 3;
 }
 
 // Minimal surface so tests can inject an in-memory fake; the real
@@ -34,13 +35,28 @@ export interface SaveStorage {
   setItem(key: string, value: string): void;
 }
 
+/** Default skin for fresh saves (first entry of the skin registry). */
+const DEFAULT_SKIN = 'dino';
+
+// Legacy worlds: v1/v2 level ids and badges mapped onto the unified v3 model.
+const LEGACY_BONUS_SLOTS: Record<string, string> = {
+  'animals-bonus': 'pre-bonus-3',
+  'construction-bonus': 'pre-bonus-2',
+  'dino-bonus': 'pre-bonus-1',
+};
+const LEGACY_SLOT_OFFSETS: Record<string, number> = {
+  animals: 8,
+  construction: 4,
+  dino: 0,
+};
+const LEGACY_THEME_IDS = new Set(['animals', 'construction', 'dino']);
+
 export function createDefaultSave(): SaveData {
   return {
-    assistWidened: false,
     badges: [],
     completedLevels: [],
-    pack: { badge: false, cleared: [] },
-    settings: { easierTracing: false, muted: false, volume: 1 },
+    settings: { easierTracing: false, muted: false, skin: DEFAULT_SKIN, volume: 1 },
+    trophies: [],
     version: SAVE_VERSION,
   };
 }
@@ -72,37 +88,15 @@ export function hasSticker(save: SaveData, levelId: string): boolean {
   return save.completedLevels.includes(levelId);
 }
 
-export function awardBadge(save: SaveData, themeId: string): SaveData {
-  if (save.badges.includes(themeId)) {
+export function awardBadge(save: SaveData, badgeId: string): SaveData {
+  if (save.badges.includes(badgeId)) {
     return save;
   }
-  return { ...save, badges: [...save.badges, themeId] };
+  return { ...save, badges: [...save.badges, badgeId] };
 }
 
 export function updateSettings(save: SaveData, partial: Partial<ParentSettings>): SaveData {
   return { ...save, settings: { ...save.settings, ...partial } };
-}
-
-export function setAssistWidened(save: SaveData, widened: boolean): SaveData {
-  return { ...save, assistWidened: widened };
-}
-
-export function completeNumeral(save: SaveData, numeralId: string): SaveData {
-  if (save.pack.cleared.includes(numeralId)) {
-    return save;
-  }
-  return { ...save, pack: { ...save.pack, cleared: [...save.pack.cleared, numeralId] } };
-}
-
-export function hasNumeralSticker(save: SaveData, numeralId: string): boolean {
-  return save.pack.cleared.includes(numeralId);
-}
-
-export function awardPackBadge(save: SaveData): SaveData {
-  if (save.pack.badge) {
-    return save;
-  }
-  return { ...save, pack: { ...save.pack, badge: true } };
 }
 
 function asStringArray(value: unknown): string[] {
@@ -128,17 +122,74 @@ function asSettings(value: unknown, fallback: ParentSettings): ParentSettings {
     'easierTracing' in value && typeof value.easierTracing === 'boolean'
       ? value.easierTracing
       : fallback.easierTracing;
+  const skin =
+    'skin' in value && typeof value.skin === 'string' && skinById(value.skin) !== undefined
+      ? value.skin
+      : fallback.skin;
   const volume = 'volume' in value ? asVolume(value.volume, fallback.volume) : fallback.volume;
-  return { easierTracing, muted, volume };
+  return { easierTracing, muted, skin, volume };
 }
 
-function asPack(value: unknown, fallback: PackSave): PackSave {
+function asClearedList(value: unknown): string[] {
   if (typeof value !== 'object' || value === null) {
-    return fallback;
+    return [];
   }
-  const cleared = 'cleared' in value ? asStringArray(value.cleared) : fallback.cleared;
-  const badge = 'badge' in value && typeof value.badge === 'boolean' ? value.badge : fallback.badge;
-  return { badge, cleared };
+  return 'cleared' in value ? asStringArray(value.cleared) : [];
+}
+
+function asPackBadgeEarned(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  return 'badge' in value && typeof value.badge === 'boolean' ? value.badge : false;
+}
+
+/** `dino-1` -> `pre-1`, `construction-1` -> `pre-5`, `dino-bonus` -> `pre-bonus-1`; unknown ids drop. */
+function migrateLevelId(id: string): string | null {
+  if (id.startsWith('pre-') || id.startsWith('num-')) {
+    return id;
+  }
+  const bonusSlot = LEGACY_BONUS_SLOTS[id];
+  if (bonusSlot !== undefined) {
+    return bonusSlot;
+  }
+  const slot = /^(dino|construction|animals)-([1-4])$/.exec(id);
+  const theme = slot?.[1];
+  const index = slot?.[2];
+  if (theme !== undefined && index !== undefined) {
+    const offset = LEGACY_SLOT_OFFSETS[theme];
+    if (offset !== undefined) {
+      return `pre-${offset + Number(index)}`;
+    }
+  }
+  return null;
+}
+
+function migrateLevelIds(ids: readonly string[]): string[] {
+  const migrated: string[] = [];
+  for (const id of ids) {
+    const mapped = migrateLevelId(id);
+    if (mapped !== null) {
+      migrated.push(mapped);
+    }
+  }
+  return migrated;
+}
+
+/** v1/v2 -> v3: world slots merge with numerals, world badges become trophies. */
+function migrateLegacySave(parsed: object, settings: ParentSettings): SaveData {
+  const levels = 'completedLevels' in parsed ? asStringArray(parsed.completedLevels) : [];
+  const pack = 'pack' in parsed ? parsed.pack : undefined;
+  const badges = 'badges' in parsed ? asStringArray(parsed.badges) : [];
+  return {
+    // Migration literals are historical wire formats: 'numbers-badge' is the
+    // exact id v2 wrote, so it must not be re-pointed at the live registry.
+    badges: asPackBadgeEarned(pack) ? ['numbers-badge'] : [],
+    completedLevels: [...migrateLevelIds(levels), ...migrateLevelIds(asClearedList(pack))],
+    settings,
+    trophies: badges.filter((id) => LEGACY_THEME_IDS.has(id)),
+    version: SAVE_VERSION,
+  };
 }
 
 function sanitizeSave(parsed: unknown): SaveData {
@@ -146,18 +197,26 @@ function sanitizeSave(parsed: unknown): SaveData {
   if (typeof parsed !== 'object' || parsed === null) {
     return fallback;
   }
-  if (!('version' in parsed) || (parsed.version !== 1 && parsed.version !== SAVE_VERSION)) {
+  if (!('version' in parsed)) {
     return fallback;
   }
-  const completedLevels =
-    'completedLevels' in parsed ? asStringArray(parsed.completedLevels) : fallback.completedLevels;
-  const badges = 'badges' in parsed ? asStringArray(parsed.badges) : fallback.badges;
+  const version: unknown = parsed.version;
+  if (version !== 1 && version !== 2 && version !== SAVE_VERSION) {
+    return fallback;
+  }
   const settings =
     'settings' in parsed ? asSettings(parsed.settings, fallback.settings) : fallback.settings;
-  const assistWidened =
-    'assistWidened' in parsed && typeof parsed.assistWidened === 'boolean'
-      ? parsed.assistWidened
-      : fallback.assistWidened;
-  const pack = 'pack' in parsed ? asPack(parsed.pack, fallback.pack) : fallback.pack;
-  return { assistWidened, badges, completedLevels, pack, settings, version: SAVE_VERSION };
+  if (version === SAVE_VERSION) {
+    return {
+      badges: 'badges' in parsed ? asStringArray(parsed.badges) : fallback.badges,
+      completedLevels:
+        'completedLevels' in parsed
+          ? asStringArray(parsed.completedLevels)
+          : fallback.completedLevels,
+      settings,
+      trophies: 'trophies' in parsed ? asStringArray(parsed.trophies) : fallback.trophies,
+      version: SAVE_VERSION,
+    };
+  }
+  return migrateLegacySave(parsed, settings);
 }

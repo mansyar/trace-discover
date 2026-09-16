@@ -16,38 +16,47 @@ import {
   drawMenu,
   drawPack,
   drawParent,
+  drawSkinButton,
   drawSplash,
   drawSuccess,
-  drawTheme,
   endField,
   type LevelArt,
   NO_LEVEL_ART,
+  type PackMenuArt,
 } from './app/render';
 import { createSession, type LevelSession } from './app/session';
+import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
-import { createUnlockGate } from './audio/synth';
+import { createUnlockGate, presetForInstrument } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
 import { type HopTimeline, hopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
-import { loadSave, saveSave, setAssistWidened } from './save/store';
+import { allPacks, packById } from './packs/catalog';
+import { type LevelDef, levelToPath } from './packs/level';
+import { NUMBERS_PACK } from './packs/numbers';
+import { firstUnlockedBonusId } from './packs/progress';
+import { loadSave, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
-import { allThemeIds, themeEntry } from './themes/catalog';
-import { type LevelDef, levelToPath } from './themes/level';
-import { NUMBERS_PACK, NUMERAL_LEVELS } from './themes/numbers';
-import { packLevelIds } from './themes/pack';
-import { isBonusOpen } from './themes/progress';
+import { SKINS, type SkinDef, skinById } from './skins/skins';
 import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
-import { hitPackCard, hitPackHome, packLayout, packStickers } from './ui/pack';
+import {
+  hitPackCard,
+  hitPackHome,
+  type PackLayout,
+  type PackLayoutOptions,
+  packLayout,
+  packStickers,
+} from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import { hitParentZone, parentZoneLayout } from './ui/parentZone';
+import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
 import { hitSuccessButton, successLayout } from './ui/success';
-import { hitThemeCard, hitThemeHome, themeLayout, themeStickers } from './ui/theme';
 
 const CHARACTER_SCALE = 0.62;
 const CHARACTER_OFFSET_Y = 0.38;
@@ -64,20 +73,57 @@ function requireCharCanvas(doc: Document): HTMLCanvasElement {
   return canvas;
 }
 
-const THEME_IDS = allThemeIds();
-const NUMERIC_IDS = packLevelIds(NUMBERS_PACK);
-const MENU = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, [...THEME_IDS, NUMBERS_PACK.id]);
-const MENU_FILLS = [
-  ...THEME_IDS.map((id) => themeEntry(id)?.menuFill ?? '#ffffff'),
-  NUMBERS_PACK.menuFill,
-];
-const PACK = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERIC_IDS);
-const NUMERAL_MINI = new Map(
-  NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
+const PACKS = allPacks();
+const MENU = menuLayout(
+  FIELD_WIDTH,
+  FIELD_HEIGHT,
+  PACKS.map((pack) => pack.id),
+);
+const MENU_FILLS = PACKS.map((pack) => pack.menuFill);
+// Grid shape per pack: pre-writing carries 12 levels (3 columns), numbers 10.
+const PACK_GRID: Readonly<Record<string, PackLayoutOptions>> = {
+  pre: { columns: 3, slotsPerRow: 6 },
+};
+const PACK_LAYOUTS = new Map<string, PackLayout>(
+  PACKS.map(
+    (pack) =>
+      [
+        pack.id,
+        packLayout(
+          FIELD_WIDTH,
+          FIELD_HEIGHT,
+          pack.levels.map((level) => level.id),
+          PACK_GRID[pack.id],
+        ),
+      ] as const,
+  ),
+);
+const PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>(
+  PACKS.map(
+    (pack) =>
+      [
+        pack.id,
+        new Map(pack.levels.map((level) => [level.id, levelToPath(level)] as const)),
+      ] as const,
+  ),
 );
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const SPLASH = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const PARENT = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+const SKIN_BUTTON = skinButtonLayout();
+/** Child screens that show the tap-to-cycle skin switch. */
+const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
+  'menu',
+  'pack',
+  'level',
+  'success',
+  'badge',
+]);
+/** Idle mascot parking + scale on menu/pack (pack fits between grid and shelf). */
+const MASCOT_SCALE_MENU = 0.32;
+const MASCOT_SCALE_PACK = 0.26;
+const MENU_PARK: Point = { x: FIELD_WIDTH / 2, y: 735 };
+const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
 
 let app: AppState = startApp(loadSave(localStorage));
 let session: LevelSession | null = null;
@@ -87,24 +133,11 @@ let gateState: ParentGateState = PARENT_GATE_START;
 const gatePointers = new Set<number>();
 let detachInput = (): void => {};
 let lastTime = performance.now();
-
-const miniCache = new Map<string, ReadonlyMap<string, readonly Point[]>>();
-function miniPaths(themeId: string): ReadonlyMap<string, readonly Point[]> {
-  const cached = miniCache.get(themeId);
-  if (cached) {
-    return cached;
-  }
-  const entry = themeEntry(themeId);
-  const paths = new Map<string, readonly Point[]>();
-  for (const level of entry?.mainLevels ?? []) {
-    const [path] = levelToPath(level);
-    if (path) {
-      paths.set(level.id, path);
-    }
-  }
-  miniCache.set(themeId, paths);
-  return paths;
-}
+let lastSkinTap: number | null = null;
+let skinPoofAt: number | null = null;
+let currentRun: { level: LevelDef; packId: string; levelId: string } | null = null;
+let pendingSkinSwap = false;
+let idleCharFor: string | null = null;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -153,11 +186,16 @@ function preloadArt(url: string): void {
   });
 }
 
+// Face icons for the skin button; missing files (pre-Phase-4) fall back to a drawn face.
+for (const skin of SKINS) {
+  preloadArt(skin.face);
+}
+
 /** Art refs for the active session's level; null once the session hands off. */
 let levelArtUrls: { backdrop: string; goal: string; sticker?: string } | null = null;
 
-function packBadgeArt(): HTMLImageElement | null {
-  const url = '/art/pack/badge.png';
+function packBadgeArt(packId: string): HTMLImageElement | null {
+  const url = packId === NUMBERS_PACK.id ? '/art/pack/badge.png' : `/art/pack/${packId}-badge.png`;
   preloadArt(url);
   return artCache.get(url) ?? null;
 }
@@ -176,38 +214,119 @@ function currentLevelArt(): LevelArt {
 function hideCharacter(): void {
   character?.dispose();
   character = null;
+  idleCharFor = null;
   charCanvas.style.display = 'none';
 }
 
-function enterLevel(themeId: string, levelId: string): void {
-  const entry = themeEntry(themeId);
-  const level =
-    entry?.mainLevels.find((candidate) => candidate.id === levelId) ??
-    (entry?.bonus.id === levelId ? entry.bonus : undefined);
-  if (!entry || !level) {
+/** The persisted skin; falls back to the first registry entry. */
+function activeSkin(): SkinDef {
+  const skin = skinById(app.save.settings.skin);
+  if (skin) {
+    return skin;
+  }
+  const fallback = SKINS[0];
+  if (!fallback) {
+    throw new Error('The skin registry is empty.');
+  }
+  return fallback;
+}
+
+/** Loads (or reuses) the character sprite for a skin; reused across menu <-> pack. */
+function ensureCharacter(name: string, forceReload = false): void {
+  if (!forceReload && character && idleCharFor === name) {
+    charCanvas.style.display = 'block';
     return;
   }
-  const mainIds = entry.mainLevels.map((candidate) => candidate.id);
-  if (entry.bonus.id === levelId && !isBonusOpen(app.save, themeId, mainIds)) {
+  hideCharacter();
+  charCanvas.style.display = 'block';
+  character = loadCharacter({
+    canvas: charCanvas,
+    riveFactory: canvasLiteFactory,
+    src: `/rive/${name}.riv`,
+    stateMachine: 'State Machine 1',
+  });
+  idleCharFor = name;
+}
+
+/** Places the mascot canvas: field-space park point + character scale. */
+function positionCharacter(park: Point, scale: number): void {
+  const charSize = field.width * scale;
+  if (charCanvas.style.width !== `${charSize}px`) {
+    charCanvas.style.width = `${charSize}px`;
+    charCanvas.style.height = `${charSize}px`;
+    character?.resize();
+  }
+  const cssX = field.x + (park.x / FIELD_WIDTH) * field.width;
+  const cssY = field.y + (park.y / FIELD_HEIGHT) * field.height + charSize * CHARACTER_OFFSET_Y;
+  charCanvas.style.transform = `translate(${cssX - charSize / 2}px, ${cssY - charSize / 2}px)`;
+}
+
+/** Re-resolves the running level against the active skin after a swap. */
+function reloadLevelSkin(): void {
+  if (!session || !currentRun) {
+    return;
+  }
+  const presentation = levelPresentation(activeSkin(), currentRun.level);
+  levelArtUrls = presentation;
+  preloadArt(presentation.backdrop);
+  preloadArt(presentation.goal);
+  preloadArt(presentation.sticker);
+  ensureCharacter(presentation.character, true);
+}
+
+/** Menu + pack screens show the active skin's character idling ("parked"). */
+function syncIdleMascot(): void {
+  const screen = app.screen;
+  if (screen.name === 'menu' || screen.name === 'pack') {
+    ensureCharacter(activeSkin().character);
+    return;
+  }
+  if (screen.name === 'splash' || screen.name === 'badge' || screen.name === 'parent') {
+    if (character) {
+      hideCharacter();
+    }
+  }
+}
+
+/** Numerals celebrate with counted hops; other levels use the default plan. */
+function hopPlanFor(packId: string, levelId: string): HopTimeline | undefined {
+  if (packId !== NUMBERS_PACK.id) {
+    return undefined;
+  }
+  const count = Number.parseInt(levelId.slice('num-'.length), 10);
+  return Number.isNaN(count) ? undefined : hopTimeline(count);
+}
+
+/** Opens any level (main or circle) of a pack under the active skin. */
+function enterPackLevel(packId: string, levelId: string): void {
+  const pack = packById(packId);
+  const level = pack
+    ? [...pack.levels, ...pack.bonuses].find((candidate) => candidate.id === levelId)
+    : undefined;
+  if (!pack || !level) {
     return;
   }
   const player = ensureAudio();
   if (!player) {
     return;
   }
-  commit(applyAppEvent(app, { type: 'open-level', themeId, levelId }));
+  commit(applyAppEvent(app, { type: 'open-level', packId, levelId }));
   if (app.screen.name !== 'level') {
     return;
   }
-  const seed = 7 + mainIds.indexOf(levelId) * 13;
+  const skin = activeSkin();
+  const index = pack.levels.findIndex((candidate) => candidate.id === levelId);
+  const seed = 7 + (index >= 0 ? index : pack.levels.length) * 13;
+  const presentation = levelPresentation(skin, level);
   startRun(
     level,
-    { backdrop: entry.theme.backdrop, goal: level.goalArt },
-    entry.theme.character,
+    presentation,
+    presentation.character,
     seed,
-    themeId,
+    packId,
     levelId,
     player,
+    hopPlanFor(packId, levelId),
   );
 }
 
@@ -217,12 +336,13 @@ function startRun(
   art: { backdrop: string; goal: string; sticker?: string },
   characterName: string,
   seed: number,
-  themeId: string,
+  packId: string,
   levelId: string,
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
   levelArtUrls = art;
+  currentRun = { level, packId, levelId };
   if (art.backdrop) {
     preloadArt(art.backdrop);
   }
@@ -230,24 +350,16 @@ function startRun(
   if (art.sticker) {
     preloadArt(art.sticker);
   }
-  hideCharacter();
-  charCanvas.style.display = 'block';
-  character = loadCharacter({
-    canvas: charCanvas,
-    riveFactory: canvasLiteFactory,
-    src: `/rive/${characterName}.riv`,
-    stateMachine: 'State Machine 1',
-  });
+  ensureCharacter(characterName, true);
   session = createSession(level, {
     character: {
       fire: (trigger) => character?.fire(trigger) ?? false,
     },
     hopPlan,
+    instrument: () => presetForInstrument(activeSkin().instrument),
     onEvent: (event) => {
-      if (event.type === 'assist-widened') {
-        commit({ ...app, save: setAssistWidened(app.save, true) });
-      } else if (session) {
-        commit(applyAppEvent(app, { type: 'level-complete', themeId, levelId }));
+      if (event.type === 'level-done' && session) {
+        commit(applyAppEvent(app, { type: 'level-complete', packId, levelId }));
       }
     },
     player,
@@ -256,91 +368,70 @@ function startRun(
   });
 }
 
-/** Numerals run the shared level flow with the star guide and counted hops. */
-function enterNumeral(numeralId: string): void {
-  const level = NUMERAL_LEVELS.find((candidate) => candidate.id === numeralId);
-  if (!level) {
-    return;
-  }
-  const player = ensureAudio();
-  if (!player) {
-    return;
-  }
-  commit(applyAppEvent(app, { type: 'open-level', themeId: NUMBERS_PACK.id, levelId: numeralId }));
-  if (app.screen.name !== 'level') {
-    return;
-  }
-  const count = Number.parseInt(numeralId.slice('num-'.length), 10);
-  const hopPlan = Number.isNaN(count) ? undefined : hopTimeline(count);
-  const seed = 7 + NUMERIC_IDS.indexOf(numeralId) * 13;
-  startRun(
-    level,
-    { backdrop: '', goal: level.goalArt, sticker: `/art/sticker/${numeralId}.png` },
-    'star',
-    seed,
-    NUMBERS_PACK.id,
-    numeralId,
-    player,
-    hopPlan,
-  );
-}
-
-function enterScreenLevel(themeId: string, levelId: string): void {
-  if (themeId === NUMBERS_PACK.id) {
-    enterNumeral(levelId);
-  } else {
-    enterLevel(themeId, levelId);
-  }
-}
-
 const handlers: TraceHandlers = {
   onDown: (point) => {
     ensureAudio();
+    const tapNow = performance.now();
+    if (SKIN_BUTTON_SCREENS.has(app.screen.name) && hitSkinButton(SKIN_BUTTON, point)) {
+      if (canCycleSkin(tapNow, lastSkinTap)) {
+        lastSkinTap = tapNow;
+        skinPoofAt = tapNow;
+        commit(applyAppEvent(app, { type: 'skin-cycle' }));
+        pop();
+        const cycling = app.screen;
+        if ((cycling.name === 'level' || cycling.name === 'success') && session) {
+          if (
+            shouldDeferSkinSwap({
+              completionStarted: session.snapshot().completionStarted,
+              success: session.success,
+            })
+          ) {
+            pendingSkinSwap = true;
+          } else {
+            reloadLevelSkin();
+          }
+        }
+      }
+      return;
+    }
     const screen = app.screen;
     if (screen.name === 'splash') {
       commit(applyAppEvent(app, { type: 'splash-tap' }));
       pop();
     } else if (screen.name === 'menu') {
-      const cardId = hitMenuCard(MENU, point);
-      if (cardId === NUMBERS_PACK.id) {
-        commit(applyAppEvent(app, { type: 'open-pack' }));
-        pop();
-      } else if (cardId) {
-        commit(applyAppEvent(app, { type: 'open-theme', themeId: cardId }));
+      const packId = hitMenuCard(MENU, point);
+      if (packId) {
+        commit(applyAppEvent(app, { type: 'open-pack', packId }));
         pop();
       }
     } else if (screen.name === 'pack') {
-      const numeralId = hitPackCard(PACK, point);
-      if (numeralId) {
-        enterNumeral(numeralId);
+      const layout = PACK_LAYOUTS.get(screen.packId);
+      if (!layout) {
         return;
       }
-      if (hitPackHome(PACK, point)) {
+      const levelId = hitPackCard(layout, point);
+      if (levelId) {
+        enterPackLevel(screen.packId, levelId);
+        return;
+      }
+      if (hitPackHome(layout, point)) {
         commit(applyAppEvent(app, { type: 'pack-back' }));
         pop();
-      }
-    } else if (screen.name === 'theme') {
-      const entry = themeEntry(screen.themeId);
-      const layout = themeLayout(
-        FIELD_WIDTH,
-        FIELD_HEIGHT,
-        entry?.mainLevels.map((level) => level.id) ?? [],
-      );
-      const levelId = hitThemeCard(layout, point);
-      if (levelId) {
-        enterLevel(screen.themeId, levelId);
         return;
       }
-      if (hitThemeHome(layout, point)) {
-        commit(applyAppEvent(app, { type: 'theme-back' }));
-        pop();
-        return;
-      }
-      if (entry) {
-        const distance = Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y);
-        const mainIds = entry.mainLevels.map((level) => level.id);
-        if (distance <= layout.badge.radius + 8 && isBonusOpen(app.save, screen.themeId, mainIds)) {
-          enterLevel(screen.themeId, entry.bonus.id);
+      const pack = packById(screen.packId);
+      const badgeDistance = Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y);
+      if (
+        pack &&
+        firstUnlockedBonusId(app.save, pack) !== null &&
+        badgeDistance <= layout.badge.radius + 8
+      ) {
+        commit(applyAppEvent(app, { type: 'badge-tap', packId: screen.packId }));
+        const badgeNext = app.screen;
+        if (badgeNext.name === 'level') {
+          enterPackLevel(badgeNext.packId, badgeNext.levelId);
+        } else {
+          pop();
         }
       }
     } else if (screen.name === 'level' || screen.name === 'success') {
@@ -350,16 +441,18 @@ const handlers: TraceHandlers = {
       if (session.success) {
         const action = hitSuccessButton(SUCCESS, point);
         if (action) {
-          const { themeId, levelId } = screen;
-          commit(applyAppEvent(app, { type: 'success-action', action, themeId, levelId }));
+          const { packId, levelId } = screen;
+          commit(applyAppEvent(app, { type: 'success-action', action, packId, levelId }));
           pop();
           const next = app.screen;
           if (next.name === 'level') {
-            enterScreenLevel(next.themeId, next.levelId);
+            enterPackLevel(next.packId, next.levelId);
           } else if (next.name !== 'success') {
             hideCharacter();
             session = null;
             levelArtUrls = null;
+            currentRun = null;
+            pendingSkinSwap = false;
           }
         }
         return;
@@ -372,14 +465,12 @@ const handlers: TraceHandlers = {
         pop();
         return;
       }
-      if (screen.themeId === NUMBERS_PACK.id) {
-        commit(applyAppEvent(app, { type: 'badge-tap', themeId: screen.themeId }));
+      commit(applyAppEvent(app, { type: 'badge-tap', packId: screen.packId }));
+      const next = app.screen;
+      if (next.name === 'level') {
+        enterPackLevel(next.packId, next.levelId);
+      } else {
         pop();
-        return;
-      }
-      const entry = themeEntry(screen.themeId);
-      if (entry) {
-        enterLevel(screen.themeId, entry.bonus.id);
       }
     } else if (screen.name === 'parent') {
       const action = hitParentZone(PARENT, point);
@@ -447,6 +538,23 @@ function frame(now: number): void {
   if ((app.screen.name === 'level' || app.screen.name === 'success') && session) {
     session.update(dtMs);
   }
+  if (pendingSkinSwap) {
+    if (!session) {
+      pendingSkinSwap = false;
+    } else {
+      const snap = session.snapshot();
+      if (
+        !shouldDeferSkinSwap({
+          completionStarted: snap.completionStarted,
+          success: session.success,
+        })
+      ) {
+        pendingSkinSwap = false;
+        reloadLevelSkin();
+      }
+    }
+  }
+  syncIdleMascot();
   render(now);
   requestAnimationFrame(frame);
 }
@@ -458,88 +566,91 @@ function render(now: number): void {
   if (screen.name === 'splash') {
     drawSplash(trailContext, now, SPLASH);
   } else if (screen.name === 'menu') {
-    const cardUrl = '/art/pack/card.png';
-    preloadArt(cardUrl);
-    drawMenu(trailContext, MENU, MENU_FILLS, {
-      image: artCache.get(cardUrl) ?? null,
-      cleared: app.save.pack.cleared.length,
-      total: NUMERIC_IDS.length,
-      badge: app.save.pack.badge,
-    });
-  } else if (screen.name === 'theme') {
-    const entry = themeEntry(screen.themeId);
-    const mainIds = entry?.mainLevels.map((level) => level.id) ?? [];
-    const levels = entry ? [...entry.mainLevels, entry.bonus] : [];
-    for (const level of levels) {
-      preloadArt(level.goalArt);
+    const packArts = new Map<string, PackMenuArt>();
+    for (const pack of PACKS) {
+      // Numbers keeps its v1 card.png filename; other packs follow card-<packId>.png.
+      const cardUrl =
+        pack.id === NUMBERS_PACK.id ? '/art/pack/card.png' : `/art/pack/card-${pack.id}.png`;
+      preloadArt(cardUrl);
+      packArts.set(pack.id, {
+        image: artCache.get(cardUrl) ?? null,
+        cleared: pack.levels.filter((level) => app.save.completedLevels.includes(level.id)).length,
+        total: pack.levels.length,
+        badge: app.save.badges.includes(pack.badgeId),
+      });
     }
-    const goalImages = new Map<string, HTMLImageElement>();
-    for (const level of levels) {
-      const image = artCache.get(level.goalArt);
-      if (image) {
-        goalImages.set(level.id, image);
-      }
-    }
-    drawTheme(
-      trailContext,
-      now,
-      themeLayout(FIELD_WIDTH, FIELD_HEIGHT, mainIds),
-      themeStickers(app.save, mainIds),
-      (app.save.badges ?? []).includes(screen.themeId),
-      app.pendingBadge === screen.themeId,
-      miniPaths(screen.themeId),
-      goalImages,
-    );
+    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent);
   } else if (screen.name === 'pack') {
-    const stickerImages = new Map<string, HTMLImageElement>();
-    for (const numeral of NUMERAL_LEVELS) {
-      const url = `/art/sticker/${numeral.id}.png`;
-      preloadArt(url);
-      const image = artCache.get(url);
-      if (image) {
-        stickerImages.set(numeral.id, image);
+    const pack = packById(screen.packId);
+    const layout = PACK_LAYOUTS.get(screen.packId);
+    if (pack && layout) {
+      const levelIds = pack.levels.map((level) => level.id);
+      const stickerImages = new Map<string, HTMLImageElement>();
+      for (const level of pack.levels) {
+        const url = `/art/sticker/${level.id}.png`;
+        preloadArt(url);
+        const image = artCache.get(url);
+        if (image) {
+          stickerImages.set(level.id, image);
+        }
       }
+      drawPack(
+        trailContext,
+        now,
+        layout,
+        packStickers(app.save, levelIds),
+        app.save.badges.includes(pack.badgeId),
+        app.pendingBadge === pack.badgeId,
+        PACK_MINIS.get(pack.id) ?? new Map(),
+        stickerImages,
+        packBadgeArt(pack.id),
+        activeSkin().accent,
+      );
     }
-    drawPack(
-      trailContext,
-      now,
-      PACK,
-      packStickers(app.save, NUMERIC_IDS),
-      app.save.pack.badge,
-      app.pendingBadge === NUMBERS_PACK.id,
-      NUMERAL_MINI,
-      stickerImages,
-      packBadgeArt(),
-    );
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
-    drawLevel(trailContext, now, snap, currentLevelArt());
+    drawLevel(trailContext, now, snap, currentLevelArt(), activeSkin());
     if (session.success) {
       drawSuccess(trailContext, SUCCESS);
     }
   } else if (screen.name === 'success' && session) {
     // Level completed but the session already handed off (e.g. after a
     // settings round-trip): keep the frozen tableau behind the buttons.
-    drawLevel(trailContext, now, session.snapshot(), currentLevelArt());
+    drawLevel(trailContext, now, session.snapshot(), currentLevelArt(), activeSkin());
     drawSuccess(trailContext, SUCCESS);
   } else if (screen.name === 'badge') {
-    drawBadge(trailContext, now, screen.themeId === NUMBERS_PACK.id ? packBadgeArt() : null);
+    drawBadge(trailContext, now, packBadgeArt(screen.packId));
   } else if (screen.name === 'parent') {
-    drawParent(trailContext, PARENT, app.save.settings, screen.confirmReset, screen.showInstall);
+    drawParent(
+      trailContext,
+      now,
+      PARENT,
+      app.save.settings,
+      screen.confirmReset,
+      screen.showInstall,
+      activeSkin(),
+      artCache.get(activeSkin().face) ?? null,
+      app.save.trophies,
+    );
+  }
+  if (SKIN_BUTTON_SCREENS.has(screen.name)) {
+    const skin = activeSkin();
+    drawSkinButton(
+      trailContext,
+      now,
+      SKIN_BUTTON,
+      skin,
+      artCache.get(skin.face) ?? null,
+      skinPoofAt,
+    );
   }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
-    const charSize = field.width * CHARACTER_SCALE;
-    if (charCanvas.style.width !== `${charSize}px`) {
-      charCanvas.style.width = `${charSize}px`;
-      charCanvas.style.height = `${charSize}px`;
-      character?.resize();
-    }
-    const charPos = session.snapshot().charPos;
-    const cssX = field.x + (charPos.x / FIELD_WIDTH) * field.width;
-    const cssY =
-      field.y + (charPos.y / FIELD_HEIGHT) * field.height + charSize * CHARACTER_OFFSET_Y;
-    charCanvas.style.transform = `translate(${cssX - charSize / 2}px, ${cssY - charSize / 2}px)`;
+    positionCharacter(session.snapshot().charPos, CHARACTER_SCALE);
+  } else if (screen.name === 'menu') {
+    positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
+  } else if (screen.name === 'pack') {
+    positionCharacter(PACK_PARK, MASCOT_SCALE_PACK);
   } else if (charCanvas.style.display !== 'none') {
     charCanvas.style.display = 'none';
   }
@@ -569,57 +680,58 @@ interface AppTarget {
 }
 
 function screenTargets(): AppTarget[] {
+  const skinTarget: AppTarget = { id: 'skin:cycle', x: SKIN_BUTTON.x, y: SKIN_BUTTON.y };
   const screen = app.screen;
   if (screen.name === 'splash') {
     return [{ id: 'splash', x: SPLASH.centerX, y: SPLASH.centerY }];
   }
   if (screen.name === 'menu') {
     const cards = MENU.cards.map((card) => ({
-      id: card.themeId === NUMBERS_PACK.id ? 'pack' : `theme:${card.themeId}`,
+      id: `pack:${card.packId}`,
       x: card.x + card.width / 2,
       y: card.y + card.height / 2,
     }));
     const gate = MENU.parentGate;
-    return [...cards, { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 }];
-  }
-  if (screen.name === 'pack') {
     return [
-      ...PACK.cards.map((card) => ({
-        id: `numeral:${card.numeralId}`,
-        x: card.x + card.width / 2,
-        y: card.y + card.height / 2,
-      })),
-      { id: 'pack:home', x: PACK.home.x, y: PACK.home.y },
+      ...cards,
+      { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 },
+      skinTarget,
     ];
   }
-  if (screen.name === 'theme') {
-    const entry = themeEntry(screen.themeId);
-    const layout = themeLayout(
-      FIELD_WIDTH,
-      FIELD_HEIGHT,
-      entry?.mainLevels.map((level) => level.id) ?? [],
-    );
+  if (screen.name === 'pack') {
+    const layout = PACK_LAYOUTS.get(screen.packId);
+    if (!layout) {
+      return [];
+    }
     return [
       ...layout.cards.map((card) => ({
         id: `level:${card.levelId}`,
         x: card.x + card.width / 2,
         y: card.y + card.height / 2,
       })),
-      { id: `bonus:${screen.themeId}`, x: layout.badge.x, y: layout.badge.y },
-      { id: 'theme:home', x: layout.home.x, y: layout.home.y },
+      { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
+      { id: 'pack:home', x: layout.home.x, y: layout.home.y },
+      skinTarget,
     ];
   }
+  if (screen.name === 'level') {
+    return [skinTarget];
+  }
   if (screen.name === 'success') {
-    return SUCCESS.buttons.map((button) => ({
-      id: `success:${button.action}`,
-      x: button.x,
-      y: button.y,
-    }));
+    return [
+      ...SUCCESS.buttons.map((button) => ({
+        id: `success:${button.action}`,
+        x: button.x,
+        y: button.y,
+      })),
+      skinTarget,
+    ];
   }
   if (screen.name === 'badge') {
     return [
-      { id: `bonus:${screen.themeId}`, x: BADGE_SEAL.x, y: BADGE_SEAL.y },
+      { id: 'badge:seal', x: BADGE_SEAL.x, y: BADGE_SEAL.y },
       { id: 'badge:home', x: BADGE_HOME.x, y: BADGE_HOME.y },
+      skinTarget,
     ];
   }
   if (screen.name === 'parent') {
@@ -628,6 +740,7 @@ function screenTargets(): AppTarget[] {
       PARENT.volumeUp,
       PARENT.mute,
       PARENT.easier,
+      PARENT.skin,
       PARENT.reset,
       PARENT.install,
       PARENT.done,

@@ -85,13 +85,13 @@ await tapTarget('splash');
 log(`splash -> ${(await screenOf()).name}`);
 await page.screenshot({ path: path.join(OUT, 'pack-app-menu.png') });
 
-await tapTarget('pack');
+await tapTarget('pack:numbers');
 log(`menu -> ${(await screenOf()).name}`);
 await wait(400);
 await page.screenshot({ path: path.join(OUT, 'pack-app-pack.png') });
 
 // num-3: single stroke; Next should open num-4.
-await tapTarget('numeral:num-3');
+await tapTarget('level:num-3');
 try {
   await traceStrokes('num-3');
   log('num-3: TRACE SUCCESS');
@@ -115,7 +115,7 @@ await tapTarget('success:home');
 log(`num-4 home -> ${(await screenOf()).name}`);
 
 // Back on the pack screen: open the crossing num-8; Next advances to num-9.
-await tapTarget('numeral:num-8');
+await tapTarget('level:num-8');
 try {
   await traceStrokes('num-8');
   log('num-8: TRACE SUCCESS');

@@ -1,7 +1,7 @@
 // Dev-only playable harness: every level end to end (trace -> chimes ->
 // hop -> celebrate -> confetti -> sticker -> success) for feel testing and QA.
-// ?level=<id> selects any of the 25 levels (15 world + 10 numerals; default dino-1).
-// Excluded from the production build (only index.html builds).
+// ?level=<id> selects any of the 25 levels (15 pre-writing + 10 numerals;
+// default pre-1). Excluded from the production build (only index.html builds).
 import '../style.css';
 import { createTonePlayer } from '../audio/player';
 import { createUnlockGate, playCheckpointChime, playCompletion } from '../audio/synth';
@@ -22,7 +22,7 @@ import {
   stepCompletion,
   travelProgress,
 } from '../engine/completion';
-import { pointAtLength } from '../engine/path';
+import { nearestOnPath, pointAtLength } from '../engine/path';
 import {
   advanceMultiTrail,
   beginMultiStroke,
@@ -35,45 +35,32 @@ import {
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
+import { type LevelDef, levelToPath } from '../packs/level';
+import { NUMERAL_LEVELS } from '../packs/numbers';
+import { PRE_BONUS_LEVELS, PRE_LEVELS } from '../packs/pre';
 import { type ConfettiParticle, createConfetti, stepConfetti } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
-import { ANIMAL_LEVELS, ANIMALS_THEME } from '../themes/animals';
-import { CONSTRUCTION_LEVELS, CONSTRUCTION_THEME } from '../themes/construction';
-import { DINO_LEVELS, DINO_THEME } from '../themes/dino';
-import { type LevelDef, levelToPath, type ThemeDef } from '../themes/level';
-import { NUMERAL_LEVELS } from '../themes/numbers';
+import { SKINS } from '../skins/skins';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
 type AssistState = typeof ASSIST_START;
 type CheckpointState = typeof CHECKPOINT_START;
 
-interface LevelEntry {
-  readonly level: LevelDef;
-  readonly theme: ThemeDef;
+/** Fixed harness skin until the Phase 2 skin switch lands in the shell. */
+const SKIN = SKINS[0];
+if (!SKIN) {
+  throw new Error('The skin registry is empty.');
 }
 
-// Numerals trace with the star guide; backdrop stays a placeholder until the Phase 4 art batch.
-const NUMBERS_THEME: ThemeDef = {
-  backdrop: DINO_THEME.backdrop,
-  character: 'star',
-  id: 'numbers',
-  name: 'Numbers',
-};
-
-const ALL_LEVELS: readonly LevelEntry[] = [
-  ...DINO_LEVELS.map((level) => ({ level, theme: DINO_THEME })),
-  ...CONSTRUCTION_LEVELS.map((level) => ({ level, theme: CONSTRUCTION_THEME })),
-  ...ANIMAL_LEVELS.map((level: LevelDef) => ({ level, theme: ANIMALS_THEME })),
-  ...NUMERAL_LEVELS.map((level) => ({ level, theme: NUMBERS_THEME })),
-];
+const ALL_LEVELS: readonly LevelDef[] = [...PRE_LEVELS, ...PRE_BONUS_LEVELS, ...NUMERAL_LEVELS];
 
 const query = new URLSearchParams(window.location.search);
 const requestedId = query.get('level');
-const requestedIndex = ALL_LEVELS.findIndex((entry) => entry.level.id === requestedId);
+const requestedIndex = ALL_LEVELS.findIndex((level) => level.id === requestedId);
 
-const CHARACTER_SOURCE = `/rive/${ALL_LEVELS[requestedIndex >= 0 ? requestedIndex : 0]?.theme.character ?? DINO_THEME.character}.riv`;
+const CHARACTER_SOURCE = `/rive/${SKIN.character}.riv`;
 const CHARACTER_SCALE = 0.62;
 const CHARACTER_OFFSET_Y = 0.38;
 const CHECKPOINT_COUNT = 6;
@@ -167,6 +154,8 @@ let detachInput = (): void => {};
 
 interface QaHook {
   readonly charPos: () => Point;
+  readonly debug: () => Record<string, unknown>;
+  readonly frontier: () => number;
   readonly isSuccess: () => boolean;
   readonly levelId: string;
   readonly path: readonly Point[];
@@ -184,7 +173,28 @@ declare global {
 function refreshQa(): void {
   window.__qa = {
     charPos: () => ({ ...play.charPos }),
+    debug: () => {
+      const state = play.multiState;
+      const stroke = play.multi.strokes[state.strokeIndex];
+      if (!stroke || !pointer) {
+        return { frontier: state.frontier, pointer: null, tracing: state.tracing };
+      }
+      const nearest = nearestOnPath(stroke.points, pointer.x, pointer.y);
+      const tip = pointAtLength(stroke.points, stroke.cumulative, state.frontier);
+      return {
+        frontier: state.frontier,
+        nearestDistance: nearest.distance,
+        nearestIndex: nearest.index,
+        nearestPoint: nearest.point,
+        pointer: { ...pointer },
+        tip,
+        tipGap: Math.hypot(pointer.x - tip.x, pointer.y - tip.y),
+        total: stroke.total,
+        tracing: state.tracing,
+      };
+    },
     field,
+    frontier: () => play.multiState.frontier,
     isSuccess: () => play.success,
     levelId: play.level.id,
     path: play.multi.strokes[0]?.points ?? [],
@@ -224,11 +234,10 @@ function pointAtSequence(multi: MultiTrail, distance: number): Point {
 }
 
 function freshPlay(index: number): Play {
-  const entry = ALL_LEVELS[index % ALL_LEVELS.length];
-  if (!entry) {
+  const level = ALL_LEVELS[index % ALL_LEVELS.length];
+  if (!level) {
     throw new Error('missing level');
   }
-  const { level } = entry;
   const paths = levelToPath(level);
   if (paths.length === 0) {
     throw new Error(`Level ${level.id} has no strokes.`);

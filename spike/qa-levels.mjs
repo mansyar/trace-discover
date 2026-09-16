@@ -1,9 +1,9 @@
 import { chromium } from 'playwright-core';
 
 const LEVELS = [
-  'dino-1', 'dino-2', 'dino-3', 'dino-4', 'dino-bonus',
-  'construction-1', 'construction-2', 'construction-3', 'construction-4', 'construction-bonus',
-  'animals-1', 'animals-2', 'animals-3', 'animals-4', 'animals-bonus',
+  'pre-1', 'pre-2', 'pre-3', 'pre-4', 'pre-5', 'pre-6',
+  'pre-7', 'pre-8', 'pre-9', 'pre-10', 'pre-11', 'pre-12',
+  'pre-bonus-1', 'pre-bonus-2', 'pre-bonus-3',
 ];
 // Full simulated trace for every level: proves each one is finishable and lets
 // the success tableau (mascot cheering spot vs buttons) be eyeballed per level.

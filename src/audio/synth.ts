@@ -23,10 +23,26 @@ export interface InstrumentPreset {
   readonly type: 'sine' | 'triangle';
 }
 
+/** Named instrument voice ids; skins map their instrument to these. */
+export type InstrumentId = 'marimba' | 'bell' | 'woodblock' | 'kalimba';
+
 /** Warm marimba-ish voice shared by the three worlds. */
 export const MARIMBA_PRESET: InstrumentPreset = { duration: 0.8, gain: 0.5, type: 'triangle' };
 /** Bright toy-piano/xylophone voice for the numbers pack. */
 export const TOY_PIANO_PRESET: InstrumentPreset = { duration: 0.5, gain: 0.45, type: 'triangle' };
+
+/** Skin voice registry: one timbre per instrument, same pentatonic language. */
+export const PRESETS: Readonly<Record<InstrumentId, InstrumentPreset>> = {
+  marimba: MARIMBA_PRESET,
+  bell: { duration: 1.4, gain: 0.35, type: 'sine' },
+  woodblock: { duration: 0.25, gain: 0.55, type: 'triangle' },
+  kalimba: { duration: 0.9, gain: 0.42, type: 'sine' },
+};
+
+/** Voice for a skin's instrument id. */
+export function presetForInstrument(id: InstrumentId): InstrumentPreset {
+  return PRESETS[id];
+}
 
 export const ATTACK_SECONDS = 0.006;
 const DECAY_TAU = 0.35;
@@ -76,15 +92,19 @@ const SPARKLE_ARPEGGIO = [84, 86, 88, 91]; // C6 D6 E6 G6
 const ARPEGGIO_START = 0.2;
 const ARPEGGIO_STEP = 0.07;
 
-/** Warm chord resolve plus a rising sparkle arpeggio for level completion. */
-export function playCompletion(player: TonePlayer): void {
+/** Warm chord resolve plus a rising sparkle arpeggio for level completion.
+ *  The preset supplies the chord timbre; the resolve shape stays constant. */
+export function playCompletion(
+  player: TonePlayer,
+  preset: InstrumentPreset = MARIMBA_PRESET,
+): void {
   for (const midi of COMPLETION_CHORD) {
     player.play({
       delay: 0,
       duration: 1.3,
       frequency: midiToFrequency(midi),
       gain: 0.28,
-      type: 'triangle',
+      type: preset.type,
     });
   }
   SPARKLE_ARPEGGIO.forEach((midi, index) => {
