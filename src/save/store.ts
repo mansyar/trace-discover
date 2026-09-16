@@ -74,7 +74,12 @@ export function loadSave(storage: SaveStorage): SaveData {
 }
 
 export function saveSave(storage: SaveStorage, save: SaveData): void {
-  storage.setItem(SAVE_KEY, JSON.stringify(save));
+  try {
+    storage.setItem(SAVE_KEY, JSON.stringify(save));
+  } catch {
+    // Storage can fail (quota exceeded, denied, unavailable). The session
+    // continues in memory; later writes retry and persist once it recovers.
+  }
 }
 
 export function completeLevel(save: SaveData, levelId: string): SaveData {

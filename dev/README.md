@@ -57,11 +57,12 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-screens.mjs` | Screen-gallery screenshots | dev `:5199` | canonical |
 | `qa-pre-pack.mjs` | Menu → pack → level journey (taps via `window.__app.targets()`) | dev `:5199` | canonical |
 | `qa-menu-pack.mjs` | Menu pack-card states (fresh / in-progress / badge) | dev `:5199` | one-off |
-| `qa-persistence.mjs` | v1 save migration + relaunch persistence probes | dev `:5199` | canonical |
+| `qa-persistence.mjs` | v1 save migration + relaunch persistence + storage resilience probes (quota-denied writes, denied-storage boot) | dev `:5199` | canonical |
 | `qa-numerals.mjs` | Numerals pack trace QA | dev `:5199` | canonical |
 | `qa-pack-app.mjs` | Numbers pack full app flow | preview | canonical |
 | `qa-pack-badge.mjs` | Numbers badge chain (10 numerals → celebration → collection) | dev `:5199` | canonical |
 | `qa-offline.mjs` | SW install → fully-offline cold-start probe | preview `:4173` | canonical |
+| `qa-update.mjs` | Update lifecycle: waiting SW proven on a sandboxed `dist/` copy (run `pnpm build` first) | none — self-served `:4185` | canonical |
 | `qa-perf.mjs` | Perf sampling (cold boot / input latency / frame times) | preview | canonical |
 | `qa-viewport.mjs` | Viewport-matrix screenshots | dev | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
