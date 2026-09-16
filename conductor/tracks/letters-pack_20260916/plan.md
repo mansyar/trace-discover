@@ -32,7 +32,7 @@
   - [ ] Implement geometries (chunky, field-sized); record the final table in `content.md`
 - [x] Task: Headless screenshot QA per letter [e313d8b] — start/goal/direction + glyph legibility
 - [x] Task: Author bonus sequences `ABC` / `MOM` / `ZOO` (TDD) — generous sizing, ordered multi-stroke; validate + screenshot QA [dbb70f6]
-- [ ] Task: Device feel check via LAN — trace E (4-stroke), S (curve), A (diagonals); tune if needed; record findings
+- [x] Task: Device feel check via LAN — trace E (4-stroke), S (curve), A (diagonals); tune if needed; record findings [9b14bec]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Reward layer: per-stroke hops, stickers, badge & seals
