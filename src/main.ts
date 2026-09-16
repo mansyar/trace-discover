@@ -38,7 +38,7 @@ import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
-import { appPacks, packById } from './packs/catalog';
+import { appPacks } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
@@ -359,7 +359,7 @@ function syncIdleMascot(): void {
 
 /** Opens any level (main or circle) of a pack under the active skin. */
 function enterPackLevel(packId: string, levelId: string): void {
-  const pack = packById(packId);
+  const pack = PACKS.find((candidate) => candidate.id === packId);
   const level = pack
     ? [...pack.levels, ...pack.bonuses].find((candidate) => candidate.id === levelId)
     : undefined;
@@ -386,7 +386,7 @@ function enterPackLevel(packId: string, levelId: string): void {
     packId,
     levelId,
     player,
-    hopPlanFor(packId, levelId),
+    hopPlanFor(packId, levelId, level.strokes.length),
   );
 }
 
@@ -487,7 +487,7 @@ const handlers: TraceHandlers = {
         pop();
         return;
       }
-      const pack = packById(screen.packId);
+      const pack = PACKS.find((candidate) => candidate.id === screen.packId);
       const badgeDistance = Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y);
       if (
         pack &&
@@ -649,7 +649,7 @@ function render(now: number): void {
     }
     drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent, app.save.name);
   } else if (screen.name === 'pack') {
-    const pack = packById(screen.packId);
+    const pack = PACKS.find((candidate) => candidate.id === screen.packId);
     const page = packPageIndex(screen.packId);
     const layout = PACK_LAYOUTS.get(screen.packId)?.[page];
     if (pack && layout) {
