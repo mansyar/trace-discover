@@ -71,11 +71,11 @@
 
 *Goal: real art everywhere for the new model; screenshot-approved.*
 
-- [~] Task: Reward art brief + batch — 12 + 3 content-neutral rewards (generate → cutout → optimize → composite → screenshot approval)
-- [ ] Task: Integrate rewards — goal art + sticker slots + fly-in for pre-writing; screens QA
-- [ ] Task: Star backdrop + pre-writing menu card art + four face icons; integrate; menu card final states for both packs
-- [ ] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Reward art brief + batch — 12 + 3 content-neutral rewards (generate → cutout → optimize → composite → screenshot approval) [946eb8c]
+- [x] Task: Integrate rewards — goal art + sticker slots + fly-in for pre-writing; screens QA [946eb8c]
+- [x] Task: Star backdrop + pre-writing menu card art + four face icons; integrate; menu card final states for both packs [946eb8c]
+- [x] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded — dist 7.77MB; precache 91 entries (7931KiB) [946eb8c]
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance & QA sweep
 
