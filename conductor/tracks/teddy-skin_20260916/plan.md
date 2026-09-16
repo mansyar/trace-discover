@@ -16,7 +16,7 @@
 - [x] Task: **Owner approval of the stylized master (hard gate)** — owner approved candidate B (`dev/gen/teddy-cand-b.png`, strength 0.7, seed 7) 2026-09-16; canonical copy `dev/characters/teddy/master.png`; downstream work unlocked
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Character build: cutout → poses → Rive → verification
+## Phase 2 — Character build: cutout → poses → Rive → verification [checkpoint: 61bd9c3]
 
 *Goal: `public/rive/teddy.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
