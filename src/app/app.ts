@@ -14,6 +14,7 @@ import {
   completeLevel,
   createDefaultSave,
   type SaveData,
+  setName,
   updateSettings,
 } from '../save/store';
 import { nextSkinId } from '../skins/skins';
@@ -174,7 +175,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         pendingBadge: null,
-        save: createDefaultSave(),
+        save: setName(createDefaultSave(), state.save.name ?? ''),
         screen: { ...parent, confirmReset: false },
       };
     case 'install':

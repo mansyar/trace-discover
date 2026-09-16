@@ -416,3 +416,20 @@ describe('skin cycling', () => {
     expect(cycled.screen).toEqual({ name: 'menu' });
   });
 });
+
+describe('name preservation', () => {
+  it('keeps the parent-set name across a progress reset', () => {
+    const seeded = {
+      ...createDefaultSave(),
+      completedLevels: ['pre-1'],
+      name: 'AVA',
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.name).toBe('AVA');
+  });
+});

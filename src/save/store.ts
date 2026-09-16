@@ -13,6 +13,9 @@ import { skinById } from '../skins/skins';
 export const SAVE_KEY = 'trace-discover-save-v1';
 export const SAVE_VERSION = 3;
 
+/** Longest accepted name; device tuning may lower it (floor 5). */
+export const MAX_NAME_LENGTH = 7;
+
 export interface ParentSettings {
   readonly easierTracing: boolean;
   readonly muted: boolean;
@@ -23,6 +26,8 @@ export interface ParentSettings {
 export interface SaveData {
   readonly badges: readonly string[];
   readonly completedLevels: readonly string[];
+  /** Parent-set child name: uppercase A–Z, 2–MAX_NAME_LENGTH letters. Absent = no name. */
+  readonly name?: string;
   readonly settings: ParentSettings;
   readonly trophies: readonly string[];
   readonly version: 3;
@@ -80,6 +85,25 @@ export function saveSave(storage: SaveStorage, save: SaveData): void {
     // Storage can fail (quota exceeded, denied, unavailable). The session
     // continues in memory; later writes retry and persist once it recovers.
   }
+}
+
+/**
+ * Normalizes parent-entered names: uppercased, A-Z only, clamped to
+ * MAX_NAME_LENGTH. Returns '' when fewer than two letters survive — callers
+ * treat '' as "no name".
+ */
+export function sanitizeName(raw: string): string {
+  const name = raw
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .slice(0, MAX_NAME_LENGTH);
+  return name.length >= 2 ? name : '';
+}
+
+/** Applies a (possibly invalid/empty) name; '' clears it. */
+export function setName(save: SaveData, raw: string): SaveData {
+  const name = sanitizeName(raw);
+  return { ...save, name: name === '' ? undefined : name };
 }
 
 export function completeLevel(save: SaveData, levelId: string): SaveData {
@@ -212,12 +236,15 @@ function sanitizeSave(parsed: unknown): SaveData {
   const settings =
     'settings' in parsed ? asSettings(parsed.settings, fallback.settings) : fallback.settings;
   if (version === SAVE_VERSION) {
+    const name =
+      'name' in parsed && typeof parsed.name === 'string' ? sanitizeName(parsed.name) : '';
     return {
       badges: 'badges' in parsed ? asStringArray(parsed.badges) : fallback.badges,
       completedLevels:
         'completedLevels' in parsed
           ? asStringArray(parsed.completedLevels)
           : fallback.completedLevels,
+      ...(name === '' ? {} : { name }),
       settings,
       trophies: 'trophies' in parsed ? asStringArray(parsed.trophies) : fallback.trophies,
       version: SAVE_VERSION,
