@@ -10,7 +10,7 @@
 
 - [x] Task: Context docs resync — `tech-stack.md`: shipped-raster-format policy (WebP for art; PNG stays for icons/favicons), pipeline note, current size baseline (~10.31 MB / 148 precache entries) (documented before implementation per workflow.md) [817fef7]
 - [x] Task: Baseline measurement — `pnpm build`; record dist total bytes, precache entry count, and per-category breakdown (art 6.39 MB · rive 1.87 MB · other) as the before/after reference [503b817]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [40ae0c8]
 
 ## Phase 2 — Shipped art re-encode + reference integration
 
@@ -19,7 +19,7 @@
 - [x] Task: Re-encode tool (`dev/tools/reencode-art.mjs`) — encodes from the shipped lossless files (identical dimensions + appearance by construction; `dev/art-src` is pre-opt/larger and not dimension-equivalent so it is not used), per-class quality (cutouts ≈0.85 lossy-with-alpha, backdrops ≈0.8); stages `.webp` + `manifest.json` (bytes/dims/RMSE) + per-class contact sheets + worst-diff 1:1 focus sheet into ignored `dev/qa/out/reencode/` (mechanical verification: deterministic re-run, metrics review, sheet read-back) [d91ed7c]
 - [x] Task: Art-reference test (TDD: Red first) — every app-referenced art URL resolves to an existing `public/` file with the expected extension; **Red** while legacy `.png`/`.jpg` refs or files remain; hostile case (missing file) must fail [3af4ca5]
 - [x] Task: Approve & migrate — owner side-by-side approval per class → reference sweep (`src/{packs,app,skins}` literals + pinned tests; Workbox `globPatterns` += `webp`; dev tooling reads; `git grep` clean) → delete originals → suite **Green** (+gap check: no legacy raster under `public/art/**`) [b7edb71]
-- [~] Task: Pipeline forward-fix — shipped-art emitters (`opt-art` / `opt-pre` / `card` / `gen-rewards` / `faces` / `vignette` / `letters-compose`) default to WebP with the tuned per-class qualities; `dev/README.md` documents the shipped-format policy (mechanical verification: re-run one emitter on a sample asset)
+- [x] Task: Pipeline forward-fix — shipped-art emitters (`opt-art` / `opt-pre` / `card` / `gen-rewards` / `faces` / `vignette` / `letters-compose`) default to WebP with the tuned per-class qualities; `dev/README.md` documents the shipped-format policy (mechanical verification: re-run one emitter on a sample asset) [dced3d3]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — `dino.riv` rebuild
