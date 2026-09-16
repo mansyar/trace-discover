@@ -11,7 +11,13 @@ import { mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
-import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
+import {
+  MENU_DOT_RADIUS,
+  type MenuCard,
+  type MenuLayout,
+  menuDotPositions,
+  type SplashLayout,
+} from '../ui/menu';
 import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
@@ -393,18 +399,16 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
   if (!art || art.cleared <= 0) {
     return;
   }
-  const spacing = 22;
-  const startX = centerX - (spacing * (art.total - 1)) / 2;
-  const dotY = card.y + card.height - 22;
-  for (let i = 0; i < art.total; i += 1) {
+  const positions = menuDotPositions(art.total, card);
+  positions.forEach((position, index) => {
     ctx.beginPath();
-    ctx.arc(startX + i * spacing, dotY, 5.5, 0, Math.PI * 2);
-    ctx.fillStyle = i < art.cleared ? NAVY : '#ffffff';
+    ctx.arc(position.x, position.y, MENU_DOT_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = index < art.cleared ? NAVY : '#ffffff';
     ctx.fill();
     ctx.lineWidth = 3;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-  }
+  });
   if (art.badge) {
     drawStar(ctx, card.x + card.width - 28, card.y + 28, 16);
     ctx.fillStyle = GOLD;
