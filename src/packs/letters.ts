@@ -13,7 +13,7 @@ function p(x: number, y: number): Point {
 }
 
 /** Builds a level whose goal is the final control point of its last stroke. */
-function letterLevel(
+export function letterLevel(
   id: string,
   stroke: StrokePattern,
   strokes: readonly (readonly Point[])[],

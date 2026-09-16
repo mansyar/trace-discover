@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { nearestOnPath } from '../engine/path';
 import type { Point } from '../engine/types';
 import { FIELD_WIDTH } from '../field';
-import { LETTER_BONUS_LEVELS, LETTER_LEVELS, LETTERS_PACK } from './letters';
+import { LETTER_BONUS_LEVELS, LETTER_LEVELS, LETTERS_PACK, letterLevel } from './letters';
 import type { LevelDef } from './level';
 import { levelToPath, validateLevel } from './level';
 import {
@@ -322,5 +322,11 @@ describe('letters progress', () => {
     expect(nextPackLevelId(unlocked, LETTERS_PACK, 'abc-bonus-1')).toBe('abc-a');
     expect(firstUnlockedBonusId(saveWith(firstLetterIds(8)), LETTERS_PACK)).toBeNull();
     expect(firstUnlockedBonusId(saveWith(firstLetterIds(9)), LETTERS_PACK)).toBe('abc-bonus-1');
+  });
+});
+
+describe('letterLevel guard', () => {
+  it('rejects a glyph with no control points', () => {
+    expect(() => letterLevel('abc-x', 'line', [])).toThrow('needs at least one control point');
   });
 });
