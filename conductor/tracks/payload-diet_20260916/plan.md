@@ -38,11 +38,11 @@
 - [x] Task: Docs + CI wiring — ceilings/rationale in `README.md` + `dev/README.md` + `tech-stack.md`; `ci.yml` step after build runs `pnpm budget`; local negative-control evidence recorded (actual CI failure proof lands with the owner's first push) [d65e8f6]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [d65e8f6]
 
-## Phase 5 — Compliance & close-out
+## Phase 5 — Compliance & close-out [checkpoint: f196e39]
 
 *Goal: measured, verified, documented — acceptance criteria 1–8 traced to evidence.*
 
 - [x] Task: Full gates — `CI=true pnpm check && CI=true pnpm test`, `pnpm build`, `pnpm budget`; before/after table recorded (dist, entries, per-category, `dino.riv` bytes); coverage recorded [dcbc731]
 - [x] Task: QA sweep — app/letters journey + `qa-offline` (WebP precached; offline cold start) + `qa-perf` spot-check (boot within baseline); screenshots; device pass Android + iPad (owner) [f196e39]
 - [x] Task: Docs close-out + acceptance evidence (criteria 1–8) + git notes [f196e39]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [f196e39]
