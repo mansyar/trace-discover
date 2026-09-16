@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 // already glow as the one to trace (dots + start star) before it is touched.
 // Guards the hand-over guidance fix from the device feel check (Phase 2).
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(HERE, 'qa');
+const OUT = path.join(HERE, 'out');
 fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -23,7 +23,7 @@ try {
 const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
 const pageErrors = [];
 page.on('pageerror', (err) => pageErrors.push(String(err)));
-await page.goto('http://localhost:5199/play.html?level=num-4', { waitUntil: 'load' });
+await page.goto('http://localhost:5199/dev/harness/play.html?level=num-4', { waitUntil: 'load' });
 await page.waitForFunction(() => window.__qa !== undefined && window.__qa.strokes.length === 2, null, {
   timeout: 30000,
 });

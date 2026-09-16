@@ -1,14 +1,14 @@
 // Production pack badge QA: completes all ten numerals in order (chain via success
 // "next"), expects the badge celebration after the tenth, then opens the collection
 // from the seal. Also captures first/last numeral success frames (sticker fly-in).
-// Usage: pnpm exec vite --port 5199 --strictPort  then  node spike/qa-pack-badge.mjs
+// Usage: pnpm exec vite --port 5199 --strictPort  then  node dev/qa/qa-pack-badge.mjs
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const OUT = resolve(HERE, 'qa');
+const OUT = resolve(HERE, 'out');
 mkdirSync(OUT, { recursive: true });
 
 const EDGE = [

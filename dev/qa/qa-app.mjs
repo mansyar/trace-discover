@@ -1,10 +1,15 @@
 import { chromium } from 'playwright-core';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Production app-loop QA: drives the real index.html from splash to pack badge
 // to the bonus circles for the pre-writing pack, tracing each level with a
 // simulated fingertip.
-// Usage: `pnpm serve` (preview on 4173) then `node spike/qa-app.mjs [url]`.
+// Usage: `pnpm serve` (preview on 4173) then `node dev/qa/qa-app.mjs [url]`.
 const BASE = process.argv[2] ?? 'http://localhost:4173';
+const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out', 'qa-app');
+fs.mkdirSync(OUT, { recursive: true });
 const MAINS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -72,20 +77,20 @@ const traceLevel = async (id) => {
   await page.mouse.up();
   await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
   await wait(1800); // completion choreography + mascot glide to its cheering spot
-  await page.screenshot({ path: `spike/qa/qa-app/${id}-success.png` });
+  await page.screenshot({ path: `${OUT}/${id}-success.png` });
 };
 
 await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
 await wait(800);
-await page.screenshot({ path: 'spike/qa/qa-app/splash.png' });
+await page.screenshot({ path: `${OUT}/splash.png` });
 await tapTarget('splash');
 log(`splash -> ${(await screenOf()).name}`);
-await page.screenshot({ path: 'spike/qa/qa-app/menu.png' });
+await page.screenshot({ path: `${OUT}/menu.png` });
 
 await tapTarget('pack:pre');
 log(`menu -> ${(await screenOf()).name}`);
-await page.screenshot({ path: 'spike/qa/qa-app/pack-pre.png' });
+await page.screenshot({ path: `${OUT}/pack-pre.png` });
 for (const n of MAINS) {
   const id = `pre-${n}`;
   const opened = await screenOf();
@@ -102,13 +107,13 @@ for (const n of MAINS) {
     log(`${id}: TRACE SUCCESS`);
   } catch (e) {
     log(`${id}: TRACE FAILED`);
-    await page.screenshot({ path: `spike/qa/qa-app/${id}-stuck.png` });
+    await page.screenshot({ path: `${OUT}/${id}-stuck.png` });
   }
   await tapTarget('success:next');
   await wait(300);
 }
 log(`after L12 next -> ${(await screenOf()).name}`);
-await page.screenshot({ path: 'spike/qa/qa-app/badge-pre.png' });
+await page.screenshot({ path: `${OUT}/badge-pre.png` });
 await tapTarget('badge:seal');
 log(`seal -> ${(await screenOf()).name}`);
 for (const n of ['1', '2', '3']) {
@@ -118,13 +123,13 @@ for (const n of ['1', '2', '3']) {
     log(`${id}: TRACE SUCCESS`);
   } catch (e) {
     log(`${id}: TRACE FAILED`);
-    await page.screenshot({ path: `spike/qa/qa-app/${id}-stuck.png` });
+    await page.screenshot({ path: `${OUT}/${id}-stuck.png` });
   }
   await tapTarget(n === '3' ? 'success:home' : 'success:next');
   await wait(300);
 }
 log(`pack done -> ${(await screenOf()).name}`);
-await page.screenshot({ path: 'spike/qa/qa-app/pack-pre-done.png' });
+await page.screenshot({ path: `${OUT}/pack-pre-done.png` });
 // The pack badge spot re-opens the first unlocked circle (v1 parity).
 await tapTarget('pack:badge');
 log(`badge re-entry -> ${JSON.stringify(await screenOf())}`);

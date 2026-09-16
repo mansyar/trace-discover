@@ -5,13 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 // Contact sheet for art approvals: renders labeled images in a grid and
 // screenshots it. Usage:
-//   node spike/qa-sheet.mjs out.png [--cols=3] [--title="…"] label=path …
-// Paths are relative to spike/.
+//   node dev/qa/qa-sheet.mjs out.png [--cols=3] [--title="…"] label=path …
+// Paths are relative to this script's folder (dev/qa); the sheet is written relative to it too.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const out = args[0];
 if (!out) {
-  console.error('usage: node spike/qa-sheet.mjs out.png [--cols=3] [--title="…"] label=path …');
+  console.error('usage: node dev/qa/qa-sheet.mjs out.png [--cols=3] [--title="…"] label=path …');
   process.exit(2);
 }
 const colsArg = args.find((a) => a.startsWith('--cols='));

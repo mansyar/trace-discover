@@ -44,7 +44,7 @@ for (const t of targets) {
     `<!doctype html><html><body style="margin:0">${svg(t.size, t.pad)}</body></html>`,
   );
   const bytes = await page.screenshot({ clip: { height: t.size, width: t.size, x: 0, y: 0 } });
-  writeFileSync(new URL(`../public/icons/${t.file}`, import.meta.url), bytes);
+  writeFileSync(new URL(`../../public/icons/${t.file}`, import.meta.url), bytes);
   console.log(`${t.file}: ${bytes.length} bytes`);
   await page.close();
 }

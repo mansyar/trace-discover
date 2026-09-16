@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 // Production pack-flow QA: splash -> menu -> pack -> numeral -> success ->
 // next chain -> home, tracing numerals 3 (single), 4 (two strokes) and
 // 8 (crossing loops) with a simulated fingertip.
-// Usage: `pnpm exec vite --port 5199 --strictPort` then `node spike/qa-pack-app.mjs`.
+// Usage: `pnpm exec vite --port 5199 --strictPort` then `node dev/qa/qa-pack-app.mjs`.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
-const OUT = path.join(HERE, 'qa');
+const OUT = path.join(HERE, 'out');
 fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (line) => console.log(line);

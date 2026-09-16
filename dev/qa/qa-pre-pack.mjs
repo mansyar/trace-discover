@@ -2,13 +2,14 @@
 // (two pack cards) -> pre pack screen (3x4 grid) -> level screen on the
 // fixed dino skin. Taps go through window.__app.targets() so field layout
 // math stays in one place. Usage: dev server on :5199, then
-// node spike/qa-pre-pack.mjs
+// node dev/qa/qa-pre-pack.mjs
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const BASE = 'http://localhost:5199';
-const OUT = 'spike/qa';
+const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out');
 const FIELD_WIDTH = 430;
 const FIELD_HEIGHT = 860;
 fs.mkdirSync(OUT, { recursive: true });

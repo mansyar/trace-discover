@@ -1,8 +1,12 @@
 // tools/pre-sheet.mjs — review contact sheet: the 15 pre-writing rewards +
-// badge + card in one image. usage (cwd spike): node tools/pre-sheet.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+// badge + card in one image. usage: node dev/tools/pre-sheet.mjs
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+
+const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
+const GEN = resolve(fileURLToPath(new URL('../gen', import.meta.url)));
 
 const files = [
   'goal/pre-1.png',
@@ -25,7 +29,7 @@ const files = [
 
 const payload = files.map((f) => ({
   name: f,
-  b64: 'data:image/png;base64,' + readFileSync(resolve('..', 'public', 'art', f)).toString('base64'),
+  b64: 'data:image/png;base64,' + readFileSync(resolve(ROOT, 'public', 'art', f)).toString('base64'),
 }));
 
 let browser;
@@ -69,6 +73,7 @@ const sheet = await page.evaluate(async (items) => {
   }
   return canvas.toDataURL('image/png').split(',')[1];
 }, payload);
-writeFileSync(resolve('gen', 'pre-sheet.png'), Buffer.from(sheet, 'base64'));
-console.log('sheet -> gen/pre-sheet.png');
+mkdirSync(GEN, { recursive: true });
+writeFileSync(resolve(GEN, 'pre-sheet.png'), Buffer.from(sheet, 'base64'));
+console.log('sheet -> dev/gen/pre-sheet.png');
 await browser.close();

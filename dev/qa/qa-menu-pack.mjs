@@ -1,13 +1,14 @@
 // QA probe: menu pack-card states — fresh, in-progress (4 cleared), badge.
 // Seeds the save in localStorage, reloads, screenshots each state.
 // Usage: dev server on :5199 (pnpm exec vite --port 5199 --strictPort), then
-// node spike/qa-menu-pack.mjs
+// node dev/qa/qa-menu-pack.mjs
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const BASE = 'http://localhost:5199';
-const OUT = 'spike/qa';
+const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out');
 fs.mkdirSync(OUT, { recursive: true });
 
 async function launch() {

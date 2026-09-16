@@ -1,8 +1,9 @@
 // tools/gen-rewards.mjs — Phase 4 art batch: generates every new raw in one
 // resumable run. Existing raws are skipped, so a quota-interrupted batch can
-// simply be re-run. usage (cwd spike): node tools/gen-rewards.mjs
+// simply be re-run. usage: node dev/tools/gen-rewards.mjs
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const SUFFIX =
   "cute kawaii children's illustration sticker, thick dark navy blue outlines, flat pastel colors, simple white highlight shapes, centered on pure white background, no text, no shadow";
@@ -42,14 +43,15 @@ const JOBS = [
 
 let failed = 0;
 let consecutive = 0;
+const DEV = fileURLToPath(new URL('..', import.meta.url));
 for (const job of JOBS) {
-  const file = `gen/${job.out}.png`;
+  const file = `${DEV}/gen/${job.out}.png`;
   if (existsSync(file)) {
-    console.log(`skip ${file} (exists)`);
+    console.log(`skip gen/${job.out}.png (exists)`);
     continue;
   }
   const prompt = job.out === 'bg-star' ? job.prompt : `${job.prompt}, ${SUFFIX}`;
-  const args = ['tools/gen.mjs', '--prompt', prompt, '--out', file];
+  const args = [`${DEV}/tools/gen.mjs`, '--prompt', prompt, '--out', file];
   const run = spawnSync('node', args, { stdio: 'inherit' });
   if (run.status !== 0) {
     consecutive++;

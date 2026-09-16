@@ -1,8 +1,13 @@
 // tools/opt-pre.mjs — Phase 4 optimizer: pre-writing rewards + star backdrop
 // + badge + card art into public/. Backdrops -> JPEG q75, rewards -> 256px PNG
-// goal + 128px PNG sticker, badge/card -> 256px PNG. usage (cwd spike): node tools/opt-pre.mjs
+// goal + 128px PNG sticker, badge/card -> 256px PNG. usage: node dev/tools/opt-pre.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+
+const ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const GEN = fileURLToPath(new URL('../gen', import.meta.url));
 
 let browser;
 try {
@@ -34,18 +39,18 @@ const convert = (name, kind) =>
       const url = kind === 'bg' ? canvas.toDataURL('image/jpeg', 0.75) : canvas.toDataURL('image/png');
       return { url, width: canvas.width, height: canvas.height };
     },
-    { file: readFileSync(`gen/${name}`).toString('base64'), kind },
+    { file: readFileSync(join(GEN, name)).toString('base64'), kind },
   );
 
-mkdirSync('../public/art/bg', { recursive: true });
-mkdirSync('../public/art/goal', { recursive: true });
-mkdirSync('../public/art/sticker', { recursive: true });
-mkdirSync('../public/art/pack', { recursive: true });
+mkdirSync(join(ROOT, 'public/art/bg'), { recursive: true });
+mkdirSync(join(ROOT, 'public/art/goal'), { recursive: true });
+mkdirSync(join(ROOT, 'public/art/sticker'), { recursive: true });
+mkdirSync(join(ROOT, 'public/art/pack'), { recursive: true });
 
 const jobs = [
-  { src: 'bg-star.png', out: '../public/art/bg/star.jpg', kind: 'bg' },
-  { src: 'cut-pre-badge.png', out: '../public/art/pack/pre-badge.png', kind: 'badge' },
-  { src: 'pre-card.png', out: '../public/art/pack/card-pre.png', kind: 'card' },
+  { src: 'bg-star.png', out: join(ROOT, 'public/art/bg/star.jpg'), kind: 'bg' },
+  { src: 'cut-pre-badge.png', out: join(ROOT, 'public/art/pack/pre-badge.png'), kind: 'badge' },
+  { src: 'pre-card.png', out: join(ROOT, 'public/art/pack/card-pre.png'), kind: 'card' },
 ];
 const ids = [
   ...Array.from({ length: 12 }, (_, i) => `pre-${i + 1}`),
@@ -54,8 +59,8 @@ const ids = [
   'pre-bonus-3',
 ];
 for (const id of ids) {
-  jobs.push({ src: `cut-${id}.png`, out: `../public/art/goal/${id}.png`, kind: 'goal' });
-  jobs.push({ src: `cut-${id}.png`, out: `../public/art/sticker/${id}.png`, kind: 'sticker' });
+  jobs.push({ src: `cut-${id}.png`, out: join(ROOT, `public/art/goal/${id}.png`), kind: 'goal' });
+  jobs.push({ src: `cut-${id}.png`, out: join(ROOT, `public/art/sticker/${id}.png`), kind: 'sticker' });
 }
 
 for (const job of jobs) {

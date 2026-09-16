@@ -4,14 +4,14 @@
 // several parts (8 = two stacked 0 ovals; 9 = 0 oval loop + 1 bar stem) when a single
 // generated glyph is not usable.
 //
-// Usage: node spike/tmp-vignette.mjs  (writes spike/nums/vig-*.png)
+// Usage: node dev/tools/vignette.mjs  (writes dev/art-src/nums/vig-*.png)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const NUMS = resolve(HERE, '..', 'nums');
+const NUMS = resolve(HERE, '..', 'art-src', 'nums');
 const EDGE = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
   'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',

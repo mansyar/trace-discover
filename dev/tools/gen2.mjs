@@ -1,5 +1,5 @@
 // Image-to-image generation via Cloudflare Workers AI (FLUX.2 klein).
-// Usage: node tools/gen2.mjs --image in.png --prompt "..." --out out.png [--steps 4] [--seed 1] [--strength 0.7] [--model @cf/...]
+// Usage: node dev/tools/gen2.mjs --image in.png --prompt "..." --out out.png [--steps 4] [--seed 1] [--strength 0.7] [--model @cf/...]
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -13,7 +13,7 @@ for (let i = 0; i < argv.length; i++) {
   else args[k] = argv[++i];
 }
 if (!args.image || !args.prompt || !args.out) {
-  console.error('usage: node tools/gen2.mjs --image in.png --prompt "..." --out out.png [--steps 4] [--seed 1] [--strength 0.7] [--model @cf/...]');
+  console.error('usage: node dev/tools/gen2.mjs --image in.png --prompt "..." --out out.png [--steps 4] [--seed 1] [--strength 0.7] [--model @cf/...]');
   process.exit(1);
 }
 

@@ -1,13 +1,13 @@
 // Composites the pack menu card art ("1 2 3" row) from the numeral cutouts.
-// Reads spike/nums/clean-numeral-{1,2,3}.png, writes spike/nums/clean-card.png.
-// Usage: node spike/tools/card.mjs   (then copy to public/art/pack/card.png)
+// Reads dev/art-src/nums/clean-numeral-{1,2,3}.png, writes dev/art-src/nums/clean-card.png.
+// Usage: node dev/tools/card.mjs   (then copy to public/art/pack/card.png)
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const NUMS = path.resolve(HERE, '..', 'nums');
+const NUMS = path.resolve(HERE, '..', 'art-src', 'nums');
 
 async function launch() {
   try {
@@ -63,7 +63,7 @@ try {
     },
   );
   fs.writeFileSync(path.join(NUMS, 'clean-card.png'), Buffer.from(result, 'base64'));
-  console.log('ok nums/clean-card.png');
+  console.log('ok art-src/nums/clean-card.png');
 } finally {
   await browser.close();
 }

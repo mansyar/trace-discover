@@ -1,4 +1,4 @@
-// Tiny static server for the spike test page. No dependencies.
+// Tiny static server (legacy spike-era page server; the page it served no longer exists). No dependencies.
 // Usage: node serve.mjs   ->   http://localhost:8080/  (and http://<LAN-IP>:8080/ from your phone/iPad)
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -34,5 +34,5 @@ http.createServer(async (req, res) => {
     console.log('404', p);
   }
 }).listen(port, '0.0.0.0', () => {
-  console.log(`spike server: http://localhost:${port}/  (LAN: http://<this-PC-ip>:${port}/)`);
+  console.log(`static server (dev/qa): http://localhost:${port}/  (LAN: http://<this-PC-ip>:${port}/)`);
 });

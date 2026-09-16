@@ -5,10 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 // Screens-harness QA for the pack screen: opens ?screen=pack, taps all ten
 // numeral cards, and captures fresh / half / full (badge earned) states.
-// Usage: node spike/qa-screens.mjs (dev server on :5199)
+// Usage: node dev/qa/qa-screens.mjs (dev server on :5199)
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
-const OUT = path.join(HERE, 'qa');
+const OUT = path.join(HERE, 'out');
 fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -26,7 +26,7 @@ const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 
-await page.goto(`${BASE}/screens.html?screen=pack`, { waitUntil: 'load' });
+await page.goto(`${BASE}/dev/harness/screens.html?screen=pack`, { waitUntil: 'load' });
 await page.waitForFunction(
   () => document.getElementById('log')?.textContent.includes('screens ready'),
   null,

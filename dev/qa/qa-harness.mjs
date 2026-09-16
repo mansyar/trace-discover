@@ -5,10 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 // Smoke: multi-stroke harness migration — v1 levels still trace to success in
 // play.html through the multi pipeline, and tune.html?strokes=2 completes
-// across a two-stroke hand-over. Usage: node spike/qa-harness.mjs (dev server on :5199)
+// across a two-stroke hand-over. Usage: node dev/qa/qa-harness.mjs (dev server on :5199)
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
-const OUT = path.join(HERE, 'qa');
+const OUT = path.join(HERE, 'out');
 fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const logs = [];
@@ -50,7 +50,7 @@ async function tracePath(points, field, goalDwell = 8) {
 
 // --- play.html: pre-writing slots full trace through the migrated pipeline ---
 for (const id of ['pre-2', 'pre-bonus-1']) {
-  await page.goto(`${BASE}/play.html?level=${id}`, { waitUntil: 'load' });
+  await page.goto(`${BASE}/dev/harness/play.html?level=${id}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__qa !== undefined, null, { timeout: 30000 });
   await wait(600);
   const trace = await page.evaluate(() => {
@@ -75,7 +75,7 @@ for (const id of ['pre-2', 'pre-bonus-1']) {
 }
 
 // --- tune.html?strokes=2: S-curve then loop hand-over on one finger pass ---
-await page.goto(`${BASE}/tune.html?strokes=2`, { waitUntil: 'load' });
+await page.goto(`${BASE}/dev/harness/tune.html?strokes=2`, { waitUntil: 'load' });
 await page.waitForFunction(
   () => document.getElementById('log').textContent.includes('harness ready'),
   null,

@@ -20,7 +20,7 @@ try {
 
 const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
 for (const id of LEVELS) {
-  await page.goto(`http://localhost:5174/play.html?level=${id}`, { waitUntil: 'load' });
+  await page.goto(`http://localhost:5174/dev/harness/play.html?level=${id}`, { waitUntil: 'load' });
   await page.waitForFunction(
     () => document.getElementById('log').textContent.includes('play ready'),
     null, { timeout: 30000 },

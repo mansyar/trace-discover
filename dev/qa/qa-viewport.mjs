@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 // mid-trace rotation. Fails on any target mapping outside the viewport,
 // any page error, or any incomplete trace.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(HERE, 'qa-viewport');
+const OUT = path.join(HERE, 'out', 'viewport');
 const PORT = 5176;
 const FIELD_W = 430;
 const FIELD_H = 860;

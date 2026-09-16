@@ -9,7 +9,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 const URL = process.argv[2] ?? 'http://localhost:4173/';
 const LEVEL = process.argv[3] ?? 'pre-1';
-const OUT = path.join(HERE, 'qa-offline');
+const OUT = path.join(HERE, 'out', 'offline');
 
 const EDGE_PATHS = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',

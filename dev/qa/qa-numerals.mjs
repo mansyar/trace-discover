@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 // Screenshot QA for numerals 0-9: a rest shot per numeral (shape, start star,
 // goal placement) plus traced success shots for the multi-stroke hand-over
 // cases (4, 8) and the closed-loop case (0).
-// Usage: node spike/qa-numerals.mjs (dev server on :5199)
+// Usage: node dev/qa/qa-numerals.mjs (dev server on :5199)
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
-const OUT = path.join(HERE, 'qa', 'numerals');
+const OUT = path.join(HERE, 'out', 'numerals');
 fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const TRACE = new Set(['num-0', 'num-4', 'num-8']);
@@ -31,7 +31,7 @@ const logs = [];
 
 for (let digit = 0; digit < 10; digit += 1) {
   const id = `num-${digit}`;
-  await page.goto(`${BASE}/play.html?level=${id}`, { waitUntil: 'load' });
+  await page.goto(`${BASE}/dev/harness/play.html?level=${id}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__qa !== undefined, null, { timeout: 30000 });
   await wait(700);
   const qa = await page.evaluate(() => ({

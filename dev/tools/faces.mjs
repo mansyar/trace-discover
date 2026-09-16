@@ -1,7 +1,7 @@
 // tools/faces.mjs — one-shot: head-crop face icons for the skin switch button.
 // Finds the eye whites in each character source, crops a square around them,
 // composites onto the skin accent disc, and writes public/art/face/*.png.
-// Also emits a 2x2 contact sheet for review. usage (cwd spike): node tools/faces.mjs
+// Also emits a 2x2 contact sheet for review. usage: node dev/tools/faces.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright-core';
@@ -235,13 +235,17 @@ const out = await page.evaluate(async (sources) => {
   return { results, sheet: sheet.toDataURL('image/png').split(',')[1] };
 }, payload);
 
-mkdirSync(resolve('..', 'public', 'art', 'face'), { recursive: true });
+mkdirSync(new URL('../../public/art/face', import.meta.url), { recursive: true });
 for (const r of out.results) {
-  writeFileSync(resolve('..', 'public', 'art', 'face', r.id + '.png'), Buffer.from(r.png, 'base64'));
+  writeFileSync(
+    new URL(`../../public/art/face/${r.id}.png`, import.meta.url),
+    Buffer.from(r.png, 'base64'),
+  );
   console.log(
     `${r.id}: paired=${r.paired} crop=${JSON.stringify(r.crop)} clusters=${JSON.stringify(r.clusters)} -> public/art/face/${r.id}.png`,
   );
 }
-writeFileSync(resolve('gen', 'faces-sheet.png'), Buffer.from(out.sheet, 'base64'));
+mkdirSync(new URL('../gen', import.meta.url), { recursive: true });
+writeFileSync(new URL('../gen/faces-sheet.png', import.meta.url), Buffer.from(out.sheet, 'base64'));
 console.log('sheet -> gen/faces-sheet.png');
 await browser.close();

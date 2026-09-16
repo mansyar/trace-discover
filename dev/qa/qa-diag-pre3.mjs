@@ -14,7 +14,7 @@ const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
 const pageErrors = [];
 page.on('pageerror', (err) => pageErrors.push(String(err)));
 
-await page.goto('http://localhost:5174/play.html?level=pre-3', { waitUntil: 'load' });
+await page.goto('http://localhost:5174/dev/harness/play.html?level=pre-3', { waitUntil: 'load' });
 await page.waitForFunction(() => document.getElementById('log').textContent.includes('play ready'), null, {
   timeout: 30000,
 });

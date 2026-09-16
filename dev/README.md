@@ -18,6 +18,11 @@ purpose.
 `package.json` carries the `playwright-core` dependency for the QA scripts —
 run `pnpm install` inside `dev/` once.
 
+> `.cf_token` (untracked Workers AI token, needed by `tools/gen.mjs` /
+> `gen2.mjs`) lives at `dev/.cf_token`. If you had one at `spike/.cf_token`,
+> move it here after switching to the restructured branch — git does not move
+> untracked files.
+
 ## Asset pipeline (generate → approve)
 
 Flow per asset batch: **generate → cutout → optimize → composite → screenshot

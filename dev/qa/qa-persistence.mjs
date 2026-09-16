@@ -1,7 +1,7 @@
 // Production persistence QA: a real v1 save migrates losslessly on launch,
 // pack progress survives a relaunch, and the menu card + pack screen reflect
 // the stored state. Usage: pnpm exec vite --port 5199 --strictPort then
-// node spike/qa-persistence.mjs
+// node dev/qa/qa-persistence.mjs
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +9,7 @@ import path from 'node:path';
 
 const BASE = 'http://localhost:5199';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(HERE, 'qa');
+const OUT = path.join(HERE, 'out');
 mkdirSync(OUT, { recursive: true });
 
 const KEY = 'trace-discover-save-v1';

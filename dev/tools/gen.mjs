@@ -2,7 +2,7 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const here = dirname(fileURLToPath(import.meta.url)); // spike/tools
+const here = dirname(fileURLToPath(import.meta.url)); // dev/tools
 const ACCOUNT = '318b4f5a8dbb12ad2921763882a33024';
 const token = readFileSync(resolve(here, '..', '.cf_token'), 'utf8').trim();
 

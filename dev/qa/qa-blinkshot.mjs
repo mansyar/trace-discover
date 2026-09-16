@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // Burst-capture the parked excavator so we can pick a mid-blink frame.
 // Idle loop is 180 frames @60fps (3s); blink occupies ~f106-120 (~0.23s).
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(HERE, 'qa', 'blinkseq');
+const OUT = path.join(HERE, 'out', 'blinkseq');
 const EDGE_PATHS = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
   'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
@@ -25,7 +25,7 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   }
   browser ??= await chromium.launch({ channel: 'msedge' });
   const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
-  await page.goto('http://localhost:5176/play.html?level=pre-5', {
+  await page.goto('http://localhost:5176/dev/harness/play.html?level=pre-5', {
     waitUntil: 'load',
   });
   await page.waitForFunction(() => window.__qa !== undefined, null, { timeout: 30000 });

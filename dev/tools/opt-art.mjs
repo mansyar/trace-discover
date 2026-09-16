@@ -1,8 +1,13 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
 // Downscale art-batch PNGs for the app bundle: backdrops -> JPEG q75,
-// goal cutouts -> 256px PNG (alpha preserved). Writes public/art/*.
+// goal cutouts -> 256px PNG (alpha preserved). Reads dev/gen/*, writes public/art/*.
+const ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const GEN = fileURLToPath(new URL('../gen', import.meta.url));
+
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 let browser;
 try {
@@ -37,17 +42,17 @@ const convert = (name, kind) =>
       return { url, width: canvas.width, height: canvas.height };
     },
     {
-      file: readFileSync(`gen/${name}`).toString('base64'),
+      file: readFileSync(join(GEN, name)).toString('base64'),
       kind,
     },
   );
 
-mkdirSync('../public/art/bg', { recursive: true });
-mkdirSync('../public/art/goal', { recursive: true });
+mkdirSync(join(ROOT, 'public/art/bg'), { recursive: true });
+mkdirSync(join(ROOT, 'public/art/goal'), { recursive: true });
 for (const theme of ['dino', 'construction', 'animals']) {
   const { url, width, height } = await convert(`bg-${theme}.png`, 'bg');
   writeFileSync(
-    `../public/art/bg/${theme}.jpg`,
+    join(ROOT, `public/art/bg/${theme}.jpg`),
     Buffer.from(url.split(',')[1], 'base64'),
   );
   console.log(`bg/${theme}.jpg ${width}x${height}`);
@@ -57,7 +62,7 @@ for (const theme of ['dino', 'construction', 'animals']) {
     const src = `cut-goal-${theme}-${n}.png`;
     const { url, width, height } = await convert(src, 'goal');
     writeFileSync(
-      `../public/art/goal/${theme}-${n}.png`,
+      join(ROOT, `public/art/goal/${theme}-${n}.png`),
       Buffer.from(url.split(',')[1], 'base64'),
     );
     console.log(`goal/${theme}-${n}.png ${width}x${height}`);
