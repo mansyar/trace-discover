@@ -50,8 +50,8 @@
 
 *Goal: real art everywhere — screenshot-approved; size guarded.*
 
-- [ ] Task: Art batch — 26 goal vignettes + 26 stickers (object-per-letter) + 3 bonus arts + menu card + pack badge (generate → cutout → optimize → composite → screenshot approval)
-- [ ] Task: Integrate art — goal art, sticker slots, card states (fresh/in-progress/badge), bonus arts; screens QA
+- [x] Task: Art batch — 26 goal vignettes + 26 stickers (object-per-letter) + 3 bonus arts + menu card + pack badge (generate → cutout → optimize → composite → screenshot approval) [2f7a37d]
+- [x] Task: Integrate art — goal art, sticker slots, card states (fresh/in-progress/badge), bonus arts; screens QA [2f7a37d]
 - [ ] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded; optimization pass if approaching budget
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
