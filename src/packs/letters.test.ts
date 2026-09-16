@@ -54,7 +54,7 @@ describe('letters pack', () => {
   it('keeps every letter valid, on-content, and ending at its goal', () => {
     for (const level of [...LETTER_LEVELS, ...LETTER_BONUS_LEVELS]) {
       expect(validateLevel(level)).toEqual([]);
-      expect(level.goalArt).toBe(`/art/goal/${level.id}.png`);
+      expect(level.goalArt).toBe(`/art/goal/${level.id}.webp`);
       expect(level.goal).toEqual(lastPoint(level));
     }
   });

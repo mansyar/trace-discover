@@ -10,7 +10,7 @@ import { createPackEntry, type PackEntry } from './pack';
 export const NUMERAL_LEVELS: readonly LevelDef[] = [
   {
     goal: { x: 215, y: 250 },
-    goalArt: '/art/goal/num-0.png',
+    goalArt: '/art/goal/num-0.webp',
     id: 'num-0',
     stroke: 'circle',
     strokes: [
@@ -37,7 +37,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 215, y: 640 },
-    goalArt: '/art/goal/num-1.png',
+    goalArt: '/art/goal/num-1.webp',
     id: 'num-1',
     stroke: 'line',
     strokes: [
@@ -49,7 +49,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 305, y: 630 },
-    goalArt: '/art/goal/num-2.png',
+    goalArt: '/art/goal/num-2.webp',
     id: 'num-2',
     stroke: 'wave',
     strokes: [
@@ -69,7 +69,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 175, y: 618 },
-    goalArt: '/art/goal/num-3.png',
+    goalArt: '/art/goal/num-3.webp',
     id: 'num-3',
     stroke: 'wave',
     strokes: [
@@ -92,7 +92,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 300, y: 640 },
-    goalArt: '/art/goal/num-4.png',
+    goalArt: '/art/goal/num-4.webp',
     id: 'num-4',
     stroke: 'line',
     strokes: [
@@ -109,7 +109,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 135, y: 565 },
-    goalArt: '/art/goal/num-5.png',
+    goalArt: '/art/goal/num-5.webp',
     id: 'num-5',
     stroke: 'line',
     strokes: [
@@ -132,7 +132,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 235, y: 610 },
-    goalArt: '/art/goal/num-6.png',
+    goalArt: '/art/goal/num-6.webp',
     id: 'num-6',
     stroke: 'circle',
     strokes: [
@@ -153,7 +153,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 195, y: 640 },
-    goalArt: '/art/goal/num-7.png',
+    goalArt: '/art/goal/num-7.webp',
     id: 'num-7',
     stroke: 'line',
     strokes: [
@@ -166,7 +166,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 215, y: 472 },
-    goalArt: '/art/goal/num-8.png',
+    goalArt: '/art/goal/num-8.webp',
     id: 'num-8',
     stroke: 'circle',
     strokes: [
@@ -204,7 +204,7 @@ export const NUMERAL_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 285, y: 660 },
-    goalArt: '/art/goal/num-9.png',
+    goalArt: '/art/goal/num-9.webp',
     id: 'num-9',
     stroke: 'circle',
     strokes: [

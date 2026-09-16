@@ -11,9 +11,9 @@ describe('skins registry', () => {
     for (const skin of SKINS) {
       expect(skin.id).not.toBe('');
       expect(skin.character).not.toBe('');
-      expect(skin.backdrop).toMatch(/^\/art\/bg\/.+\.(jpg|png)$/);
+      expect(skin.backdrop).toMatch(/^\/art\/bg\/.+\.webp$/);
       expect(skin.accent).toMatch(/^#[0-9a-f]{6}$/);
-      expect(skin.face).toMatch(/^\/art\/face\/.+\.png$/);
+      expect(skin.face).toMatch(/^\/art\/face\/.+\.webp$/);
       expect(['marimba', 'bell', 'woodblock', 'kalimba']).toContain(skin.instrument);
     }
   });
@@ -38,8 +38,8 @@ describe('skins registry', () => {
   });
 
   it('points every skin at its backdrop (star included; art lands later)', () => {
-    expect(skinById('star')?.backdrop).toBe('/art/bg/star.jpg');
-    expect(skinById('animal')?.backdrop).toBe('/art/bg/animals.jpg');
+    expect(skinById('star')?.backdrop).toBe('/art/bg/star.webp');
+    expect(skinById('animal')?.backdrop).toBe('/art/bg/animals.webp');
   });
 
   it('looks a skin up by id', () => {

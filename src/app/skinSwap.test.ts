@@ -6,7 +6,7 @@ import { levelPresentation, shouldDeferSkinSwap } from './skinSwap';
 
 const level: LevelDef = {
   goal: { x: 370, y: 430 },
-  goalArt: '/art/goal/pre-1.png',
+  goalArt: '/art/goal/pre-1.webp',
   id: 'pre-1',
   stroke: 'line',
   strokes: [
@@ -48,17 +48,17 @@ describe('levelPresentation', () => {
   it('takes backdrop and character from the skin', () => {
     const dino = levelPresentation(skin('dino'), level);
     const animal = levelPresentation(skin('animal'), level);
-    expect(dino.backdrop).toBe('/art/bg/dino.jpg');
+    expect(dino.backdrop).toBe('/art/bg/dino.webp');
     expect(dino.character).toBe('dino');
-    expect(animal.backdrop).toBe('/art/bg/animals.jpg');
+    expect(animal.backdrop).toBe('/art/bg/animals.webp');
     expect(animal.character).toBe('lion');
   });
 
   it('keeps goal art and sticker content-owned across skins', () => {
     const dino = levelPresentation(skin('dino'), level);
     const star = levelPresentation(skin('star'), level);
-    expect(dino.goal).toBe('/art/goal/pre-1.png');
-    expect(dino.sticker).toBe('/art/sticker/pre-1.png');
+    expect(dino.goal).toBe('/art/goal/pre-1.webp');
+    expect(dino.sticker).toBe('/art/sticker/pre-1.webp');
     expect(star.goal).toBe(dino.goal);
     expect(star.sticker).toBe(dino.sticker);
   });
