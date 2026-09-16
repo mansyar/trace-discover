@@ -1,12 +1,13 @@
 // Letters pack: twenty-six uppercase levels (abc-a ... abc-z) plus three
-// sequence bonuses (ABC / MOM / ZOO) unlocking at 9/18/26 cleared. Phase 1
-// wires the pack on provisional skeleton geometry; Phase 2 authors the final
-// school-style glyphs (see the track's content.md).
+// sequence bonuses (ABC / MOM / ZOO) unlocking at 9/18/26 cleared. Phase 2
+// authoring pins the school-style glyph geometry (see the track's content.md).
 import { describe, expect, it } from 'vitest';
+import { nearestOnPath } from '../engine/path';
 import type { Point } from '../engine/types';
+import { FIELD_WIDTH } from '../field';
 import { LETTER_BONUS_LEVELS, LETTER_LEVELS, LETTERS_PACK } from './letters';
 import type { LevelDef } from './level';
-import { validateLevel } from './level';
+import { levelToPath, validateLevel } from './level';
 import {
   bonusUnlocked,
   completedCount,
@@ -80,6 +81,114 @@ describe('letters pack', () => {
     expect(LETTERS_PACK.menuFill).toBe('#90be6d');
     expect(LETTERS_PACK.levels).toHaveLength(26);
     expect(LETTERS_PACK.bonuses).toHaveLength(3);
+  });
+});
+
+describe('letters formation (content.md)', () => {
+  const TOLERANCE = FIELD_WIDTH * 0.12; // session base tolerance: 12% of the field width
+  const TOUCH = 10; // px — resampled gaps this small read as an intended junction
+  const BOX = { bottom: 660, left: 130, right: 300, top: 280 };
+
+  it('pins the content-doc stroke counts for every letter', () => {
+    const counts: Readonly<Record<string, number>> = {
+      a: 3,
+      b: 3,
+      c: 1,
+      d: 2,
+      e: 4,
+      f: 3,
+      g: 1,
+      h: 3,
+      i: 3,
+      j: 2,
+      k: 3,
+      l: 2,
+      m: 1,
+      n: 1,
+      o: 1,
+      p: 2,
+      q: 2,
+      r: 3,
+      s: 1,
+      t: 2,
+      u: 1,
+      v: 1,
+      w: 1,
+      x: 2,
+      y: 3,
+      z: 1,
+    };
+    for (const [letter, count] of Object.entries(counts)) {
+      expect(byId(`abc-${letter}`).strokes, `abc-${letter} strokes`).toHaveLength(count);
+    }
+  });
+
+  it('keeps every glyph inside the standard letter box', () => {
+    for (const level of LETTER_LEVELS) {
+      for (const stroke of level.strokes) {
+        for (const point of stroke) {
+          expect(point.x, `${level.id} x`).toBeGreaterThanOrEqual(BOX.left);
+          expect(point.x, `${level.id} x`).toBeLessThanOrEqual(BOX.right);
+          expect(point.y, `${level.id} y`).toBeGreaterThanOrEqual(BOX.top);
+          expect(point.y, `${level.id} y`).toBeLessThanOrEqual(BOX.bottom);
+        }
+      }
+    }
+  });
+
+  it('keeps inter-stroke proximity clear of the tolerance band', () => {
+    for (const level of LETTER_LEVELS) {
+      const paths = levelToPath(level);
+      for (let i = 0; i < paths.length; i += 1) {
+        for (let j = i + 1; j < paths.length; j += 1) {
+          const a = paths[i] ?? [];
+          const b = paths[j] ?? [];
+          let min = Number.POSITIVE_INFINITY;
+          for (const point of a) {
+            min = Math.min(min, nearestOnPath(b, point.x, point.y).distance);
+          }
+          for (const point of b) {
+            min = Math.min(min, nearestOnPath(a, point.x, point.y).distance);
+          }
+          const okay = min <= TOUCH || min >= TOLERANCE;
+          expect(okay, `${level.id} strokes ${i}/${j} closest approach ${min.toFixed(1)}px`).toBe(
+            true,
+          );
+        }
+      }
+    }
+  });
+
+  it('follows the content-doc formation for the tricky letters', () => {
+    const a = byId('abc-a');
+    const a1 = a.strokes[0];
+    const a2 = a.strokes[1];
+    const a3 = a.strokes[2];
+    expect(a1?.[0]).toEqual({ x: 215, y: 300 }); // apex first, then down-left
+    expect((a1?.[1]?.x ?? 0) < (a1?.[0]?.x ?? 0)).toBe(true);
+    expect((a2?.[1]?.x ?? 0) > (a2?.[0]?.x ?? 0)).toBe(true);
+    expect(a3?.[0]?.y).toBe(a3?.[1]?.y); // crossbar level
+    expect((a3?.[1]?.x ?? 0) > (a3?.[0]?.x ?? 0)).toBe(true);
+
+    const e = byId('abc-e');
+    const stem = e.strokes[0];
+    expect(stem?.[0]?.y).toBe(300); // stem first, top to bottom
+    expect((stem?.[1]?.y ?? 0) > 300).toBe(true);
+    for (const bar of e.strokes.slice(1)) {
+      expect(bar?.[0]?.y).toBe(bar?.[1]?.y);
+      expect((bar?.[1]?.x ?? 0) > (bar?.[0]?.x ?? 0)).toBe(true);
+    }
+
+    const t = byId('abc-t');
+    expect(t.strokes[0]?.[0]?.y).toBe(t.strokes[0]?.[1]?.y); // top bar first
+    const tStem = t.strokes[1];
+    expect(tStem?.[0]?.x).toBe(tStem?.[1]?.x);
+    expect((tStem?.[1]?.y ?? 0) > (tStem?.[0]?.y ?? 0)).toBe(true);
+
+    const q = byId('abc-q');
+    expect(q.strokes[0]?.length).toBeGreaterThan(3); // loop first
+    const tail = q.strokes[1];
+    expect((tail?.[0]?.y ?? 0) > 450).toBe(true); // tail added low right
   });
 });
 

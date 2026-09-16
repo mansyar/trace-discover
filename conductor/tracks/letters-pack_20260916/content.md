@@ -58,6 +58,8 @@ Checkpoint counts are authoring targets. The engine ships with the shared count 
 
 Goal art refs: `/art/goal/abc-<letter>.png` (object vignette doubling as the sticker, per FR5). Bonus art: `/art/goal/abc-bonus-<n>.png`. Pack badge: art-batch seal consistent with v1 badges.
 
+**Geometry record (Phase 2):** coordinates live in `src/packs/letters.ts`; the glyph box is x ∈ [150, 280] (W spans [140, 290]), y ∈ [300, 640]. `letters.test.ts` pins the counts, box bounds, inter-stroke clearance (closest approach ≤ 10 px counts as a junction, ≥ tolerance is clear, nothing in between), and formation spot checks.
+
 ## Reward objects (locked)
 
 A apple · B ball · C cat · D duck · E egg · F fish · G grapes · H hat · I ice cream · J jellyfish · K kite · L ladybug · M moon · N nest · O orange · P penguin · Q queen · R rocket · S sun · T turtle · U umbrella · V van · W whale · X xylophone · Y yo-yo · Z zebra.
