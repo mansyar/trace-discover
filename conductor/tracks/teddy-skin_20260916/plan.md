@@ -53,9 +53,9 @@
 
 *Goal: every acceptance criterion traced to evidence; proven on device.*
 
-- [~] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded
-- [ ] Task: Teddy spot-sweep — skin cycle reaches teddy; one teddy level traced to completion (hop + celebrate); screenshots menu/pack/level/success; zero-text audit; offline probe (`qa-offline.mjs`) covers new assets
-- [ ] Task: Perf spot-check — cold boot / fps sampling; device findings folded into the owner pass
+- [x] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded — biome + tsc clean (77 files); Vitest 323/323 (32 files); coverage v8: 98.2% stmts / 90.92% branch / 100% funcs (skins.ts 100% stmts; synth.ts 97.29%; store.ts 98.71%); build green → dist 7.26 MB / 81 files, precache 79 entries / 7,413.33 KiB
+- [x] Task: Teddy spot-sweep — skin cycle reaches teddy; one teddy level traced to completion (hop + celebrate); screenshots menu/pack/level/success; zero-text audit; offline probe (`qa-offline.mjs`) covers new assets — cycle: 4 taps from a clean save → storage `teddy` asserted; real-app pre-2 trace → `hop.png` + `success.png` (celebrate + confetti); screens recaptured (menu/pack/level/success/parent, no page errors); zero-text audit: no words on child surfaces (parent zone is the adult surface); offline: teddy preset boots from precache offline (storage-verified) + pre-2 trace SUCCESS — deterministic after the settle+assert fix [5d8a846]
+- [~] Task: Perf spot-check — cold boot / fps sampling; device findings folded into the owner pass
 - [ ] Task: Owner device pass — one teddy level on Android + iPad; music-box speaker check; verdict recorded
 - [ ] Task: Acceptance criteria 1–10 evidence recorded (plan + git note)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
