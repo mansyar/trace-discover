@@ -17,7 +17,7 @@
 
 *Goal: the workspace is moved and every script runs from its new home; nothing live references `spike/` anymore.*
 
-- [ ] Task: History-preserving move (`git mv`) — `tools/`, QA scripts, harness pages, character workspaces, `art-src`, `package.json` into `dev/`; spot-check `git log --follow` on moved files
+- [~] Task: History-preserving move (`git mv`) — `tools/`, QA scripts, harness pages, character workspaces, `art-src`, `package.json` into `dev/`; spot-check `git log --follow` on moved files
 - [ ] Task: Script path hardening (TDD-adapted: run-proof, no unit tests) — `import.meta.url`-anchored paths replacing cwd assumptions; QA outputs unified under ignored `dev/qa/out/`; harness URLs updated to `/dev/harness/*.html`; run-proof each family: one pipeline tool, one QA script (`qa-app`), harness page load
 - [ ] Task: `.gitignore` restructure — `dev/` patterns; single QA output dir; remove stale entries (spike/web, per-dir `.gitignore` lineages, obsolete negations)
 - [ ] Task: Live-reference sweep — `.agents/skills/rive-cli/SKILL.md`, `src/packs/numbers.ts` comment, current docs; `git grep spike/` clean outside `conductor/archive/` + history
