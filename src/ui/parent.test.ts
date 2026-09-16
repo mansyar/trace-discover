@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   changeVolume,
+  holdProgress,
   PARENT_GATE_START,
   PARENT_HOLD_MS,
   stepParentGate,
@@ -23,15 +24,34 @@ describe('stepParentGate', () => {
     expect(hold(PARENT_HOLD_MS - 500, 500)).toBe(false);
   });
 
-  it('opens after three continuous seconds in the zone', () => {
+  it('opens after the target hold in the zone', () => {
     expect(hold(PARENT_HOLD_MS, 500)).toBe(true);
   });
 
-  it('restarts the timer when the hold breaks early', () => {
+  it('drains gradually after release instead of resetting instantly', () => {
+    const held = stepParentGate(PARENT_GATE_START, true, 2000).state;
+    const drained = stepParentGate(held, false, 100).state;
+    expect(drained.holdMs).toBeGreaterThan(0);
+    expect(drained.holdMs).toBeLessThan(held.holdMs);
+  });
+
+  it('drains to rest after release and never opens', () => {
     let state = stepParentGate(PARENT_GATE_START, true, 2000).state;
-    state = stepParentGate(state, false, 100).state;
+    let opened = false;
+    for (let i = 0; i < 10; i += 1) {
+      const step = stepParentGate(state, false, 100);
+      state = step.state;
+      opened = opened || step.opened;
+    }
+    expect(opened).toBe(false);
     expect(state.holdMs).toBe(0);
-    expect(hold(PARENT_HOLD_MS, 500)).toBe(true);
+  });
+
+  it('resumes from the drained level when the finger returns', () => {
+    let state = stepParentGate(PARENT_GATE_START, true, 1000).state;
+    state = stepParentGate(state, false, 100).state;
+    state = stepParentGate(state, true, 100).state;
+    expect(state.holdMs).toBe(600);
   });
 
   it('fires open exactly once per continuous hold', () => {
@@ -52,6 +72,15 @@ describe('stepParentGate', () => {
     expect(state.holdMs).toBe(0);
     const rewound = stepParentGate(PARENT_GATE_START, true, -500).state;
     expect(rewound.holdMs).toBe(0);
+  });
+});
+
+describe('holdProgress', () => {
+  it('fills 0 → 1 across the hold and clamps past the threshold', () => {
+    expect(holdProgress(PARENT_GATE_START)).toBe(0);
+    expect(holdProgress({ holdMs: PARENT_HOLD_MS / 2 })).toBe(0.5);
+    expect(holdProgress({ holdMs: PARENT_HOLD_MS })).toBe(1);
+    expect(holdProgress({ holdMs: PARENT_HOLD_MS * 3 })).toBe(1);
   });
 });
 
