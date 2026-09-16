@@ -100,5 +100,37 @@ await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 
 await wait(1800);
 await page.screenshot({ path: path.join(OUT, 'success.png') });
 console.log(`success -> ${JSON.stringify(await screenOf())}`);
+
+// Parent zone with teddy selected: the face icon on the small skin setter.
+await page.reload({ waitUntil: 'load' });
+await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+await wait(800);
+await tapTarget('splash');
+await page.evaluate(() => {
+  const canvas = document.querySelector('.game-canvas');
+  const field = window.__app.field();
+  const gate = window.__app.targets().find((target) => target.id === 'gate');
+  if (!canvas || !gate) {
+    throw new Error('missing gate target');
+  }
+  const clientX = field.x + (gate.x / 430) * field.width;
+  const clientY = field.y + (gate.y / 860) * field.height;
+  for (const pointerId of [11, 12]) {
+    canvas.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX,
+        clientY,
+        isPrimary: pointerId === 11,
+        pointerId,
+        pointerType: 'touch',
+      }),
+    );
+  }
+});
+await wait(3600);
+console.log(`parent -> ${JSON.stringify(await screenOf())}`);
+await page.screenshot({ path: path.join(OUT, 'parent.png') });
+
 console.log(`page errors: ${errors.length === 0 ? '(none)' : errors.join(' | ')}`);
 await browser.close();
