@@ -9,11 +9,11 @@
 *Goal: a downloaded update can never take over a running session — activation happens only after all instances close; proven by an automated probe.*
 
 - [x] Task: `tech-stack.md` dated note — PWA update strategy (waiting SW; activate-on-next-launch; `skipWaiting`/`clientsClaim` off) + save durability approach documented *before* implementation (workflow.md: Tech Stack is Deliberate) [d408e25]
-- [ ] Task: Update probe `dev/qa/qa-update.mjs` (write-first, expect RED against current config)
-  - [ ] Build-output audit: generated `sw.js` contains no `skipWaiting()`/`clientsClaim()`; `precacheAndRoute` + `cleanupOutdatedCaches` + navigation fallback intact
-  - [ ] Live lifecycle on a sandboxed `dist/` copy: after a synthetic SW update, registration stays `waiting` while a page is open; the running page is not claimed and keeps working (no reload)
-  - [ ] Relaunch + offline: close all pages → reopen → updated SW active; airplane-mode reopen boots fully from precache
-  - [ ] RED evidence recorded (today's build fails the waiting/claim assertions)
+- [x] Task: Update probe `dev/qa/qa-update.mjs` (write-first, expect RED against current config) [381b17f]
+  - [x] Build-output audit: generated `sw.js` contains no `skipWaiting()`/`clientsClaim()`; `precacheAndRoute` + `cleanupOutdatedCaches` + navigation fallback intact
+  - [x] Live lifecycle on a sandboxed `dist/` copy: after a synthetic SW update, registration stays `waiting` while a page is open; the running page is not claimed and keeps working (no reload)
+  - [x] Relaunch + offline: close all pages → reopen → updated SW active; airplane-mode reopen boots fully from precache
+  - [x] RED evidence recorded (today's build fails the waiting/claim assertions)
 - [ ] Task: Enforce waiting semantics in `vite.config.ts` — explicit `skipWaiting: false, clientsClaim: false`; if `autoUpdate` overrides them (decided by the generated-`sw.js` audit), adopt a no-prompt registration variant instead; rebuild; probe GREEN; dist/precache delta recorded (expect ~0)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
