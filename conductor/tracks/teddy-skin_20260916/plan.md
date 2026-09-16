@@ -12,8 +12,8 @@
   - [x] `product.md`: fifth skin noted (description/features); out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
   - [x] `tech-stack.md`: skins list gains teddy; instruments list gains `musicbox`; dated note
   - [x] `dev/README.md`: character workspace list gains teddy
-- [~] Task: Reference prep + stylization candidates — `gen2.mjs` img2img from the reference photo (prereq: `dev/.cf_token` present in this worktree, untracked); tune strength/seed; candidates inspected; raw reference + raws stay untracked
-- [ ] Task: **Owner approval of the stylized master (hard gate)** — explicit yes recorded as evidence; no cutout/pose/Rive work until given
+- [x] Task: Reference prep + stylization candidates — `gen2.mjs` img2img from the reference photo (prereq: `dev/.cf_token` present in this worktree, untracked); tune strength/seed; candidates inspected; raw reference + raws stay untracked — 4 candidates (`dev/gen/teddy-cand-a..d.png`): a=0.6; b/c/d=0.7–0.9 byte-identical (stable high-strength result)
+- [x] Task: **Owner approval of the stylized master (hard gate)** — owner approved candidate B (`dev/gen/teddy-cand-b.png`, strength 0.7, seed 7) 2026-09-16; canonical copy `dev/characters/teddy/master.png`; downstream work unlocked
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Character build: cutout → poses → Rive → verification
