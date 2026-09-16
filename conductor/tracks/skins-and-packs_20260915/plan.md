@@ -67,7 +67,7 @@
 - [x] Task: Harness/device feel check via LAN — trace small/medium/large spot levels; tune values; record findings — owner verdict: looks good, no tuning needed (Android + iPad, 2026-09-15)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Art batch: rewards, star backdrop, cards, face icons
+## Phase 4 — Art batch: rewards, star backdrop, cards, face icons [checkpoint: 946eb8c]
 
 *Goal: real art everywhere for the new model; screenshot-approved.*
 
@@ -75,7 +75,7 @@
 - [x] Task: Integrate rewards — goal art + sticker slots + fly-in for pre-writing; screens QA [946eb8c]
 - [x] Task: Star backdrop + pre-writing menu card art + four face icons; integrate; menu card final states for both packs [946eb8c]
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded — dist 7.77MB; precache 91 entries (7931KiB) [946eb8c]
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance & QA sweep
 
