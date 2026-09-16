@@ -6,7 +6,7 @@
 
 ## Phase 1 — Wiring: docs, pack registration, 26-card grid, third-pack audit
 
-*Goal: menu → pack:abc (26 cards, centered Y-Z finale) → level → success → next all work on rough geometry; progress/badge/bonus gating generic; two-pack assumptions gone or documented.*
+*Goal: menu → pack:abc (two pages, 12 + 14 with centered Y–Z finale) → level → success → next all work on rough geometry; progress/badge/bonus gating generic; two-pack assumptions gone or documented.*
 
 - [x] Task: Context docs resync — `tech-stack.md` (letters pack entry: content-only integration, per-stroke hop plan) + `product-guidelines.md` (stale "Numbers-pack guide" line → skins-era wording) — before implementation per workflow.md [62241f5]
 - [x] Task: Pack registration + letter level skeletons (TDD) [dc46475]
@@ -15,9 +15,9 @@
 - [x] Task: Third-pack generalization audit (TDD) [f5e5d22]
   - [ ] Tests: pack-generic art paths for a third pack (`card-abc.png`, `abc-badge.png`), routing/success/badge flows, hop-plan dispatch; numerals' intentional special-casing pinned
   - [ ] Sweep `main.ts`, `app/`, `packs/`, `render/`, `session`; fix accidental coupling; document what stays pack-specific
-- [ ] Task: Pack screen — 26-card grid + sticker shelf + badge (layout math TDD)
-  - [ ] Tests: 4-per-row math, 7 rows, centered Y-Z finale row, ≥90 px targets, shelf/badge hit zones, cleared → sticker; cream shell (numbers pattern)
-  - [ ] Implement layout config + render; screens-harness QA (menu → pack:abc → level:abc-a)
+- [x] Task: Pack screen — 26 cards across two pages + per-page shelf + badge (layout math TDD) [f25a948]
+  - [ ] Tests: 4-per-row math (12 then 14, rows 4+4+4+2), centered Y-Z finale pair, ≥90 px card + pager targets, pager hit zones + landing page (first unfinished), shelf/badge zones, cleared → sticker; cream shell (numbers pattern)
+  - [ ] Implement layout config (card size, per-row centering, page slicing, pager) + render + main wiring; screens-harness QA (menu → pack:abc → level:abc-a)
 - [ ] Task: Menu card + navigation wiring (TDD) — third card appended (rough "ABC" art); menu → pack → letter → success; replay/next/home; badge reachability
 - [ ] Task: Dev harness + spike QA script updates for the `abc` pack
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
