@@ -36,7 +36,7 @@ speed untouched).
 
 ## Phase 2: Name level composition (pure geometry + path thinning)
 
-- [ ] Task 1: `buildNameLevel` (TDD)
+- [x] Task 1: `buildNameLevel` (TDD) (adcb5b3)
   - [ ] Red: stroke count/order per letter; bounds inside field; centered
         advance; goal = last stroke end; long-name thinning scales
         ribbon/dots/tip with floor
@@ -44,7 +44,7 @@ speed untouched).
         `MAX_NAME_LENGTH = 7` pending device tune)
   - [ ] Verify coverage
   - [ ] Commit + git note
-- [ ] Task 2: `namePackFor(name)` mini-pack descriptor + resolver (TDD)
+- [~] Task 2: `namePackFor(name)` mini-pack descriptor + resolver (TDD)
   - [ ] Red: null when no/invalid name; entry `{id: 'name', badgeId:
         'name-badge', levels: ['name-1']}`; app resolves `packById(...) ??
         namePackFor(save.name)`; badge-tap safe for bonus-less pack
