@@ -27,9 +27,9 @@
 
 *Goal: only load-bearing files remain — legacy art gone, art-src at the policy set, dino iterations consolidated.*
 
-- [ ] Task: Legacy `public/art` prune — re-verify zero references (code + QA scripts + docs), delete the 15 legacy theme goal PNGs, record build/precache delta
-- [ ] Task: art-src raw trim — drop raw generations (~41 files) from `dev/art-src/nums`; keep cutouts + vignettes + card; policy recorded in `dev/README.md`
-- [ ] Task: Character consolidation — provenance check (riv-cast.md + workspace verify) → prune superseded dino iterations; star/excavator/lion retained
+- [x] Task: Legacy `public/art` prune — re-verify zero references (code + QA scripts + docs), delete the 15 legacy theme goal PNGs, record build/precache delta [2810049]
+- [x] Task: art-src raw trim — drop raw generations (~41 files) from `dev/art-src/nums`; keep cutouts + vignettes + card; policy recorded in `dev/README.md` [c40dd80]
+- [x] Task: Character consolidation — provenance check (riv-cast.md + workspace verify) → prune superseded dino iterations; star/excavator/lion retained [30afb2a]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Compliance & close-out
