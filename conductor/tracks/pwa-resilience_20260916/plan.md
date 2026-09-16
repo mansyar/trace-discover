@@ -17,20 +17,20 @@
 - [x] Task: Enforce waiting semantics in `vite.config.ts` — `registerType: 'prompt'` (no ungated `skipWaiting`) + `workbox.clientsClaim` for first-launch control; rebuilt; probe GREEN (14/14); dist/precache delta ~0 [f3c549d]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Save durability: exception-proof writes + persistent storage
+## Phase 2 — Save durability: exception-proof writes + persistent storage [checkpoint: 0b69a21]
 
 *Goal: no storage condition can crash or silently wedge a session; the save asks the browser to persist; the app is fully playable with no storage at all.*
 
 - [x] Task: Tests-first (RED) in `src/save/` — `saveSave` never throws on quota/denied (in-memory continuation; later writes still attempt and persist); storage acquisition falls back when `localStorage` access throws; `requestPersistence` best-effort (called when available & unpersisted; silent no-op otherwise; rejections swallowed) [97f12ae]
 - [x] Task: Implement (GREEN) — `src/save/storage.ts` (`acquireSaveStorage` with in-memory fallback + `requestPersistence`); guard the write path; wire `main.ts` boot (`loadSave`/`commit` use the acquired storage; persist requested once) [5618af5]
 - [x] Task: Extend `dev/qa/qa-persistence.mjs` — quota-denied simulation (patch `Storage.prototype.setItem` in-page): level completes, app continues silently; prototype restored → subsequent saves persist; storage-unavailable boot shows no error state [0b69a21]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Compliance & regression sweep
 
 *Goal: measured and verified — full gates green, offline completeness proven, zero-text untouched, numbers recorded.*
 
-- [ ] Task: Full gates — `CI=true pnpm check && CI=true pnpm test` (+ coverage) and `pnpm build`; record dist size + precache entries vs baseline (6.71 MB · 76 entries)
+- [~] Task: Full gates — `CI=true pnpm check && CI=true pnpm test` (+ coverage) and `pnpm build`; record dist size + precache entries vs baseline (6.71 MB · 76 entries)
 - [ ] Task: Offline completeness — `qa-offline` green (SW cold-start → offline trace); assert precache covers every runtime asset reachable from boot/menu/pack/level; fix any gap found
 - [ ] Task: Zero-text & surface audit — no new UI/strings (changes confined to registration/config/save); `qa-screens` spot-run shows key screens unchanged
 - [ ] Task: Docs close-out — `dev/README.md` QA inventory gains `qa-update` (canonical); tech-stack note finalized; acceptance evidence for criteria 1–6, 8 pre-recorded
