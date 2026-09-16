@@ -40,10 +40,10 @@
 
 *Goal: the guarantees hold on real target devices (Android phone + iPad), including airplane mode and mid-update sessions.*
 
-- [ ] Task: Real-device update lifecycle via LAN — serve build A (`pnpm serve`), open on both devices, swap to build B: running session unaffected; after fully closing, relaunch serves B; airplane-mode relaunch boots
-- [ ] Task: Device persistence & resilience spot checks — complete a level, kill app, relaunch offline → progress persists; visual/zero-text audit shows no change
-- [ ] Task: Acceptance criteria 1–8 evidence recorded (plan + git note) — incl. dist/precache numbers and the mid-update-session note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Real-device pass over LAN (`pnpm serve`) — open on Android + iPad: gameplay + persistence eyeball; owner-chosen scope 2026-09-16 (no preview deploy) — SW/offline device checks deferred, mechanics proven by desktop probes (`qa-update` 14/14 + `qa-offline`); recommend an rc/production re-check after merge/release
+- [x] Task: Device persistence & resilience spot checks — complete a level, close the app, reopen (LAN scope: no offline check over HTTP) → progress persists; visual/zero-text audit shows no change
+- [x] Task: Acceptance criteria 1–8 evidence recorded (plan + git note) — incl. dist/precache numbers and the mid-update-session note
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Acceptance Evidence
 
@@ -55,5 +55,5 @@
 4. **Persist request** — unit tests: requested when available and unpersisted; silent no-op when absent; rejections ignored.
 5. **Storage-unavailable boot** — unit tests + `qa-persistence` Part D: boot → menu → pack with `localStorage` accessor throwing; no error state.
 6. **Suites + probe** — full suite green (33 files / 333 tests); `pnpm check` clean; coverage 98.24% stmts / 90.8% branch; `qa-persistence` 13/13 ok.
-7. *(Device pass — Phase 4.)*
+7. **Device pass (LAN scope — owner choice 2026-09-16):** Android phone + iPad both played and persisted progress across a full close/reopen over LAN HTTP (`http://192.168.0.114:4173/`); no visual / zero-text change reported. SW/offline device checks deferred (no HTTPS over LAN and no preview deploy): mechanics proven by desktop probes (`qa-update` 14/14, `qa-offline`); recommend a quick rc/production re-check after merge/release.
 8. **dist / precache** — dist 6.71 MB · 78 files; precache 76 entries (6855.12 KiB) — unchanged vs baseline; offline audit: every dist runtime asset precached (`sw.js` + workbox runtime excluded by design); `qa-offline` green (offline cold-start → `pre-1` trace SUCCESS).
