@@ -86,14 +86,14 @@ one-finger hold fails device tuning.
   - [ ] Green: `src/ui/parentZone.ts`
   - [ ] Verify coverage
   - [ ] Commit + git note
-- [ ] Task 2: Card rendering + pressed/toggle feedback
-  - [ ] `drawParent` restyle: card styling (white fill, navy outline, section
+- [x] Task 2: Card rendering + pressed/toggle feedback (e3c1530)
+  - [x] `drawParent` restyle: card styling (white fill, navy outline, section
         labels), clear on/off states, pressed pulse, toggle animations; restart
         banner + install panel styling hooks
-  - [ ] Screenshot set (all sections + states) → owner look approval
-  - [ ] Commit + git note
-- [ ] Task 3: Shell wiring for feedback (tap pulse timing; existing pop reused)
-  - [ ] Commit + git note
+  - [x] Screenshot set (all sections + states) → approved by owner
+  - [x] Commit + git note
+- [x] Task 3: Shell wiring for feedback (tap pulse timing; existing pop reused) (97e2788)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Sound controls — pips, preview, auto-unmute
