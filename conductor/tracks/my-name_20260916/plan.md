@@ -103,3 +103,7 @@ speed untouched).
 - [x] Task 5: Final gates `pnpm check && pnpm test`; dist size record; review
       summary
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (ea7c6d1)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (10df8ed)
