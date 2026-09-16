@@ -35,7 +35,7 @@
 - [x] Task: Device feel check via LAN — trace E (4-stroke), S (curve), A (diagonals); tune if needed; record findings [9b14bec]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Reward layer: per-stroke hops, stickers, badge & seals
+## Phase 3 — Reward layer: per-stroke hops, stickers, badge & seals [checkpoint: 53c4379]
 
 *Goal: the full reward loop live — per-stroke counted hops + notes, sticker fly-in per letter, bonus unlocks sealing the pack.*
 
