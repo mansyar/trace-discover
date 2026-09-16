@@ -73,6 +73,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
 | `qa-viewport.mjs` | Viewport-matrix screenshots | dev | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
+| `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets | any | utility |
 | `qa-diag-pre3.mjs` · `qa-probe.mjs` | Retired debugging probes | — | stale |
 | `browsertest.mjs` · `serve.mjs` | Old spike-page driver + static server (its page no longer exists) | — | stale |
