@@ -180,7 +180,7 @@ describe('toy piano counted notes', () => {
 });
 
 describe('instrument preset registry', () => {
-  const IDS = ['marimba', 'bell', 'woodblock', 'kalimba'] as const;
+  const IDS = ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox'] as const;
 
   it('maps every instrument id to a usable preset', () => {
     for (const id of IDS) {
@@ -201,6 +201,35 @@ describe('instrument preset registry', () => {
     );
     expect(presetForInstrument('bell').type).toBe('sine');
     expect(presetForInstrument('kalimba').type).toBe('sine');
+  });
+
+  it('voices the music box as a soft long-decay sine', () => {
+    const musicbox = presetForInstrument('musicbox');
+    expect(musicbox.type).toBe('sine');
+    expect(musicbox.duration).toBeCloseTo(1.5, 6);
+    expect(musicbox.gain).toBeGreaterThan(0);
+    expect(musicbox.gain).toBeLessThan(0.4);
+    expect(musicbox.gain).toBeLessThan(presetForInstrument('marimba').gain);
+  });
+
+  it('resolves chimes and the completion chord through the music-box voice', () => {
+    const musicbox = presetForInstrument('musicbox');
+    const chime = recordingPlayer();
+    playCheckpointChime(chime, 3, musicbox);
+    const spec = chime.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.duration).toBe(musicbox.duration);
+    expect(spec.gain).toBe(musicbox.gain);
+    expect(spec.type).toBe('sine');
+    const completion = recordingPlayer();
+    playCompletion(completion, musicbox);
+    const chord = completion.played.slice(0, 3);
+    expect(chord).toHaveLength(3);
+    for (const chordSpec of chord) {
+      expect(chordSpec.type).toBe('sine');
+    }
   });
 
   it('colors the completion chord with the preset timbre and keeps the sparkle', () => {

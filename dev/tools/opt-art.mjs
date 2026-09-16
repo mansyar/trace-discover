@@ -1,10 +1,11 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
 // Downscale art-batch PNGs for the app bundle: backdrops -> WebP q0.8,
 // goal cutouts -> 256px WebP q0.85 (alpha preserved). Reads dev/gen/*, writes public/art/*.webp.
+// usage: node dev/tools/opt-art.mjs [theme ...]  (default: dino construction animals)
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const GEN = fileURLToPath(new URL('../gen', import.meta.url));
 
@@ -49,8 +50,15 @@ const convert = (name, kind) =>
 
 mkdirSync(join(ROOT, 'public/art/bg'), { recursive: true });
 mkdirSync(join(ROOT, 'public/art/goal'), { recursive: true });
-for (const theme of ['dino', 'construction', 'animals']) {
-  const { url, width, height } = await convert(`bg-${theme}.png`, 'bg');
+const requested = process.argv.slice(2);
+const bgThemes = requested.length > 0 ? requested : ['dino', 'construction', 'animals'];
+for (const theme of bgThemes) {
+  const name = `bg-${theme}.png`;
+  if (!existsSync(join(GEN, name))) {
+    console.log(`skip ${name} (missing)`);
+    continue;
+  }
+  const { url, width, height } = await convert(name, 'bg');
   writeFileSync(
     join(ROOT, `public/art/bg/${theme}.webp`),
     Buffer.from(url.split(',')[1], 'base64'),
@@ -60,6 +68,9 @@ for (const theme of ['dino', 'construction', 'animals']) {
 for (const theme of ['dino', 'construction', 'animals']) {
   for (const n of ['1', '2', '3', '4', 'bonus']) {
     const src = `cut-goal-${theme}-${n}.png`;
+    if (!existsSync(join(GEN, src))) {
+      continue;
+    }
     const { url, width, height } = await convert(src, 'goal');
     writeFileSync(
       join(ROOT, `public/art/goal/${theme}-${n}.webp`),

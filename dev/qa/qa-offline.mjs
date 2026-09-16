@@ -42,11 +42,47 @@ async function launch() {
   );
   console.log('online: app ready, SW controlling');
 
+  // Let the first-visit SW control change settle (it can trigger a self-reload;
+  // seeding a save mid-reload is racy and can lose the write).
+  await page.waitForTimeout(1200);
+  await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
+
+  // Optional preset skin (4th arg): prove that skin's assets boot offline too.
+  const skin = process.argv[4];
+  if (skin) {
+    await page.evaluate((s) => {
+      localStorage.setItem(
+        'trace-discover-save-v1',
+        JSON.stringify({
+          badges: [],
+          completedLevels: [],
+          settings: { easierTracing: false, muted: false, skin: s, volume: 1 },
+          trophies: [],
+          version: 3,
+        }),
+      );
+    }, skin);
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
+    const presetSkin = await page.evaluate(() => {
+      const raw = localStorage.getItem('trace-discover-save-v1');
+      return raw ? JSON.parse(raw).settings.skin : null;
+    });
+    if (presetSkin !== skin) {
+      throw new Error(`preset skin did not persist (storage: ${presetSkin})`);
+    }
+    console.log(`preset skin: ${skin} (storage: ${presetSkin})`);
+  }
+
   // Fully offline, cold reload.
   await page.context().setOffline(true);
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
-  console.log('offline: app booted from precache');
+  const offlineSkin = await page.evaluate(() => {
+    const raw = localStorage.getItem('trace-discover-save-v1');
+    return raw ? JSON.parse(raw).settings.skin : null;
+  });
+  console.log(`offline: app booted from precache (storage skin: ${offlineSkin})`);
 
   const tap = async (id) => {
     const pt = await page.evaluate((targetId) => {

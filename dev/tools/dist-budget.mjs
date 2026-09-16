@@ -3,14 +3,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Dist size budget guard for the $0 payload lane.
-// Ceilings derive from the post-payload-diet build (2026-09-17):
-// 4,161,522 B / 133 precache entries — see
-// conductor/tracks/payload-diet_20260916/measurements.md. Headroom rationale:
-// room for a modest asset addition (e.g. one extra skin set), while a
-// re-introduced lossless art batch (+5 MB) or a new pack's raw art batch trips
-// it immediately. Raise ceilings deliberately, with fresh measurements.
+// Ceilings derive from the measured post-payload-diet build, re-anchored on
+// deliberate additions. History:
+//   2026-09-17 - post-diet build: 4,161,522 B / 133 entries -> 4.50 MB / 150
+//   2026-09-17 - post-merge (PR #7 teddy): 4,641,746 B / 136 entries
+//     (teddy.riv 445,653 B + skin art) -> 5.00 MB / 150
+// See conductor/archive/payload-diet_20260916/measurements.md for the diet
+// figures. A re-introduced lossless art batch (+5 MB) or a new pack's raw art
+// batch trips it immediately. Raise ceilings deliberately, with fresh
+// measurements.
 // Usage: node dev/tools/dist-budget.mjs [--total <bytes>] [--entries <n>]
-const CEIL_TOTAL_BYTES = 4_500_000;
+const CEIL_TOTAL_BYTES = 5_000_000;
 const CEIL_ENTRIES = 150;
 // Workbox runtime + generated service worker: never precached.
 const NOT_PRECACHED = /^(sw\.js|workbox-.*\.js)$/;

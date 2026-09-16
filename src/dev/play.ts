@@ -67,8 +67,9 @@ const ALL_LEVELS: readonly LevelDef[] = [
 const query = new URLSearchParams(window.location.search);
 const requestedId = query.get('level');
 const requestedIndex = ALL_LEVELS.findIndex((level) => level.id === requestedId);
+const requestedChar = query.get('char');
 
-const CHARACTER_SOURCE = `/rive/${SKIN.character}.riv`;
+const CHARACTER_SOURCE = `/rive/${requestedChar ?? SKIN.character}.riv`;
 const CHARACTER_SCALE = 0.62;
 const CHARACTER_OFFSET_Y = 0.38;
 const CHECKPOINT_COUNT = 6;

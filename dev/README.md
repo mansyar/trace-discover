@@ -12,7 +12,7 @@ purpose.
 | `tools/` | $0 asset pipeline — Workers AI generation, cutout/optimize/composite, batch composers |
 | `qa/` | Headless-Edge (playwright-core) verification scripts + probes; outputs in `qa/out/` (git-ignored) |
 | `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery) · `tune.html` (feel tuning) — served by the Vite dev server |
-| `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
+| `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion` · `teddy`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
 `package.json` carries the `playwright-core` dependency for the QA scripts —
@@ -74,7 +74,9 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-viewport.mjs` | Viewport-matrix screenshots | dev | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
-| `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets | any | utility |
+| `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
+| `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
+| `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
 | `qa-diag-pre3.mjs` · `qa-probe.mjs` | Retired debugging probes | — | stale |
 | `browsertest.mjs` · `serve.mjs` | Old spike-page driver + static server (its page no longer exists) | — | stale |
 
@@ -107,9 +109,10 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 ## Payload budget
 
 `pnpm budget` (`tools/dist-budget.mjs`) checks the built `dist/` against the
-payload ceilings — **4.50 MB total / 150 precache entries**, derived from the
-post-payload-diet build (2026-09-17: 4,161,522 B / 133 entries; headroom
-rationale lives in the tool). Run it after `pnpm build`; CI runs it after the
-build step too. A re-introduced lossless art batch trips it instantly — raise
-the ceilings only deliberately, with fresh measurements
-(`conductor/tracks/payload-diet_20260916/measurements.md`).
+payload ceilings — **5.00 MB total / 150 precache entries**, re-anchored from
+the post-diet build (4,161,522 B / 133 entries) to the merged build that
+includes the fifth skin (2026-09-17, PR #7 teddy: 4,641,746 B / 136 entries;
+history + rationale live in the tool). Run it after `pnpm build`; CI runs it
+after the build step too. A re-introduced lossless art batch trips it
+instantly — raise the ceilings only deliberately, with fresh measurements
+(`conductor/archive/payload-diet_20260916/measurements.md`).
