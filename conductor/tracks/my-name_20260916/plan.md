@@ -89,7 +89,7 @@ speed untouched).
 - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (4909fe9)
 
-## Phase 6: QA evidence, device tuning, acceptance, docs finalize
+## Phase 6: QA evidence, device tuning, acceptance, docs finalize [checkpoint: ea7c6d1]
 
 - [x] Task 1: `dev/qa/qa-name.mjs`: gate → set name → 4-card menu → pack →
       trace → sticker/badge → reload persistence → clear → 3 cards; screenshots (1320788)
@@ -102,4 +102,4 @@ speed untouched).
       docs finalize (cap, dev/README QA table, dated notes) (ea7c6d1)
 - [x] Task 5: Final gates `pnpm check && pnpm test`; dist size record; review
       summary
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (ea7c6d1)
