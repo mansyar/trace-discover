@@ -76,18 +76,18 @@ speed untouched).
 - [x] Commit + git note (per task)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (d025161)
 
-## Phase 5: Art — sticker + badge + menuFill (owner approval gate)
+## Phase 5: Art — sticker + badge + menuFill (owner approval gate) [checkpoint: 4909fe9]
 
-- [ ] Task 1: Sticker art → `public/art/sticker/name-1.png` (gold name-star),
-      pipeline + optimize
-- [ ] Task 2: Badge art → `public/art/pack/name-badge.png` (medal), pipeline +
-      optimize
-- [ ] Task 3: Screenshot set (menu/pack/level/success) → owner approval;
-      confirm name `menuFill` pastel
-- [ ] Task 4: Precache/size checkpoint (build; SW glob includes new files; dist
-      recorded vs ≈9.3 MB current)
-- [ ] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task 1: Sticker art → `public/art/sticker/name-1.png` (gold name-star),
+      pipeline + optimize (4909fe9)
+- [x] Task 2: Badge art → `public/art/pack/name-badge.png` (medal), pipeline +
+      optimize (4909fe9)
+- [x] Task 3: Screenshot set (menu/pack/level/success) → owner approval;
+      confirm name `menuFill` pastel (4909fe9)
+- [x] Task 4: Precache/size checkpoint (build; SW glob includes new files; dist
+      recorded vs ≈9.3 MB current) (4909fe9)
+- [x] Commit + git note
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (4909fe9)
 
 ## Phase 6: QA evidence, device tuning, acceptance, docs finalize
 
