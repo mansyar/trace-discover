@@ -4,7 +4,7 @@
 
 **Delivery strategy:** docs-first (tech-stack policy + baseline measurement), then the shipped-art re-encode + reference integration, then the dino rebuild, then the budget guard + CI wiring, then full-gate close-out. Work stays local on `track/payload-diet` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Docs first + baseline measurement
+## Phase 1 — Docs first + baseline measurement [checkpoint: 503b817]
 
 *Goal: the format policy is written before anything changes (workflow.md: Tech Stack is Deliberate), and the before-numbers are pinned for the after/after table.*
 
