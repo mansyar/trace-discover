@@ -7,8 +7,6 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { levelToPath } from '../packs/level';
-import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
@@ -18,6 +16,7 @@ import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
+import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
 
 export const NAVY = '#2e4a63';
@@ -37,11 +36,6 @@ const PATH_STYLE: PathStyle = {
   tipColor: GOLD,
   tipRadius: 16,
 };
-
-/** Placeholder menu art: "1 2 3" drawn from the numeral level data. */
-const NUMERAL_MINI = new Map(
-  NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
-);
 
 /** Sticker fly-in target (top-right of the level screen). */
 export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
@@ -371,7 +365,7 @@ export function drawMenu(
   ctx.restore();
 }
 
-/** Pack card: pack art (numbers falls back to "123" strokes), a progress dot strip, star on badge. */
+/** Pack card: pack art (numbers "1 2 3" / letters "A B C" fallbacks), a progress dot strip, star on badge. */
 function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
   const centerX = card.x + card.width / 2;
   const image = art?.image;
@@ -388,10 +382,13 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
       width,
       height,
     );
-  } else if (card.packId === NUMBERS_PACK.id) {
-    drawMenuPackArt(ctx, card);
   } else {
-    drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
+    const sets = menuFallbackStrokes(card.packId);
+    if (sets.length > 0) {
+      drawMenuFallback(ctx, card, sets);
+    } else {
+      drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
+    }
   }
   if (!art || art.cleared <= 0) {
     return;
@@ -418,24 +415,24 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
   }
 }
 
-/** Fallback "1 2 3" strokes for the first frames before the card art loads. */
-function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
+/** Fallback "1 2 3" / "A B C" strokes for the first frames before card art loads. */
+function drawMenuFallback(
+  ctx: CanvasRenderingContext2D,
+  card: MenuCard,
+  sets: readonly (readonly (readonly Point[])[])[],
+): void {
   const boxWidth = card.width / 4;
   const startX = card.x + (card.width - boxWidth * 3) / 2;
-  const ids = ['num-1', 'num-2', 'num-3'];
-  ids.forEach((id, index) => {
-    const strokes = NUMERAL_MINI.get(id);
-    if (strokes) {
-      drawMiniPath(
-        ctx,
-        strokes,
-        startX + index * boxWidth + 6,
-        card.y + 12,
-        boxWidth - 12,
-        card.height - 24,
-        false,
-      );
-    }
+  sets.forEach((strokes, index) => {
+    drawMiniPath(
+      ctx,
+      strokes,
+      startX + index * boxWidth + 6,
+      card.y + 12,
+      boxWidth - 12,
+      card.height - 24,
+      false,
+    );
   });
 }
 

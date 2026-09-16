@@ -324,6 +324,28 @@ describe('letters pack navigation', () => {
     app = applyAppEvent(app, { type: 'badge-tap', packId: 'abc' });
     expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-bonus-1' });
   });
+
+  it('replays a letter and returns home from an abc success', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'abc' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'abc', levelId: 'abc-k' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'abc', levelId: 'abc-k' });
+    const done = app;
+    app = applyAppEvent(done, {
+      type: 'success-action',
+      action: 'replay',
+      packId: 'abc',
+      levelId: 'abc-k',
+    });
+    expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-k' });
+    app = applyAppEvent(done, {
+      type: 'success-action',
+      action: 'home',
+      packId: 'abc',
+      levelId: 'abc-k',
+    });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'abc' });
+  });
 });
 
 describe('pack badge', () => {
