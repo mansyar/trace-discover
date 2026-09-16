@@ -18,14 +18,15 @@ one-finger hold fails device tuning.
 
 ## Phase 1: Context docs resync + save foundation
 
-- [ ] Task 1: Context docs resync
-  - [ ] product.md: gate wording (two-finger gate → one-finger hold-to-open),
+- [x] Task 1: Context docs resync (a93184d)
+  - [x] product.md: gate wording (two-finger gate → one-finger hold-to-open),
         parent feature list, dated note (previous tracks' style)
-  - [ ] tech-stack.md: additive `settings.parentHintSeen`, one-finger gate
+  - [x] tech-stack.md: additive `settings.parentHintSeen`, one-finger gate
         semantics + tuned hold, platform/standalone detection note
-  - [ ] README: sync only if wording touches the parent gate
-  - [ ] Commit + git note
-- [ ] Task 2: `parentHintSeen` save field (TDD)
+  - [x] README: no gate wording found — unchanged
+  - [x] product-guidelines.md: one-line gate phrase fix (owner-approved)
+  - [x] Commit + git note
+- [~] Task 2: `parentHintSeen` save field (TDD)
   - [ ] Red: `loadSave` absent/non-boolean → `false`; roundtrip setter; v1–v3
         fixtures unchanged; reset preserves name + hint flag
   - [ ] Green: `src/save/store.ts` sanitizer + default; `src/app/app.ts` reset
