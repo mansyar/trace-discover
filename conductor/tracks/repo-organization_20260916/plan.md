@@ -36,8 +36,19 @@
 
 *Goal: measured, verified, documented — acceptance criteria 1–8 traced to evidence.*
 
-- [ ] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; dist size + coverage recorded vs baseline (expect ~1 MB dist reduction)
-- [ ] Task: QA spot-sweep from new homes — pipeline tool run, `qa-app` against preview, harness page, offline probe where applicable
-- [ ] Task: QA inventory + READMEs finalized — statuses complete; docs match reality; zero-text surfaces untouched
-- [ ] Task: Acceptance evidence recorded (plan + git note for the track)
+- [x] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; dist size + coverage recorded vs baseline (expect ~1 MB dist reduction) — evidence 2026-09-16: check OK (77 files); 32 files / 320 tests pass; coverage 98.2% stmts · 90.9% branch · 100% funcs; build 76 precache entries · 6.71 MB dist (was 91 · 7.77 MB)
+- [x] Task: QA spot-sweep from new homes — pipeline tool run, `qa-app` against preview, harness page, offline probe where applicable — evidence 2026-09-16: `card.mjs` byte-identical; `qa-app` 15/15 levels; `qa-harness` pre-2 + pre-bonus-1 + tune COMPLETE; `qa-offline` SW cold-start → offline pre-1 SUCCESS
+- [x] Task: QA inventory + READMEs finalized — statuses complete; docs match reality; zero-text surfaces untouched [7ed7865]
+- [x] Task: Acceptance evidence recorded (plan + git note for the track)
+
+  **Acceptance evidence (2026-09-16):**
+  1. `spike/` gone — `git ls-files spike` = 0; all tooling under `dev/` (rename commit 69a908f, R:180).
+  2. Scripts run from new homes — `card.mjs` byte-identical output; `qa-app.mjs` 15/15 levels; `qa-harness.mjs` 3/3; `qa-offline.mjs` SW cold-start → offline trace OK; harness pages at `/dev/harness/*.html`.
+  3. READMEs accurate — root `README.md` + `dev/README.md` finalized against reality (7ed7865).
+  4. Legacy art deleted — 15 theme goal PNGs removed (2810049), zero runtime refs re-verified, dist −1.06 MB.
+  5. Art-source policy applied — `dev/art-src/nums` = 62 cutouts + composites (c40dd80); policy in `dev/README.md`.
+  6. `.gitignore` clean — `dev/` patterns, single QA out dir, no stale spike rules (60a2c5c).
+  7. Checks green — final gates: check OK, 320 tests pass, coverage 98.2% stmts · 90.9% branch · 100% funcs; build 76 precache entries / 6.71 MB.
+  8. Docs synced — `tech-stack.md` dev/ layout + art policy (0df3f9b); rive-cli `SKILL.md` + `numbers.ts` comment swept to `dev/` (8a26c79); remaining `spike` mentions are intentional history notes.
+
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
