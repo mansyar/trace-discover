@@ -63,7 +63,7 @@
 - [x] Task: Zero-text + 90 px audit of new surfaces (menu, 26-card pack screen, bonus flows) — screenshots + vision + code scan [e06307a]
 - [x] Task: Perf spot-checks — 26-card pack screen, cold start, fps (mid-range Android + base iPad); fix if warranted [ad8543a]
 - [x] Task: Regression sweep — pre-writing + numbers + all four skins parity; full suite + QA scripts [e9d2701]
-- [ ] Task: Docs close-out — `product.md` dated note (letters shipped); track docs final
+- [x] Task: Docs close-out — `product.md` dated note (letters shipped); track docs final [3af9fd6]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — Device validation & acceptance
