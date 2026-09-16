@@ -60,7 +60,7 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (eb22ea0)
 
-## Phase 3: One-time parent hint (discoverability)
+## Phase 3: One-time parent hint (discoverability) [checkpoint: a3e2550]
 
 - [x] Task 1: Flag lifecycle (TDD) (8bc0123)
   - [x] Red: `parent-open` sets flag + predicate tests (reset-preserve already
@@ -75,11 +75,11 @@ one-finger hold fails device tuning.
         corner dot pulses while the hint is up (a3e2550)
   - [x] Screenshots: fresh save (hint + pulse) → after open + reload (gone)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (a3e2550)
 
 ## Phase 4: Zone finish — section cards + reactive feedback
 
-- [ ] Task 1: Layout regroup (TDD)
+- [~] Task 1: Layout regroup (TDD)
   - [ ] Red: layout holds all nine actions in labeled sections (Sound / Play /
         Skin & Name / Data / Help); hit tests; no overlaps; phone + iPad bounds;
         trophies row display-only, repositioned
