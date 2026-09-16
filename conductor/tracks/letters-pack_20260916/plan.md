@@ -46,7 +46,7 @@
 - [x] Task: Device feel check via LAN — completion hops (E vs C) + bonus unlock loop; tune pacing; record findings [53c4379]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Art batch: objects, stickers, bonuses, card, badge
+## Phase 4 — Art batch: objects, stickers, bonuses, card, badge [checkpoint: 2f7a37d]
 
 *Goal: real art everywhere — screenshot-approved; size guarded.*
 
