@@ -65,7 +65,7 @@ speed untouched).
 - [x] Commit + git note (per task)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (1474ae5)
 
-## Phase 4: Parent zone — name button + editing overlay (DOM input)
+## Phase 4: Parent zone — name button + editing overlay (DOM input) [checkpoint: d025161]
 
 - [x] Task 1: Layout + hit tests (TDD): `name` button (≥90 px) in parent-zone
       layout; overlay layout (field + Save/Clear/Cancel); `parent:name` target (57767bd)
@@ -73,8 +73,8 @@ speed untouched).
       `parent.showName`; sanitize on save; reject <2; Clear keeps overlay open;
       lazily-created DOM input positioned over field (resize/keyboard-safe, iOS
       no-zoom font, autocapitalize, maxlength) (d025161)
-- [ ] Commit + git note (per task)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Commit + git note (per task)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (d025161)
 
 ## Phase 5: Art — sticker + badge + menuFill (owner approval gate)
 
