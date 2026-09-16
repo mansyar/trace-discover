@@ -39,8 +39,8 @@ Source of truth for letter authoring, the Phase 4 art batch, and screenshot QA. 
 | J | 2 | 1: stem top → bottom, hooking left at the base. 2: top bar left → right | stem top | 3 | jellyfish |
 | K | 3 | 1: stem top → bottom. 2: upper diagonal from the stem middle out to the top-right. 3: lower diagonal from the stem middle out to the bottom-right | stem top | 4 | kite |
 | L | 2 | 1: stem top → bottom. 2: base bar left → right | stem top | 3 | ladybug |
-| M | 1 | Down the left stem, diagonal up to the top middle, diagonal down to the bottom right, up the right stem | top-left | 5 | moon |
-| N | 1 | Down the left stem, diagonal up to the top-right, down the right stem | top-left | 5 | nest |
+| M | 3 | 1: left stem top → bottom. 2: centre V — down-slant from the top-left to the centre, up-slant back to the top-right. 3: right stem top → bottom | top-left | 5 | moon |
+| N | 3 | 1: left stem top → bottom. 2: diagonal from the top-left down to the bottom-right. 3: right stem top → bottom | top-left | 5 | nest |
 | O | 1 | Full CCW loop from the top, closing where it started | top center | 6 | orange |
 | P | 2 | 1: tall stem top → bottom. 2: upper bowl from the stem top, out right, back to the stem middle | stem top | 4 | penguin |
 | Q | 2 | 1: full CCW loop from the top. 2: tail diagonal from the loop's lower-right, out to the bottom-right | top center | 6 | queen |
@@ -71,10 +71,10 @@ Skin-neutral, content-owned: one vignette per letter regardless of the active sk
 | Bonus | Word | Unlocks at | Design |
 |---|---|---|---|
 | `abc-bonus-1` | ABC | 9 cleared | A + B + C in a row; each letter keeps its formation, generous scale |
-| `abc-bonus-2` | MOM | 18 cleared | M · O · M; the O loop between two M glyphs |
+| `abc-bonus-2` | MOM | 18 cleared | M · O · M; the O loop between two three-stroke M glyphs |
 | `abc-bonus-3` | ZOO | 26 cleared | Z · O · O; Z then two loops |
 
-Words use only letters cleared by their unlock point (spec). Word letters sit side by side, centered (x ≈ 95 / 215 / 335); stroke order follows the word reading order and each letter's internal order is unchanged. Bonus strokes: ABC = 7 (3+3+1), MOM = 3, ZOO = 3.
+Words use only letters cleared by their unlock point (spec). Word letters sit side by side, centered (x ≈ 95 / 215 / 335); stroke order follows the word reading order and each letter's internal order is unchanged. Bonus strokes: ABC = 7 (3+3+1), MOM = 7 (3+1+3), ZOO = 3.
 
 ## Stroke-direction checklist (validate per letter)
 

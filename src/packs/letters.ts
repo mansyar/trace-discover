@@ -92,8 +92,16 @@ export const LETTER_LEVELS: readonly LevelDef[] = [
     [p(165, 300), p(165, 640)],
     [p(165, 640), p(280, 640)],
   ]),
-  letterLevel('abc-m', 'line', [[p(150, 300), p(150, 640), p(215, 300), p(280, 640), p(280, 300)]]),
-  letterLevel('abc-n', 'line', [[p(150, 300), p(150, 640), p(280, 300), p(280, 640)]]),
+  letterLevel('abc-m', 'line', [
+    [p(150, 300), p(150, 640)],
+    [p(150, 300), p(215, 480), p(280, 300)],
+    [p(280, 300), p(280, 640)],
+  ]),
+  letterLevel('abc-n', 'line', [
+    [p(150, 300), p(150, 640)],
+    [p(150, 300), p(280, 640)],
+    [p(280, 300), p(280, 640)],
+  ]),
   letterLevel('abc-o', 'circle', [
     [
       p(215, 300),
@@ -189,7 +197,9 @@ export const LETTER_BONUS_LEVELS: readonly LevelDef[] = [
   ]),
   letterLevel('abc-bonus-2', 'line', [
     // M
-    [p(55, 300), p(55, 640), p(95, 300), p(135, 640), p(135, 300)],
+    [p(55, 300), p(55, 640)],
+    [p(55, 300), p(95, 480), p(135, 300)],
+    [p(135, 300), p(135, 640)],
     // O
     [
       p(215, 300),
@@ -207,7 +217,9 @@ export const LETTER_BONUS_LEVELS: readonly LevelDef[] = [
       p(215, 300),
     ],
     // M
-    [p(295, 300), p(295, 640), p(335, 300), p(375, 640), p(375, 300)],
+    [p(295, 300), p(295, 640)],
+    [p(295, 300), p(335, 480), p(375, 300)],
+    [p(375, 300), p(375, 640)],
   ]),
   letterLevel('abc-bonus-3', 'line', [
     // Z

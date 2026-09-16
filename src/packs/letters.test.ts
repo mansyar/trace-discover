@@ -103,8 +103,8 @@ describe('letters formation (content.md)', () => {
       j: 2,
       k: 3,
       l: 2,
-      m: 1,
-      n: 1,
+      m: 3,
+      n: 3,
       o: 1,
       p: 2,
       q: 2,
@@ -189,6 +189,22 @@ describe('letters formation (content.md)', () => {
     expect(q.strokes[0]?.length).toBeGreaterThan(3); // loop first
     const tail = q.strokes[1];
     expect((tail?.[0]?.y ?? 0) > 450).toBe(true); // tail added low right
+
+    // M and N are school-style multi-stroke: the centre must hang from the
+    // top (M) and slant down to the right (N) — the device check found the
+    // old single-stroke zigzags read upside down.
+    const m = byId('abc-m');
+    expect(m.strokes).toHaveLength(3);
+    const mVee = m.strokes[1] ?? [];
+    expect(mVee[0]).toEqual({ x: 150, y: 300 });
+    expect((mVee[1]?.y ?? 0) > 300).toBe(true); // descends to the centre
+    expect(mVee[2]?.y).toBe(300); // rises back to the top
+
+    const n = byId('abc-n');
+    expect(n.strokes).toHaveLength(3);
+    const nSlant = n.strokes[1] ?? [];
+    expect((nSlant[1]?.y ?? 0) > (nSlant[0]?.y ?? 0)).toBe(true);
+    expect((nSlant[1]?.x ?? 0) > (nSlant[0]?.x ?? 0)).toBe(true); // top-left to bottom-right
   });
 });
 
@@ -208,8 +224,8 @@ describe('letters bonus sequences (content.md)', () => {
   }
 
   it('pins the content-doc stroke counts for the words', () => {
-    // ABC = A(3) + B(3) + C(1); MOM and ZOO are three single-stroke letters.
-    expect(LETTER_BONUS_LEVELS.map((level) => level.strokes.length)).toEqual([7, 3, 3]);
+    // ABC = A(3) + B(3) + C(1); MOM = M(3) + O(1) + M(3); ZOO = three single-stroke letters.
+    expect(LETTER_BONUS_LEVELS.map((level) => level.strokes.length)).toEqual([7, 7, 3]);
   });
 
   it('lays each word out left to right in generous slots', () => {
@@ -220,9 +236,9 @@ describe('letters bonus sequences (content.md)', () => {
         [6, 6],
       ],
       [
-        [0, 0],
-        [1, 1],
-        [2, 2],
+        [0, 2],
+        [3, 3],
+        [4, 6],
       ],
       [
         [0, 0],
@@ -263,7 +279,7 @@ describe('letters bonus sequences (content.md)', () => {
     expect((c?.[0]?.x ?? 0) > (c?.[1]?.x ?? 999)).toBe(true); // C starts top-right
 
     const mom = bonusById('abc-bonus-2');
-    expect(mom.strokes.map((stroke) => stroke.length)).toEqual([5, 13, 5]);
+    expect(mom.strokes.map((stroke) => stroke.length)).toEqual([2, 3, 2, 13, 2, 3, 2]);
 
     const zoo = bonusById('abc-bonus-3');
     const z = zoo.strokes[0];
