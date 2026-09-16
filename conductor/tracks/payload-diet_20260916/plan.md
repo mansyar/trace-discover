@@ -30,13 +30,13 @@
 - [x] Task: Verification — Rive screenshots (idle/jump/blink) + in-app browser burst (mid-blink vs rest) + cast parity; **fallback:** revert and keep the deviation open with a dated note if parity can't hold within budget [d275ed8]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [d275ed8]
 
-## Phase 4 — Budget guard + CI gate
+## Phase 4 — Budget guard + CI gate [checkpoint: d65e8f6]
 
 *Goal: the diet can't silently regress — checked locally and in CI, with fail behavior proven.*
 
 - [x] Task: `dev/tools/dist-budget.mjs` + `pnpm budget` — dist total + precache entries with breakdown; ceilings derived from the measured post-diet build (documented headroom); clear failure message (mechanical verification: pass + negative control with a temporarily lowered ceiling) [aa7ebae]
 - [x] Task: Docs + CI wiring — ceilings/rationale in `README.md` + `dev/README.md` + `tech-stack.md`; `ci.yml` step after build runs `pnpm budget`; local negative-control evidence recorded (actual CI failure proof lands with the owner's first push) [d65e8f6]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [d65e8f6]
 
 ## Phase 5 — Compliance & close-out
 
