@@ -30,7 +30,7 @@
 - [x] Task: Author letter glyphs A–Z (TDD) [693198b]
   - [ ] Tests: stroke counts + order per content doc (E = 4, T = 2, …); margins; inter-stroke gaps clear of tolerance zones; `validateLevel` clean for all 26; multi-stroke sequencing parity
   - [ ] Implement geometries (chunky, field-sized); record the final table in `content.md`
-- [ ] Task: Headless screenshot QA per letter — start/goal/direction + glyph legibility
+- [x] Task: Headless screenshot QA per letter [e313d8b] — start/goal/direction + glyph legibility
 - [ ] Task: Author bonus sequences `ABC` / `MOM` / `ZOO` (TDD) — generous sizing, ordered multi-stroke; validate + screenshot QA
 - [ ] Task: Device feel check via LAN — trace E (4-stroke), S (curve), A (diagonals); tune if needed; record findings
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
