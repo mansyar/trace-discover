@@ -20,9 +20,9 @@
 
 *Goal: `public/rive/teddy.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
-- [~] Task: Pose sources from the approved master — base + celebrate (arm-raised jump) + same-pose blink at low strength (regenerated sources get their own measurements — never inherit placements)
-- [ ] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking
-- [ ] Task: Rive project `dev/characters/teddy/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG
+- [x] Task: Pose sources from the approved master — base + celebrate (arm-raised jump) + same-pose blink at low strength (regenerated sources get their own measurements — never inherit placements) — celebrate `--strength 0.55 --seed 11`, blink `--strength 0.28 --seed 7` (`dev/gen/teddy-celebrate.png`, `dev/gen/teddy-blink.png`); both viewed
+- [x] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking — shared `--box=200,131,833,944`; base/jump/blink 600 px, viewed; blink shipped as feathered patch (`composite` rect 220,66→380,134, feather 12, margin 24 → 208×116) since the 0.28 regen jitters the whole figure (82 k px raw diff)
+- [~] Task: Rive project `dev/characters/teddy/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG
 - [ ] Task: Blink patch calibration — `composite.mjs` feathered patch; `gridshot.mjs` measurements; node placement recomputed from the crop rect; seam-free confirmation
 - [ ] Task: Headless browser test + size/ship — `node dev/qa/browsertest.mjs` (load, fire, real pointer tap, no page errors); `.riv` ≤ ~500 KB; ship `public/rive/teddy.riv`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
