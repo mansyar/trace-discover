@@ -23,7 +23,7 @@ speed untouched).
   - [ ] README: fix stale "four characters × two packs" line → shipped state +
         My Name
   - [ ] Commit + git note
-- [ ] Task 2: Name sanitizer + save field (TDD)
+- [x] Task 2: Name sanitizer + save field (TDD) (dea5e5a)
   - [ ] Red: `sanitizeName` tests (uppercase, strip non-A–Z, clamp
         `MAX_NAME_LENGTH`, reject <2); `loadSave` hostile/absent-safe name +
         v1–v3 fixtures unchanged; `setName` roundtrip; reset-progress keeps
