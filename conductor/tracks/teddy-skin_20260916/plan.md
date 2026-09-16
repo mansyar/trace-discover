@@ -4,7 +4,7 @@
 
 **Delivery strategy:** art-first behind the owner's approval gate — the stylized master is generated and **explicitly approved** before any downstream build (Phase 1); the character is then built through the cast golden loop (cutout → poses → Rive → screenshot/browser verification, Phase 2); skin + voice are integrated with TDD (Phase 3); the remaining art (bedroom backdrop, face icon) lands as a batch (Phase 4); compliance, QA evidence, device pass and acceptance close it out (Phase 5). Work stays local on `track/teddy-skin` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Docs resync + stylized master (owner approval gate)
+## Phase 1 — Docs resync + stylized master (owner approval gate) [checkpoint: ea47a7f]
 
 *Goal: the context docs describe the fifth skin before implementation; the stylized character master exists in the house art language and is approved by the owner — the hard gate before any build work.*
 
@@ -20,7 +20,7 @@
 
 *Goal: `public/rive/teddy.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
-- [ ] Task: Pose sources from the approved master — base + celebrate (arm-raised jump) + same-pose blink at low strength (regenerated sources get their own measurements — never inherit placements)
+- [~] Task: Pose sources from the approved master — base + celebrate (arm-raised jump) + same-pose blink at low strength (regenerated sources get their own measurements — never inherit placements)
 - [ ] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking
 - [ ] Task: Rive project `dev/characters/teddy/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG
 - [ ] Task: Blink patch calibration — `composite.mjs` feathered patch; `gridshot.mjs` measurements; node placement recomputed from the crop rect; seam-free confirmation
