@@ -26,7 +26,7 @@
 - [x] Task: Extend `dev/qa/qa-persistence.mjs` — quota-denied simulation (patch `Storage.prototype.setItem` in-page): level completes, app continues silently; prototype restored → subsequent saves persist; storage-unavailable boot shows no error state [0b69a21]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Compliance & regression sweep
+## Phase 3 — Compliance & regression sweep [checkpoint: d79a402]
 
 *Goal: measured and verified — full gates green, offline completeness proven, zero-text untouched, numbers recorded.*
 
@@ -34,7 +34,7 @@
 - [ ] Task: Offline completeness — `qa-offline` green (SW cold-start → offline trace); assert precache covers every runtime asset reachable from boot/menu/pack/level; fix any gap found
 - [x] Task: Zero-text & surface audit — no new UI/strings (changes confined to registration/config/save); `qa-screens` spot-run shows key screens unchanged
 - [x] Task: Docs close-out — `dev/README.md` QA inventory gains `qa-update` (canonical); tech-stack note finalized; acceptance evidence for criteria 1–6, 8 pre-recorded
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Device validation & acceptance
 
