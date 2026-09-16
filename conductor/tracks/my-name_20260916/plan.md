@@ -34,7 +34,7 @@ speed untouched).
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (dea5e5a)
 
-## Phase 2: Name level composition (pure geometry + path thinning)
+## Phase 2: Name level composition (pure geometry + path thinning) [checkpoint: a4d72e2]
 
 - [x] Task 1: `buildNameLevel` (TDD) (adcb5b3)
   - [x] Red: stroke count/order per letter; bounds inside field; centered
@@ -50,7 +50,7 @@ speed untouched).
         namePackFor(save.name)`; badge-tap safe for bonus-less pack
   - [x] Green: implement
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (a4d72e2)
 
 ## Phase 3: App wiring — menu, pack screen, rewards, level flow
 
