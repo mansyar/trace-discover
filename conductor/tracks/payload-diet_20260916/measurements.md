@@ -40,6 +40,19 @@ Conductor docs (letters close-out note, tech-stack `2026-09-16` letters note, pr
 - Targets re-anchored (spec/tech-stack updated 2026-09-16 by the Phase 1 baseline task): **≤ 6.95 MB (≥25% below measured 9.26 MB)**; stretch **≤ ~6.4 MB (~−31%)**.
 - Stale doc references to correct at close-out: `conductor/product.md` ("~10.3 MB"). The letters tech-stack note is historical and left as written (superseded by the payload-diet note, which cites the measured value).
 
+## dino.riv rebuild — Phase 3 (2026-09-17)
+
+Method: masters re-cut 600 → 480 px (pure center-anchored HighQualityBicubic resize via System.Drawing — no re-framing, so composition is identical by construction); blink rebuilt with the cast patch technique: the full blink master was reconstructed from the shipped feathered patch (blend at patch center `(332.5, 289)` in 600-space), then `dev/tools/composite.mjs` (rect `128,183,404,280` @480, feather 12, margin 12) produced a 300×121 patch. `scene.rml`: node scales `0.71 → 0.8875` (= 0.71 · 600/480), blink node `x="10.1" y="-11.5"`; animations untouched (same state machine, hold-key blink kept).
+
+| Asset | Before (600 px) | After (480 px) |
+| --- | --- | --- |
+| dino.png | 280,528 B | 186,204 B |
+| jump.png | 315,846 B | 206,952 B |
+| blink (full → patch) | 100,960 B | 59,535 B (300×121) |
+| **dino4.riv** | **699,844 B** | **455,201 B** (−35.0%) |
+
+Verification: `rive --verify` + `inspect` clean (0 errors / 0 warnings / 0 problems); screenshot parity rest / blink@113 / celebrate@20 vs before — visually identical; actual saving −244,643 B matches the accepted-deviation note's ~240 KB prediction. The `trace-v1` accepted deviation (dino.riv over the ~500 KB cast guideline) is now resolved.
+
 ## After — (to be filled in Phase 5)
 
 | Metric | Baseline | After | Δ |

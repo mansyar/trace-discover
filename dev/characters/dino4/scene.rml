@@ -1,7 +1,7 @@
 <Rive version="1" kind="fragment">
     <ImageAsset file="dino.png" name="Dino Art" id="0:60"/>
     <ImageAsset file="jump.png" name="Jump Art" id="0:61"/>
-    <ImageAsset file="blink.png" name="Blink Art" id="0:62"/>
+    <ImageAsset file="blinkpatch.png" name="Blink Art" id="0:62"/>
     <Artboard defaultStateMachineId="0:7" width="500" height="500" styleId="0:5" name="Artboard" id="0:2">
         <LayoutComponentStyle name="Artboard Style" id="0:5"/>
         <Node x="250" y="260" name="Dino" id="0:20">
@@ -55,9 +55,9 @@
                     </Stroke>
                 </Shape>
             </Node>
-            <Image assetId="0:62" x="10.1" y="-11.8" scaleX="0.71" scaleY="0.71" opacity="0" name="Blink Art" id="0:44"/>
-            <Image assetId="0:60" x="-13" y="-4" scaleX="0.71" scaleY="0.71" name="Dino Image" id="0:41"/>
-            <Image assetId="0:61" x="-2" y="12" scaleX="0.71" scaleY="0.71" opacity="0" name="Jump Art" id="0:43"/>
+            <Image assetId="0:62" x="10.1" y="-11.5" scaleX="0.8875" scaleY="0.8875" opacity="0" name="Blink Art" id="0:44"/>
+            <Image assetId="0:60" x="-13" y="-4" scaleX="0.8875" scaleY="0.8875" name="Dino Image" id="0:41"/>
+            <Image assetId="0:61" x="-2" y="12" scaleX="0.8875" scaleY="0.8875" opacity="0" name="Jump Art" id="0:43"/>
         </Node>
         <Shape x="250" y="448" name="Shadow" id="0:29">
             <Ellipse width="216" height="44" name="Path"/>
