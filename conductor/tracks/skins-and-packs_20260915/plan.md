@@ -107,3 +107,7 @@
 7. Per-skin instruments on chimes + completion (marimba/bell/woodblock/kalimba); counted notes still toy piano; mute/volume respected — synth/session tests (e.g. bell chimes 1.4s sine); owner audio checks (Phase 2 + 6).
 8. Zero-text + art approved + offline/install on devices + dist/perf — fillText scan (parent zone only); art approved via vision (3 pieces regenerated); qa-offline green (offline cold boot from precache); dist 7.77MB / 91 entries (7931KiB); perf 93ms cold boot, 2.7ms input-to-frame, frames p95 4.3ms; owner install + offline ALL GOOD.
 9. All checks green + toddler session — 320/320 tests, pnpm check clean; owner: toddler completed re-ramped levels + mid-trace skin swap, ALL GOOD.
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions b9c0fe6
