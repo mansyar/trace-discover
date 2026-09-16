@@ -35,24 +35,26 @@
 
 ## Data & Persistence
 
-**localStorage** — typed save schema v3: unified `completedLevels` (all packs), `badges` (per pack), `trophies` (legacy world badges, display-only), `settings` (incl. `skin`). Lossless v2→v3 migration (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3` in theme order, `num-*` preserved; world badges→trophies); v1 saves continue to migrate through; hostile-input sanitizing preserved. The write-only `assistWidened` flag is dropped (widening is computed per level at runtime).
+**localStorage** — typed save schema v3: unified `completedLevels` (all packs), `badges` (per pack), `trophies` (legacy world badges, display-only), `settings` (incl. `skin`). Lossless v2→v3 migration (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3` in theme order, `num-*` preserved; world badges→trophies); v1 saves continue to migrate through; hostile-input sanitizing preserved. The write-only `assistWidened` flag is dropped (widening is computed per level at runtime). **Durability (track `pwa-resilience_20260916`):** save writes are exception-proof — quota/denied storage becomes a silent no-op with the session continuing in memory; `navigator.storage.persist()` is requested best-effort at boot; storage-unavailable contexts boot into session-only play.
 
 ## PWA & Hosting
 
 - `manifest.json` (`display: standalone`) + service worker precaching the full app → **fully offline**
+- **Update strategy (track `pwa-resilience_20260916`):** waiting service worker — updates download in the background but activate only after all instances close (next cold start); a running session is never taken over mid-play and there is no update UI (zero-text shell)
 - **Cloudflare Pages** — static `dist/` deploy, free HTTPS
 
 ## Asset Pipeline (dev-time, $0)
 
 - **Rive CLI 1.0.2** — agent-authored RML scenes; local `--once` builds; verify/inspect/screenshot loop
 - **Cloudflare Workers AI** — flux-1-schnell (txt2img) + flux-2-klein-4b (img2img)
-- **Node tools** (in repo): `gen` / `gen2` / `cutout` / `composite` / `gridshot` / `serve` / `browsertest`
+- **Dev workspace (`dev/`, never shipped):** `tools/` pipeline scripts (`gen` / `gen2` / `cutout` / `composite` / `gridshot` / `vignette` / `card` / `opt-*` / `make-icons` / `pre-sheet` / `gen-rewards` / `faces` / `findeyes`); `qa/` headless-Edge verification scripts; `harness/` dev pages (`play` / `screens` / `tune`); `characters/` Rive authoring workspaces (dino, star, excavator, lion); `art-src/` per-pack art intermediates — runbook in `dev/README.md`
+- **Art-source policy:** `dev/art-src/<pack>/` tracks the approved cutout layer + derived composites; raw generations stay untracked
 - **Asset batches:** per track — characters (`.riv`), backdrops, goal art, stickers, card art, icons; each asset lands via generate → cutout → optimize → composite → screenshot approval
 
 ## Dev Tooling & Testing
 
 - **pnpm scripts:** `dev` / `build` / `preview` / `check` (Biome + tsc)
-- **Verification:** headless Edge (playwright-core) scripts + Rive CLI screenshot QA
+- **Verification:** headless Edge (playwright-core) scripts (`dev/qa/`) + Rive CLI screenshot QA (`dev/characters/`); dev pages in `dev/harness/`
 - **LAN test server** for real devices (Android Chrome, iPad Safari)
 - **Targets:** Android Chrome phones + iPads (Safari PWA); DPR-aware canvas + letterbox layout
 
@@ -73,6 +75,10 @@
 *2026-09-15 — Updated (track `skins-and-packs_20260915`): content/theme decoupling — `skins/` (dino · star · construction · animal) × `packs/` (pre-writing, numbers) registries; save schema v3 with lossless v2→v3 migration; character contract (autoplay idle + `celebrate` trigger) documented for drop-in skins; per-skin instruments (marimba · bell · woodblock · kalimba); content-first menu + top-left skin switch button (tap-to-cycle, persisted). Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/skins-and-packs` (2026-09-16): implemented + acceptance-passed (Android + iPad, toddler session); dist 7.77 MB / 91 precache entries; merged via PR #3 and released as `v1.1.0` (production live, 2026-09-16).*
 
 *2026-09-16 — Updated (track `letters-pack_20260916`): Letters pack `abc` — 26 uppercase levels (`abc-a`..`abc-z`, school-style stroke order, multi-stroke where formation needs it) plus 3 sequence bonuses (`abc-bonus-1..3` = `ABC` / `MOM` / `ZOO`, unlocking at 9/18/26 cleared); two-page pack grid (4-per-row; A–L = 12 cards, M–Z = 14 with the centered Y–Z finale pair; per-page sticker shelf; zero-text prev/next pager + page dots; opens on the first unfinished letter's page) — refined from a single 7-row grid because 26 cards at ≥90 px already fill the field's height, leaving no room for the shelf; object-per-letter rewards (goal art + sticker); completion = per-stroke counted hops (one hop + one note per stroke, cap 4); the guide is the active skin's character (no content-owned guide — stale `product-guidelines.md` star-buddy wording fixed); save additive only — schema v3 unchanged, no migration. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/letters-pack` (2026-09-16): implemented + acceptance-passed (all 29 levels swept, Android + iPad offline check, toddler session); art batch 55 assets; dist 10.31 MB / 148 precache entries; save unchanged (v3).*
+
+*2026-09-16 — Updated (track `repo-organization_20260916`): dev-time tooling consolidated from the catch-all `spike/` into a purpose-split `dev/` workspace — `tools/` (asset pipeline), `qa/` (headless-Edge verification), `harness/` (dev pages), `characters/` (Rive workspaces), `art-src/` (per-pack intermediates: cutouts + composites tracked, raw generations untracked); scripts anchored to `import.meta.url` so they run from any cwd; dead legacy art + raw generations pruned. Runbooks: root `README.md` + `dev/README.md`. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/repo-organization` (2026-09-16): restructure + prunes + reference sweep done; full gates green (320 tests, coverage 98.2% stmts); dist 7.77 → 6.71 MB / precache 91 → 76 entries; awaiting the merge/release decision.*
+
+*2026-09-16 — Updated (track `pwa-resilience_20260916`): PWA update safety + save durability — waiting service worker semantics: no ungated `skipWaiting`; a downloaded update activates only once all app instances close (next cold start), and a running session can never be taken over mid-play; `clientsClaim` stays on for first-launch control; no update UI exists (zero-text shell). Save writes are exception-proof (quota/denied → silent no-op, in-memory continuation; later writes persist once storage works) and `navigator.storage.persist()` is requested best-effort at boot; storage-unavailable contexts boot into session-only play. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Implemented and verified on branch `track/pwa-resilience` (2026-09-16): `qa-update` 14/14 GREEN; suite 333/333; `qa-persistence` 13/13 (quota-denied, recovery, denied-storage boot); dist 6.71 MB / 76 precache entries (unchanged); device pass done (LAN scope — Android + iPad gameplay + persistence; SW/offline mechanics proven by desktop probes); awaiting the merge/release decision.*
 
 ## Constraints
 

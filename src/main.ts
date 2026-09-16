@@ -41,6 +41,7 @@ import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input
 import { allPacks, packById } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
 import { firstUnlockedBonusId } from './packs/progress';
+import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
@@ -149,7 +150,11 @@ const MASCOT_SCALE_PACK = 0.26;
 const MENU_PARK: Point = { x: FIELD_WIDTH / 2, y: 735 };
 const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
 
-let app: AppState = startApp(loadSave(localStorage));
+// Storage is acquired once; denied or unavailable storage falls back to
+// memory so the app still boots and plays (progress just is not persisted).
+const saveStorage = acquireSaveStorage();
+requestPersistence();
+let app: AppState = startApp(loadSave(saveStorage));
 let session: LevelSession | null = null;
 let character: Character | null = null;
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
@@ -212,7 +217,7 @@ function commit(next: AppState): void {
   if (screen.name === 'pack' && (previous.name !== 'pack' || previous.packId !== screen.packId)) {
     packPage = packLandingPage(screen.packId);
   }
-  saveSave(localStorage, app.save);
+  saveSave(saveStorage, app.save);
 }
 
 /** Level-art cache: loaded files by bundle URL, with one in-flight load each. */

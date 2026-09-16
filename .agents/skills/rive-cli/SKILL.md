@@ -5,14 +5,14 @@ description: >-
   reacting characters for web games/PWAs, state machines driven from host JS, image-based
   AI-generated art, and pixel-perfect pose swaps. Use when working with Rive, RML, .riv,
   rive.yaml, rive verify/inspect/screenshot, agent-authored game characters, or the
-  spike/tools asset pipeline in this repo.
+  dev/tools asset pipeline in this repo.
 ---
 
 # Rive CLI — Field Guide
 
 Battle-tested workflow for authoring animated characters with the Rive CLI (`rive 1.0.2+`),
 RML markup, and image assets. Distilled from building the "dino" characters in
-`spike/dino*`; reusable scripts live in `spike/tools/`.
+`dev/characters/dino*`; reusable scripts live in `dev/tools/`.
 
 ## The golden loop — never skip the screenshot step
 
@@ -81,9 +81,9 @@ Notes:
 ## AI-art character pipeline (this repo)
 1. **Generate** — Cloudflare Workers AI: `flux-1-schnell` (text-to-image, ~1 neuron/image), `flux-2-klein-4b` (image-to-image: fixed 4 steps, multipart `input_image_0`, up to 4 inputs). Use a consistent style suffix ("flat 2d vector illustration… kawaii chibi sticker style, thick dark navy outlines… no text, no words, no letters").
 2. **Cut out** — `node tools/cutout.mjs in.png out.png 600 [--box=x0,y0,x1,y1]`: flood-fills background from borders, drops stray components, removes the baked ground shadow, trims + pads + resizes to 600px. **Cut every frame of a character with the SAME `--box`** → pixel-aligned exports.
-3. **Scene** — one `scene.rml` per character project; copy `spike/dino4/` as a template (image nodes + idle/celebrate + trigger + tap proxy).
+3. **Scene** — one `scene.rml` per character project; copy `dev/characters/dino4/` as a template (image nodes + idle/celebrate + trigger + tap proxy).
 4. **Golden loop** — verify → inspect → build → screenshot → look.
-5. **Browser test** — `node spike/browsertest.mjs` (playwright-core + headless Edge: load, host `.fire()`, real pointer tap, page errors).
+5. **Browser test** — `node dev/qa/browsertest.mjs` (playwright-core + headless Edge: load, host `.fire()`, real pointer tap, page errors).
 
 ### Pixel-perfect pose swaps (the blink/flash lesson)
 - Whole-drawing swaps are ONLY for full pose changes (e.g. jump). Two AI generations of "the same" character differ in **100k+ pixels across the whole body** — swapping whole drawings for a small change (blink) makes the entire body flash.
@@ -113,7 +113,7 @@ Notes:
 9. `exitTimeIsPercetange` (typo is the API).
 10. Free-plan `--publish` adds a Rive splash → keep script-free + `--once` for the $0 lane.
 
-## Tool reference (spike/tools/)
+## Tool reference (dev/tools/)
 | tool | usage | purpose |
 |---|---|---|
 | `gen.mjs` | `node tools/gen.mjs --prompt "…" --out x.png [--w 1024 --h 1024]` | text-to-image (flux-1-schnell) |
@@ -122,7 +122,7 @@ Notes:
 | `composite.mjs` | `node tools/composite.mjs base.png overlay.png outFull.png outPatch.png --rect=x0,y0,x1,y1 --feather=12 --margin=24` | feathered patch composite + cropped patch export |
 | `gridshot.mjs` | `node tools/gridshot.mjs in.png out.png --rect=x0,y0,x1,y1 --scale=2 --step=25` | zoomed coordinate-grid measurement image |
 | `findeyes.mjs` | `node tools/findeyes.mjs sprite.png [--margin=28]` | eye-white cluster detection → patch rect + node coords |
-| `spike/serve.mjs` | `node serve.mjs` (cwd `spike/`) | zero-dep static server on :8080 (LAN-testable) |
-| `spike/browsertest.mjs` | `node browsertest.mjs` (cwd `spike/`) | headless Edge end-to-end check (load/fire/tap/errors) |
+| `dev/qa/serve.mjs` | `node dev/qa/serve.mjs` | zero-dep static server on :8080 (LAN-testable) |
+| `dev/qa/browsertest.mjs` | `node dev/qa/browsertest.mjs` | headless Edge end-to-end check (load/fire/tap/errors) |
 
 All tools need `npm i playwright-core` and a local Edge/Chromium install (Windows: `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`).

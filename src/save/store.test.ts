@@ -266,3 +266,35 @@ describe('v1 fixture migration', () => {
     expect(loadSave(storage)).toEqual(migrated);
   });
 });
+
+describe('saveSave durability', () => {
+  it('never throws when the storage write fails (quota exceeded)', () => {
+    const storage: SaveStorage = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error('QuotaExceededError');
+      },
+    };
+    expect(() => saveSave(storage, createDefaultSave())).not.toThrow();
+  });
+
+  it('persists on a later attempt once storage recovers', () => {
+    let failing = true;
+    const data = new Map<string, string>();
+    const storage: SaveStorage = {
+      getItem: (key) => data.get(key) ?? null,
+      setItem: (key, value) => {
+        if (failing) {
+          throw new Error('QuotaExceededError');
+        }
+        data.set(key, value);
+      },
+    };
+    const save = completeLevel(createDefaultSave(), 'pre-1');
+    saveSave(storage, save);
+    expect(loadSave(storage)).toEqual(createDefaultSave());
+    failing = false;
+    saveSave(storage, save);
+    expect(loadSave(storage)).toEqual(save);
+  });
+});

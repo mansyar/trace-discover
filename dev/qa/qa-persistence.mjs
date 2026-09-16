@@ -1,0 +1,291 @@
+// Production persistence QA: a real v1 save migrates losslessly on launch,
+// pack progress survives a relaunch, the menu card + pack screen reflect the
+// stored state, and storage resilience holds (quota-denied writes continue
+// silently, recovery persists the session, denied-storage boot works).
+// Usage: pnpm exec vite --port 5199 --strictPort then
+// node dev/qa/qa-persistence.mjs
+import { chromium } from 'playwright-core';
+import { mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const BASE = 'http://localhost:5199';
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const OUT = path.join(HERE, 'out');
+mkdirSync(OUT, { recursive: true });
+
+const KEY = 'trace-discover-save-v1';
+// A save as the shipped v1 app wrote it: dino cleared end to end (badge plus
+// bonus), one construction level, two animals levels, tuned settings.
+const V1_FIXTURE = {
+  assistWidened: true,
+  badges: ['dino'],
+  completedLevels: [
+    'dino-1',
+    'dino-2',
+    'dino-3',
+    'dino-4',
+    'dino-bonus',
+    'construction-1',
+    'animals-1',
+    'animals-2',
+  ],
+  settings: { easierTracing: true, muted: false, volume: 0.7 },
+  version: 1,
+};
+
+const failures = [];
+function check(name, ok) {
+  console.log(`${ok ? 'ok' : 'FAIL'} - ${name}`);
+  if (!ok) failures.push(name);
+}
+
+async function launch() {
+  try {
+    return await chromium.launch({ channel: 'msedge' });
+  } catch {
+    return await chromium.launch({
+      executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    });
+  }
+}
+
+function clientOf(field, x, y) {
+  return { x: field.x + (x / 430) * field.width, y: field.y + (y / 860) * field.height };
+}
+
+async function tapSplash(page) {
+  const p = await page.evaluate(() => {
+    const f = window.__app.field();
+    return { x: f.x + (215 / 430) * f.width, y: f.y + (430 / 860) * f.height };
+  });
+  await page.mouse.click(p.x, p.y);
+  await page.waitForFunction(() => window.__app.screen().name === 'menu', null, { timeout: 10000 });
+}
+
+async function tapTarget(page, id) {
+  const hit = await page.evaluate((targetId) => {
+    const target = window.__app.targets().find((t) => t.id === targetId);
+    if (!target) throw new Error(`target missing: ${targetId}`);
+    const f = window.__app.field();
+    return { x: f.x + (target.x / 430) * f.width, y: f.y + (target.y / 860) * f.height };
+  }, id);
+  await page.mouse.click(hit.x, hit.y);
+  await page.waitForTimeout(400);
+}
+
+async function traceNumeral(page) {
+  await page.waitForFunction(
+    () => window.__app.strokes && window.__app.strokes().length > 0,
+    null,
+    { timeout: 30000 },
+  );
+  const { field, strokes } = await page.evaluate(() => ({
+    field: window.__app.field(),
+    strokes: window.__app.strokes().map((points) => {
+      const pts = points.filter((_, i) => i % 4 === 0);
+      pts.push(points[points.length - 1]);
+      return pts;
+    }),
+  }));
+  for (const stroke of strokes) {
+    const first = clientOf(field, stroke[0].x, stroke[0].y);
+    await page.mouse.move(first.x, first.y);
+    await page.mouse.down();
+    for (const point of stroke) {
+      const c = clientOf(field, point.x, point.y);
+      await page.mouse.move(c.x, c.y, { steps: 2 });
+      await page.waitForTimeout(60);
+    }
+    const last = clientOf(field, stroke[stroke.length - 1].x, stroke[stroke.length - 1].y);
+    for (let d = 0; d < 6; d += 1) {
+      await page.mouse.move(last.x, last.y);
+      await page.waitForTimeout(120);
+    }
+    await page.mouse.up();
+    await page.waitForTimeout(250);
+  }
+}
+
+async function readSave(page) {
+  return page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  }, KEY);
+}
+
+const browser = await launch();
+const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
+const pageErrors = [];
+page.on('pageerror', (e) => pageErrors.push(String(e)));
+
+try {
+  // Part A: real v1 save migrates losslessly on launch.
+  await page.goto(`${BASE}/index.html`);
+  await page.evaluate(
+    ([key, fixture]) => localStorage.setItem(key, JSON.stringify(fixture)),
+    [KEY, V1_FIXTURE],
+  );
+  await page.reload();
+  await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+  await tapSplash(page);
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(OUT, 'persist-menu-migrated.png') });
+
+  const migrated = await readSave(page);
+  check('version upgraded to 3', migrated?.version === 3);
+  check(
+    'legacy world badge became a trophy',
+    JSON.stringify(migrated?.trophies) === '["dino"]' && JSON.stringify(migrated?.badges) === '[]',
+  );
+  check(
+    'world levels remapped to pre slots',
+    JSON.stringify(migrated?.completedLevels) ===
+      JSON.stringify([
+        'pre-1',
+        'pre-2',
+        'pre-3',
+        'pre-4',
+        'pre-bonus-1',
+        'pre-5',
+        'pre-9',
+        'pre-10',
+      ]),
+  );
+  check(
+    'legacy keys dropped',
+    migrated?.assistWidened === undefined && migrated?.pack === undefined,
+  );
+  check(
+    'settings kept',
+    migrated?.settings?.volume === 0.7 &&
+      migrated?.settings?.easierTracing === true &&
+      migrated?.settings?.skin === 'dino',
+  );
+
+  await tapTarget(page, 'pack:pre');
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(OUT, 'persist-pack-migrated.png') });
+  await tapTarget(page, 'pack:home');
+  await tapTarget(page, 'pack:numbers');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: path.join(OUT, 'persist-numbers-empty.png') });
+  await tapTarget(page, 'pack:home');
+
+  // Part B: numbers progress survives a relaunch.
+  await tapTarget(page, 'pack:numbers');
+  await tapTarget(page, 'level:num-2');
+  await traceNumeral(page);
+  await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(OUT, 'persist-num2-success.png') });
+  await tapTarget(page, 'success:home');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: path.join(OUT, 'persist-pack-num2.png') });
+
+  const afterRun = await readSave(page);
+  check('num-2 cleared on save', afterRun?.completedLevels?.includes('num-2') === true);
+
+  await page.reload();
+  await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+  await tapSplash(page);
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(OUT, 'persist-menu-after-relaunch.png') });
+  await tapTarget(page, 'pack:numbers');
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(OUT, 'persist-pack-after-relaunch.png') });
+
+  const relaunched = await readSave(page);
+  check(
+    'progress survived the relaunch',
+    relaunched?.completedLevels?.includes('num-2') === true,
+  );
+  check('version still 3 after relaunch', relaunched?.version === 3);
+
+  // Part C: quota-denied writes continue silently; recovery persists.
+  const quotaContext = await browser.newContext({ viewport: { width: 430, height: 900 } });
+  await quotaContext.addInitScript(() => {
+    const original = Storage.prototype.setItem;
+    window.__qaRestoreSetItem = () => {
+      Storage.prototype.setItem = original;
+    };
+    Storage.prototype.setItem = () => {
+      throw new DOMException('quota', 'QuotaExceededError');
+    };
+  });
+  const quotaPage = await quotaContext.newPage();
+  const quotaErrors = [];
+  quotaPage.on('pageerror', (e) => quotaErrors.push(String(e)));
+
+  await quotaPage.goto(`${BASE}/index.html`);
+  await quotaPage.waitForFunction(() => window.__app && window.__app.screen, null, {
+    timeout: 30000,
+  });
+  await tapSplash(quotaPage);
+  await tapTarget(quotaPage, 'pack:pre');
+  await tapTarget(quotaPage, 'level:pre-1');
+  await traceNumeral(quotaPage);
+  await quotaPage.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
+  await quotaPage.waitForTimeout(1200);
+  await quotaPage.screenshot({ path: path.join(OUT, 'persist-quota-success.png') });
+  check('quota-denied: level completed with no error state', quotaErrors.length === 0);
+  check('quota-denied: nothing was persisted', (await readSave(quotaPage)) === null);
+
+  await quotaPage.evaluate(() => window.__qaRestoreSetItem());
+  await tapTarget(quotaPage, 'success:home');
+  await tapTarget(quotaPage, 'pack:home');
+  await tapTarget(quotaPage, 'skin:cycle');
+  await quotaPage.waitForTimeout(400);
+  const quotaRecovered = await readSave(quotaPage);
+  check(
+    'quota-recovered: the next save persists the whole session',
+    quotaRecovered?.completedLevels?.includes('pre-1') === true &&
+      quotaRecovered?.settings?.skin === 'star',
+  );
+  await quotaPage.screenshot({ path: path.join(OUT, 'persist-quota-recovered.png') });
+  pageErrors.push(...quotaErrors.map((e) => `quota: ${e}`));
+
+  // Part D: localStorage entirely unavailable — the app boots and plays.
+  const deniedContext = await browser.newContext({ viewport: { width: 430, height: 900 } });
+  await deniedContext.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() {
+        throw new DOMException('denied', 'SecurityError');
+      },
+    });
+  });
+  const deniedPage = await deniedContext.newPage();
+  const deniedErrors = [];
+  deniedPage.on('pageerror', (e) => deniedErrors.push(String(e)));
+
+  await deniedPage.goto(`${BASE}/index.html`);
+  await deniedPage.waitForFunction(() => window.__app && window.__app.screen, null, {
+    timeout: 30000,
+  });
+  await tapSplash(deniedPage);
+  await tapTarget(deniedPage, 'pack:pre');
+  await tapTarget(deniedPage, 'pack:home');
+  await deniedPage.waitForTimeout(400);
+  await deniedPage.screenshot({ path: path.join(OUT, 'persist-storage-denied.png') });
+  const deniedProbe = await deniedPage.evaluate((key) => {
+    try {
+      return localStorage.getItem(key) === null ? 'empty' : 'readable';
+    } catch {
+      return 'unavailable';
+    }
+  }, KEY);
+  check('denied-storage: boot + navigation with no error state', deniedErrors.length === 0);
+  check(
+    'denied-storage: localStorage truly unavailable in this context',
+    deniedProbe === 'unavailable',
+  );
+  pageErrors.push(...deniedErrors.map((e) => `denied: ${e}`));
+} catch (error) {
+  console.error('FAILED:', String(error));
+  process.exitCode = 1;
+}
+
+console.log(`page errors: ${pageErrors.length ? pageErrors.join(' | ') : '(none)'}`);
+if (pageErrors.length) process.exitCode = 1;
+if (failures.length) process.exitCode = 1;
+await browser.close();
