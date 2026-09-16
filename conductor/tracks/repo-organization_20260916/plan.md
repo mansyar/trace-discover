@@ -23,7 +23,7 @@
 - [x] Task: Live-reference sweep — `.agents/skills/rive-cli/SKILL.md`, `src/packs/numbers.ts` comment, current docs; `git grep spike/` clean outside `conductor/archive/` + history [8a26c79]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Prune dead files
+## Phase 3 — Prune dead files [checkpoint: 30afb2a]
 
 *Goal: only load-bearing files remain — legacy art gone, art-src at the policy set, dino iterations consolidated.*
 
