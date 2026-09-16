@@ -67,3 +67,18 @@ Fresh gates run on the final tree: `CI=true pnpm check` (88 files, clean) · `CI
 | Coverage (All files) | — | 98.3% stmts · 91.2% branch · 100% funcs · 98.23% lines | gate: >80% ✓ |
 
 Targets: spec NFR **≤ 6.95 MB (≥25% below baseline)** ✓ met with large margin (−57.2%); stretch **≤ ~6.4 MB** also exceeded. `pnpm budget` ceilings (4.50 MB / 150 entries) pass with documented headroom.
+
+## Acceptance evidence (AC 1–8)
+
+Evidence gathered 2026-09-17 on the final tree (`track/payload-diet`); gates re-run for the record in `dcbc731`.
+
+| # | Criterion (spec) | Evidence |
+| --- | --- | --- |
+| 1 | dist ≤ 6.95 MB (≥25% below measured 9.26 MB baseline; stretch ≤ ~6.4 MB) | dist **4,161,522 B (4.16 MB) — −57.2%**; precache 133 entries / 4,038.89 KiB; After table above |
+| 2 | No `.png`/`.jpg` under `public/art/**` (icons excluded); zero stale references | 0 legacy rasters on disk (119 WebP only); `git grep` for raster literals in `src` clean; `src/artRefs.test.ts` green (producer enumeration + positive + hostile control) |
+| 3 | Owner-approved side-by-sides per class; Android + iPad visual pass | Per-class sheets + worst-diff 1:1 focus sheet reviewed/approved pre-migration (edge-antialias jitter only). Device pass: Android + iPad — **owner confirmed all good (2026-09-17)** |
+| 4 | `dino.riv` ≤ 500 KB (target ~460 KB); screenshots; in-app burst | **455,201 B (−35.0%)**; `rive --verify`/`inspect` clean; CLI screenshot parity (rest/blink/celebrate, no seam); 32-frame in-app burst (f06 mid-blink, 0 page errors) |
+| 5 | `pnpm budget` guard; ceilings documented; CI step; negative control | Pass exit 0 + `--total 3000000` / `--entries 100` controls exit 1 (`aa7ebae`); ceilings **4.50 MB / 150** in root README, dev/README, tech-stack; `ci.yml` step after build (`d65e8f6`). CI red/green proof lands with first push |
+| 6 | Offline probe + app/letters sweeps green; boot within baseline | `qa-app`: splash→menu→pack, pre-1..12 + bonuses traced, badge + save v3, 0 errors; `qa-letters-pack`: 2 pages/pager/abc-a, 0 errors; `qa-offline`: cold start + trace SUCCESS; `qa-perf`: boot 137 ms, input 2.1 ms, frames p95 4.30 ms (skins-era 93 ms / 2.7 ms / 4.3 ms) |
+| 7 | Full gates green | check 88 clean · test --coverage 383/383 (98.3/91.2/100/98.23) · build · budget PASS |
+| 8 | Docs synced; no child-visible change | product.md dated note + stale ~10.3 MB corrected; tech-stack note finalized; dev/README budget section; README quick start. No `src` behavior change (URL literals only; suite untouched-green); qa screenshots confirm pixel parity |
