@@ -77,7 +77,7 @@
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded — dist 7.77MB; precache 91 entries (7931KiB) [946eb8c]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5 — Compliance & QA sweep
+## Phase 5 — Compliance & QA sweep [checkpoint: 5087b98]
 
 *Goal: offline, zero-text, right-sized, measured — within every constraint.*
 
@@ -85,7 +85,7 @@
 - [x] Task: Zero-text + 90 px audit of new surfaces (menu, pack screens, success, parent zone, skin button, mascot) — screenshots + vision + code scan — fillText only inside drawParent; 90px floors unit-tested on all card/button layouts [946eb8c]
 - [x] Task: Perf spot-checks — skin swaps (incl. mid-trace), cold start, fps sampling (mid-range Android + base iPad); fix if warranted — headless: cold boot 93ms, input-to-frame 2.7ms, frames p95 4.3ms, zero page errors; device sampling folded into the Phase 6 device pass [946eb8c]
 - [x] Task: Regression sweep — stroke feel/assists/completion parity; numbers unchanged; full suite green; QA script suite pass — 320/320; qa-numerals + qa-pack-app green (numbers unchanged); qa-app full pre pack green [946eb8c]
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — Device validation & acceptance
 
