@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
 import { allPacks, packById } from './catalog';
+import { LETTERS_PACK } from './letters';
 import { NUMBERS_PACK } from './numbers';
 import { PRE_PACK } from './pre';
 
 describe('pack catalog', () => {
-  it('lists pre-writing first, then numbers', () => {
-    expect(allPacks().map((pack) => pack.id)).toEqual(['pre', 'numbers']);
+  it('lists packs in menu order: pre-writing, numbers, letters', () => {
+    expect(allPacks().map((pack) => pack.id)).toEqual(['pre', 'numbers', 'abc']);
   });
 
   it('looks up packs by id', () => {
     expect(packById('pre')).toBe(PRE_PACK);
     expect(packById('numbers')).toBe(NUMBERS_PACK);
+    expect(packById('abc')).toBe(LETTERS_PACK);
     expect(packById('nope')).toBeUndefined();
   });
 
@@ -46,5 +48,16 @@ describe('pack catalog', () => {
     expect(PRE_PACK.badgeId).toBe('pre-badge');
     expect(PRE_PACK.levels).toHaveLength(12);
     expect(PRE_PACK.bonuses).toHaveLength(3);
+  });
+
+  it('packs the twenty-six letters with three sequence bonuses', () => {
+    expect(LETTERS_PACK.badgeId).toBe('abc-badge');
+    expect(LETTERS_PACK.levels).toHaveLength(26);
+    expect(LETTERS_PACK.bonuses.map((level) => level.id)).toEqual([
+      'abc-bonus-1',
+      'abc-bonus-2',
+      'abc-bonus-3',
+    ]);
+    expect(LETTERS_PACK.bonusUnlocks).toEqual([9, 18, 26]);
   });
 });
