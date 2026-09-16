@@ -25,6 +25,7 @@ spike/web/vendor/
 spike/web/*.riv
 spike/web/*.png
 spike/gen/
+spike/abc/
 spike/ref/
 spike/package-lock.json
 spike/web/package-lock.json
