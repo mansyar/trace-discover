@@ -22,13 +22,13 @@
 - [x] Task: Pipeline forward-fix — shipped-art emitters (`opt-art` / `opt-pre` / `card` / `gen-rewards` / `faces` / `vignette` / `letters-compose`) default to WebP with the tuned per-class qualities; `dev/README.md` documents the shipped-format policy (mechanical verification: re-run one emitter on a sample asset) [dced3d3]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [dced3d3]
 
-## Phase 3 — `dino.riv` rebuild
+## Phase 3 — `dino.riv` rebuild [checkpoint: d275ed8]
 
 *Goal: dino closes its standing deviation at cast standard, with parity proven.*
 
 - [x] Task: Rebuild `dino.riv` from `dev/characters/dino4/` with the cast patch technique — `rive --verify` clean; size recorded (target ~460 KB, ≤ 500 KB guideline); same state machine (autoplay idle + `celebrate`) [5813533]
 - [x] Task: Verification — Rive screenshots (idle/jump/blink) + in-app browser burst (mid-blink vs rest) + cast parity; **fallback:** revert and keep the deviation open with a dated note if parity can't hold within budget [d275ed8]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [d275ed8]
 
 ## Phase 4 — Budget guard + CI gate
 
