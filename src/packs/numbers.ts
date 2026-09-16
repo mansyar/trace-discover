@@ -2,7 +2,7 @@
 // (conductor/archive/letters-numbers-pack_20260915/content.md). Multi-stroke
 // numerals use an ordered stroke sequence; single-stroke numerals stay
 // compatible with the v1 engine path. Geometry is tuned via headless
-// screenshot QA (spike/qa-numerals.mjs).
+// screenshot QA (dev/qa/qa-numerals.mjs).
 import type { LevelDef } from './level';
 import { createPackEntry, type PackEntry } from './pack';
 
