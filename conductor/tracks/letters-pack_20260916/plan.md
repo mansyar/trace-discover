@@ -39,7 +39,7 @@
 
 *Goal: the full reward loop live — per-stroke counted hops + notes, sticker fly-in per letter, bonus unlocks sealing the pack.*
 
-- [ ] Task: Hop plan — per-stroke hops (TDD)
+- [x] Task: Hop plan — per-stroke hops (TDD) [918a65e]
   - [ ] Tests: letters branch — one hop + one note per stroke, cap 4 (E = 4, C = 1); numerals' counted behavior unchanged; pacing caps
   - [ ] Implement in `character/hops.ts` + session/app wiring
 - [ ] Task: Sticker/badge/bonus flow integration — per-letter sticker fly-in; badge at 26; bonus seals (`ABC`/`MOM`/`ZOO`) mirror the numbers badge flow; screens QA
