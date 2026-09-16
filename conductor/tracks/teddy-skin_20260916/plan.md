@@ -27,7 +27,7 @@
 - [x] Task: Headless browser test + size/ship — stale `browsertest.mjs` (its page was removed in repo-organization) → replaced by `dev/qa/qa-teddy.mjs` + `?char=` harness override: pre-2 real-pointer trace → completion → burst → success, no character error, page errors none; riv 445,653 B (~435 KiB) ≤ ~500 KB; shipped `public/rive/teddy.riv` [61bd9c3]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Skin + voice integration (TDD)
+## Phase 3 — Skin + voice integration (TDD) [checkpoint: 724e603]
 
 *Goal: teddy is a selectable, persisted skin with its music-box voice — code green, suite green.*
 
