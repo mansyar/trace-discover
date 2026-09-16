@@ -69,8 +69,8 @@ describe('buildNameLevel', () => {
   it('ends at the final control point of the last glyph stroke as the goal', () => {
     const level = buildNameLevel('AVA');
     expect(level.goal).toEqual(level.strokes.at(-1)?.at(-1));
-    expect(level.goalArt).toBe('/art/goal/abc-a.png');
-    expect(buildNameLevel('JO').goalArt).toBe('/art/goal/abc-o.png');
+    expect(level.goalArt).toBe('/art/goal/abc-a.webp');
+    expect(buildNameLevel('JO').goalArt).toBe('/art/goal/abc-o.webp');
   });
 
   it('scales long names down while keeping glyphs visible', () => {
@@ -133,6 +133,6 @@ describe('namePackFor', () => {
     expect(pack?.bonusUnlocks).toEqual([]);
     expect(pack?.levels).toHaveLength(1);
     expect(pack?.levels[0]?.id).toBe('name-1');
-    expect(pack?.levels[0]?.goalArt).toBe('/art/goal/abc-a.png');
+    expect(pack?.levels[0]?.goalArt).toBe('/art/goal/abc-a.webp');
   });
 });

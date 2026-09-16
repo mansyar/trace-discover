@@ -1,7 +1,8 @@
 // tools/name-rewards.mjs — My Name minipack finals: turns the clean cutouts
 // into the shipped shapes: sticker seal (white disc + navy ring + star,
 // composed at 520 and downscaled to 160) and pack badge (400), matching the
-// letters-track conventions. Reads art-src/name/clean, writes public/art.
+// letters-track conventions. Reads art-src/name/clean, writes WebP (payload-diet
+// policy, quality 0.85) into public/art.
 // usage (any cwd): node dev/tools/name-rewards.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -52,7 +53,7 @@ async function compose(kind, srcs) {
         const size = 400;
         const { c, g } = scaled(size);
         g.drawImage(images[0], 0, 0, size, size);
-        return c.toDataURL('image/png');
+        return c.toDataURL('image/webp', 0.85);
       }
       if (kind === 'sticker') {
         const big = 520;
@@ -73,7 +74,7 @@ async function compose(kind, srcs) {
         g.drawImage(o, 260 - (o.width * s) / 2, 252 - (o.height * s) / 2, o.width * s, o.height * s);
         const { c: small, g: sg } = scaled(160);
         sg.drawImage(c, 0, 0, 160, 160);
-        return small.toDataURL('image/png');
+        return small.toDataURL('image/webp', 0.85);
       }
       throw new Error(`unknown kind ${kind}`);
     },
@@ -82,8 +83,8 @@ async function compose(kind, srcs) {
 }
 
 const jobs = [
-  { out: path.resolve(HERE, '..', '..', 'public/art/sticker/name-1.png'), kind: 'sticker', src: ['star.png'] },
-  { out: path.resolve(HERE, '..', '..', 'public/art/pack/name-badge.png'), kind: 'badge', src: ['badge.png'] },
+  { out: path.resolve(HERE, '..', '..', 'public/art/sticker/name-1.webp'), kind: 'sticker', src: ['star.png'] },
+  { out: path.resolve(HERE, '..', '..', 'public/art/pack/name-badge.webp'), kind: 'badge', src: ['badge.png'] },
 ];
 
 for (const job of jobs) {

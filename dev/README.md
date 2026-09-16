@@ -99,7 +99,7 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 - Shipped format: `public/art/**` is **WebP** (browser-canvas encode; per-class
   quality — backdrops ≈0.8, cutouts ≈0.85). `art-src/` stays lossless PNG;
   icons/favicons remain PNG. Composers (`opt-art`/`opt-pre`/`card`/`vignette`/
-  `letters-compose`/`faces`) write the shipped WebP directly.
+  `letters-compose`/`name-rewards`/`faces`) write the shipped WebP directly.
 - Raw generations (flux originals) stay **untracked** — regenerate with
   `tools/gen.mjs` when needed
 - `art-src/nums/`: `clean-*` cutouts + `vig-*`/card composites are kept; the

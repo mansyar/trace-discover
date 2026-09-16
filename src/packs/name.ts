@@ -78,7 +78,7 @@ export function buildNameLevel(name: string): LevelDef {
   const goal = strokes.at(-1)?.at(-1) ?? { x: FIELD_WIDTH / 2, y: NAME_CENTER_Y };
   return {
     goal,
-    goalArt: `/art/goal/abc-${lastChar}.png`,
+    goalArt: `/art/goal/abc-${lastChar}.webp`,
     id: 'name-1',
     stroke: 'line',
     strokes,
