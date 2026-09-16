@@ -371,7 +371,7 @@ export function drawMenu(
   ctx.restore();
 }
 
-/** Pack card: "123" art, a dot strip for cleared numerals, star on badge. */
+/** Pack card: pack art (numbers falls back to "123" strokes), a progress dot strip, star on badge. */
 function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
   const centerX = card.x + card.width / 2;
   const image = art?.image;

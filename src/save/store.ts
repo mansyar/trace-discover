@@ -182,6 +182,8 @@ function migrateLegacySave(parsed: object, settings: ParentSettings): SaveData {
   const pack = 'pack' in parsed ? parsed.pack : undefined;
   const badges = 'badges' in parsed ? asStringArray(parsed.badges) : [];
   return {
+    // Migration literals are historical wire formats: 'numbers-badge' is the
+    // exact id v2 wrote, so it must not be re-pointed at the live registry.
     badges: asPackBadgeEarned(pack) ? ['numbers-badge'] : [],
     completedLevels: [...migrateLevelIds(levels), ...migrateLevelIds(asClearedList(pack))],
     settings,

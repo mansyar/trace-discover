@@ -568,6 +568,7 @@ function render(now: number): void {
   } else if (screen.name === 'menu') {
     const packArts = new Map<string, PackMenuArt>();
     for (const pack of PACKS) {
+      // Numbers keeps its v1 card.png filename; other packs follow card-<packId>.png.
       const cardUrl =
         pack.id === NUMBERS_PACK.id ? '/art/pack/card.png' : `/art/pack/card-${pack.id}.png`;
       preloadArt(cardUrl);
