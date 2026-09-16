@@ -3,6 +3,8 @@
 // shell renders the current screen and feeds tap/runtime events back in;
 // every transition and save update here is unit-tested.
 import { packById } from '../packs/catalog';
+import { NAME_PACK_ID, namePackFor } from '../packs/name';
+import type { PackEntry } from '../packs/pack';
 import {
   bonusUnlocked,
   firstUnlockedBonusId,
@@ -60,9 +62,18 @@ export function startApp(save: SaveData): AppState {
   return { pendingBadge: null, save, screen: { name: 'splash' } };
 }
 
+/** Static packs, plus the runtime-composed name pack while a name is saved. */
+function packFor(state: AppState, packId: string): PackEntry | undefined {
+  const known = packById(packId);
+  if (known) {
+    return known;
+  }
+  return packId === NAME_PACK_ID ? (namePackFor(state.save.name) ?? undefined) : undefined;
+}
+
 /** Main levels are always open; circles unlock at their pack thresholds. */
 function openLevel(state: AppState, packId: string, levelId: string): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return state;
   }
@@ -79,7 +90,7 @@ function openLevel(state: AppState, packId: string, levelId: string): AppState {
 }
 
 function completeLevelRun(state: AppState, packId: string, levelId: string): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return state;
   }
@@ -101,7 +112,7 @@ function successAction(
   packId: string,
   levelId: string,
 ): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return { ...state, screen: { name: 'menu' } };
   }
@@ -122,7 +133,7 @@ function successAction(
 
 /** Badge seal: circles open the first unlocked bonus; other packs go back. */
 function badgeTap(state: AppState, packId: string): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return state;
   }
@@ -190,7 +201,7 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'splash-tap':
       return state.screen.name === 'splash' ? { ...state, screen: { name: 'menu' } } : state;
     case 'open-pack':
-      return packById(event.packId)
+      return packFor(state, event.packId)
         ? { ...state, screen: { name: 'pack', packId: event.packId } }
         : state;
     case 'pack-back':

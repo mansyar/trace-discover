@@ -7,8 +7,13 @@
 import type { Point } from '../engine/types';
 import { FIELD_WIDTH } from '../field';
 import type { PathStyle } from '../render/renderPath';
+import { sanitizeName } from '../save/store';
 import { LETTER_LEVELS } from './letters';
 import type { LevelDef } from './level';
+import { createPackEntry, type PackEntry } from './pack';
+
+/** Menu/pack id of the runtime-composed name mini-pack. */
+export const NAME_PACK_ID = 'name';
 
 /** Design box the composed name is laid out in (field space). */
 export const NAME_BOX = { bottom: 660, left: 40, right: 390, top: 280 } as const;
@@ -94,4 +99,18 @@ export function namePathStyle(scale: number, base: PathStyle): PathStyle {
     ribbonWidth: Math.max(22, base.ribbonWidth * s),
     tipRadius: Math.max(10, base.tipRadius * s),
   };
+}
+
+/** The one-level "My Name" mini-pack for a saved name, else null. */
+export function namePackFor(name: string | undefined): PackEntry | null {
+  const sanitized = name === undefined ? '' : sanitizeName(name);
+  if (sanitized === '') {
+    return null;
+  }
+  return createPackEntry({
+    badgeId: 'name-badge',
+    id: NAME_PACK_ID,
+    levels: [buildNameLevel(sanitized)],
+    menuFill: '#f6b45a',
+  });
 }

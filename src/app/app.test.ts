@@ -433,3 +433,46 @@ describe('name preservation', () => {
     expect(app.save.name).toBe('AVA');
   });
 });
+
+describe('name pack navigation', () => {
+  const named = { ...createDefaultSave(), name: 'AVA' };
+
+  it('opens the composed name pack only when a name is saved', () => {
+    const before = setup();
+    expect(applyAppEvent(before, { type: 'open-pack', packId: 'name' })).toBe(before);
+    const app = applyAppEvent(startApp(named), { type: 'open-pack', packId: 'name' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'name' });
+  });
+
+  it('traces the single level to its sticker and badge celebration', () => {
+    let app = startApp(named);
+    app = applyAppEvent(app, { type: 'open-level', packId: 'name', levelId: 'name-1' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'name', levelId: 'name-1' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'name', levelId: 'name-1' });
+    expect(app.screen).toEqual({ name: 'success', packId: 'name', levelId: 'name-1' });
+    expect(app.save.completedLevels).toEqual(['name-1']);
+    expect(app.save.badges).toEqual(['name-badge']);
+    expect(app.pendingBadge).toBe('name-badge');
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'name',
+      levelId: 'name-1',
+    });
+    expect(app.screen).toEqual({ name: 'badge', packId: 'name' });
+    expect(app.pendingBadge).toBeNull();
+    app = applyAppEvent(app, { type: 'badge-tap', packId: 'name' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'name' });
+  });
+
+  it('wraps next back onto the same level once the badge is earned', () => {
+    let app = startApp({ ...named, badges: ['name-badge'], completedLevels: ['name-1'] });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'name',
+      levelId: 'name-1',
+    });
+    expect(app.screen).toEqual({ name: 'level', packId: 'name', levelId: 'name-1' });
+  });
+});

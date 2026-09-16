@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import type { PathStyle } from '../render/renderPath';
 import { LETTER_LEVELS } from './letters';
 import { validateLevel } from './level';
-import { buildNameLevel, NAME_BOX, nameGlyphScale, namePathStyle } from './name';
+import { buildNameLevel, NAME_BOX, nameGlyphScale, namePackFor, namePathStyle } from './name';
 
 function letterById(char: string) {
   const level = LETTER_LEVELS.find((entry) => entry.id === `abc-${char.toLowerCase()}`);
@@ -99,5 +99,25 @@ describe('namePathStyle', () => {
     expect(thin.dotSpacing).toBe(30);
     expect(thin.tipRadius).toBe(10);
     expect(thin.paintColor).toBe(base.paintColor);
+  });
+});
+
+describe('namePackFor', () => {
+  it('is null without a valid name', () => {
+    expect(namePackFor(undefined)).toBeNull();
+    expect(namePackFor('')).toBeNull();
+    expect(namePackFor('A')).toBeNull();
+  });
+
+  it('builds the single-level mini-pack from the sanitized name', () => {
+    const pack = namePackFor('aira');
+    expect(pack?.id).toBe('name');
+    expect(pack?.badgeId).toBe('name-badge');
+    expect(pack?.menuFill).toBe('#f6b45a');
+    expect(pack?.bonuses).toEqual([]);
+    expect(pack?.bonusUnlocks).toEqual([]);
+    expect(pack?.levels).toHaveLength(1);
+    expect(pack?.levels[0]?.id).toBe('name-1');
+    expect(pack?.levels[0]?.goalArt).toBe('/art/goal/abc-a.png');
   });
 });
