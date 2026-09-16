@@ -15,6 +15,7 @@ import {
   completeLevel,
   createDefaultSave,
   type SaveData,
+  sanitizeName,
   setName,
   updateSettings,
 } from '../save/store';
@@ -30,7 +31,12 @@ export type AppScreen =
   | { readonly name: 'level'; readonly packId: string; readonly levelId: string }
   | { readonly name: 'success'; readonly packId: string; readonly levelId: string }
   | { readonly name: 'badge'; readonly packId: string }
-  | { readonly name: 'parent'; readonly confirmReset: boolean; readonly showInstall: boolean };
+  | {
+      readonly name: 'parent';
+      readonly confirmReset: boolean;
+      readonly showInstall: boolean;
+      readonly showName: boolean;
+    };
 
 export interface AppState {
   /** Badge earned but not yet celebrated (success "next" routes to it). */
@@ -55,7 +61,10 @@ export type AppEvent =
   | { readonly type: 'badge-exit' }
   | { readonly type: 'skin-cycle' }
   | { readonly type: 'parent-open' }
-  | { readonly type: 'parent-action'; readonly action: ParentZoneAction };
+  | { readonly type: 'parent-action'; readonly action: ParentZoneAction }
+  | { readonly type: 'name-set'; readonly name: string }
+  | { readonly type: 'name-clear' }
+  | { readonly type: 'name-close' };
 
 export function startApp(save: SaveData): AppState {
   return { pendingBadge: null, save, screen: { name: 'splash' } };
@@ -175,9 +184,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
         save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
       };
     case 'name':
-      // Overlay behavior lands with the editing panel; the hit target is
-      // wired first so layout and QA targets stay truthful.
-      return state;
+      return { ...state, screen: { ...parent, showName: true } };
     case 'reset':
       if (!parent.confirmReset) {
         return { ...state, screen: { ...parent, confirmReset: true } };
@@ -221,8 +228,37 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
         save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
       };
     case 'parent-open':
-      return { ...state, screen: { name: 'parent', confirmReset: false, showInstall: false } };
+      return {
+        ...state,
+        screen: { name: 'parent', confirmReset: false, showInstall: false, showName: false },
+      };
     case 'parent-action':
       return parentAction(state, event.action);
+    case 'name-set': {
+      if (state.screen.name !== 'parent' || !state.screen.showName) {
+        return state;
+      }
+      const name = sanitizeName(event.name);
+      if (name === '') {
+        return state;
+      }
+      return {
+        ...state,
+        save: setName(state.save, name),
+        screen: { ...state.screen, showName: false },
+      };
+    }
+    case 'name-clear': {
+      if (state.screen.name !== 'parent' || !state.screen.showName) {
+        return state;
+      }
+      return { ...state, save: setName(state.save, '') };
+    }
+    case 'name-close': {
+      if (state.screen.name !== 'parent' || !state.screen.showName) {
+        return state;
+      }
+      return { ...state, screen: { ...state.screen, showName: false } };
+    }
   }
 }

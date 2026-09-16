@@ -15,6 +15,7 @@ import {
   drawBadge,
   drawLevel,
   drawMenu,
+  drawNameOverlay,
   drawPack,
   drawParent,
   drawSkinButton,
@@ -44,7 +45,7 @@ import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
-import { loadSave, saveSave } from './save/store';
+import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
@@ -63,7 +64,13 @@ import {
   paginate,
 } from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
-import { hitParentZone, parentZoneLayout } from './ui/parentZone';
+import {
+  hitNameOverlay,
+  hitParentZone,
+  type NameOverlayLayout,
+  nameOverlayLayout,
+  parentZoneLayout,
+} from './ui/parentZone';
 import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
 import { hitSuccessButton, successLayout } from './ui/success';
 
@@ -207,6 +214,69 @@ function pop(): void {
   meteredPlayer?.play({ delay: 0, duration: 0.15, frequency: 660, gain: 0.22, type: 'sine' });
 }
 
+/** Lazily-created DOM field for the parent-set name (child screens never see it). */
+let nameInput: HTMLInputElement | null = null;
+
+function currentNameOverlay(): NameOverlayLayout {
+  return nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, app.save.name !== undefined);
+}
+
+function ensureNameInput(): HTMLInputElement {
+  if (nameInput) {
+    return nameInput;
+  }
+  const input = document.createElement('input');
+  input.className = 'name-input';
+  input.type = 'text';
+  input.autocomplete = 'off';
+  input.autocapitalize = 'characters';
+  input.spellcheck = false;
+  input.maxLength = MAX_NAME_LENGTH;
+  input.enterKeyHint = 'done';
+  input.setAttribute('aria-label', "Child's name");
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      commit(applyAppEvent(app, { type: 'name-set', name: input.value }));
+    }
+  });
+  document.body.appendChild(input);
+  nameInput = input;
+  return input;
+}
+
+function positionNameInput(): void {
+  if (!nameInput?.classList.contains('is-open')) {
+    return;
+  }
+  const overlay = currentNameOverlay();
+  const scale = field.width / FIELD_WIDTH;
+  nameInput.style.left = `${field.x + overlay.field.x * scale}px`;
+  nameInput.style.top = `${field.y + overlay.field.y * scale}px`;
+  nameInput.style.width = `${overlay.field.width * scale}px`;
+  nameInput.style.height = `${overlay.field.height * scale}px`;
+  nameInput.style.fontSize = `${Math.round(overlay.field.height * scale * 0.55)}px`;
+}
+
+/** Shows / hides the DOM field with the overlay screen state. */
+function syncNameInput(): void {
+  const screen = app.screen;
+  const open = screen.name === 'parent' && screen.showName;
+  if (!open) {
+    if (nameInput) {
+      nameInput.classList.remove('is-open');
+      nameInput.blur();
+    }
+    return;
+  }
+  const input = ensureNameInput();
+  if (!input.classList.contains('is-open')) {
+    input.value = app.save.name ?? '';
+    input.classList.add('is-open');
+    input.focus({ preventScroll: true });
+  }
+  positionNameInput();
+}
+
 /** Pack screen page state; landing page resets every time a pack opens. */
 let packPage = 0;
 
@@ -236,6 +306,7 @@ function commit(next: AppState): void {
     packPage = packLandingPage(screen.packId);
   }
   saveSave(saveStorage, app.save);
+  syncNameInput();
 }
 
 /** Level-art cache: loaded files by bundle URL, with one in-flight load each. */
@@ -541,6 +612,23 @@ const handlers: TraceHandlers = {
         pop();
       }
     } else if (screen.name === 'parent') {
+      if (screen.showName) {
+        const overlayAction = hitNameOverlay(currentNameOverlay(), point);
+        if (overlayAction === 'save') {
+          commit(applyAppEvent(app, { type: 'name-set', name: nameInput?.value ?? '' }));
+          pop();
+        } else if (overlayAction === 'clear') {
+          if (nameInput) {
+            nameInput.value = '';
+          }
+          commit(applyAppEvent(app, { type: 'name-clear' }));
+          pop();
+        } else if (overlayAction === 'cancel') {
+          commit(applyAppEvent(app, { type: 'name-close' }));
+          pop();
+        }
+        return;
+      }
       const action = hitParentZone(PARENT, point);
       if (action) {
         commit(applyAppEvent(app, { type: 'parent-action', action }));
@@ -574,6 +662,7 @@ function resize(): void {
   field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
   detachInput();
   detachInput = attachTraceInput(trailCanvas, field, handlers);
+  positionNameInput();
 }
 
 // Two-finger hold in the menu corner opens the parent zone. Tracing ignores
@@ -703,6 +792,9 @@ function render(now: number): void {
       artCache.get(activeSkin().face) ?? null,
       app.save.trophies,
     );
+    if (screen.showName) {
+      drawNameOverlay(trailContext, currentNameOverlay());
+    }
   }
   if (SKIN_BUTTON_SCREENS.has(screen.name)) {
     const skin = activeSkin();
@@ -818,6 +910,17 @@ function screenTargets(): AppTarget[] {
     ];
   }
   if (screen.name === 'parent') {
+    if (screen.showName) {
+      const overlay = currentNameOverlay();
+      const targets = [
+        { id: 'name:save', x: overlay.save.x, y: overlay.save.y },
+        { id: 'name:cancel', x: overlay.cancel.x, y: overlay.cancel.y },
+      ];
+      if (overlay.clear) {
+        targets.push({ id: 'name:clear', x: overlay.clear.x, y: overlay.clear.y });
+      }
+      return targets;
+    }
     const buttons = [
       PARENT.volumeDown,
       PARENT.volumeUp,

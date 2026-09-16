@@ -128,7 +128,7 @@ const OVERLAY_PANEL_HEIGHT = 340;
 const OVERLAY_FIELD_INSET = 30;
 const OVERLAY_FIELD_TOP = 60;
 const OVERLAY_FIELD_HEIGHT = 100;
-const OVERLAY_BUTTON_INSET = 60;
+const OVERLAY_BUTTON_INSET = 78; // leaves room for the label under each button
 const OVERLAY_SIDE_OFFSET = 130;
 
 /**

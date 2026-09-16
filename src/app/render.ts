@@ -19,7 +19,7 @@ import {
   type SplashLayout,
 } from '../ui/menu';
 import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
-import type { ParentZoneLayout } from '../ui/parentZone';
+import type { NameOverlayLayout, ParentZoneLayout } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
@@ -887,7 +887,7 @@ export function drawParent(
   ctx.font = '24px system-ui, sans-serif';
   ctx.fillStyle = NAVY;
   ctx.textAlign = 'left';
-  ctx.fillText('Tracing', 40, 400);
+  ctx.fillText('Tracing', 40, 325);
   ctx.textAlign = 'center';
   drawZoneButton(
     ctx,
@@ -912,6 +912,8 @@ export function drawParent(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('skin', skinButton.x, skinButton.y + skinButton.radius + 24);
+  const nameButton = layout.name;
+  drawZoneButton(ctx, nameButton.x, nameButton.y, nameButton.radius, false, '✎', 'name');
   ctx.font = '24px system-ui, sans-serif';
   ctx.fillText('Trophies', FIELD_WIDTH / 2, 648);
   layout.trophies.forEach((slot, index) => {
@@ -989,4 +991,44 @@ export function drawParent(
       ctx.fillText(line, FIELD_WIDTH / 2, 190 + index * 52);
     });
   }
+}
+
+/**
+ * Modal for the parent-set name: backdrop, white panel, field frame (the DOM
+ * input mounts over it), hint copy, and Save / Clear / Cancel targets.
+ * Parent copy only - the child never reaches this screen.
+ */
+export function drawNameOverlay(ctx: CanvasRenderingContext2D, layout: NameOverlayLayout): void {
+  ctx.save();
+  ctx.fillStyle = 'rgba(46, 74, 99, 0.45)';
+  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  const { panel, field } = layout;
+  ctx.beginPath();
+  ctx.rect(panel.x, panel.y, panel.width, panel.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = '26px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText("Child's name", FIELD_WIDTH / 2, panel.y + 36);
+  ctx.beginPath();
+  ctx.rect(field.x, field.y, field.width, field.height);
+  ctx.setLineDash([8, 6]);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(46, 74, 99, 0.45)';
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = NAVY;
+  ctx.font = '22px system-ui, sans-serif';
+  ctx.fillText('2-7 letters, A-Z', FIELD_WIDTH / 2, field.y + field.height + 34);
+  drawZoneButton(ctx, layout.save.x, layout.save.y, layout.save.radius, false, '✓', 'save');
+  if (layout.clear) {
+    drawZoneButton(ctx, layout.clear.x, layout.clear.y, layout.clear.radius, false, '⌫', 'clear');
+  }
+  drawZoneButton(ctx, layout.cancel.x, layout.cancel.y, layout.cancel.radius, false, '✕', 'cancel');
+  ctx.restore();
 }

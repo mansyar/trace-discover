@@ -161,7 +161,12 @@ describe('app navigation', () => {
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     expect(app.save.completedLevels).toEqual([]);
     app = applyAppEvent(app, { type: 'parent-action', action: 'install' });
-    expect(app.screen).toEqual({ name: 'parent', confirmReset: false, showInstall: true });
+    expect(app.screen).toEqual({
+      name: 'parent',
+      confirmReset: false,
+      showInstall: true,
+      showName: false,
+    });
     app = applyAppEvent(app, { type: 'parent-action', action: 'done' });
     expect(app.screen).toEqual({ name: 'menu' });
   });
@@ -474,5 +479,61 @@ describe('name pack navigation', () => {
       levelId: 'name-1',
     });
     expect(app.screen).toEqual({ name: 'level', packId: 'name', levelId: 'name-1' });
+  });
+});
+
+describe('name editing', () => {
+  function openOverlay(save = createDefaultSave()): AppState {
+    let app = startApp(save);
+    app = applyAppEvent(app, { type: 'parent-open' });
+    return applyAppEvent(app, { type: 'parent-action', action: 'name' });
+  }
+
+  it('opens the overlay from the parent zone', () => {
+    const app = openOverlay();
+    expect(app.screen).toMatchObject({ name: 'parent', showName: true });
+  });
+
+  it('saves a sanitized, clamped name and closes the overlay', () => {
+    let app = openOverlay();
+    app = applyAppEvent(app, { type: 'name-set', name: 'a i r a' });
+    expect(app.save.name).toBe('AIRA');
+    expect(app.screen).toMatchObject({ name: 'parent', showName: false });
+
+    app = openOverlay();
+    app = applyAppEvent(app, { type: 'name-set', name: 'abcdefgh' });
+    expect(app.save.name).toBe('ABCDEFG');
+  });
+
+  it('rejects names shorter than two letters and stays open', () => {
+    let app = openOverlay();
+    const kept = app;
+    app = applyAppEvent(app, { type: 'name-set', name: 'a' });
+    expect(app).toBe(kept);
+    app = applyAppEvent(app, { type: 'name-set', name: '1 2' });
+    expect(app).toBe(kept);
+    expect(app.save.name).toBeUndefined();
+    expect(app.screen).toMatchObject({ showName: true });
+  });
+
+  it('clears the name but keeps the overlay open', () => {
+    let app = openOverlay({ ...createDefaultSave(), name: 'AVA' });
+    app = applyAppEvent(app, { type: 'name-clear' });
+    expect(app.save.name).toBeUndefined();
+    expect(app.screen).toMatchObject({ name: 'parent', showName: true });
+  });
+
+  it('cancels the overlay without touching the name', () => {
+    let app = openOverlay({ ...createDefaultSave(), name: 'AVA' });
+    app = applyAppEvent(app, { type: 'name-close' });
+    expect(app.save.name).toBe('AVA');
+    expect(app.screen).toMatchObject({ name: 'parent', showName: false });
+  });
+
+  it('ignores name events outside the parent overlay', () => {
+    const app = startApp(createDefaultSave());
+    expect(applyAppEvent(app, { type: 'name-set', name: 'AVA' })).toBe(app);
+    expect(applyAppEvent(app, { type: 'name-clear' })).toBe(app);
+    expect(applyAppEvent(app, { type: 'name-close' })).toBe(app);
   });
 });
