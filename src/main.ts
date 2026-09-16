@@ -758,6 +758,7 @@ function render(now: number): void {
     }
     drawMenu(
       trailContext,
+      now,
       MENU,
       MENU_FILLS,
       packArts,

@@ -63,6 +63,8 @@ const tapTarget = async (id) => {
 
 await tapTarget('splash');
 await appPage.screenshot({ path: path.join(OUT, 'menu-hint.png') });
+await wait(400);
+await appPage.screenshot({ path: path.join(OUT, 'menu-hint-pulse.png') });
 const gate = await appPage.evaluate(() => {
   const f = window.__app.field();
   const hit = window.__app.targets().find((t) => t.id === 'gate');
@@ -98,7 +100,7 @@ await appPage.waitForFunction(() => window.__app && window.__app.screen, null, {
 await wait(600);
 await tapTarget('splash');
 await appPage.screenshot({ path: path.join(OUT, 'menu-hint-gone.png') });
-console.log('hint shots: out/menu-hint.png (fresh) -> out/menu-hint-gone.png (after open + reload)');
+console.log('hint shots: out/menu-hint.png + out/menu-hint-pulse.png (dot pulse) -> out/menu-hint-gone.png (after open + reload)');
 console.log(`live page errors: ${appErrors.length === 0 ? '(none)' : appErrors.join(' | ')}`);
 
 await browser.close();

@@ -376,6 +376,7 @@ export function drawGateRing(ctx: CanvasRenderingContext2D, center: Point, progr
 
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
+  now: number,
   layout: MenuLayout,
   fills: readonly string[],
   packArts?: ReadonlyMap<string, PackMenuArt>,
@@ -407,10 +408,12 @@ export function drawMenu(
   // it never tempts little fingers.
   const gate = layout.parentGate;
   const gateCenter = { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 };
+  // Gentle pulse while the one-time hint is up so parents notice the corner.
+  const dotRadius = hintVisible ? 10 * (1 + 0.22 * Math.sin(now / 250)) : 10;
   ctx.save();
   ctx.globalAlpha = 0.3;
   ctx.beginPath();
-  ctx.arc(gateCenter.x, gateCenter.y, 10, 0, Math.PI * 2);
+  ctx.arc(gateCenter.x, gateCenter.y, dotRadius, 0, Math.PI * 2);
   ctx.fillStyle = NAVY;
   ctx.fill();
   ctx.restore();
