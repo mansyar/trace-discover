@@ -232,6 +232,7 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'parent-open':
       return {
         ...state,
+        save: updateSettings(state.save, { parentHintSeen: true }),
         screen: { name: 'parent', confirmReset: false, showInstall: false, showName: false },
       };
     case 'parent-action':
@@ -263,4 +264,9 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
       return { ...state, screen: { ...state.screen, showName: false } };
     }
   }
+}
+
+/** One-time menu hint: shown until the gate has been opened successfully once. */
+export function shouldShowParentHint(save: SaveData): boolean {
+  return !save.settings.parentHintSeen;
 }

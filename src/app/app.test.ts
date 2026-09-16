@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultSave } from '../save/store';
-import { type AppState, applyAppEvent, startApp } from './app';
+import { type AppState, applyAppEvent, shouldShowParentHint, startApp } from './app';
 
 function setup(): AppState {
   return startApp(createDefaultSave());
@@ -193,6 +193,23 @@ describe('app navigation', () => {
     expect(resetting.save.badges).toEqual([]);
     expect(resetting.save.completedLevels).toEqual([]);
     expect(resetting.save.trophies).toEqual([]);
+  });
+});
+
+describe('gate hint', () => {
+  it('marks the one-time hint as learned when the parent zone opens', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    expect(app.save.settings.parentHintSeen).toBe(false);
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(app.screen.name).toBe('parent');
+    expect(app.save.settings.parentHintSeen).toBe(true);
+  });
+
+  it('shows the hint until it is learned, then never again', () => {
+    expect(shouldShowParentHint(createDefaultSave())).toBe(true);
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(shouldShowParentHint(app.save)).toBe(false);
   });
 });
 
