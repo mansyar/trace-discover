@@ -55,7 +55,7 @@
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; dist recorded; optimization pass if approaching budget [e9a2748]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5 — Compliance & QA sweep
+## Phase 5 — Compliance & QA sweep [checkpoint: 3af9fd6]
 
 *Goal: offline, zero-text, right-sized, measured — within every constraint; docs current.*
 
