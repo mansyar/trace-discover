@@ -22,7 +22,7 @@
 - [x] Task: Dev harness + spike QA script updates for the `abc` pack [7ef4777]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Letter content: school-style glyphs & sequences
+## Phase 2 — Letter content: school-style glyphs & sequences [checkpoint: 9b14bec]
 
 *Goal: all 26 letters authored per the content doc — school-style stroke order, field-sized glyphs with inter-stroke gaps clear of tolerance zones; `ABC`/`MOM`/`ZOO` authored; screenshots approved; trickiest glyphs feel-checked on device.*
 
