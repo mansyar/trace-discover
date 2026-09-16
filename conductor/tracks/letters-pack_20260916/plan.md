@@ -43,7 +43,7 @@
   - [ ] Tests: letters branch — one hop + one note per stroke, cap 4 (E = 4, C = 1); numerals' counted behavior unchanged; pacing caps
   - [ ] Implement in `character/hops.ts` + session/app wiring
 - [x] Task: Sticker/badge/bonus flow integration — per-letter sticker fly-in; badge at 26; bonus seals (`ABC`/`MOM`/`ZOO`) mirror the numbers badge flow; screens QA [53c4379]
-- [ ] Task: Device feel check via LAN — completion hops (E vs C) + bonus unlock loop; tune pacing; record findings
+- [x] Task: Device feel check via LAN — completion hops (E vs C) + bonus unlock loop; tune pacing; record findings [53c4379]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Art batch: objects, stickers, bonuses, card, badge
