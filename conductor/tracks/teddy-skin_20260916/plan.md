@@ -45,8 +45,8 @@
 *Goal: all teddy art integrated and screenshot-approved; precache/size recorded.*
 
 - [x] Task: Cozy-bedroom backdrop — generate → optimize → `public/art/bg/teddy.jpg`; integrate; menu/pack/level/success screenshots (readability/contrast) approved — 2 `gen.mjs` candidates (`dev/gen/bg-teddy.png` chosen / `bg-teddy-a.png` alternate kept untracked); owner approved candidate 2 + accent `#e07a5f` 2026-09-16; `opt-art.mjs teddy` → 1024² JPEG q75 44,761 B; real-app screens via new `dev/qa/qa-teddy-screens.mjs` (menu/pack/level/success, no page errors) [c5659ce; tooling 9a2a2a9]
-- [~] Task: Face icon — teddy head cutout → `public/art/face/teddy.png`; button-scale crispness verified (skin button + parent setter)
-- [ ] Task: Precache/size checkpoint — SW glob covers new assets; dist + precache entries recorded vs baseline (6.71 MB / 76 entries)
+- [x] Task: Face icon — teddy head cutout → `public/art/face/teddy.png`; button-scale crispness verified (skin button + parent setter) — hand box (dark dot eyes, no eye-white auto-detect) → 256 px icon 81,424 B over accent disc `#e07a5f`; 4x zooms of the menu skin-cycle button + parent-zone setter (grown-ups) crisp, no artifacts; other faces untouched [7524f01; tooling ed2546b]
+- [~] Task: Precache/size checkpoint — SW glob covers new assets; dist + precache entries recorded vs baseline (6.71 MB / 76 entries)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance, QA & acceptance
