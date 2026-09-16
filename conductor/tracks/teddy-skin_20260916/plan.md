@@ -31,12 +31,12 @@
 
 *Goal: teddy is a selectable, persisted skin with its music-box voice — code green, suite green.*
 
-- [ ] Task: Skins registry + five-skin cycle (TDD)
-  - [ ] Tests: teddy carries id/character/backdrop/accent/instrument/face; unique ids; cycle dino→star→construction→animal→teddy (wrap); unknown-id fallback intact; `settings.skin` round-trips teddy
-  - [ ] Implement `src/skins/skins.ts` (extend existing tests to five)
-- [ ] Task: Music-box preset (TDD)
-  - [ ] Tests: `InstrumentId` includes `musicbox`; preset = soft sine, long decay ~1.5 s, gentle gain; chimes + completion resolve through it; counted toy-piano notes unchanged; volume/mute respected
-  - [ ] Implement `src/audio/synth.ts`
+- [x] Task: Skins registry + five-skin cycle (TDD) [724e603]
+  - [x] Tests: teddy carries id/character/backdrop/accent/instrument/face; unique ids; cycle dino→star→construction→animal→teddy (wrap); unknown-id fallback intact; `settings.skin` round-trips teddy — red 7 failures → green; `app.test.ts` cycle walk extended to five taps
+  - [x] Implement `src/skins/skins.ts` (extend existing tests to five) — teddy entry `#e07a5f` / `/art/bg/teddy.jpg` / `/art/face/teddy.png` / `musicbox`; persistence needed no code change (`asSettings` validates via `skinById`)
+- [x] Task: Music-box preset (TDD) [2a17f29]
+  - [x] Tests: `InstrumentId` includes `musicbox`; preset = soft sine, long decay ~1.5 s, gentle gain; chimes + completion resolve through it; counted toy-piano notes unchanged; volume/mute respected — red 3 failures → green (volume/mute + counted notes covered by existing meter/player tests)
+  - [x] Implement `src/audio/synth.ts` — `musicbox: { duration: 1.5, gain: 0.3, type: 'sine' }`
 - [ ] Task: Wiring sweep — `.riv` src resolution (`public/rive/teddy.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include teddy; QA/harness enumerations updated where they list skins
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
