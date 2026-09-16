@@ -91,9 +91,9 @@ speed untouched).
 
 ## Phase 6: QA evidence, device tuning, acceptance, docs finalize
 
-- [ ] Task 1: `dev/qa/qa-name.mjs`: gate → set name → 4-card menu → pack →
-      trace → sticker/badge → reload persistence → clear → 3 cards; screenshots
-- [ ] Task 2: Zero-text audit; `qa-offline` cold start unchanged; hostile
+- [x] Task 1: `dev/qa/qa-name.mjs`: gate → set name → 4-card menu → pack →
+      trace → sticker/badge → reload persistence → clear → 3 cards; screenshots (1320788)
+- [~] Task 2: Zero-text audit; `qa-offline` cold start unchanged; hostile
       fixtures; perf spot-check
 - [ ] Task 3: Device pass Android + iPad — keyboard overlay, tracing feel; tune
       thinning floor + `MAX_NAME_LENGTH` (≥5 gate; STOP + owner decision if it
