@@ -7,6 +7,7 @@ import './style.css';
 
 import { type AppState, applyAppEvent, startApp } from './app/app';
 import { loadArtImage } from './app/art';
+import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
   BADGE_HOME,
   BADGE_SEAL,
@@ -24,6 +25,7 @@ import {
   NO_LEVEL_ART,
   type PackMenuArt,
 } from './app/render';
+import { hopPlanFor } from './app/runPlan';
 import { createSession, type LevelSession } from './app/session';
 import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { withVolume } from './audio/meter';
@@ -32,13 +34,12 @@ import type { TonePlayer } from './audio/synth';
 import { createUnlockGate, presetForInstrument } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
-import { type HopTimeline, hopTimeline } from './character/hops';
+import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
 import { allPacks, packById } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
-import { NUMBERS_PACK } from './packs/numbers';
 import { firstUnlockedBonusId } from './packs/progress';
 import { loadSave, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
@@ -195,7 +196,7 @@ for (const skin of SKINS) {
 let levelArtUrls: { backdrop: string; goal: string; sticker?: string } | null = null;
 
 function packBadgeArt(packId: string): HTMLImageElement | null {
-  const url = packId === NUMBERS_PACK.id ? '/art/pack/badge.png' : `/art/pack/${packId}-badge.png`;
+  const url = packBadgeArtUrl(packId);
   preloadArt(url);
   return artCache.get(url) ?? null;
 }
@@ -286,15 +287,6 @@ function syncIdleMascot(): void {
       hideCharacter();
     }
   }
-}
-
-/** Numerals celebrate with counted hops; other levels use the default plan. */
-function hopPlanFor(packId: string, levelId: string): HopTimeline | undefined {
-  if (packId !== NUMBERS_PACK.id) {
-    return undefined;
-  }
-  const count = Number.parseInt(levelId.slice('num-'.length), 10);
-  return Number.isNaN(count) ? undefined : hopTimeline(count);
 }
 
 /** Opens any level (main or circle) of a pack under the active skin. */
@@ -568,9 +560,7 @@ function render(now: number): void {
   } else if (screen.name === 'menu') {
     const packArts = new Map<string, PackMenuArt>();
     for (const pack of PACKS) {
-      // Numbers keeps its v1 card.png filename; other packs follow card-<packId>.png.
-      const cardUrl =
-        pack.id === NUMBERS_PACK.id ? '/art/pack/card.png' : `/art/pack/card-${pack.id}.png`;
+      const cardUrl = menuCardArtUrl(pack.id);
       preloadArt(cardUrl);
       packArts.set(pack.id, {
         image: artCache.get(cardUrl) ?? null,

@@ -426,7 +426,7 @@ function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
   ids.forEach((id, index) => {
     const strokes = NUMERAL_MINI.get(id);
     if (strokes) {
-      drawMiniNumeral(
+      drawMiniPath(
         ctx,
         strokes,
         startX + index * boxWidth + 6,
@@ -439,8 +439,8 @@ function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
   });
 }
 
-/** Paints a multi-stroke numeral scaled into a card with one shared transform. */
-function drawMiniNumeral(
+/** Paints multi-stroke level paths scaled into a card with one shared transform. */
+function drawMiniPath(
   ctx: CanvasRenderingContext2D,
   strokes: readonly (readonly Point[])[],
   x: number,
@@ -493,7 +493,7 @@ function drawMiniNumeral(
   ctx.restore();
 }
 
-/** Pack screen: badge seal, 2x5 numeral grid, sticker shelf, home corner. */
+/** Pack screen: badge seal, level-card grid (per-pack shape), sticker shelf, home corner. */
 export function drawPack(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -531,7 +531,7 @@ export function drawPack(
     }
     const strokes = miniPaths.get(card.levelId);
     if (strokes && strokes.length > 0) {
-      drawMiniNumeral(
+      drawMiniPath(
         ctx,
         strokes,
         card.x + 10,
