@@ -11,7 +11,7 @@
 - [x] Task: Context docs resync — `tech-stack.md`: `dev/` tooling layout (tools · qa · harness · characters · art-src), updated script paths, art-source policy (documented before implementation per workflow.md) [0df3f9b]
 - [x] Task: Root `README.md` — what the app is, quickstart (`pnpm install / dev / build / test / check / preview / serve`), repo map (`src/ public/ dev/ conductor/`), conductor pointers [291a8f3]
 - [x] Task: `dev/README.md` frame — layout map, pipeline flow (generate → cutout → optimize → composite → screenshot approval), QA inventory table (statuses filled through Phases 2–3), art-source policy [52ff14a]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Restructure: `spike/` → `dev/` [checkpoint: 8a26c79]
 
@@ -21,7 +21,7 @@
 - [x] Task: Script path hardening (TDD-adapted: run-proof, no unit tests) — `import.meta.url`-anchored paths replacing cwd assumptions; QA outputs unified under ignored `dev/qa/out/`; harness URLs updated to `/dev/harness/*.html`; run-proof each family: one pipeline tool, one QA script (`qa-app`), harness page load [9f3b2cd]
 - [x] Task: `.gitignore` restructure — `dev/` patterns; single QA output dir; remove stale entries (spike/web, per-dir `.gitignore` lineages, obsolete negations) [60a2c5c]
 - [x] Task: Live-reference sweep — `.agents/skills/rive-cli/SKILL.md`, `src/packs/numbers.ts` comment, current docs; `git grep spike/` clean outside `conductor/archive/` + history [8a26c79]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Prune dead files [checkpoint: 30afb2a]
 
@@ -30,9 +30,9 @@
 - [x] Task: Legacy `public/art` prune — re-verify zero references (code + QA scripts + docs), delete the 15 legacy theme goal PNGs, record build/precache delta [2810049]
 - [x] Task: art-src raw trim — drop raw generations (~41 files) from `dev/art-src/nums`; keep cutouts + vignettes + card; policy recorded in `dev/README.md` [c40dd80]
 - [x] Task: Character consolidation — provenance check (riv-cast.md + workspace verify) → prune superseded dino iterations; star/excavator/lion retained [30afb2a]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Compliance & close-out
+## Phase 4 — Compliance & close-out [checkpoint: 7ed7865]
 
 *Goal: measured, verified, documented — acceptance criteria 1–8 traced to evidence.*
 
@@ -51,4 +51,4 @@
   7. Checks green — final gates: check OK, 320 tests pass, coverage 98.2% stmts · 90.9% branch · 100% funcs; build 76 precache entries / 6.71 MB.
   8. Docs synced — `tech-stack.md` dev/ layout + art policy (0df3f9b); rive-cli `SKILL.md` + `numbers.ts` comment swept to `dev/` (8a26c79); remaining `spike` mentions are intentional history notes.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
