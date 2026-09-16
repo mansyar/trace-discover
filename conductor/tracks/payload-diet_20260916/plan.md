@@ -18,8 +18,8 @@
 
 - [x] Task: Re-encode tool (`dev/tools/reencode-art.mjs`) — encodes from the shipped lossless files (identical dimensions + appearance by construction; `dev/art-src` is pre-opt/larger and not dimension-equivalent so it is not used), per-class quality (cutouts ≈0.85 lossy-with-alpha, backdrops ≈0.8); stages `.webp` + `manifest.json` (bytes/dims/RMSE) + per-class contact sheets + worst-diff 1:1 focus sheet into ignored `dev/qa/out/reencode/` (mechanical verification: deterministic re-run, metrics review, sheet read-back) [d91ed7c]
 - [x] Task: Art-reference test (TDD: Red first) — every app-referenced art URL resolves to an existing `public/` file with the expected extension; **Red** while legacy `.png`/`.jpg` refs or files remain; hostile case (missing file) must fail [3af4ca5]
-- [~] Task: Approve & migrate — owner side-by-side approval per class → reference sweep (`src/{packs,app,skins}` literals + pinned tests; Workbox `globPatterns` += `webp`; dev tooling reads; `git grep` clean) → delete originals → suite **Green** (+gap check: no legacy raster under `public/art/**`)
-- [ ] Task: Pipeline forward-fix — shipped-art emitters (`opt-art` / `opt-pre` / `card` / `gen-rewards` / `faces` / `vignette` / `letters-compose`) default to WebP with the tuned per-class qualities; `dev/README.md` documents the shipped-format policy (mechanical verification: re-run one emitter on a sample asset)
+- [x] Task: Approve & migrate — owner side-by-side approval per class → reference sweep (`src/{packs,app,skins}` literals + pinned tests; Workbox `globPatterns` += `webp`; dev tooling reads; `git grep` clean) → delete originals → suite **Green** (+gap check: no legacy raster under `public/art/**`) [b7edb71]
+- [~] Task: Pipeline forward-fix — shipped-art emitters (`opt-art` / `opt-pre` / `card` / `gen-rewards` / `faces` / `vignette` / `letters-compose`) default to WebP with the tuned per-class qualities; `dev/README.md` documents the shipped-format policy (mechanical verification: re-run one emitter on a sample asset)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — `dino.riv` rebuild
