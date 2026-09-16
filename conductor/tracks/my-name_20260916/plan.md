@@ -67,12 +67,12 @@ speed untouched).
 
 ## Phase 4: Parent zone — name button + editing overlay (DOM input)
 
-- [ ] Task 1: Layout + hit tests (TDD): `name` button (≥90 px) in parent-zone
-      layout; overlay layout (field + Save/Clear/Cancel); `parent:name` target
-- [ ] Task 2: State machine + input (TDD): events `name-set` / `name-clear` +
+- [x] Task 1: Layout + hit tests (TDD): `name` button (≥90 px) in parent-zone
+      layout; overlay layout (field + Save/Clear/Cancel); `parent:name` target (57767bd)
+- [x] Task 2: State machine + input (TDD): events `name-set` / `name-clear` +
       `parent.showName`; sanitize on save; reject <2; Clear keeps overlay open;
       lazily-created DOM input positioned over field (resize/keyboard-safe, iOS
-      no-zoom font, autocapitalize, maxlength)
+      no-zoom font, autocapitalize, maxlength) (d025161)
 - [ ] Commit + git note (per task)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
