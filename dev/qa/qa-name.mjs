@@ -108,108 +108,121 @@ const trace = async () => {
   await page.waitForFunction(() => window.__app.success(), null, { timeout: 45000 });
 };
 
-await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
-await page.evaluate(() => localStorage.removeItem('trace-discover-save-v1'));
-await page.reload({ waitUntil: 'load' });
-await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
-await wait(800);
+try {
+  await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
+  await page.evaluate(() => localStorage.removeItem('trace-discover-save-v1'));
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+  await wait(800);
 
-// 1. Fresh boot: three cards, no name.
-await tapTarget('splash');
-let ids = await targetIds();
-if (ids.includes('pack:name')) fail('name card present on a fresh save');
-if (ids.filter((id) => id.startsWith('pack:') && id !== 'pack:home' && id !== 'pack:badge').length !== 3) {
-  fail(`expected 3 pack cards, got: ${ids.join(', ')}`);
+  // 1. Fresh boot: three cards, no name.
+  await tapTarget('splash');
+  let ids = await targetIds();
+  if (ids.includes('pack:name')) fail('name card present on a fresh save');
+  if (
+    ids.filter((id) => id.startsWith('pack:') && id !== 'pack:home' && id !== 'pack:badge')
+      .length !== 3
+  ) {
+    fail(`expected 3 pack cards, got: ${ids.join(', ')}`);
+  }
+  await shot('name-3cards.png');
+
+  // 2. Parent gate -> overlay -> save a name.
+  await holdGate();
+  let screen = await screenOf();
+  if (screen.name !== 'parent') fail(`gate hold opened ${screen.name}`);
+  await tapTarget('parent:name');
+  ids = await targetIds();
+  if (!ids.includes('name:save') || !ids.includes('name:cancel')) {
+    fail(`overlay targets: ${ids.join(', ')}`);
+  }
+  if (ids.includes('name:clear')) fail('clear button present without a saved name');
+  await shot('name-overlay-empty.png');
+  await page.fill('.name-input', 'avi');
+  await tapTarget('name:save');
+  await tapTarget('parent:done');
+  ids = await targetIds();
+  if (!ids.includes('pack:name')) fail(`name card missing after save: ${ids.join(', ')}`);
+  await shot('name-4cards.png');
+  console.log('fresh -> gate -> name saved -> 4 cards');
+
+  // 3. Overlay re-entry shows Clear; cancel keeps the name.
+  await holdGate();
+  await tapTarget('parent:name');
+  ids = await targetIds();
+  if (!ids.includes('name:clear')) fail('clear button missing with a saved name');
+  await shot('name-overlay-filled.png');
+  await tapTarget('name:cancel');
+  await tapTarget('parent:done');
+  ids = await targetIds();
+  if (!ids.includes('pack:name')) fail('cancel lost the name');
+
+  // 4. Trace the name: mini-pack -> level -> success -> badge.
+  await tapTarget('pack:name');
+  screen = await screenOf();
+  if (screen.name !== 'pack') fail(`pack did not open: ${screen.name}`);
+  await shot('name-pack.png');
+  await tapTarget('level:name-1');
+  screen = await screenOf();
+  if (screen.name !== 'level' || screen.levelId !== 'name-1') {
+    fail(`level did not open: ${JSON.stringify(screen)}`);
+  }
+  const strokeCount = await page.evaluate(() => window.__app.strokes().length);
+  console.log(`name-1 strokes: ${strokeCount}`);
+  await wait(600);
+  await shot('name-level.png');
+  await trace();
+  await wait(1800);
+  await shot('name-success.png');
+  await tapTarget('success:next');
+  screen = await screenOf();
+  if (screen.name !== 'badge') fail(`badge screen missing: ${screen.name}`);
+  await shot('name-badge.png');
+  await tapTarget('badge:home');
+  console.log('trace -> sticker + badge');
+
+  // 5. Reload persistence.
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+  await wait(800);
+  await tapTarget('splash');
+  ids = await targetIds();
+  if (!ids.includes('pack:name')) fail('name card lost after reload');
+  await shot('name-menu-persisted.png');
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('trace-discover-save-v1')),
+  );
+  if (saved.name !== 'AVI') fail(`stored name: ${saved.name}`);
+  if (!saved.completedLevels.includes('name-1')) fail('name-1 not completed');
+  if (!saved.badges.includes('name-badge')) fail('name-badge not awarded');
+  console.log(
+    `persistence: name=${saved.name} completed=${saved.completedLevels.length} badges=${JSON.stringify(saved.badges)}`,
+  );
+
+  // 6. Clear: overlay stays open, cancel returns to a 3-card menu.
+  await holdGate();
+  await tapTarget('parent:name');
+  await tapTarget('name:clear');
+  screen = await screenOf();
+  if (screen.name !== 'parent') fail('clear dropped the overlay');
+  ids = await targetIds();
+  if (ids.includes('name:clear')) fail('clear button still shown after clearing');
+  await tapTarget('name:cancel');
+  await tapTarget('parent:done');
+  ids = await targetIds();
+  if (ids.includes('pack:name')) fail('name card present after clear');
+  await shot('name-cleared-3cards.png');
+  const cleared = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('trace-discover-save-v1')),
+  );
+  if (cleared.name !== undefined) fail(`name still stored: ${cleared.name}`);
+  console.log(`clear -> 3 cards (rewards kept: ${cleared.completedLevels.includes('name-1')})`);
+
+  console.log(`page errors: ${pageErrors.length === 0 ? '(none)' : pageErrors.join(' | ')}`);
+} finally {
+  await browser.close();
 }
-await shot('name-3cards.png');
 
-// 2. Parent gate -> overlay -> save a name.
-await holdGate();
-let screen = await screenOf();
-if (screen.name !== 'parent') fail(`gate hold opened ${screen.name}`);
-await tapTarget('parent:name');
-ids = await targetIds();
-if (!ids.includes('name:save') || !ids.includes('name:cancel')) fail(`overlay targets: ${ids.join(', ')}`);
-if (ids.includes('name:clear')) fail('clear button present without a saved name');
-await shot('name-overlay-empty.png');
-await page.fill('.name-input', 'avi');
-await tapTarget('name:save');
-await tapTarget('parent:done');
-ids = await targetIds();
-if (!ids.includes('pack:name')) fail(`name card missing after save: ${ids.join(', ')}`);
-await shot('name-4cards.png');
-console.log('fresh -> gate -> name saved -> 4 cards');
-
-// 3. Overlay re-entry shows Clear; cancel keeps the name.
-await holdGate();
-await tapTarget('parent:name');
-ids = await targetIds();
-if (!ids.includes('name:clear')) fail('clear button missing with a saved name');
-await shot('name-overlay-filled.png');
-await tapTarget('name:cancel');
-await tapTarget('parent:done');
-ids = await targetIds();
-if (!ids.includes('pack:name')) fail('cancel lost the name');
-
-// 4. Trace the name: mini-pack -> level -> success -> badge.
-await tapTarget('pack:name');
-screen = await screenOf();
-if (screen.name !== 'pack') fail(`pack did not open: ${screen.name}`);
-await shot('name-pack.png');
-await tapTarget('level:name-1');
-screen = await screenOf();
-if (screen.name !== 'level' || screen.levelId !== 'name-1') fail(`level did not open: ${JSON.stringify(screen)}`);
-const strokeCount = await page.evaluate(() => window.__app.strokes().length);
-console.log(`name-1 strokes: ${strokeCount}`);
-await wait(600);
-await shot('name-level.png');
-await trace();
-await wait(1800);
-await shot('name-success.png');
-await tapTarget('success:next');
-screen = await screenOf();
-if (screen.name !== 'badge') fail(`badge screen missing: ${screen.name}`);
-await shot('name-badge.png');
-await tapTarget('badge:home');
-console.log('trace -> sticker + badge');
-
-// 5. Reload persistence.
-await page.reload({ waitUntil: 'load' });
-await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
-await wait(800);
-await tapTarget('splash');
-ids = await targetIds();
-if (!ids.includes('pack:name')) fail('name card lost after reload');
-await shot('name-menu-persisted.png');
-const saved = await page.evaluate(() =>
-  JSON.parse(localStorage.getItem('trace-discover-save-v1')),
-);
-if (saved.name !== 'AVI') fail(`stored name: ${saved.name}`);
-if (!saved.completedLevels.includes('name-1')) fail('name-1 not completed');
-if (!saved.badges.includes('name-badge')) fail('name-badge not awarded');
-console.log(`persistence: name=${saved.name} completed=${saved.completedLevels.length} badges=${JSON.stringify(saved.badges)}`);
-
-// 6. Clear: overlay stays open, cancel returns to a 3-card menu.
-await holdGate();
-await tapTarget('parent:name');
-await tapTarget('name:clear');
-screen = await screenOf();
-if (screen.name !== 'parent') fail('clear dropped the overlay');
-ids = await targetIds();
-if (ids.includes('name:clear')) fail('clear button still shown after clearing');
-await tapTarget('name:cancel');
-await tapTarget('parent:done');
-ids = await targetIds();
-if (ids.includes('pack:name')) fail('name card present after clear');
-await shot('name-cleared-3cards.png');
-const cleared = await page.evaluate(() =>
-  JSON.parse(localStorage.getItem('trace-discover-save-v1')),
-);
-if (cleared.name !== undefined) fail(`name still stored: ${cleared.name}`);
-console.log(`clear -> 3 cards (rewards kept: ${cleared.completedLevels.includes('name-1')})`);
-
-console.log(`page errors: ${pageErrors.length === 0 ? '(none)' : pageErrors.join(' | ')}`);
-await browser.close();
 if (pageErrors.length > 0) {
   process.exitCode = 1;
 }

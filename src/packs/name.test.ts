@@ -42,6 +42,21 @@ describe('buildNameLevel', () => {
     }
   });
 
+  it('composes every shipped letter inside the name box', () => {
+    for (const letter of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
+      const level = buildNameLevel(`A${letter}`);
+      for (const stroke of level.strokes) {
+        for (const point of stroke) {
+          expect(point.x, letter).toBeGreaterThanOrEqual(NAME_BOX.left);
+          expect(point.x, letter).toBeLessThanOrEqual(NAME_BOX.right);
+          expect(point.y, letter).toBeGreaterThanOrEqual(NAME_BOX.top);
+          expect(point.y, letter).toBeLessThanOrEqual(NAME_BOX.bottom);
+        }
+      }
+      expect(validateLevel(level), letter).toEqual([]);
+    }
+  });
+
   it('centers the composed name horizontally', () => {
     for (const name of ['AVA', 'JO', 'BEN', 'ABCDEFG']) {
       const level = buildNameLevel(name);
