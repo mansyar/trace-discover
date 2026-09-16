@@ -12,8 +12,8 @@ describe('pack art urls', () => {
     expect(packBadgeArtUrl('pre')).toBe('/art/pack/pre-badge.png');
   });
 
-  it('keeps the v1 numerals filenames as the one legacy exception', () => {
-    expect(menuCardArtUrl('numbers')).toBe('/art/pack/card.png');
-    expect(packBadgeArtUrl('numbers')).toBe('/art/pack/badge.png');
+  it('uses the short numerals filenames matching num-* level ids', () => {
+    expect(menuCardArtUrl('numbers')).toBe('/art/pack/card-num.png');
+    expect(packBadgeArtUrl('numbers')).toBe('/art/pack/num-badge.png');
   });
 });
