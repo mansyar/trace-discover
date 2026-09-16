@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { hitParentZone, parentZoneLayout } from './parentZone';
+import {
+  hitNameOverlay,
+  hitParentZone,
+  type NameOverlayButton,
+  nameOverlayLayout,
+  parentZoneLayout,
+} from './parentZone';
 
 describe('parent zone', () => {
   it('places every target at toddler-proof size inside the field', () => {
@@ -11,12 +17,13 @@ describe('parent zone', () => {
       layout.volumeUp,
       layout.mute,
       layout.easier,
+      layout.name,
       layout.skin,
       layout.reset,
       layout.install,
       layout.done,
     ];
-    expect(buttons).toHaveLength(8);
+    expect(buttons).toHaveLength(9);
     for (const button of buttons) {
       expect(button.radius * 2).toBeGreaterThanOrEqual(90);
       expect(button.x - button.radius).toBeGreaterThanOrEqual(0);
@@ -49,5 +56,65 @@ describe('parent zone', () => {
       expect(slot.y + slot.radius).toBeLessThanOrEqual(FIELD_HEIGHT);
       expect(hitParentZone(layout, { x: slot.x, y: slot.y })).toBeNull();
     });
+  });
+
+  it('places the name setter beside the skin setter', () => {
+    const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    expect(layout.name.action).toBe('name');
+    expect(layout.name.radius * 2).toBeGreaterThanOrEqual(90);
+    expect(layout.name.x).toBe(FIELD_WIDTH / 2 - 130);
+    expect(layout.name.y).toBe(layout.easier.y);
+    expect(hitParentZone(layout, { x: layout.name.x, y: layout.name.y })).toBe('name');
+  });
+
+  it('lays the name overlay out inside the field', () => {
+    const layout = nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, true);
+    const { panel, field } = layout;
+    expect(panel.x).toBeGreaterThanOrEqual(0);
+    expect(panel.y).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width).toBeLessThanOrEqual(FIELD_WIDTH);
+    expect(panel.y + panel.height).toBeLessThanOrEqual(FIELD_HEIGHT);
+    expect(field.x).toBeGreaterThan(panel.x);
+    expect(field.y).toBeGreaterThan(panel.y);
+    expect(field.x + field.width).toBeLessThanOrEqual(panel.x + panel.width);
+    expect(field.y + field.height).toBeLessThanOrEqual(panel.y + panel.height);
+    const buttons = [layout.cancel, layout.save, layout.clear].filter(
+      (button): button is NameOverlayButton => button !== null,
+    );
+    expect(buttons).toHaveLength(3);
+    for (const button of buttons) {
+      expect(button.radius * 2).toBeGreaterThanOrEqual(90);
+      expect(button.x - button.radius).toBeGreaterThanOrEqual(panel.x);
+      expect(button.x + button.radius).toBeLessThanOrEqual(panel.x + panel.width);
+      expect(button.y - button.radius).toBeGreaterThan(panel.y);
+      expect(button.y + button.radius).toBeLessThan(panel.y + panel.height);
+    }
+  });
+
+  it('shows the clear button only when a name is saved', () => {
+    const withName = nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, true);
+    const without = nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, false);
+    expect(withName.clear?.action).toBe('clear');
+    expect(withName.clear?.x).toBe(FIELD_WIDTH / 2);
+    expect(without.clear).toBeNull();
+    expect(without.save).toEqual(withName.save);
+    expect(without.cancel).toEqual(withName.cancel);
+  });
+
+  it('hits overlay buttons and ignores the rest', () => {
+    const layout = nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, true);
+    expect(hitNameOverlay(layout, { x: layout.save.x, y: layout.save.y })).toBe('save');
+    expect(hitNameOverlay(layout, { x: layout.cancel.x, y: layout.cancel.y })).toBe('cancel');
+    const clear = layout.clear;
+    expect(hitNameOverlay(layout, { x: clear?.x ?? 0, y: clear?.y ?? 0 })).toBe('clear');
+    expect(
+      hitNameOverlay(layout, {
+        x: layout.field.x + layout.field.width / 2,
+        y: layout.field.y + layout.field.height / 2,
+      }),
+    ).toBeNull();
+    expect(hitNameOverlay(layout, { x: FIELD_WIDTH - 5, y: 5 })).toBeNull();
+    const without = nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, false);
+    expect(hitNameOverlay(without, { x: clear?.x ?? 0, y: clear?.y ?? 0 })).toBeNull();
   });
 });

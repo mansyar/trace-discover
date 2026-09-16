@@ -174,6 +174,10 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
         ...state,
         save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
       };
+    case 'name':
+      // Overlay behavior lands with the editing panel; the hit target is
+      // wired first so layout and QA targets stay truthful.
+      return state;
     case 'reset':
       if (!parent.confirmReset) {
         return { ...state, screen: { ...parent, confirmReset: true } };

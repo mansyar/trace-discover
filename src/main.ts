@@ -824,6 +824,7 @@ function screenTargets(): AppTarget[] {
       PARENT.mute,
       PARENT.easier,
       PARENT.skin,
+      PARENT.name,
       PARENT.reset,
       PARENT.install,
       PARENT.done,
