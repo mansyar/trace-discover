@@ -26,13 +26,13 @@ one-finger hold fails device tuning.
   - [x] README: no gate wording found — unchanged
   - [x] product-guidelines.md: one-line gate phrase fix (owner-approved)
   - [x] Commit + git note
-- [~] Task 2: `parentHintSeen` save field (TDD)
-  - [ ] Red: `loadSave` absent/non-boolean → `false`; roundtrip setter; v1–v3
+- [x] Task 2: `parentHintSeen` save field (TDD) (59fdd5f)
+  - [x] Red: `loadSave` absent/non-boolean → `false`; roundtrip setter; v1–v3
         fixtures unchanged; reset preserves name + hint flag
-  - [ ] Green: `src/save/store.ts` sanitizer + default; `src/app/app.ts` reset
+  - [x] Green: `src/save/store.ts` sanitizer + default; `src/app/app.ts` reset
         preserves
-  - [ ] Verify coverage on new logic
-  - [ ] Commit + git note
+  - [x] Verify coverage on new logic
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Gate redesign — one-finger hold, progress ring, open feedback
