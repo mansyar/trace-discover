@@ -52,3 +52,7 @@
   8. Docs synced — `tech-stack.md` dev/ layout + art policy (0df3f9b); rive-cli `SKILL.md` + `numbers.ts` comment swept to `dev/` (8a26c79); remaining `spike` mentions are intentional history notes.
 
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 5ec3a70
