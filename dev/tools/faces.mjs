@@ -32,8 +32,8 @@ const SOURCES = [
     accent: '#e07a5f',
     region: null,
     minArea: 40,
-    // Dark dot eyes (no eye whites) — hand-placed like star. At the 600 px
-    // cut the head spans x 125..475, top y 42, chin ~240.
+    // Dark dot eyes (no eye whites) — hand-placed like star. Box tuned on the
+    // teddy cut; icon verified at button scale (menu + parent setter).
     box: { x0: 130, y0: 0, x1: 470, y1: 340 },
   },
 ];

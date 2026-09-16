@@ -65,7 +65,9 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-perf.mjs` | Perf sampling (cold boot / input latency / frame times) | preview | canonical |
 | `qa-viewport.mjs` | Viewport-matrix screenshots | dev | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
-| `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets | any | utility |
+| `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
+| `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
+| `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
 | `qa-diag-pre3.mjs` · `qa-probe.mjs` | Retired debugging probes | — | stale |
 | `browsertest.mjs` · `serve.mjs` | Old spike-page driver + static server (its page no longer exists) | — | stale |
 
