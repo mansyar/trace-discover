@@ -192,6 +192,88 @@ describe('letters formation (content.md)', () => {
   });
 });
 
+describe('letters bonus sequences (content.md)', () => {
+  const SLOTS = [
+    { max: 140, min: 50 },
+    { max: 260, min: 170 },
+    { max: 380, min: 290 },
+  ];
+
+  function bonusById(id: string): LevelDef {
+    const level = LETTER_BONUS_LEVELS.find((candidate) => candidate.id === id);
+    if (!level) {
+      throw new Error(`missing bonus ${id}`);
+    }
+    return level;
+  }
+
+  it('pins the content-doc stroke counts for the words', () => {
+    // ABC = A(3) + B(3) + C(1); MOM and ZOO are three single-stroke letters.
+    expect(LETTER_BONUS_LEVELS.map((level) => level.strokes.length)).toEqual([7, 3, 3]);
+  });
+
+  it('lays each word out left to right in generous slots', () => {
+    const lettersPerWord: readonly (readonly [number, number])[][] = [
+      [
+        [0, 2],
+        [3, 5],
+        [6, 6],
+      ],
+      [
+        [0, 0],
+        [1, 1],
+        [2, 2],
+      ],
+      [
+        [0, 0],
+        [1, 1],
+        [2, 2],
+      ],
+    ];
+    LETTER_BONUS_LEVELS.forEach((level, wordIndex) => {
+      const wordLetters = lettersPerWord[wordIndex] ?? [];
+      wordLetters.forEach(([from, to], letterIndex) => {
+        const slot = SLOTS[letterIndex];
+        if (!slot) {
+          throw new Error('missing slot');
+        }
+        const points = level.strokes.slice(from, to + 1).flat();
+        for (const point of points) {
+          expect(point.x, `${level.id} letter ${letterIndex} x`).toBeGreaterThanOrEqual(slot.min);
+          expect(point.x, `${level.id} letter ${letterIndex} x`).toBeLessThanOrEqual(slot.max);
+        }
+        const ys = points.map((point) => point.y);
+        const height = Math.max(...ys) - Math.min(...ys);
+        expect(height, `${level.id} letter ${letterIndex} height`).toBeGreaterThanOrEqual(300);
+      });
+    });
+  });
+
+  it('follows the content-doc formation for the words', () => {
+    const abc = bonusById('abc-bonus-1');
+    const a1 = abc.strokes[0];
+    expect(a1?.[0]).toEqual({ x: 95, y: 300 }); // A apex first, then down-left
+    expect((a1?.[1]?.x ?? 0) < 95).toBe(true);
+    const aBar = abc.strokes[2];
+    expect(aBar?.[0]?.y).toBe(aBar?.[1]?.y); // crossbar level
+    const bStem = abc.strokes[3];
+    expect(bStem?.[0]?.x).toBe(bStem?.[1]?.x); // B stem first, top to bottom
+    expect((bStem?.[1]?.y ?? 0) > (bStem?.[0]?.y ?? 0)).toBe(true);
+    const c = abc.strokes[6];
+    expect((c?.[0]?.x ?? 0) > (c?.[1]?.x ?? 999)).toBe(true); // C starts top-right
+
+    const mom = bonusById('abc-bonus-2');
+    expect(mom.strokes.map((stroke) => stroke.length)).toEqual([5, 13, 5]);
+
+    const zoo = bonusById('abc-bonus-3');
+    const z = zoo.strokes[0];
+    expect(z?.[0]).toEqual({ x: 55, y: 300 });
+    expect(z?.[1]).toEqual({ x: 135, y: 300 }); // Z top bar left to right first
+    const o2 = zoo.strokes[2] ?? [];
+    expect(o2[0]).toEqual(o2[o2.length - 1]); // loop closes
+  });
+});
+
 describe('letters progress', () => {
   it('completes at twenty-six cleared letters and awards the badge once', () => {
     expect(completedCount(saveWith(firstLetterIds(5)), LETTERS_PACK)).toBe(5);

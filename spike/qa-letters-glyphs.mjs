@@ -2,16 +2,21 @@ import { chromium } from 'playwright-core';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Headless screenshot QA for the 26 letter glyphs (letters-pack Phase 2):
-// opens the play harness for every letter and captures the level view so the
-// formation, start star, goal, and legibility can be reviewed in one contact
-// sheet. Usage:
+// Headless screenshot QA for the 26 letter glyphs and the ABC/MOM/ZOO word
+// bonuses (letters-pack Phase 2): opens the play harness for every level and
+// captures the view so formation, start star, goal, and legibility can be
+// reviewed in one contact sheet. Usage:
 //   pnpm exec vite --port 5199 --strictPort   (leave running)
 //   node spike/qa-letters-glyphs.mjs
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, 'qa');
 const BASE = 'http://localhost:5199';
-const LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('');
+const IDS = [
+  ...'abcdefghijklmnopqrstuvwxyz'.split('').map((letter) => `abc-${letter}`),
+  'abc-bonus-1',
+  'abc-bonus-2',
+  'abc-bonus-3',
+];
 
 let browser;
 try {
@@ -26,8 +31,7 @@ const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
 const errors = [];
 page.on('pageerror', (error) => errors.push(String(error)));
 
-for (const letter of LETTERS) {
-  const id = `abc-${letter}`;
+for (const id of IDS) {
   await page.goto(`${BASE}/play.html?level=${id}`);
   await page.waitForFunction(
     () => document.querySelector('#log')?.textContent?.includes('play ready'),
