@@ -409,6 +409,11 @@ describe('packLayout (name mini-pack configuration)', () => {
     expect(card.width).toBeGreaterThanOrEqual(90);
     expect(nameLayout.slots).toHaveLength(1);
     expect(nameLayout.slots[0]?.levelId).toBe('name-1');
+    const solo = packLayout(FIELD_WIDTH, FIELD_HEIGHT, ['name-1'], { slotsPerRow: 1 }).slots[0];
+    if (!solo) {
+      throw new Error('missing solo slot');
+    }
+    expect(Math.abs(solo.x - FIELD_WIDTH / 2)).toBeLessThan(2);
   });
 
   it('lights the solo sticker once the name level completes', () => {

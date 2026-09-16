@@ -96,6 +96,7 @@ interface PackGridConfig extends PackLayoutOptions {
 }
 const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
   abc: { cardSize: 90, columns: 4, pages: [12, 14], slotsPerRow: 7 },
+  name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
   pre: { columns: 3, slotsPerRow: 6 },
 };
 
