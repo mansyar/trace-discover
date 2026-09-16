@@ -49,10 +49,15 @@ import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
 import {
   hitPackCard,
   hitPackHome,
+  hitPackPager,
+  initialPackPage,
   type PackLayout,
   type PackLayoutOptions,
+  type PackPager,
   packLayout,
+  packPagerLayout,
   packStickers,
+  paginate,
 } from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import { hitParentZone, parentZoneLayout } from './ui/parentZone';
@@ -81,23 +86,41 @@ const MENU = menuLayout(
   PACKS.map((pack) => pack.id),
 );
 const MENU_FILLS = PACKS.map((pack) => pack.menuFill);
-// Grid shape per pack: pre-writing carries 12 levels (3 columns), numbers 10.
-const PACK_GRID: Readonly<Record<string, PackLayoutOptions>> = {
+// Grid shape per pack: pre-writing carries 12 levels (3 columns), numbers 10;
+// letters paginate 12 + 14 (A–L / M–Z) so 90 px cards keep their sticker shelf.
+interface PackGridConfig extends PackLayoutOptions {
+  readonly pages?: readonly number[];
+}
+const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
+  abc: { cardSize: 90, columns: 4, pages: [12, 14], slotsPerRow: 7 },
   pre: { columns: 3, slotsPerRow: 6 },
 };
-const PACK_LAYOUTS = new Map<string, PackLayout>(
+const PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>(
+  PACKS.map((pack) => {
+    const levelIds = pack.levels.map((level) => level.id);
+    const sizes = PACK_GRID[pack.id]?.pages ?? [levelIds.length];
+    return [pack.id, paginate(levelIds, sizes)] as const;
+  }),
+);
+const PACK_LAYOUTS = new Map<string, readonly PackLayout[]>(
   PACKS.map(
     (pack) =>
       [
         pack.id,
-        packLayout(
-          FIELD_WIDTH,
-          FIELD_HEIGHT,
-          pack.levels.map((level) => level.id),
-          PACK_GRID[pack.id],
+        (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
+          packLayout(FIELD_WIDTH, FIELD_HEIGHT, levelIds, PACK_GRID[pack.id]),
         ),
       ] as const,
   ),
+);
+const PACK_PAGERS = new Map<string, PackPager | null>(
+  PACKS.map((pack) => {
+    const pageCount = PACK_LAYOUTS.get(pack.id)?.length ?? 0;
+    return [
+      pack.id,
+      pageCount > 1 ? packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, pageCount) : null,
+    ] as const;
+  }),
 );
 const PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>(
   PACKS.map(
@@ -165,8 +188,30 @@ function pop(): void {
   meteredPlayer?.play({ delay: 0, duration: 0.15, frequency: 660, gain: 0.22, type: 'sine' });
 }
 
+/** Pack screen page state; landing page resets every time a pack opens. */
+let packPage = 0;
+
+function packPageIndex(packId: string): number {
+  const pageCount = PACK_LAYOUTS.get(packId)?.length ?? 0;
+  return Math.min(Math.max(packPage, 0), Math.max(0, pageCount - 1));
+}
+
+function packLandingPage(packId: string): number {
+  const pages = PACK_PAGE_IDS.get(packId) ?? [];
+  return initialPackPage(
+    pages.flat(),
+    app.save.completedLevels,
+    pages.map((page) => page.length),
+  );
+}
+
 function commit(next: AppState): void {
+  const previous = app.screen;
   app = next;
+  const screen = app.screen;
+  if (screen.name === 'pack' && (previous.name !== 'pack' || previous.packId !== screen.packId)) {
+    packPage = packLandingPage(screen.packId);
+  }
   saveSave(localStorage, app.save);
 }
 
@@ -397,8 +442,16 @@ const handlers: TraceHandlers = {
         pop();
       }
     } else if (screen.name === 'pack') {
-      const layout = PACK_LAYOUTS.get(screen.packId);
+      const page = packPageIndex(screen.packId);
+      const layout = PACK_LAYOUTS.get(screen.packId)?.[page];
       if (!layout) {
+        return;
+      }
+      const pager = PACK_PAGERS.get(screen.packId) ?? null;
+      const pagerTap = pager ? hitPackPager(pager, point, page) : null;
+      if (pagerTap) {
+        packPage = pagerTap === 'next' ? page + 1 : page - 1;
+        pop();
         return;
       }
       const levelId = hitPackCard(layout, point);
@@ -572,18 +625,20 @@ function render(now: number): void {
     drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent);
   } else if (screen.name === 'pack') {
     const pack = packById(screen.packId);
-    const layout = PACK_LAYOUTS.get(screen.packId);
+    const page = packPageIndex(screen.packId);
+    const layout = PACK_LAYOUTS.get(screen.packId)?.[page];
     if (pack && layout) {
-      const levelIds = pack.levels.map((level) => level.id);
+      const levelIds = layout.cards.map((card) => card.levelId);
       const stickerImages = new Map<string, HTMLImageElement>();
-      for (const level of pack.levels) {
-        const url = `/art/sticker/${level.id}.png`;
+      for (const levelId of levelIds) {
+        const url = `/art/sticker/${levelId}.png`;
         preloadArt(url);
         const image = artCache.get(url);
         if (image) {
-          stickerImages.set(level.id, image);
+          stickerImages.set(levelId, image);
         }
       }
+      const pager = PACK_PAGERS.get(screen.packId) ?? null;
       drawPack(
         trailContext,
         now,
@@ -595,6 +650,7 @@ function render(now: number): void {
         stickerImages,
         packBadgeArt(pack.id),
         activeSkin().accent,
+        pager ? { page, spots: pager } : null,
       );
     }
   } else if (screen.name === 'level' && session) {
@@ -689,9 +745,20 @@ function screenTargets(): AppTarget[] {
     ];
   }
   if (screen.name === 'pack') {
-    const layout = PACK_LAYOUTS.get(screen.packId);
+    const page = packPageIndex(screen.packId);
+    const layout = PACK_LAYOUTS.get(screen.packId)?.[page];
     if (!layout) {
       return [];
+    }
+    const pager = PACK_PAGERS.get(screen.packId) ?? null;
+    const pagerTargets: AppTarget[] = [];
+    if (pager) {
+      if (page > 0) {
+        pagerTargets.push({ id: 'pager:prev', x: pager.prev.x, y: pager.prev.y });
+      }
+      if (page < pager.dots.length - 1) {
+        pagerTargets.push({ id: 'pager:next', x: pager.next.x, y: pager.next.y });
+      }
     }
     return [
       ...layout.cards.map((card) => ({
@@ -699,6 +766,7 @@ function screenTargets(): AppTarget[] {
         x: card.x + card.width / 2,
         y: card.y + card.height / 2,
       })),
+      ...pagerTargets,
       { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
       { id: 'pack:home', x: layout.home.x, y: layout.home.y },
       skinTarget,

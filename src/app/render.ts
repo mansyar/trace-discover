@@ -14,7 +14,7 @@ import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
 import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
-import type { PackLayout } from '../ui/pack';
+import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
@@ -493,7 +493,13 @@ function drawMiniPath(
   ctx.restore();
 }
 
-/** Pack screen: badge seal, level-card grid (per-pack shape), sticker shelf, home corner. */
+/** Pager state for a paginated pack screen: which page is shown + its spots. */
+export interface PackPagerView {
+  readonly page: number;
+  readonly spots: PackPager;
+}
+
+/** Pack screen: badge seal, level-card grid (per-page shape), sticker shelf, home corner. */
 export function drawPack(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -505,6 +511,7 @@ export function drawPack(
   stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
   badgeImage: HTMLImageElement | null = null,
   accent?: string,
+  pager?: PackPagerView | null,
 ): void {
   const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
   if (badgeEarned && badgeImage) {
@@ -560,6 +567,9 @@ export function drawPack(
       drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
     }
   });
+  if (pager) {
+    drawPackPager(ctx, pager.spots, pager.page);
+  }
   ctx.beginPath();
   ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff';
@@ -568,6 +578,50 @@ export function drawPack(
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
+/** Zero-text pager: chevron buttons for the directions that exist + page dots. */
+export function drawPackPager(ctx: CanvasRenderingContext2D, spots: PackPager, page: number): void {
+  if (page > 0) {
+    drawPagerButton(ctx, spots.prev, -1);
+  }
+  if (page < spots.dots.length - 1) {
+    drawPagerButton(ctx, spots.next, 1);
+  }
+  spots.dots.forEach((dot, index) => {
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, index === page ? dot.radius * 1.4 : dot.radius, 0, Math.PI * 2);
+    ctx.fillStyle = index === page ? NAVY : '#cfe3f2';
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  });
+}
+
+function drawPagerButton(
+  ctx: CanvasRenderingContext2D,
+  spot: PackPagerSpot,
+  direction: -1 | 1,
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(spot.x, spot.y, spot.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(spot.x - direction * 9, spot.y - 17);
+  ctx.lineTo(spot.x + direction * 11, spot.y);
+  ctx.lineTo(spot.x - direction * 9, spot.y + 17);
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.restore();
 }
 
 /** Drawn stand-in while a skin's backdrop art has not shipped yet. */

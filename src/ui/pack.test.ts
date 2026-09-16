@@ -7,7 +7,18 @@ import {
   type SaveStorage,
   saveSave,
 } from '../save/store';
-import { hitPackCard, hitPackHome, type PackLayout, packLayout, packStickers } from './pack';
+import {
+  hitPackCard,
+  hitPackHome,
+  hitPackPager,
+  initialPackPage,
+  type PackCard,
+  type PackLayout,
+  packLayout,
+  packPagerLayout,
+  packStickers,
+  paginate,
+} from './pack';
 
 const NUMERALS = [
   'num-0',
@@ -221,5 +232,167 @@ describe('packLayout (pre-writing configuration)', () => {
       expect(slot.x + slot.radius).toBeLessThanOrEqual(FIELD_WIDTH);
       expect(slot.y + slot.radius).toBeLessThanOrEqual(current.home.y - current.home.radius);
     }
+  });
+});
+
+const LETTER_IDS = Array.from(
+  { length: 26 },
+  (_, index) => `abc-${'abcdefghijklmnopqrstuvwxyz'.charAt(index)}`,
+);
+const LETTER_PAGES: readonly number[] = [12, 14];
+
+function lettersPage(page: number): PackLayout {
+  const pages = paginate(LETTER_IDS, LETTER_PAGES);
+  return packLayout(FIELD_WIDTH, FIELD_HEIGHT, pages[page] ?? [], {
+    cardSize: 90,
+    columns: 4,
+    slotsPerRow: 7,
+  });
+}
+
+function clearOfCircle(rect: PackCard, circle: { x: number; y: number; radius: number }): boolean {
+  const nearestX = Math.min(Math.max(circle.x, rect.x), rect.x + rect.width);
+  const nearestY = Math.min(Math.max(circle.y, rect.y), rect.y + rect.height);
+  return Math.hypot(circle.x - nearestX, circle.y - nearestY) >= circle.radius;
+}
+
+describe('paginate', () => {
+  it('splits level ids by page size', () => {
+    expect(paginate(['a', 'b', 'c'], [2, 1])).toEqual([['a', 'b'], ['c']]);
+  });
+
+  it('rejects page sizes that do not cover every level', () => {
+    expect(() => paginate(['a', 'b', 'c'], [2])).toThrow();
+  });
+});
+
+describe('initialPackPage', () => {
+  it("opens on the first unfinished letter's page", () => {
+    expect(initialPackPage(LETTER_IDS, [], LETTER_PAGES)).toBe(0);
+    expect(initialPackPage(LETTER_IDS, LETTER_IDS.slice(0, 12), LETTER_PAGES)).toBe(1);
+    expect(initialPackPage(LETTER_IDS, LETTER_IDS.slice(0, 13), LETTER_PAGES)).toBe(1);
+  });
+
+  it('uses the last page when everything is done and page 0 for one-page packs', () => {
+    expect(initialPackPage(LETTER_IDS, LETTER_IDS, LETTER_PAGES)).toBe(1);
+    expect(initialPackPage(['a', 'b'], [], [2])).toBe(0);
+    expect(initialPackPage(['a', 'b'], ['a', 'b'], [2])).toBe(0);
+  });
+});
+
+describe('packLayout (letters two-page configuration)', () => {
+  it('splits the alphabet into A–L and M–Z pages', () => {
+    const pages = paginate(LETTER_IDS, LETTER_PAGES);
+    expect(pages[0]).toEqual(LETTER_IDS.slice(0, 12));
+    expect(pages[1]).toEqual(LETTER_IDS.slice(12));
+  });
+
+  it('lays page one out in three rows of four at 90 px', () => {
+    const current = lettersPage(0);
+    expect(current.cards.map((card) => card.levelId)).toEqual(LETTER_IDS.slice(0, 12));
+    expect(new Set(current.cards.map((card) => card.y)).size).toBe(3);
+    for (const card of current.cards) {
+      expect(card.width).toBe(90);
+      expect(card.height).toBe(90);
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(clearOfCircle(card, current.home)).toBe(true);
+      expect(clearOfCircle(card, current.badge)).toBe(true);
+    }
+  });
+
+  it('ends page two with the centered Y–Z finale pair', () => {
+    const current = lettersPage(1);
+    expect(current.cards.map((card) => card.levelId)).toEqual(LETTER_IDS.slice(12));
+    const lastRowY = Math.max(...current.cards.map((card) => card.y));
+    const finale = current.cards.filter((card) => card.y === lastRowY);
+    expect(finale.map((card) => card.levelId)).toEqual(['abc-y', 'abc-z']);
+    const [first, second] = finale;
+    if (!first || !second) {
+      throw new Error('missing finale cards');
+    }
+    expect((first.x + second.x + second.width) / 2).toBeCloseTo(FIELD_WIDTH / 2, 5);
+  });
+
+  it('keeps every card ≥90 px, un-overlapped and clear of the home + badge spots', () => {
+    for (const page of [0, 1]) {
+      const current = lettersPage(page);
+      for (const card of current.cards) {
+        expect(card.width).toBeGreaterThanOrEqual(90);
+        expect(card.height).toBeGreaterThanOrEqual(90);
+        expect(card.y + card.height).toBeLessThanOrEqual(FIELD_HEIGHT);
+        expect(clearOfCircle(card, current.home)).toBe(true);
+        expect(clearOfCircle(card, current.badge)).toBe(true);
+      }
+      for (let a = 0; a < current.cards.length; a++) {
+        for (let b = a + 1; b < current.cards.length; b++) {
+          const first = cardAt(current, a);
+          const second = cardAt(current, b);
+          const separated =
+            first.x + first.width <= second.x ||
+            second.x + second.width <= first.x ||
+            first.y + first.height <= second.y ||
+            second.y + second.height <= first.y;
+          expect(separated).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('gives each page its own sticker shelf below the grid', () => {
+    const pageOne = lettersPage(0);
+    expect(pageOne.slots.map((slot) => slot.levelId)).toEqual(LETTER_IDS.slice(0, 12));
+    const pageTwo = lettersPage(1);
+    expect(pageTwo.slots.map((slot) => slot.levelId)).toEqual(LETTER_IDS.slice(12));
+    const gridBottom = Math.max(...pageTwo.cards.map((card) => card.y + card.height));
+    for (const slot of pageTwo.slots) {
+      expect(slot.y - slot.radius).toBeGreaterThanOrEqual(gridBottom);
+      expect(slot.y + slot.radius).toBeLessThanOrEqual(pageTwo.home.y - pageTwo.home.radius);
+      expect(slot.x - slot.radius).toBeGreaterThanOrEqual(0);
+      expect(slot.x + slot.radius).toBeLessThanOrEqual(FIELD_WIDTH);
+    }
+  });
+
+  it('centers a partial row of cards', () => {
+    const current = packLayout(FIELD_WIDTH, FIELD_HEIGHT, ['a', 'b', 'c', 'd', 'e'], {
+      columns: 4,
+    });
+    const lastRowY = Math.max(...current.cards.map((card) => card.y));
+    const lastRow = current.cards.filter((card) => card.y === lastRowY);
+    expect(lastRow).toHaveLength(1);
+    const only = lastRow[0];
+    if (!only) {
+      throw new Error('missing card');
+    }
+    expect(only.x + only.width / 2).toBeCloseTo(FIELD_WIDTH / 2, 5);
+  });
+});
+
+describe('packPagerLayout', () => {
+  it('fixes a toddler-sized prev/next pair bottom-right and squares the dots', () => {
+    const pager = packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, 2);
+    expect(pager.next.radius * 2).toBeGreaterThanOrEqual(90);
+    expect(pager.next.x + pager.next.radius).toBeLessThanOrEqual(FIELD_WIDTH);
+    expect(pager.next.y + pager.next.radius).toBeLessThanOrEqual(FIELD_HEIGHT);
+    expect(pager.prev.x).toBeLessThan(pager.next.x);
+    expect(pager.dots).toHaveLength(2);
+    const [first, second] = pager.dots;
+    if (!first || !second) {
+      throw new Error('missing dots');
+    }
+    expect(first.x).toBeLessThan(second.x);
+    expect(first.x - first.radius).toBeGreaterThan(0);
+    expect(second.x + second.radius).toBeLessThan(pager.prev.x - pager.prev.radius);
+  });
+});
+
+describe('hitPackPager', () => {
+  it('only offers the direction that exists', () => {
+    const pager = packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, 2);
+    expect(hitPackPager(pager, { x: pager.next.x, y: pager.next.y }, 0)).toBe('next');
+    expect(hitPackPager(pager, { x: pager.prev.x, y: pager.prev.y }, 0)).toBeNull();
+    expect(hitPackPager(pager, { x: pager.next.x, y: pager.next.y }, 1)).toBeNull();
+    expect(hitPackPager(pager, { x: pager.prev.x, y: pager.prev.y }, 1)).toBe('prev');
+    expect(hitPackPager(pager, { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT / 2 }, 0)).toBeNull();
   });
 });
