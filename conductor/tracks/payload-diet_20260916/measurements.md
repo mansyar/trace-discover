@@ -53,12 +53,17 @@ Method: masters re-cut 600 → 480 px (pure center-anchored HighQualityBicubic r
 
 Verification: `rive --verify` + `inspect` clean (0 errors / 0 warnings / 0 problems); screenshot parity rest / blink@113 / celebrate@20 vs before — visually identical; actual saving −244,643 B matches the accepted-deviation note's ~240 KB prediction. The `trace-v1` accepted deviation (dino.riv over the ~500 KB cast guideline) is now resolved.
 
-## After — (to be filled in Phase 5)
+## After — post-diet build (2026-09-17)
+
+Fresh gates run on the final tree: `CI=true pnpm check` (88 files, clean) · `CI=true pnpm test --coverage` **383/383** (38 files) · `pnpm build` · `pnpm budget` PASS.
 
 | Metric | Baseline | After | Δ |
 | --- | --- | --- | --- |
-| dist total | 9,711,938 B (9.26 MB) | — | — |
-| Precache entries | 133 | — | — |
-| `art/` | 6,700,838 B (6.39 MB) | — | — |
-| `rive/` | 1,872,706 B (1.79 MB) | — | — |
-| `dino.riv` | 699,844 B | — | — |
+| dist total | 9,711,938 B (9.26 MB) | **4,161,522 B (4.16 MB)** | **−5,550,416 B (−57.2%)** |
+| Precache entries | 133 | 133 (unchanged — same file set, smaller bytes) | — |
+| `art/` | 6,700,838 B (6.39 MB) | **1,394,906 B (1.39 MB)** | −5,305,932 B (−79.2%) |
+| `rive/` | 1,872,706 B (1.79 MB) | **1,628,063 B (1.63 MB)** | −244,643 B (−13.1%) |
+| `dino.riv` | 699,844 B | **455,201 B** | −244,643 B (−35.0%) |
+| Coverage (All files) | — | 98.3% stmts · 91.2% branch · 100% funcs · 98.23% lines | gate: >80% ✓ |
+
+Targets: spec NFR **≤ 6.95 MB (≥25% below baseline)** ✓ met with large margin (−57.2%); stretch **≤ ~6.4 MB** also exceeded. `pnpm budget` ceilings (4.50 MB / 150 entries) pass with documented headroom.
