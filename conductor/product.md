@@ -14,6 +14,8 @@ Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 s
 
 *2026-09-16 — Repo-organization chore (track `repo-organization_20260916`) completed on branch `track/repo-organization`: dev tooling consolidated under `dev/` (tools · qa · harness · characters · art-src) with runbooks in root `README.md` + `dev/README.md`; dead legacy art and raw generation sources pruned. No product behavior change; dist 7.77 → 6.71 MB; awaiting the merge/release decision.*
 
+*2026-09-16 — PWA resilience (track `pwa-resilience_20260916`) completed on branch `track/pwa-resilience`: updates download in the background and apply only on next launch (a running session is never taken over mid-play); progress can no longer be lost to storage trouble — save writes are exception-proof, storage persistence is requested once at boot, and the app stays fully playable even when storage is unavailable (session-only). No visible change for the child; suite 333 tests + update/persistence probes green; device pass on Android + iPad; awaiting the merge/release decision.*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
