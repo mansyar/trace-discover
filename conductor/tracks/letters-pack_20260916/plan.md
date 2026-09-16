@@ -75,3 +75,7 @@
 - [x] Task: Acceptance criteria 1–9 evidence recorded (plan + git note) [ec043cf]
   - Evidence: grid/pager/landing + all 29 levels swept SUCCESS + bonus gating/seal + E=4/C=1 hops (tests + device) + four-skin parity + persistence suite + offline probe & airplane-mode trace + art/zero-text/90 px/dist 10.31 MB/perf p95 4.3 ms + 366/366 suite, pre 15/15, numbers 4/4 + toddler traced unaided. Full table: git note on `ec043cf`.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions [4d2a96b]
