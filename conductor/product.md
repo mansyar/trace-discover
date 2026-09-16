@@ -2,7 +2,7 @@
 
 ## Description
 
-A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles), Numbers (0–9), and Letters (uppercase A–Z + `ABC`/`MOM`/`ZOO` word bonuses), plus a personalized **My Name** mini-pack (composed at runtime from the letter glyphs; parent-set, on-device only) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops to its goal and celebrates, and a content-neutral sticker flies into the pack's collection. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads — built at $0 with an agent-driven asset pipeline.
+A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles), Numbers (0–9), and Letters (uppercase A–Z + `ABC`/`MOM`/`ZOO` word bonuses), plus a personalized **My Name** mini-pack (composed at runtime from the letter glyphs; parent-set, on-device only) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops to its goal and celebrates, and a content-neutral sticker flies into the pack's collection — where it can be tapped on the pack's sticker board for a springy pop, sparkles, and a note. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads — built at $0 with an agent-driven asset pipeline.
 
 ## Vision
 
@@ -24,6 +24,8 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 *2026-09-17 — My Name (track `my-name_20260916`) implemented on branch `track/my-name`, awaiting the merge/release decision: a personalized mini-pack where the parent sets the child's name once (2–7 uppercase letters, behind the 2-finger gate) and the trace level is composed at runtime from the shipped letter glyphs — her own sticker + badge; the name stays on-device (never shipped or networked). QA evidence: full gate probe on the production build, hostile stored-name fixtures, offline cold start + perf spot-check unchanged; device pass on Android + iPad kept the 7-letter cap and the thinning floors (≥5-letter gate satisfied); the toddler traced their name unaided.*
 
+*2026-09-17 — Sticker Play (track `sticker-play_20260917`) on branch `track/sticker-play`, documented before implementation: collected stickers gain a play surface — a zero-text per-pack sticker board opened from the pack shelf, each earned sticker tappable for a springy pop, sparkles, and a pentatonic note (taps form little melodies). Save stays additive — one boolean, no schema bump.*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
@@ -38,7 +40,7 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 - Continuous trail-tip engine: forgiving start zone, capped speed (no skip-swipe), ~12% tolerance, paint-fill feedback
 - No-fail assists: lift keeps progress · star nudge at 2s · hand-hint at 4s · gentle auto-assist + parent toggle
 - Pentatonic audio per skin (marimba · bell · woodblock · kalimba · music box): chime per checkpoint, chord resolve + fanfare on completion
-- Reward loop: content-neutral sticker per level, badge per pack; legacy world badges shown as display-only trophies
+- Reward loop: content-neutral sticker per level; a per-pack **sticker board** makes collected stickers playable — tapping one springs it up with sparkles and a pentatonic note (stable per sticker, so taps play little melodies); badge per pack; legacy world badges shown as display-only trophies
 - Zero-text, content-first UI: pack cards → level cards + sticker slots → 3-icon success screen; idle mascot on menu + pack screens
 - Parent zone (2-finger hold): volume, easier tracing, skin setter, trophies, reset progress, install guide
 - PWA: installable, standalone, fully offline after first load
