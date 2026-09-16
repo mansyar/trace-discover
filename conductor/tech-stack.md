@@ -35,11 +35,12 @@
 
 ## Data & Persistence
 
-**localStorage** — typed save schema v3: unified `completedLevels` (all packs), `badges` (per pack), `trophies` (legacy world badges, display-only), `settings` (incl. `skin`). Lossless v2→v3 migration (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3` in theme order, `num-*` preserved; world badges→trophies); v1 saves continue to migrate through; hostile-input sanitizing preserved. The write-only `assistWidened` flag is dropped (widening is computed per level at runtime).
+**localStorage** — typed save schema v3: unified `completedLevels` (all packs), `badges` (per pack), `trophies` (legacy world badges, display-only), `settings` (incl. `skin`). Lossless v2→v3 migration (`dino-N`→`pre-N`, `construction-N`→`pre-(N+4)`, `animals-N`→`pre-(N+8)`, `*-bonus`→`pre-bonus-1..3` in theme order, `num-*` preserved; world badges→trophies); v1 saves continue to migrate through; hostile-input sanitizing preserved. The write-only `assistWidened` flag is dropped (widening is computed per level at runtime). **Durability (track `pwa-resilience_20260916`):** save writes are exception-proof — quota/denied storage becomes a silent no-op with the session continuing in memory; `navigator.storage.persist()` is requested best-effort at boot; storage-unavailable contexts boot into session-only play.
 
 ## PWA & Hosting
 
 - `manifest.json` (`display: standalone`) + service worker precaching the full app → **fully offline**
+- **Update strategy (track `pwa-resilience_20260916`):** waiting service worker — updates download in the background but activate only after all instances close (next cold start); a running session is never taken over mid-play and there is no update UI (zero-text shell)
 - **Cloudflare Pages** — static `dist/` deploy, free HTTPS
 
 ## Asset Pipeline (dev-time, $0)
@@ -74,6 +75,8 @@
 *2026-09-15 — Updated (track `skins-and-packs_20260915`): content/theme decoupling — `skins/` (dino · star · construction · animal) × `packs/` (pre-writing, numbers) registries; save schema v3 with lossless v2→v3 migration; character contract (autoplay idle + `celebrate` trigger) documented for drop-in skins; per-skin instruments (marimba · bell · woodblock · kalimba); content-first menu + top-left skin switch button (tap-to-cycle, persisted). Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/skins-and-packs` (2026-09-16): implemented + acceptance-passed (Android + iPad, toddler session); dist 7.77 MB / 91 precache entries; awaiting the merge/release decision.*
 
 *2026-09-16 — Updated (track `repo-organization_20260916`): dev-time tooling consolidated from the catch-all `spike/` into a purpose-split `dev/` workspace — `tools/` (asset pipeline), `qa/` (headless-Edge verification), `harness/` (dev pages), `characters/` (Rive workspaces), `art-src/` (per-pack intermediates: cutouts + composites tracked, raw generations untracked); scripts anchored to `import.meta.url` so they run from any cwd; dead legacy art + raw generations pruned. Runbooks: root `README.md` + `dev/README.md`. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/repo-organization` (2026-09-16): restructure + prunes + reference sweep done; full gates green (320 tests, coverage 98.2% stmts); dist 7.77 → 6.71 MB / precache 91 → 76 entries; awaiting the merge/release decision.*
+
+*2026-09-16 — Updated (track `pwa-resilience_20260916`): PWA update safety + save durability — the service worker switches to waiting semantics (`skipWaiting`/`clientsClaim` off): a new version downloads in the background but activates only once all app instances are closed (next cold start), so a running session can never be taken over mid-play (no update UI needed in the zero-text shell); save writes become exception-proof (quota/denied → silent, in-memory continuation) and `navigator.storage.persist()` is requested best-effort at boot; storage-unavailable contexts boot into session-only play. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
 
 ## Constraints
 
