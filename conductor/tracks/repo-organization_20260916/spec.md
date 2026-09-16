@@ -5,7 +5,7 @@
 
 ## Overview
 
-Four shipped tracks left the dev-time tooling in a catch-all `spike/` folder — asset pipeline scripts, 24 QA scripts, four generations of dino workspaces, and 15.6 MB of numerals art intermediates — while the repo root mixes three dev harness pages with the app shell, `public/art` precaches ~1.07 MB of dead legacy art, and there is no README anywhere. Ahead of the letters track (26+ new art sources, more QA), this chore renames `spike/` → `dev/`, splits it by purpose, documents the repo, prunes provably-dead files, and locks an art-source policy. **Behavior-neutral: no app logic, content, or runtime changes.**
+Four shipped tracks left the dev-time tooling in a catch-all `spike/` folder — asset pipeline scripts, 22 QA scripts, four generations of dino workspaces, and 15.6 MB of numerals art intermediates — while the repo root mixes three dev harness pages with the app shell, `public/art` precaches ~1.07 MB of dead legacy art, and there is no README anywhere. Ahead of the letters track (26+ new art sources, more QA), this chore renames `spike/` → `dev/`, splits it by purpose, documents the repo, prunes provably-dead files, and locks an art-source policy. **Behavior-neutral: no app logic, content, or runtime changes.**
 
 ## Design decisions (locked)
 
