@@ -5,6 +5,7 @@
 // double-tapping the badge resets progress. ?screen=menu|pack|success picks
 // the starting screen for headless screenshots.
 import '../style.css';
+import { drawGateRing, drawParticles } from '../app/render';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
@@ -12,6 +13,7 @@ import { allPacks } from '../packs/catalog';
 import { levelToPath } from '../packs/level';
 import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { shouldAwardPackBadge } from '../packs/progress';
+import { createConfetti, stepConfetti } from '../render/confetti';
 import {
   awardBadge,
   completeLevel,
@@ -179,6 +181,13 @@ function drawMenu(): void {
     layout.parentGate.height,
   );
   context.setLineDash([]);
+  // Static preview of the one-finger hold ring + open burst (Task 2 evidence).
+  const gateCenter = {
+    x: layout.parentGate.x + layout.parentGate.width / 2,
+    y: layout.parentGate.y + layout.parentGate.height / 2,
+  };
+  drawGateRing(context, gateCenter, 0.6);
+  drawParticles(context, stepConfetti(createConfetti(12, 7, gateCenter), 0.18));
 }
 
 function drawPackPreview(): void {

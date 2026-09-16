@@ -7,7 +7,7 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { mulberry32 } from '../render/confetti';
+import { type ConfettiParticle, mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
@@ -334,6 +334,42 @@ function drawAccentTag(
   ctx.stroke();
 }
 
+/** Confetti/sparkle particles (tracing celebration and the gate burst share one look). */
+export function drawParticles(
+  ctx: CanvasRenderingContext2D,
+  particles: readonly ConfettiParticle[],
+): void {
+  for (const particle of particles) {
+    ctx.save();
+    ctx.translate(particle.x, particle.y);
+    ctx.rotate(particle.x * 0.05 + particle.y * 0.02);
+    ctx.fillStyle = particle.color;
+    ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+    ctx.restore();
+  }
+}
+
+/** Gold progress arc around the gate corner; fills 0 → 1 as the hold builds. */
+export function drawGateRing(ctx: CanvasRenderingContext2D, center: Point, progress: number): void {
+  const t = Math.min(1, Math.max(0, progress));
+  if (t <= 0) {
+    return;
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, 24, 0, Math.PI * 2);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(46, 74, 99, 0.18)';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, 24, -Math.PI / 2, -Math.PI / 2 + t * Math.PI * 2);
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = GOLD;
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
   layout: MenuLayout,
@@ -341,6 +377,7 @@ export function drawMenu(
   packArts?: ReadonlyMap<string, PackMenuArt>,
   accent?: string,
   name?: string,
+  gateProgress = 0,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -360,16 +397,19 @@ export function drawMenu(
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
     }
   });
-  // Subtle grown-ups affordance: a quiet dot marking the two-finger hold
-  // corner. Single taps here do nothing, so it never tempts little fingers.
+  // Subtle grown-ups affordance: a quiet dot marking the hold corner; the
+  // gold ring fills while a grown-up holds. Single taps here do nothing, so
+  // it never tempts little fingers.
   const gate = layout.parentGate;
+  const gateCenter = { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 };
   ctx.save();
   ctx.globalAlpha = 0.3;
   ctx.beginPath();
-  ctx.arc(gate.x + gate.width / 2, gate.y + gate.height / 2, 10, 0, Math.PI * 2);
+  ctx.arc(gateCenter.x, gateCenter.y, 10, 0, Math.PI * 2);
   ctx.fillStyle = NAVY;
   ctx.fill();
   ctx.restore();
+  drawGateRing(ctx, gateCenter, gateProgress);
 }
 
 /** Pack card: pack art (numbers "1 2 3" / letters "A B C" fallbacks), a progress dot strip, star on badge. */
@@ -768,14 +808,7 @@ export function drawLevel(
       drawSeal(ctx, STICKER_SLOT.x, STICKER_SLOT.y, 26, true);
     }
   }
-  for (const particle of snap.confetti) {
-    ctx.save();
-    ctx.translate(particle.x, particle.y);
-    ctx.rotate(particle.x * 0.05 + particle.y * 0.02);
-    ctx.fillStyle = particle.color;
-    ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
-    ctx.restore();
-  }
+  drawParticles(ctx, snap.confetti);
 }
 
 export function drawSuccess(ctx: CanvasRenderingContext2D, layout: SuccessLayout): void {
