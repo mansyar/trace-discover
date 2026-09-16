@@ -32,7 +32,7 @@ approval** — every asset is *looked at* before it ships.
    flux-1-schnell txt2img (reads `.cf_token`, kept untracked)
 2. `node tools/gen2.mjs …` — flux-2-klein-4b img2img for regenerations/variants
 3. `node tools/cutout.mjs …` — background removal / component selection
-4. `node tools/opt-art.mjs` · `opt-pre.mjs` — downscale + compress into `public/art/…`
+4. `node tools/opt-art.mjs` · `opt-pre.mjs` — downscale + encode into `public/art/…` (WebP; backdrops ≈q0.8, cutouts ≈q0.85)
 5. `composite` · `vignette` · `card` · `pre-sheet` · `gen-rewards` — compose final art; **screenshot and look at it**
 6. Characters: author in `characters/<name>/` with the rive CLI
    (RML → `rive . --verify` → `rive . --once` → screenshots)
@@ -90,6 +90,10 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 
 - `art-src/<pack>/` tracks the **approved cutout layer + derived composites**
   (what the shipped art was built from)
+- Shipped format: `public/art/**` is **WebP** (browser-canvas encode; per-class
+  quality — backdrops ≈0.8, cutouts ≈0.85). `art-src/` stays lossless PNG;
+  icons/favicons remain PNG. Composers (`opt-art`/`opt-pre`/`card`/`vignette`/
+  `letters-compose`/`faces`) write the shipped WebP directly.
 - Raw generations (flux originals) stay **untracked** — regenerate with
   `tools/gen.mjs` when needed
 - `art-src/nums/`: `clean-*` cutouts + `vig-*`/card composites are kept; the

@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
-// Downscale art-batch PNGs for the app bundle: backdrops -> JPEG q75,
-// goal cutouts -> 256px PNG (alpha preserved). Reads dev/gen/*, writes public/art/*.
+// Downscale art-batch PNGs for the app bundle: backdrops -> WebP q0.8,
+// goal cutouts -> 256px WebP q0.85 (alpha preserved). Reads dev/gen/*, writes public/art/*.webp.
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const GEN = fileURLToPath(new URL('../gen', import.meta.url));
 
@@ -37,8 +37,8 @@ const convert = (name, kind) =>
       ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       const url =
         kind === 'bg'
-          ? canvas.toDataURL('image/jpeg', 0.75)
-          : canvas.toDataURL('image/png');
+          ? canvas.toDataURL('image/webp', 0.8)
+          : canvas.toDataURL('image/webp', 0.85);
       return { url, width: canvas.width, height: canvas.height };
     },
     {
@@ -52,20 +52,20 @@ mkdirSync(join(ROOT, 'public/art/goal'), { recursive: true });
 for (const theme of ['dino', 'construction', 'animals']) {
   const { url, width, height } = await convert(`bg-${theme}.png`, 'bg');
   writeFileSync(
-    join(ROOT, `public/art/bg/${theme}.jpg`),
+    join(ROOT, `public/art/bg/${theme}.webp`),
     Buffer.from(url.split(',')[1], 'base64'),
   );
-  console.log(`bg/${theme}.jpg ${width}x${height}`);
+  console.log(`bg/${theme}.webp ${width}x${height}`);
 }
 for (const theme of ['dino', 'construction', 'animals']) {
   for (const n of ['1', '2', '3', '4', 'bonus']) {
     const src = `cut-goal-${theme}-${n}.png`;
     const { url, width, height } = await convert(src, 'goal');
     writeFileSync(
-      join(ROOT, `public/art/goal/${theme}-${n}.png`),
+      join(ROOT, `public/art/goal/${theme}-${n}.webp`),
       Buffer.from(url.split(',')[1], 'base64'),
     );
-    console.log(`goal/${theme}-${n}.png ${width}x${height}`);
+    console.log(`goal/${theme}-${n}.webp ${width}x${height}`);
   }
 }
 await browser.close();

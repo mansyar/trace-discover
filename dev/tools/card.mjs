@@ -1,6 +1,7 @@
 // Composites the pack menu card art ("1 2 3" row) from the numeral cutouts.
-// Reads dev/art-src/nums/clean-numeral-{1,2,3}.png, writes dev/art-src/nums/clean-card.png.
-// Usage: node dev/tools/card.mjs   (then copy to public/art/pack/card-num.png)
+// Reads dev/art-src/nums/clean-numeral-{1,2,3}.png; writes the source composite
+// dev/art-src/nums/clean-card.png plus the shipped public/art/pack/card-num.webp (q0.85).
+// Usage: node dev/tools/card.mjs
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,7 +27,7 @@ const read = (name) => fs.readFileSync(path.join(NUMS, name)).toString('base64')
 const browser = await launch();
 try {
   const page = await browser.newPage();
-  const result = await page.evaluate(
+  const { png, webp } = await page.evaluate(
     async ({ a, b, c }) => {
       const load = (b64) =>
         new Promise((resolve, reject) => {
@@ -54,7 +55,10 @@ try {
         ctx.drawImage(img, x, pad, w, height);
         x += w + gap;
       }
-      return canvas.toDataURL('image/png').split(',')[1];
+      return {
+        png: canvas.toDataURL('image/png').split(',')[1],
+        webp: canvas.toDataURL('image/webp', 0.85).split(',')[1],
+      };
     },
     {
       a: read('clean-numeral-1.png'),
@@ -62,8 +66,11 @@ try {
       c: read('clean-numeral-3.png'),
     },
   );
-  fs.writeFileSync(path.join(NUMS, 'clean-card.png'), Buffer.from(result, 'base64'));
-  console.log('ok art-src/nums/clean-card.png');
+  fs.writeFileSync(path.join(NUMS, 'clean-card.png'), Buffer.from(png, 'base64'));
+  const packDir = path.resolve(HERE, '..', '..', 'public', 'art', 'pack');
+  fs.mkdirSync(packDir, { recursive: true });
+  fs.writeFileSync(path.join(packDir, 'card-num.webp'), Buffer.from(webp, 'base64'));
+  console.log('ok art-src/nums/clean-card.png + public/art/pack/card-num.webp');
 } finally {
   await browser.close();
 }

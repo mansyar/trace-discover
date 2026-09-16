@@ -1,6 +1,6 @@
 // tools/opt-pre.mjs — Phase 4 optimizer: pre-writing rewards + star backdrop
-// + badge + card art into public/. Backdrops -> JPEG q75, rewards -> 256px PNG
-// goal + 128px PNG sticker, badge/card -> 256px PNG. usage: node dev/tools/opt-pre.mjs
+// + badge + card art into public/. Backdrops -> WebP q0.8; goal 256px / sticker
+// 128px WebP; badge/card -> WebP q0.85. usage: node dev/tools/opt-pre.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,7 +36,8 @@ const convert = (name, kind) =>
       canvas.height = Math.round(bitmap.height * scale);
       const ctx = canvas.getContext('2d');
       ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-      const url = kind === 'bg' ? canvas.toDataURL('image/jpeg', 0.75) : canvas.toDataURL('image/png');
+      const url =
+        kind === 'bg' ? canvas.toDataURL('image/webp', 0.8) : canvas.toDataURL('image/webp', 0.85);
       return { url, width: canvas.width, height: canvas.height };
     },
     { file: readFileSync(join(GEN, name)).toString('base64'), kind },
@@ -48,9 +49,9 @@ mkdirSync(join(ROOT, 'public/art/sticker'), { recursive: true });
 mkdirSync(join(ROOT, 'public/art/pack'), { recursive: true });
 
 const jobs = [
-  { src: 'bg-star.png', out: join(ROOT, 'public/art/bg/star.jpg'), kind: 'bg' },
-  { src: 'cut-pre-badge.png', out: join(ROOT, 'public/art/pack/pre-badge.png'), kind: 'badge' },
-  { src: 'pre-card.png', out: join(ROOT, 'public/art/pack/card-pre.png'), kind: 'card' },
+  { src: 'bg-star.png', out: join(ROOT, 'public/art/bg/star.webp'), kind: 'bg' },
+  { src: 'cut-pre-badge.png', out: join(ROOT, 'public/art/pack/pre-badge.webp'), kind: 'badge' },
+  { src: 'pre-card.png', out: join(ROOT, 'public/art/pack/card-pre.webp'), kind: 'card' },
 ];
 const ids = [
   ...Array.from({ length: 12 }, (_, i) => `pre-${i + 1}`),
@@ -59,8 +60,8 @@ const ids = [
   'pre-bonus-3',
 ];
 for (const id of ids) {
-  jobs.push({ src: `cut-${id}.png`, out: join(ROOT, `public/art/goal/${id}.png`), kind: 'goal' });
-  jobs.push({ src: `cut-${id}.png`, out: join(ROOT, `public/art/sticker/${id}.png`), kind: 'sticker' });
+  jobs.push({ src: `cut-${id}.png`, out: join(ROOT, `public/art/goal/${id}.webp`), kind: 'goal' });
+  jobs.push({ src: `cut-${id}.png`, out: join(ROOT, `public/art/sticker/${id}.webp`), kind: 'sticker' });
 }
 
 for (const job of jobs) {
