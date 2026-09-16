@@ -1,0 +1,119 @@
+# Implementation Plan: Cast Delight — character presence pass
+
+**Track ID:** `cast-delight_20260917`
+**Specification:** [./spec.md](./spec.md)
+**Branch:** `track/cast-delight`
+**Methodology:** `conductor/workflow.md` — TDD per task (failing tests first,
+then implementation, then coverage verification), commit + git note per task,
+7-char commit SHA recorded here. Every phase ends with its Phase Verification &
+Checkpoint task.
+
+**Delivery strategy:** docs + character contract first; then the app-side
+delight core (hit region → tap reaction → entrance, TDD, with harness preview
+tooling for tuning); then one upgrade task per cast in its own
+`dev/characters` workspace (giggle + flourish + idle beat; star additionally
+gets its blinkpatch; per-cast build, ≤ ~500 KB check, screenshot evidence,
+owner tuning in-task); finally QA probes → device tuning → acceptance → docs
+finalize. All work stays local on `track/cast-delight` (push/PR/release is an
+owner decision after acceptance). Budget ceilings stay unchanged (5.00 MB /
+150 entries). Owner gates: per-cast screenshot approval
+(giggle/flourish/idle/entrance) + Android/iPad device pass; fallback decision
+if a flourish is rejected (shared second variant or keep the current celebrate —
+documented per cast). Coordination: the in-flight `parent-zone` track owns the
+gate/zone files (`src/ui/parent*.ts`, `store.ts`, its probes) — this track
+avoids them; if parent-zone lands first, expect small `main.ts` + probe merge
+conflicts, resolved by preserving both behaviors.
+
+## Phase 1: Context docs resync + character contract
+
+- [ ] Task 1: Docs resync
+  - [ ] `tech-stack.md`: character contract (autoplay idle + `celebrate` +
+        `giggle` triggers; blinkpatch parity; entrance / tap / celebration
+        semantics; QA additions), dated note
+  - [ ] `product.md`: character-presence wording + dated note (entrances, tap
+        reactions, per-cast flourishes, idle life)
+  - [ ] `product-guidelines.md`: motion/audio lines for tap reactions +
+        entrance (minimal; only where wording requires)
+  - [ ] README sync if character wording is touched
+  - [ ] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 2: App-side delight core (TDD)
+
+- [ ] Task 1: Mascot hit region (TDD)
+  - [ ] Red: hit/slop cases around the parked mascot; per-screen park metadata;
+        invariants — the region never overlaps the parent-gate corner or pack
+        cards (phone + iPad field bounds)
+  - [ ] Green: pure hit helper (e.g. `src/ui/mascot.ts`) + tests; shell passes
+        the existing park point/scale used by `positionCharacter`
+  - [ ] Verify coverage; commit + git note
+- [ ] Task 2: Tap → giggle reaction (TDD + wiring)
+  - [ ] Red: re-fire cooldown (single note; animation restarts); instrument
+        note selection from the active skin; sparkle burst trigger;
+        `fire('giggle')` false-safe when a cast lacks the trigger
+  - [ ] Green: helpers + `main.ts` `handlers.onDown` wiring for menu/pack only
+        (existing hits keep precedence; nothing fires during levels)
+  - [ ] Screenshot evidence (tap → giggle frames via harness); verify coverage;
+        commit + git note
+- [ ] Task 3: Level-start entrance (TDD + wiring)
+  - [ ] Red: entrance timeline helper (eased hop-in from the near edge over
+        ~600–900 ms; `settle` semantics; early input settles immediately;
+        always ends at rest)
+  - [ ] Green: helper + `startRun`/render wiring (level screen only; trace
+        input untouched)
+  - [ ] Screenshot evidence (entrance frames + settled state); verify coverage;
+        commit + git note
+- [ ] Task 4: Harness preview controls
+  - [ ] `dev/screens.ts`: fire giggle / replay entrance / settle controls for
+        tuning (dev-only)
+  - [ ] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 3: Cast upgrades — five workspaces
+
+- [ ] Task 1: Dino upgrade (`dev/characters/dino4`)
+  - [ ] Author giggle reaction (short, on-brand), signature flourish (fits the
+        ~2 s celebrate stage), idle beat (subtle); rebuild `dino.riv`;
+        ≤ ~500 KB check
+  - [ ] Screenshot set (idle beat / giggle / flourish) → owner confirmation;
+        tune in-task
+  - [ ] Commit + git note
+- [ ] Task 2: Star upgrade (`dev/characters/star`, + blinkpatch)
+  - [ ] Compose star blink overlay art; add the blinkpatch technique matching
+        the other four casts
+  - [ ] Author giggle + flourish + idle beat; rebuild; size check
+  - [ ] Screenshots → owner confirmation; commit + git note
+- [ ] Task 3: Excavator upgrade (`dev/characters/excavator`)
+  - [ ] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
+  - [ ] Screenshots → owner confirmation; commit + git note
+- [ ] Task 4: Lion upgrade (`dev/characters/lion`)
+  - [ ] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
+  - [ ] Screenshots → owner confirmation; commit + git note
+- [ ] Task 5: Teddy upgrade (`dev/characters/teddy`)
+  - [ ] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
+  - [ ] Screenshots → owner confirmation; commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — full-set
+      consistency review + per-cast sign-off
+
+## Phase 4: QA evidence, device tuning, acceptance, docs finalize
+
+- [ ] Task 1: QA probes
+  - [ ] New `qa-cast.mjs`: tap → giggle; entrance + settle; star blink;
+        per-cast flourish; throttle; no-interference (cards / skin button /
+        gate)
+  - [ ] Audit level-opening probes for entrance settle waits; update affected
+        baselines
+  - [ ] Commit + git note
+- [ ] Task 2: Zero-text audit; hostile-save fixtures regression; `qa-offline`
+      cold start; perf spot-check (boot/input baselines)
+  - [ ] Commit + git note
+- [ ] Task 3: Device pass Android + iPad — entrance feel, tap generosity,
+      giggle responsiveness, flourish visibility; tune; STOP + owner fallback
+      decision if a flourish fails device review
+- [ ] Task 4: Acceptance session (owner): per-cast sign-offs; docs finalize
+      (measured durations/sizes, dev/README QA table, dated notes)
+  - [ ] Commit + git note
+- [ ] Task 5: Final gates `CI=true pnpm check && CI=true pnpm test` + coverage;
+      `pnpm budget`; dist + per-cast `.riv` sizes recorded
+  - [ ] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
