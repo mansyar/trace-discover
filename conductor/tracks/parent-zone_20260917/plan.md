@@ -16,7 +16,7 @@ owner decision after acceptance). Two owner gates: hint copy + zone look
 (screenshot approval), and a fallback decision (relaxed two-finger gate) if the
 one-finger hold fails device tuning.
 
-## Phase 1: Context docs resync + save foundation
+## Phase 1: Context docs resync + save foundation [checkpoint: 59fdd5f]
 
 - [x] Task 1: Context docs resync (a93184d)
   - [x] product.md: gate wording (two-finger gate → one-finger hold-to-open),
@@ -33,7 +33,7 @@ one-finger hold fails device tuning.
         preserves
   - [x] Verify coverage on new logic
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (59fdd5f)
 
 ## Phase 2: Gate redesign — one-finger hold, progress ring, open feedback
 
