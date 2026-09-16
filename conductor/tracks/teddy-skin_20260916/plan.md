@@ -46,7 +46,7 @@
 
 - [x] Task: Cozy-bedroom backdrop — generate → optimize → `public/art/bg/teddy.jpg`; integrate; menu/pack/level/success screenshots (readability/contrast) approved — 2 `gen.mjs` candidates (`dev/gen/bg-teddy.png` chosen / `bg-teddy-a.png` alternate kept untracked); owner approved candidate 2 + accent `#e07a5f` 2026-09-16; `opt-art.mjs teddy` → 1024² JPEG q75 44,761 B; real-app screens via new `dev/qa/qa-teddy-screens.mjs` (menu/pack/level/success, no page errors) [c5659ce; tooling 9a2a2a9]
 - [x] Task: Face icon — teddy head cutout → `public/art/face/teddy.png`; button-scale crispness verified (skin button + parent setter) — hand box (dark dot eyes, no eye-white auto-detect) → 256 px icon 81,424 B over accent disc `#e07a5f`; 4x zooms of the menu skin-cycle button + parent-zone setter (grown-ups) crisp, no artifacts; other faces untouched [7524f01; tooling ed2546b]
-- [~] Task: Precache/size checkpoint — SW glob covers new assets; dist + precache entries recorded vs baseline (6.71 MB / 76 entries)
+- [x] Task: Precache/size checkpoint — SW glob covers new assets; dist + precache entries recorded vs baseline (6.71 MB / 76 entries) — `pnpm build` green; precache **79 entries / 7,413.33 KiB**; dist **7.26 MB / 81 files** (Δ ≈ +0.55 MB / +3 entries vs the repo-organization baseline); `teddy.riv` + `bg/teddy.jpg` + `face/teddy.png` all IN precache (spot-checked in `dist/sw.js`); NFR (< ~10–15 MB offline) respected
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance, QA & acceptance
