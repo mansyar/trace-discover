@@ -35,7 +35,7 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (59fdd5f)
 
-## Phase 2: Gate redesign — one-finger hold, progress ring, open feedback
+## Phase 2: Gate redesign — one-finger hold, progress ring, open feedback [checkpoint: eb22ea0]
 
 - [x] Task 1: Gate logic (TDD) (b8c6c38)
   - [x] Red: release drains gradually (and resumes from the drained level) with
@@ -58,11 +58,11 @@ one-finger hold fails device tuning.
   - [x] Screenshots (mid-hold ring + opened zone; out/live-gate-*.png, visually
         confirmed)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (eb22ea0)
 
 ## Phase 3: One-time parent hint (discoverability)
 
-- [ ] Task 1: Flag lifecycle (TDD)
+- [~] Task 1: Flag lifecycle (TDD)
   - [ ] Red: `parent-open` sets flag + persists immediately; reset preserves;
         hint predicate false after open, true when absent
   - [ ] Green: `src/app/app.ts`
