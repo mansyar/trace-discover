@@ -12,6 +12,8 @@ Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 s
 
 *2026-09-15 — Numbers pack, Part 1 (numerals 0–9) merged via PR #2 and released as `v1.0.0` — production live at `trace-discover.pages.dev`. Letters A–Z remain the planned follow-up. Completed on branch `track/skins-and-packs` (2026-09-16): packs × skins, save v3, content-first menu, per-skin audio, re-ramped pre-writing, full reward art — six phases verified incl. device + toddler acceptance; awaiting the merge/release decision.*
 
+*2026-09-16 — Repo-organization chore (track `repo-organization_20260916`) completed on branch `track/repo-organization`: dev tooling consolidated under `dev/` (tools · qa · harness · characters · art-src) with runbooks in root `README.md` + `dev/README.md`; dead legacy art and raw generation sources pruned. No product behavior change; dist 7.77 → 6.71 MB; awaiting the merge/release decision.*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
