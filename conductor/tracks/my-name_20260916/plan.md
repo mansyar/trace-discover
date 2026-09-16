@@ -98,8 +98,8 @@ speed untouched).
 - [x] Task 3: Device pass Android + iPad — keyboard overlay, tracing feel; tune
       thinning floor + `MAX_NAME_LENGTH` (≥5 gate; STOP + owner decision if it
       fails)
-- [ ] Task 4: Acceptance session (owner): toddler traces name ≥1 time unaided;
-      docs finalize (cap, dev/README QA table, dated notes)
+- [x] Task 4: Acceptance session (owner): toddler traces name ≥1 time unaided;
+      docs finalize (cap, dev/README QA table, dated notes) (ea7c6d1)
 - [ ] Task 5: Final gates `pnpm check && pnpm test`; dist size record; review
       summary
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
