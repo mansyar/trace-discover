@@ -9,8 +9,8 @@
 //   2. Waiting semantics — after a synthetic update, the new worker waits while
 //      the page is open; the running page is not claimed (no controllerchange)
 //      and keeps being served by the old version.
-//   3. Next-launch activation — close + reopen: the new version serves (its new
-//      precache entry is visible) and works with the network fully offline.
+//   3. Next-launch activation — close + reopen: the new version's precache is
+//      served (marker visible) and works with the network fully offline.
 //
 // Usage: pnpm build && node dev/qa/qa-update.mjs
 import { chromium } from 'playwright-core';
@@ -91,11 +91,13 @@ function startServer(root) {
   });
 }
 
-const fetchMarker = async (page) =>
+// Both versions precache manifest.webmanifest, so a marker inside it can only
+// come from a service worker cache — never from the network.
+const fetchManifest = async (page) =>
   page.evaluate(async () => {
-    const res = await fetch('./qa-marker.txt').catch(() => null);
+    const res = await fetch('./manifest.webmanifest').catch(() => null);
     if (res === null) return 'fetch-failed';
-    return `${res.status}:${(await res.text()).trim()}`;
+    return res.ok && (await res.text()).includes('qa-update-vB') ? 'vB' : 'vA';
   });
 
 (async () => {
@@ -103,10 +105,23 @@ const fetchMarker = async (page) =>
   fs.mkdirSync(OUT, { recursive: true });
   fs.cpSync(DIST, SANDBOX, { recursive: true });
 
-  // 1. Build audit — the generated SW must not force activation or claiming.
+  // 1. Build audit — the generated SW must never self-activate while sessions
+  // are open, the app must never send an activation-forcing message, and
+  // precaching + navigation fallback must stay intact. clientsClaim stays on
+  // for first-launch offline: claiming only happens on first install or after
+  // all instances close — never mid-session.
   const sw = fs.readFileSync(path.join(SANDBOX, 'sw.js'), 'utf8');
-  check('audit: sw.js has no skipWaiting()', !sw.includes('skipWaiting('), 'must wait for all instances to close');
-  check('audit: sw.js has no clientsClaim()', !sw.includes('clientsClaim('), 'must not claim open pages');
+  const registerScript = fs.readFileSync(path.join(SANDBOX, 'registerSW.js'), 'utf8');
+  check(
+    'audit: no ungated skipWaiting (waits for every instance to close)',
+    !/skipWaiting\(\s*\)\s*[,;)]/.test(sw),
+    'SKIP_WAITING message-gated activation is fine; auto-activation is not',
+  );
+  check(
+    'audit: app never sends SKIP_WAITING',
+    !registerScript.includes('SKIP_WAITING') && !registerScript.includes('skipWaiting'),
+  );
+  check('audit: clientsClaim on activate (first-launch control)', sw.includes('clientsClaim('));
   check(
     'audit: precache + cleanup + navigation fallback intact',
     sw.includes('precacheAndRoute(') && sw.includes('cleanupOutdatedCaches(') && sw.includes('createHandlerBoundToURL('),
@@ -123,14 +138,22 @@ const fetchMarker = async (page) =>
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
   await page.waitForFunction(() => navigator.serviceWorker?.controller !== null, null, { timeout: 20000 });
-  const markerA = await fetchMarker(page);
+  const manifestA = await fetchManifest(page);
   check('session A: app ready, SW controlling', true);
-  check('session A: vB marker absent', markerA === '404:not found: /qa-marker.txt', markerA);
+  check('session A: vA content served', manifestA === 'vA', manifestA);
   await page.screenshot({ path: path.join(OUT, 'a-online.png') });
 
-  // 2b. Deploy version B into the sandbox, then trigger an update check.
-  fs.writeFileSync(path.join(SANDBOX, 'qa-marker.txt'), 'vB');
-  const swB = `${sw.replace('precacheAndRoute([', 'precacheAndRoute([{url:"qa-marker.txt",revision:null},')}\n// qa-update vB\n`;
+  // 2b. Deploy version B into the sandbox: mark a file both versions precache
+  // (manifest.webmanifest) and bump its precache revision so vB fetches the
+  // new bytes; the changed sw.js is what the update check picks up.
+  const manifestPath = path.join(SANDBOX, 'manifest.webmanifest');
+  const manifestB = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifestB['qa-update-vB'] = true;
+  fs.writeFileSync(manifestPath, JSON.stringify(manifestB));
+  const swB = `${sw.replace(/url:"manifest\.webmanifest",revision:"[^"]*"/, 'url:"manifest.webmanifest",revision:"qa-update-vB"')}\n// qa-update vB\n`;
+  if (!swB.includes('revision:"qa-update-vB"')) {
+    throw new Error('qa-update: failed to rewrite the manifest revision in sw.js');
+  }
   fs.writeFileSync(path.join(SANDBOX, 'sw.js'), swB);
 
   await page.evaluate(() => {
@@ -162,8 +185,8 @@ const fetchMarker = async (page) =>
   const live = await page.evaluate(() => ({ ctrl: window.__qaCtrl, alive: window.__qaAlive }));
   check('update: running page was not claimed (no controllerchange)', live.ctrl === 0, `controllerchange fired ${live.ctrl}x`);
   check('update: running session untouched (no reload)', live.alive === 'yes');
-  const markerMid = await fetchMarker(page);
-  check('update: session still served by vA', markerMid === '404:not found: /qa-marker.txt', markerMid);
+  const manifestMid = await fetchManifest(page);
+  check('update: session still served by vA', manifestMid === 'vA', manifestMid);
   await page.screenshot({ path: path.join(OUT, 'b-after-update.png') });
 
   // 3. Close every client => the waiting worker activates; reopen => vB serves.
@@ -174,8 +197,8 @@ const fetchMarker = async (page) =>
   await page2.goto(BASE, { waitUntil: 'load' });
   await page2.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
   await page2.waitForFunction(() => navigator.serviceWorker?.controller !== null, null, { timeout: 20000 });
-  const markerB = await fetchMarker(page2);
-  check('relaunch: next cold start serves the new version', markerB === '200:vB', markerB);
+  const manifestAfter = await fetchManifest(page2);
+  check('relaunch: next cold start serves the new version', manifestAfter === 'vB', manifestAfter);
   await page2.screenshot({ path: path.join(OUT, 'c-relaunch.png') });
 
   // 3b. The relaunched version must still work with the network fully offline.
@@ -183,14 +206,15 @@ const fetchMarker = async (page) =>
   await page2.reload({ waitUntil: 'load' });
   await page2.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
   check('offline: app boots from precache', true);
-  const markerOffline = await fetchMarker(page2);
-  check('offline: vB precache serves the marker', markerOffline === '200:vB', markerOffline);
+  const manifestOffline = await fetchManifest(page2);
+  check('offline: vB precache serves the marker', manifestOffline === 'vB', manifestOffline);
   await page2.screenshot({ path: path.join(OUT, 'd-offline.png') });
 
   check('no page errors', errors.length === 0, errors.join(' | ') || 'none');
 
   await browser.close();
   server.close();
+  server.closeAllConnections();
 
   const failed = results.filter((entry) => !entry.ok);
   console.log(
@@ -198,10 +222,8 @@ const fetchMarker = async (page) =>
       ? '\nqa-update: ALL CHECKS PASSED'
       : `\nqa-update: ${failed.length} CHECK(S) FAILED:\n${failed.map((entry) => `  - ${entry.name} (${entry.detail})`).join('\n')}`,
   );
-  if (failed.length > 0) {
-    process.exitCode = 1;
-  }
+  process.exit(failed.length > 0 ? 1 : 0);
 })().catch((error) => {
   console.error('probe failed:', error);
-  process.exitCode = 1;
+  process.exit(1);
 });
