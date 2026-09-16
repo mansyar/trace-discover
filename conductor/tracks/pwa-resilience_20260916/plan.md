@@ -4,7 +4,7 @@
 
 **Delivery strategy:** docs-first (tech-stack note precedes implementation), then update lifecycle (waiting-SW semantics + probe), then save durability (TDD src work), then compliance + device acceptance. Work stays local on `track/pwa-resilience` — no push/PR/release (owner decides merge/release after).
 
-## Phase 1 — Update lifecycle: waiting service worker
+## Phase 1 — Update lifecycle: waiting service worker [checkpoint: f3c549d]
 
 *Goal: a downloaded update can never take over a running session — activation happens only after all instances close; proven by an automated probe.*
 
@@ -15,7 +15,7 @@
   - [x] Relaunch + offline: close all pages → reopen → updated SW active; airplane-mode reopen boots fully from precache
   - [x] RED evidence recorded (today's build fails the waiting/claim assertions)
 - [x] Task: Enforce waiting semantics in `vite.config.ts` — `registerType: 'prompt'` (no ungated `skipWaiting`) + `workbox.clientsClaim` for first-launch control; rebuilt; probe GREEN (14/14); dist/precache delta ~0 [f3c549d]
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Save durability: exception-proof writes + persistent storage
 
