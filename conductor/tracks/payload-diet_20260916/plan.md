@@ -8,8 +8,8 @@
 
 *Goal: the format policy is written before anything changes (workflow.md: Tech Stack is Deliberate), and the before-numbers are pinned for the after/after table.*
 
-- [ ] Task: Context docs resync — `tech-stack.md`: shipped-raster-format policy (WebP for art; PNG stays for icons/favicons), pipeline note, current size baseline (~10.31 MB / 148 precache entries) (documented before implementation per workflow.md)
-- [ ] Task: Baseline measurement — `pnpm build`; record dist total bytes, precache entry count, and per-category breakdown (art 6.39 MB · rive 1.87 MB · other) as the before/after reference
+- [x] Task: Context docs resync — `tech-stack.md`: shipped-raster-format policy (WebP for art; PNG stays for icons/favicons), pipeline note, current size baseline (~10.31 MB / 148 precache entries) (documented before implementation per workflow.md) [817fef7]
+- [~] Task: Baseline measurement — `pnpm build`; record dist total bytes, precache entry count, and per-category breakdown (art 6.39 MB · rive 1.87 MB · other) as the before/after reference
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Shipped art re-encode + reference integration
