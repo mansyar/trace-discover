@@ -9,7 +9,7 @@
 *Goal: menu → pack:abc (26 cards, centered Y-Z finale) → level → success → next all work on rough geometry; progress/badge/bonus gating generic; two-pack assumptions gone or documented.*
 
 - [x] Task: Context docs resync — `tech-stack.md` (letters pack entry: content-only integration, per-stroke hop plan) + `product-guidelines.md` (stale "Numbers-pack guide" line → skins-era wording) — before implementation per workflow.md [62241f5]
-- [ ] Task: Pack registration + letter level skeletons (TDD)
+- [x] Task: Pack registration + letter level skeletons (TDD) [dc46475]
   - [ ] Tests: `abc` pack entry — 26 levels `abc-a..abc-z` in A–Z order (rough geometry, refined Phase 2), bonuses `abc-bonus-1..3`, badge `abc-badge`, `bonusUnlocks [9,18,26]`; ids unique; `validateLevel` clean; `playOrderIds` + wrap behavior
   - [ ] Implement `src/packs/letters.ts` + register in `catalog.ts`
 - [ ] Task: Third-pack generalization audit (TDD)
