@@ -13,26 +13,26 @@ parent editing → art → QA/device/acceptance). All work stays local on
 `track/my-name`; no push/PR/release. No engine mechanics change (tolerance and
 speed untouched).
 
-## Phase 1: Context docs resync + name persistence foundation
+## Phase 1: Context docs resync + name persistence foundation [checkpoint: dea5e5a]
 
 - [x] Task 1: Context docs resync (1b72be6)
-  - [ ] product.md: add My Name to core features + dated note (previous tracks'
+  - [x] product.md: add My Name to core features + dated note (previous tracks'
         note style)
-  - [ ] tech-stack.md: additive `name` save field, runtime name-pack
+  - [x] tech-stack.md: additive `name` save field, runtime name-pack
         composition, sticker/badge assets
-  - [ ] README: fix stale "four characters × two packs" line → shipped state +
+  - [x] README: fix stale "four characters × two packs" line → shipped state +
         My Name
-  - [ ] Commit + git note
+  - [x] Commit + git note
 - [x] Task 2: Name sanitizer + save field (TDD) (dea5e5a)
-  - [ ] Red: `sanitizeName` tests (uppercase, strip non-A–Z, clamp
+  - [x] Red: `sanitizeName` tests (uppercase, strip non-A–Z, clamp
         `MAX_NAME_LENGTH`, reject <2); `loadSave` hostile/absent-safe name +
         v1–v3 fixtures unchanged; `setName` roundtrip; reset-progress keeps
         name
-  - [ ] Green: `src/save/store.ts` (`SaveData.name?`, `sanitizeName`,
+  - [x] Green: `src/save/store.ts` (`SaveData.name?`, `sanitizeName`,
         `setName`); `app.ts` reset preserves name
-  - [ ] Verify coverage on new logic
-  - [ ] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Verify coverage on new logic
+  - [x] Commit + git note
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (dea5e5a)
 
 ## Phase 2: Name level composition (pure geometry + path thinning)
 
