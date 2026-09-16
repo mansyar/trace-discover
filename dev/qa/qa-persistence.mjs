@@ -1,6 +1,8 @@
 // Production persistence QA: a real v1 save migrates losslessly on launch,
-// pack progress survives a relaunch, and the menu card + pack screen reflect
-// the stored state. Usage: pnpm exec vite --port 5199 --strictPort then
+// pack progress survives a relaunch, the menu card + pack screen reflect the
+// stored state, and storage resilience holds (quota-denied writes continue
+// silently, recovery persists the session, denied-storage boot works).
+// Usage: pnpm exec vite --port 5199 --strictPort then
 // node dev/qa/qa-persistence.mjs
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
@@ -199,6 +201,85 @@ try {
     relaunched?.completedLevels?.includes('num-2') === true,
   );
   check('version still 3 after relaunch', relaunched?.version === 3);
+
+  // Part C: quota-denied writes continue silently; recovery persists.
+  const quotaContext = await browser.newContext({ viewport: { width: 430, height: 900 } });
+  await quotaContext.addInitScript(() => {
+    const original = Storage.prototype.setItem;
+    window.__qaRestoreSetItem = () => {
+      Storage.prototype.setItem = original;
+    };
+    Storage.prototype.setItem = () => {
+      throw new DOMException('quota', 'QuotaExceededError');
+    };
+  });
+  const quotaPage = await quotaContext.newPage();
+  const quotaErrors = [];
+  quotaPage.on('pageerror', (e) => quotaErrors.push(String(e)));
+
+  await quotaPage.goto(`${BASE}/index.html`);
+  await quotaPage.waitForFunction(() => window.__app && window.__app.screen, null, {
+    timeout: 30000,
+  });
+  await tapSplash(quotaPage);
+  await tapTarget(quotaPage, 'pack:pre');
+  await tapTarget(quotaPage, 'level:pre-1');
+  await traceNumeral(quotaPage);
+  await quotaPage.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
+  await quotaPage.waitForTimeout(1200);
+  await quotaPage.screenshot({ path: path.join(OUT, 'persist-quota-success.png') });
+  check('quota-denied: level completed with no error state', quotaErrors.length === 0);
+  check('quota-denied: nothing was persisted', (await readSave(quotaPage)) === null);
+
+  await quotaPage.evaluate(() => window.__qaRestoreSetItem());
+  await tapTarget(quotaPage, 'success:home');
+  await tapTarget(quotaPage, 'pack:home');
+  await tapTarget(quotaPage, 'skin:cycle');
+  await quotaPage.waitForTimeout(400);
+  const quotaRecovered = await readSave(quotaPage);
+  check(
+    'quota-recovered: the next save persists the whole session',
+    quotaRecovered?.completedLevels?.includes('pre-1') === true &&
+      quotaRecovered?.settings?.skin === 'star',
+  );
+  await quotaPage.screenshot({ path: path.join(OUT, 'persist-quota-recovered.png') });
+  pageErrors.push(...quotaErrors.map((e) => `quota: ${e}`));
+
+  // Part D: localStorage entirely unavailable — the app boots and plays.
+  const deniedContext = await browser.newContext({ viewport: { width: 430, height: 900 } });
+  await deniedContext.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() {
+        throw new DOMException('denied', 'SecurityError');
+      },
+    });
+  });
+  const deniedPage = await deniedContext.newPage();
+  const deniedErrors = [];
+  deniedPage.on('pageerror', (e) => deniedErrors.push(String(e)));
+
+  await deniedPage.goto(`${BASE}/index.html`);
+  await deniedPage.waitForFunction(() => window.__app && window.__app.screen, null, {
+    timeout: 30000,
+  });
+  await tapSplash(deniedPage);
+  await tapTarget(deniedPage, 'pack:pre');
+  await tapTarget(deniedPage, 'pack:home');
+  await deniedPage.waitForTimeout(400);
+  await deniedPage.screenshot({ path: path.join(OUT, 'persist-storage-denied.png') });
+  const deniedProbe = await deniedPage.evaluate((key) => {
+    try {
+      return localStorage.getItem(key) === null ? 'empty' : 'readable';
+    } catch {
+      return 'unavailable';
+    }
+  }, KEY);
+  check('denied-storage: boot + navigation with no error state', deniedErrors.length === 0);
+  check(
+    'denied-storage: localStorage truly unavailable in this context',
+    deniedProbe === 'unavailable',
+  );
+  pageErrors.push(...deniedErrors.map((e) => `denied: ${e}`));
 } catch (error) {
   console.error('FAILED:', String(error));
   process.exitCode = 1;
