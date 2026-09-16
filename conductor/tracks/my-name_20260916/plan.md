@@ -95,7 +95,7 @@ speed untouched).
       trace → sticker/badge → reload persistence → clear → 3 cards; screenshots (1320788)
 - [x] Task 2: Zero-text audit; `qa-offline` cold start unchanged; hostile
       fixtures; perf spot-check (c4b8508)
-- [ ] Task 3: Device pass Android + iPad — keyboard overlay, tracing feel; tune
+- [x] Task 3: Device pass Android + iPad — keyboard overlay, tracing feel; tune
       thinning floor + `MAX_NAME_LENGTH` (≥5 gate; STOP + owner decision if it
       fails)
 - [ ] Task 4: Acceptance session (owner): toddler traces name ≥1 time unaided;
