@@ -56,6 +56,18 @@
 - [x] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded — biome + tsc clean (77 files); Vitest 323/323 (32 files); coverage v8: 98.2% stmts / 90.92% branch / 100% funcs (skins.ts 100% stmts; synth.ts 97.29%; store.ts 98.71%); build green → dist 7.26 MB / 81 files, precache 79 entries / 7,413.33 KiB
 - [x] Task: Teddy spot-sweep — skin cycle reaches teddy; one teddy level traced to completion (hop + celebrate); screenshots menu/pack/level/success; zero-text audit; offline probe (`qa-offline.mjs`) covers new assets — cycle: 4 taps from a clean save → storage `teddy` asserted; real-app pre-2 trace → `hop.png` + `success.png` (celebrate + confetti); screens recaptured (menu/pack/level/success/parent, no page errors); zero-text audit: no words on child surfaces (parent zone is the adult surface); offline: teddy preset boots from precache offline (storage-verified) + pre-2 trace SUCCESS — deterministic after the settle+assert fix [5d8a846]
 - [x] Task: Perf spot-check — cold boot / fps sampling; device findings folded into the owner pass — cold boot to interactive 119ms (DCL 66ms, load 80ms, responseEnd 15ms); input-to-next-frame 2.7ms upper bound (budget <100ms); frame intervals during a full pre-2 trace: n=1,581 mean 4.28ms / p50 4.20ms / p95 4.30ms / max 83.5ms (single transition hitch); dist 7.26MB — top files: rive wasm 835KB, dino.riv 683KB, teddy.riv 435KB (5th); no page errors — headless-Edge bound; hardware verdict folded into the owner pass
-- [ ] Task: Owner device pass — one teddy level on Android + iPad; music-box speaker check; verdict recorded
-- [ ] Task: Acceptance criteria 1–10 evidence recorded (plan + git note)
+- [x] Task: Owner device pass — one teddy level on Android + iPad; music-box speaker check; verdict recorded — owner verdict 2026-09-16: **both devices pass** (teddy selectable via the skin cycle; pre-writing level traced with music-box chimes; celebrate hop observed; speaker check OK) — served over LAN from the built dist (`vite preview --host`, http://192.168.0.114:4173/)
+- [x] Task: Acceptance criteria 1–10 evidence recorded (plan + git note) — recorded below; full report noted at the Phase 5 checkpoint
+
+**Acceptance evidence:**
+1. **Master approval (hard gate)** — owner approved candidate B (strength 0.7, seed 7) 2026-09-16 before any cutout/pose/Rive work; canonical `dev/characters/teddy/master.png` (untracked, local-only).
+2. **Five-skin cycle / persistence** — registry tests + `app.test.ts` five-tap walk (724e603); `store` round-trip test; spot-sweep 4-tap cycle → storage `teddy` asserted; parent setter captured; offline preset boot.
+3. **Cast contract** — rest/blink/celebrate screenshots approved; blink seam-free after calibration (gridshot-measured rect; feather 9 / margin 30); in-app hop + success captures (61bd9c3; 5d8a846).
+4. **Backdrop + face icon** — candidate 2 + accent `#e07a5f` owner-approved; menu/pack/level/success screens with no page errors; 4× button-scale zooms crisp (c5659ce / 7524f01).
+5. **Music-box voice** — chime/completion tests green; counted notes untouched; volume/mute respected; owner device speaker check passed (2026-09-16).
+6. **Zero-text** — audit passed on child surfaces (spot-sweep).
+7. **Offline** — precache 79 entries / 7,413.33 KiB includes `teddy.riv`, `bg/teddy.jpg`, `face/teddy.png`; offline probe: teddy boot + pre-2 trace SUCCESS (5d8a846).
+8. **Size** — `teddy.riv` 445,653 B (~435 KiB) ≤ ~500 KB; dist 7.26 MB (Δ ≈ +0.55 MB vs 6.71 MB baseline) within < ~10–15 MB.
+9. **Checks + QA** — biome + tsc clean; Vitest 323/323; coverage 98.2% stmts / 90.92% branch / 100% funcs; spot-sweep evidence recorded (5d8a846, note at fb83cbd).
+10. **Device + docs** — owner device pass both devices 2026-09-16 (music-box speaker check OK); docs synced in FR7 (ea47a7f).
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
