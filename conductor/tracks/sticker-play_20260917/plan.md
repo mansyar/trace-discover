@@ -16,7 +16,7 @@ stays local on `track/sticker-play` (push/PR/release is an owner decision
 after acceptance). Owner gates: letters-board single-screen fit (fallback:
 two pages), ear approval of the note ladder, and the device sign-off.
 
-## Phase 1: Context docs resync + save foundation
+## Phase 1: Context docs resync + save foundation [checkpoint: ecfe4cc]
 
 - [x] Task 1: Context docs resync (9d28a51)
   - [x] product.md: reward-loop wording + sticker board in core features,
