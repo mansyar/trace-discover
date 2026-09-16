@@ -10,12 +10,12 @@
 
 - [x] Task: `tech-stack.md` dated note — PWA update strategy (waiting SW; activate-on-next-launch; `skipWaiting`/`clientsClaim` off) + save durability approach documented *before* implementation (workflow.md: Tech Stack is Deliberate) [d408e25]
 - [x] Task: Update probe `dev/qa/qa-update.mjs` (write-first, expect RED against current config) [381b17f]
-  - [x] Build-output audit: generated `sw.js` contains no `skipWaiting()`/`clientsClaim()`; `precacheAndRoute` + `cleanupOutdatedCaches` + navigation fallback intact
+  - [x] Build-output audit: generated `sw.js` never self-activates (no ungated `skipWaiting`; the `SKIP_WAITING` gate is inert — the app never sends it); `clientsClaim` present for first-launch control; `precacheAndRoute` + `cleanupOutdatedCaches` + navigation fallback intact
   - [x] Live lifecycle on a sandboxed `dist/` copy: after a synthetic SW update, registration stays `waiting` while a page is open; the running page is not claimed and keeps working (no reload)
   - [x] Relaunch + offline: close all pages → reopen → updated SW active; airplane-mode reopen boots fully from precache
   - [x] RED evidence recorded (today's build fails the waiting/claim assertions)
-- [ ] Task: Enforce waiting semantics in `vite.config.ts` — explicit `skipWaiting: false, clientsClaim: false`; if `autoUpdate` overrides them (decided by the generated-`sw.js` audit), adopt a no-prompt registration variant instead; rebuild; probe GREEN; dist/precache delta recorded (expect ~0)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Enforce waiting semantics in `vite.config.ts` — `registerType: 'prompt'` (no ungated `skipWaiting`) + `workbox.clientsClaim` for first-launch control; rebuilt; probe GREEN (14/14); dist/precache delta ~0 [f3c549d]
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Save durability: exception-proof writes + persistent storage
 
