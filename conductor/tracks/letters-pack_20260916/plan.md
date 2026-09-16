@@ -60,7 +60,7 @@
 *Goal: offline, zero-text, right-sized, measured — within every constraint; docs current.*
 
 - [x] Task: Build + offline probe — SW precache covers all new assets; `spike/qa-offline.mjs` from preview; dist within budget [e06307a]
-- [~] Task: Zero-text + 90 px audit of new surfaces (menu, 26-card pack screen, bonus flows) — screenshots + vision + code scan
+- [x] Task: Zero-text + 90 px audit of new surfaces (menu, 26-card pack screen, bonus flows) — screenshots + vision + code scan [e06307a]
 - [ ] Task: Perf spot-checks — 26-card pack screen, cold start, fps (mid-range Android + base iPad); fix if warranted
 - [ ] Task: Regression sweep — pre-writing + numbers + all four skins parity; full suite + QA scripts
 - [ ] Task: Docs close-out — `product.md` dated note (letters shipped); track docs final
