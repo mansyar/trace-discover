@@ -27,7 +27,7 @@
 *Goal: dino closes its standing deviation at cast standard, with parity proven.*
 
 - [x] Task: Rebuild `dino.riv` from `dev/characters/dino4/` with the cast patch technique — `rive --verify` clean; size recorded (target ~460 KB, ≤ 500 KB guideline); same state machine (autoplay idle + `celebrate`) [5813533]
-- [ ] Task: Verification — Rive screenshots (idle/jump/blink) + in-app browser burst (mid-blink vs rest) + cast parity; **fallback:** revert and keep the deviation open with a dated note if parity can't hold within budget
+- [x] Task: Verification — Rive screenshots (idle/jump/blink) + in-app browser burst (mid-blink vs rest) + cast parity; **fallback:** revert and keep the deviation open with a dated note if parity can't hold within budget [d275ed8]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Budget guard + CI gate
