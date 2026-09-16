@@ -42,22 +42,26 @@ const tapTarget = async (id) => {
 
 await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
 await page.evaluate(() => {
-  localStorage.setItem(
-    'trace-discover-save-v1',
-    JSON.stringify({
-      badges: [],
-      completedLevels: [],
-      settings: { easierTracing: false, muted: false, skin: 'teddy', volume: 1 },
-      trophies: [],
-      version: 3,
-    }),
-  );
+  localStorage.removeItem('trace-discover-save-v1');
 });
 await page.reload({ waitUntil: 'load' });
 await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
 await wait(800);
 await tapTarget('splash');
 console.log(`splash -> ${JSON.stringify(await screenOf())}`);
+
+// Spot-sweep: the skin cycle must reach teddy (4 taps from the dino default).
+for (let i = 0; i < 4; i += 1) {
+  await tapTarget('skin:cycle');
+}
+const cycled = await page.evaluate(() => {
+  const raw = localStorage.getItem('trace-discover-save-v1');
+  return raw ? JSON.parse(raw).settings.skin : null;
+});
+console.log(`skin cycle -> ${cycled}`);
+if (cycled !== 'teddy') {
+  throw new Error(`skin cycle did not reach teddy (got ${cycled})`);
+}
 await page.screenshot({ path: path.join(OUT, 'menu.png') });
 
 await tapTarget('pack:pre');
@@ -96,6 +100,8 @@ for (let i = 0; i < 6; i += 1) {
   await wait(120);
 }
 await page.mouse.up();
+await wait(350);
+await page.screenshot({ path: path.join(OUT, 'hop.png') });
 await page.waitForFunction(() => window.__app.success(), null, { timeout: 30000 });
 await wait(1800);
 await page.screenshot({ path: path.join(OUT, 'success.png') });
