@@ -21,6 +21,7 @@ dev/**/reg-*.png
 dev/qa/out/
 dev/characters/*/*.png
 dev/gen/
+dev/art-src/*/raw/
 dev/ref/
 dev/package-lock.json
 dev/pnpm-lock.yaml

@@ -4,7 +4,7 @@
 
 - **Name:** "Trace & Discover!" — child surfaces show the logo *as art* (star on a trace path), never as text
 - **Mascot:** the chibi triceratops — sticker style: thick navy outlines, pastel fills, soft gradients
-- **Numbers-pack guide:** the star buddy — the app-icon gold star come to life (navy outline, dot eyes, calm bob); joy comes from its celebrate hop and sparkles
+- **Guide character:** always the active skin's buddy (dino · star · construction · animal) — the star is the app-icon gold star come to life (navy outline, dot eyes, calm bob); joy comes from its celebrate hop and sparkles
 - **Icon:** happy star finishing a dotted trace path on cream
 - **Personality:** cheerful & bouncy — the app behaves like a playmate, not a teacher
 

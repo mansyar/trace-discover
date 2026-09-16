@@ -85,3 +85,29 @@ export function splashLayout(fieldWidth: number, fieldHeight: number): SplashLay
     emblemRadius: Math.min(fieldWidth, fieldHeight) * 0.22,
   };
 }
+
+export const MENU_DOT_RADIUS = 5.5;
+const DOT_SPACING = 22;
+const DOT_MAX_PER_ROW = 13;
+const DOT_BOTTOM_OFFSET = 22;
+const DOT_ROW_STEP = 16;
+
+/** Progress-dot centers for a menu card, wrapped into centered rows (reading order, top row first). */
+export function menuDotPositions(total: number, card: MenuCard): readonly Point[] {
+  if (total <= 0) {
+    return [];
+  }
+  const perRow = Math.min(total, DOT_MAX_PER_ROW);
+  const rows = Math.ceil(total / perRow);
+  const positions: Point[] = [];
+  for (let index = 0; index < total; index += 1) {
+    const row = Math.floor(index / perRow);
+    const column = index % perRow;
+    const count = Math.min(perRow, total - row * perRow);
+    const rowWidth = (count - 1) * DOT_SPACING;
+    const startX = card.x + card.width / 2 - rowWidth / 2;
+    const y = card.y + card.height - DOT_BOTTOM_OFFSET - (rows - 1 - row) * DOT_ROW_STEP;
+    positions.push({ x: startX + column * DOT_SPACING, y });
+  }
+  return positions;
+}

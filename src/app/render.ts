@@ -7,17 +7,22 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { levelToPath } from '../packs/level';
-import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
-import type { MenuCard, MenuLayout, SplashLayout } from '../ui/menu';
-import type { PackLayout } from '../ui/pack';
+import {
+  MENU_DOT_RADIUS,
+  type MenuCard,
+  type MenuLayout,
+  menuDotPositions,
+  type SplashLayout,
+} from '../ui/menu';
+import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
 import type { ParentZoneLayout } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
 import type { SuccessLayout } from '../ui/success';
+import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
 
 export const NAVY = '#2e4a63';
@@ -37,11 +42,6 @@ const PATH_STYLE: PathStyle = {
   tipColor: GOLD,
   tipRadius: 16,
 };
-
-/** Placeholder menu art: "1 2 3" drawn from the numeral level data. */
-const NUMERAL_MINI = new Map(
-  NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
-);
 
 /** Sticker fly-in target (top-right of the level screen). */
 export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
@@ -371,7 +371,7 @@ export function drawMenu(
   ctx.restore();
 }
 
-/** Pack card: pack art (numbers falls back to "123" strokes), a progress dot strip, star on badge. */
+/** Pack card: pack art (numbers "1 2 3" / letters "A B C" fallbacks), a progress dot strip, star on badge. */
 function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
   const centerX = card.x + card.width / 2;
   const image = art?.image;
@@ -388,26 +388,27 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
       width,
       height,
     );
-  } else if (card.packId === NUMBERS_PACK.id) {
-    drawMenuPackArt(ctx, card);
   } else {
-    drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
+    const sets = menuFallbackStrokes(card.packId);
+    if (sets.length > 0) {
+      drawMenuFallback(ctx, card, sets);
+    } else {
+      drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
+    }
   }
   if (!art || art.cleared <= 0) {
     return;
   }
-  const spacing = 22;
-  const startX = centerX - (spacing * (art.total - 1)) / 2;
-  const dotY = card.y + card.height - 22;
-  for (let i = 0; i < art.total; i += 1) {
+  const positions = menuDotPositions(art.total, card);
+  positions.forEach((position, index) => {
     ctx.beginPath();
-    ctx.arc(startX + i * spacing, dotY, 5.5, 0, Math.PI * 2);
-    ctx.fillStyle = i < art.cleared ? NAVY : '#ffffff';
+    ctx.arc(position.x, position.y, MENU_DOT_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = index < art.cleared ? NAVY : '#ffffff';
     ctx.fill();
     ctx.lineWidth = 3;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
-  }
+  });
   if (art.badge) {
     drawStar(ctx, card.x + card.width - 28, card.y + 28, 16);
     ctx.fillStyle = GOLD;
@@ -418,29 +419,29 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
   }
 }
 
-/** Fallback "1 2 3" strokes for the first frames before the card art loads. */
-function drawMenuPackArt(ctx: CanvasRenderingContext2D, card: MenuCard): void {
+/** Fallback "1 2 3" / "A B C" strokes for the first frames before card art loads. */
+function drawMenuFallback(
+  ctx: CanvasRenderingContext2D,
+  card: MenuCard,
+  sets: readonly (readonly (readonly Point[])[])[],
+): void {
   const boxWidth = card.width / 4;
   const startX = card.x + (card.width - boxWidth * 3) / 2;
-  const ids = ['num-1', 'num-2', 'num-3'];
-  ids.forEach((id, index) => {
-    const strokes = NUMERAL_MINI.get(id);
-    if (strokes) {
-      drawMiniNumeral(
-        ctx,
-        strokes,
-        startX + index * boxWidth + 6,
-        card.y + 12,
-        boxWidth - 12,
-        card.height - 24,
-        false,
-      );
-    }
+  sets.forEach((strokes, index) => {
+    drawMiniPath(
+      ctx,
+      strokes,
+      startX + index * boxWidth + 6,
+      card.y + 12,
+      boxWidth - 12,
+      card.height - 24,
+      false,
+    );
   });
 }
 
-/** Paints a multi-stroke numeral scaled into a card with one shared transform. */
-function drawMiniNumeral(
+/** Paints multi-stroke level paths scaled into a card with one shared transform. */
+function drawMiniPath(
   ctx: CanvasRenderingContext2D,
   strokes: readonly (readonly Point[])[],
   x: number,
@@ -493,7 +494,13 @@ function drawMiniNumeral(
   ctx.restore();
 }
 
-/** Pack screen: badge seal, 2x5 numeral grid, sticker shelf, home corner. */
+/** Pager state for a paginated pack screen: which page is shown + its spots. */
+export interface PackPagerView {
+  readonly page: number;
+  readonly spots: PackPager;
+}
+
+/** Pack screen: badge seal, level-card grid (per-page shape), sticker shelf, home corner. */
 export function drawPack(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -505,6 +512,7 @@ export function drawPack(
   stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
   badgeImage: HTMLImageElement | null = null,
   accent?: string,
+  pager?: PackPagerView | null,
 ): void {
   const badgePulse = highlightBadge ? 1 + 0.1 * Math.sin(now / 250) : 1;
   if (badgeEarned && badgeImage) {
@@ -531,7 +539,7 @@ export function drawPack(
     }
     const strokes = miniPaths.get(card.levelId);
     if (strokes && strokes.length > 0) {
-      drawMiniNumeral(
+      drawMiniPath(
         ctx,
         strokes,
         card.x + 10,
@@ -560,6 +568,9 @@ export function drawPack(
       drawSeal(ctx, slot.x, slot.y, slot.radius, earned);
     }
   });
+  if (pager) {
+    drawPackPager(ctx, pager.spots, pager.page);
+  }
   ctx.beginPath();
   ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff';
@@ -568,6 +579,50 @@ export function drawPack(
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
+/** Zero-text pager: chevron buttons for the directions that exist + page dots. */
+export function drawPackPager(ctx: CanvasRenderingContext2D, spots: PackPager, page: number): void {
+  if (page > 0) {
+    drawPagerButton(ctx, spots.prev, -1);
+  }
+  if (page < spots.dots.length - 1) {
+    drawPagerButton(ctx, spots.next, 1);
+  }
+  spots.dots.forEach((dot, index) => {
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, index === page ? dot.radius * 1.4 : dot.radius, 0, Math.PI * 2);
+    ctx.fillStyle = index === page ? NAVY : '#cfe3f2';
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = NAVY;
+    ctx.stroke();
+  });
+}
+
+function drawPagerButton(
+  ctx: CanvasRenderingContext2D,
+  spot: PackPagerSpot,
+  direction: -1 | 1,
+): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(spot.x, spot.y, spot.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(spot.x - direction * 9, spot.y - 17);
+  ctx.lineTo(spot.x + direction * 11, spot.y);
+  ctx.lineTo(spot.x - direction * 9, spot.y + 17);
+  ctx.lineWidth = 9;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.restore();
 }
 
 /** Drawn stand-in while a skin's backdrop art has not shipped yet. */
