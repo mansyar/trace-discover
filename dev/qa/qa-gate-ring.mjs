@@ -62,6 +62,7 @@ const tapTarget = async (id) => {
 };
 
 await tapTarget('splash');
+await appPage.screenshot({ path: path.join(OUT, 'menu-hint.png') });
 const gate = await appPage.evaluate(() => {
   const f = window.__app.field();
   const hit = window.__app.targets().find((t) => t.id === 'gate');
@@ -82,6 +83,22 @@ console.log(`screen after 3.0s hold: ${screenName}`);
 if (screenName !== 'parent') {
   throw new Error(`ASSERT: expected parent screen after the hold, got ${screenName}`);
 }
+
+// Hint lifecycle: the flag persisted on open, so a reloaded menu hides it.
+const persisted = await appPage.evaluate(() => {
+  const raw = localStorage.getItem('trace-discover-save-v1');
+  return raw ? JSON.parse(raw).settings.parentHintSeen : null;
+});
+console.log(`parentHintSeen persisted after open: ${persisted}`);
+if (persisted !== true) {
+  throw new Error(`ASSERT: expected parentHintSeen true after open, got ${persisted}`);
+}
+await appPage.reload({ waitUntil: 'load' });
+await appPage.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+await wait(600);
+await tapTarget('splash');
+await appPage.screenshot({ path: path.join(OUT, 'menu-hint-gone.png') });
+console.log('hint shots: out/menu-hint.png (fresh) -> out/menu-hint-gone.png (after open + reload)');
 console.log(`live page errors: ${appErrors.length === 0 ? '(none)' : appErrors.join(' | ')}`);
 
 await browser.close();

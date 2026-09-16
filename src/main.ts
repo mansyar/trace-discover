@@ -5,7 +5,7 @@
 // (one finger, started in the menu corner).
 import './style.css';
 
-import { type AppState, applyAppEvent, startApp } from './app/app';
+import { type AppState, applyAppEvent, shouldShowParentHint, startApp } from './app/app';
 import { loadArtImage } from './app/art';
 import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
@@ -764,6 +764,7 @@ function render(now: number): void {
       activeSkin().accent,
       app.save.name,
       holdProgress(gateState),
+      shouldShowParentHint(app.save),
     );
   } else if (screen.name === 'pack') {
     const pack = PACKS.find((candidate) => candidate.id === screen.packId);

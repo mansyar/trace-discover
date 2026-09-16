@@ -30,6 +30,10 @@ export const GOLD = '#e8c15a';
 export const CREAM = '#f6e3b8';
 export const FIELD_FILL = '#edf5d9';
 
+/** One-time parent hint tooltip under the gate corner (copy owner-approved). */
+const PARENT_HINT = { gapAbove: 8, height: 58, margin: 20, width: 240 } as const;
+const PARENT_HINT_LINES = ['Hold here to open', 'Grown-ups'] as const;
+
 const PATH_STYLE: PathStyle = {
   ribbonWidth: 64,
   outlineWidth: 6,
@@ -378,6 +382,7 @@ export function drawMenu(
   accent?: string,
   name?: string,
   gateProgress = 0,
+  hintVisible = false,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -410,6 +415,34 @@ export function drawMenu(
   ctx.fill();
   ctx.restore();
   drawGateRing(ctx, gateCenter, gateProgress);
+  if (hintVisible) {
+    drawParentHint(ctx, gate);
+  }
+}
+
+/** Small parent-facing tooltip under the gate corner (non-interactive, floats over cards). */
+function drawParentHint(
+  ctx: CanvasRenderingContext2D,
+  gate: { readonly x: number; readonly y: number; readonly width: number; readonly height: number },
+): void {
+  const x = FIELD_WIDTH - PARENT_HINT.margin - PARENT_HINT.width;
+  const y = gate.y + gate.height + PARENT_HINT.gapAbove;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, PARENT_HINT.width, PARENT_HINT.height, 16);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = '600 18px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  PARENT_HINT_LINES.forEach((line, index) => {
+    ctx.fillText(line, x + PARENT_HINT.width / 2, y + 20 + index * 22);
+  });
+  ctx.restore();
 }
 
 /** Pack card: pack art (numbers "1 2 3" / letters "A B C" fallbacks), a progress dot strip, star on badge. */
