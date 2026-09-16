@@ -52,7 +52,7 @@ speed untouched).
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (a4d72e2)
 
-## Phase 3: App wiring — menu, pack screen, rewards, level flow
+## Phase 3: App wiring — menu, pack screen, rewards, level flow [checkpoint: 1474ae5]
 
 - [x] Task 1: Dynamic menu (TDD): 3→4 cards when set; name drawn as mini-glyph
       fallback; progress dot + gold star; gone on clear (b82a6d4)
@@ -62,8 +62,8 @@ speed untouched).
 - [x] Task 3: Wiring sweep — audit every `PACKS`/`allPacks()` consumer (MENU
       constants, layouts, pagers, minis, render loops, dev harness/screens) for
       3-pack assumptions; name-change recompute path
-- [ ] Commit + git note (per task)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Commit + git note (per task)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (1474ae5)
 
 ## Phase 4: Parent zone — name button + editing overlay (DOM input)
 
