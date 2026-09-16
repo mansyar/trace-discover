@@ -10,7 +10,7 @@ Give a 3.5-year-old a joyful first taste of "writing" — no text, no timers, no
 
 Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 shipped). The architecture — skins × packs + path engine + Rive characters + sticker loop — is designed so new content and new skins are *pipeline work, not code*.
 
-*2026-09-15 — Numbers pack, Part 1 (numerals 0–9) merged via PR #2 and released as `v1.0.0` — production live at `trace-discover.pages.dev`. Letters A–Z remain the planned follow-up. In progress: track `skins-and-packs_20260915` decouples content from theme (packs × skins, save v3, content-first menu, per-skin audio).*
+*2026-09-15 — Numbers pack, Part 1 (numerals 0–9) merged via PR #2 and released as `v1.0.0` — production live at `trace-discover.pages.dev`. Letters A–Z remain the planned follow-up. Completed on branch `track/skins-and-packs` (2026-09-16): packs × skins, save v3, content-first menu, per-skin audio, re-ramped pre-writing, full reward art — six phases verified incl. device + toddler acceptance; awaiting the merge/release decision.*
 
 ## Target Audience
 
