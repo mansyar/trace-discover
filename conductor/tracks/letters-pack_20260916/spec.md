@@ -14,7 +14,7 @@ Part 2 of the long-term "letters & numbers" promise in `product.md` — and the 
 - **Guide:** no new character — the guide is the **active skin's character** (skin-owned, decoupled from content). All four skins already work; zero guide assets. (Also fixes the stale pre-skins "Numbers-pack guide = star buddy" wording in `product-guidelines.md`.)
 - **Rewards:** object-per-letter goal art + sticker — content-owned and skin-neutral.
 - **Bonuses:** `ABC` / `MOM` / `ZOO` sequence traces at 9/18/26 cleared; each uses only letters already cleared at its unlock point; `ZOO` seals the set.
-- **Pack screen:** 26 letter cards in a 4-per-row grid (7 rows; centered Y-Z finale row); sticker shelf + badge spot; ≥90 px targets.
+- **Pack screen:** 26 letter cards split across two pages (A–L: 12 cards, 3 rows; M–Z: 14 cards, rows 4+4+4+2 ending with the centered Y–Z finale pair); sticker shelf per page + badge spot; ≥90 px targets; fixed-position zero-text prev/next buttons and two page dots; opens on the first unfinished letter's page. (Refined 2026-09-16: a single 7-row grid leaves no room for the sticker shelf — 26 cards at ≥90 px already fill the field's height.)
 - **Completion:** per-stroke hops — one hop + one note per stroke (E = 4, C = 1; cap 4), then chord resolve + sparkle as v1. Hops performed by the active skin's character.
 - **Menu:** third pack card with "ABC" drawn art, appended after Pre-writing and Numbers.
 - **Save:** additive only — schema v3 unchanged; `abc-*` ids flow through existing progress/badge logic; no migration.
@@ -24,7 +24,7 @@ Part 2 of the long-term "letters & numbers" promise in `product.md` — and the 
 
 **FR1 — Menu entry & pack registration.** `abc` pack registered (badge `abc-badge`); zero-text menu card with "ABC" drawn art; menu order Pre-writing → Numbers → Letters. Existing packs untouched.
 
-**FR2 — Pack screen & grid.** 26 letter cards (A–Z drawn art) + sticker shelf + badge spot; 4-per-row, 7 rows, centered Y-Z finale row; ≥90 px targets (safe-area + letterbox as v1); a cleared letter shows its earned sticker; all letters playable from the start (no gating).
+**FR2 — Pack screen & grid.** 26 letter cards (A–Z drawn art) in a 4-per-row grid paginated in two (A–L = 12 cards / 3 rows; M–Z = 14 cards, rows 4+4+4+2 with the centered Y–Z finale pair); per-page sticker shelf + badge spot; ≥90 px targets (safe-area + letterbox as v1); fixed-position zero-text prev/next buttons (bottom-right, ≥90 px) and two page dots; the pack opens on the first unfinished letter's page; a cleared letter shows its earned sticker; all letters playable from the start (no gating).
 
 **FR3 — Letter content (A–Z).** `abc-a`…`abc-z` uppercase forms with school-style stroke order, standard start markers/directions; field-sized glyphs with inter-stroke gaps clear of the ~12 % tolerance zones; per-letter checkpoint tables. A track-local `content.md` (mirroring the numerals content doc) fixes the geometry table, stroke order, and goal-art refs; validated via `validateLevel` + screenshot QA + device feel checks.
 
@@ -60,7 +60,7 @@ Part 2 of the long-term "letters & numbers" promise in `product.md` — and the 
 
 ## Acceptance Criteria
 
-1. Menu shows three packs; the ABC card opens the letters pack; grid = 26 cards with the centered Y-Z finale row; ≥90 px targets; zero text.
+1. Menu shows three packs; the ABC card opens the letters pack; grid = 26 cards across two pages (12 + 14) with the centered Y–Z finale pair; paging buttons/dots work and land on the first unfinished letter; ≥90 px targets; zero text.
 2. All 26 letters completable end-to-end (simulated traces in the harness) with strokes in taught order incl. multi-stroke letters (E, H, T…); goal + sticker update per letter.
 3. Bonuses gated until 9/18/26; `ABC` / `MOM` / `ZOO` traceable; `ZOO` seals the pack; badge awarded and reachable.
 4. Per-stroke hops: E hops 4× with 4 notes, C once; chord resolve after; numerals' counted behavior unchanged.
