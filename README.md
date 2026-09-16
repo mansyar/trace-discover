@@ -3,7 +3,7 @@
 A zero-text, offline-first tracing game for toddlers (~3–4) — building fine-motor
 and pre-writing skills by tracing glowing paths with a finger.
 
-Four characters (dino · star · excavator · lion cub) × two content packs
+Five characters (dino · star · excavator · lion cub · teddy bear) × two content packs
 (pre-writing shapes · numerals 0–9), with stickers and badges as rewards.
 Child surfaces are zero-text and sound-first; no failure states. Installs as a PWA.
 

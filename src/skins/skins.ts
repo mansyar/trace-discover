@@ -13,7 +13,7 @@ export interface SkinDef {
   readonly instrument: InstrumentId;
 }
 
-/** Cycle order for the skin switch button: dino -> star -> construction -> animal. */
+/** Cycle order for the skin switch button: dino -> star -> construction -> animal -> teddy. */
 export const SKINS: readonly SkinDef[] = [
   {
     accent: '#8ecae6',
@@ -46,6 +46,14 @@ export const SKINS: readonly SkinDef[] = [
     face: '/art/face/animal.png',
     id: 'animal',
     instrument: 'kalimba',
+  },
+  {
+    accent: '#e07a5f',
+    backdrop: '/art/bg/teddy.jpg',
+    character: 'teddy',
+    face: '/art/face/teddy.png',
+    id: 'teddy',
+    instrument: 'musicbox',
   },
 ];
 
