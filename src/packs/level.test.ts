@@ -5,7 +5,7 @@ import { type LevelDef, levelToPath, validateLevel } from './level';
 
 const VALID: LevelDef = {
   goal: { x: 370, y: 430 },
-  goalArt: '/art/goal/test-1.png',
+  goalArt: '/art/goal/test-1.webp',
   id: 'test-1',
   stroke: 'line',
   strokes: [

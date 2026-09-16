@@ -4,8 +4,8 @@
 // several parts (8 = two stacked 0 ovals; 9 = 0 oval loop + 1 bar stem) when a single
 // generated glyph is not usable.
 //
-// Usage: node dev/tools/vignette.mjs  (writes dev/art-src/nums/vig-*.png)
-import { readFileSync, writeFileSync } from 'node:fs';
+// Usage: node dev/tools/vignette.mjs  (writes dev/art-src/nums/vig-*.png + shipped public/art/{goal,sticker}/num-*.webp)
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
@@ -166,7 +166,10 @@ const results = await page.evaluate(
         ctx.drawImage(o, (-o.width * s) / 2, (-o.height * s) / 2, o.width * s, o.height * s);
         ctx.restore();
       }
-      return canvas.toDataURL('image/png');
+      return {
+        png: canvas.toDataURL('image/png'),
+        webp: canvas.toDataURL('image/webp', 0.85),
+      };
     }
 
     const out = [];
@@ -176,8 +179,13 @@ const results = await page.evaluate(
   },
   { parts, goals, stickers },
 );
+const SHIPPED = resolve(HERE, '..', '..', 'public', 'art');
+for (const d of ['goal', 'sticker']) mkdirSync(resolve(SHIPPED, d), { recursive: true });
 for (const r of results) {
-  writeFileSync(resolve(NUMS, r.out), Buffer.from(r.data.split(',')[1], 'base64'));
-  console.log(`ok nums/${r.out}`);
+  writeFileSync(resolve(NUMS, r.out), Buffer.from(r.data.png.split(',')[1], 'base64'));
+  const dir = r.out.startsWith('vig-goal') ? 'goal' : 'sticker';
+  const shipped = r.out.replace(/^vig-(goal|sticker)-/, 'num-').replace(/\.png$/, '.webp');
+  writeFileSync(resolve(SHIPPED, dir, shipped), Buffer.from(r.data.webp.split(',')[1], 'base64'));
+  console.log(`ok nums/${r.out} + public/art/${dir}/${shipped}`);
 }
 await browser.close();

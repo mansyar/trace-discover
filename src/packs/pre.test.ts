@@ -101,7 +101,7 @@ describe('pre-writing pack ramp', () => {
   it('keeps every level valid, on-content, and ending at its goal', () => {
     for (const level of [...PRE_LEVELS, ...PRE_BONUS_LEVELS]) {
       expect(validateLevel(level)).toEqual([]);
-      expect(level.goalArt).toBe(`/art/goal/${level.id}.png`);
+      expect(level.goalArt).toBe(`/art/goal/${level.id}.webp`);
       const stroke = strokeOf(level);
       const last = stroke[stroke.length - 1];
       expect(level.goal).toEqual(last);

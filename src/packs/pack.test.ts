@@ -5,7 +5,7 @@ import { createPackEntry } from './pack';
 
 const LEVEL: LevelDef = {
   goal: { x: 370, y: 430 },
-  goalArt: '/art/goal/a-1.png',
+  goalArt: '/art/goal/a-1.webp',
   id: 'a-1',
   stroke: 'line',
   strokes: [

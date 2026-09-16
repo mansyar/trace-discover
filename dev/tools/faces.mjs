@@ -1,6 +1,6 @@
 // tools/faces.mjs — one-shot: head-crop face icons for the skin switch button.
 // Finds the eye whites in each character source, crops a square around them,
-// composites onto the skin accent disc, and writes public/art/face/*.png.
+// composites onto the skin accent disc, and writes public/art/face/*.webp.
 // Also emits a 2x2 contact sheet for review. usage: node dev/tools/faces.mjs [id ...]  (default: all)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -246,7 +246,7 @@ const out = await page.evaluate(async (sources) => {
       clusters: diag,
       paired: Boolean(eyes),
       crop: { side: Math.round(side), sx: Math.round(sx), sy: Math.round(sy) },
-      png: face.toDataURL('image/png').split(',')[1],
+      webp: face.toDataURL('image/webp', 0.85).split(',')[1],
     });
   }
   return { results, sheet: sheet.toDataURL('image/png').split(',')[1] };
@@ -255,11 +255,11 @@ const out = await page.evaluate(async (sources) => {
 mkdirSync(new URL('../../public/art/face', import.meta.url), { recursive: true });
 for (const r of out.results) {
   writeFileSync(
-    new URL(`../../public/art/face/${r.id}.png`, import.meta.url),
-    Buffer.from(r.png, 'base64'),
+    new URL(`../../public/art/face/${r.id}.webp`, import.meta.url),
+    Buffer.from(r.webp, 'base64'),
   );
   console.log(
-    `${r.id}: paired=${r.paired} crop=${JSON.stringify(r.crop)} clusters=${JSON.stringify(r.clusters)} -> public/art/face/${r.id}.png`,
+    `${r.id}: paired=${r.paired} crop=${JSON.stringify(r.crop)} clusters=${JSON.stringify(r.clusters)} -> public/art/face/${r.id}.webp`,
   );
 }
 mkdirSync(new URL('../gen', import.meta.url), { recursive: true });

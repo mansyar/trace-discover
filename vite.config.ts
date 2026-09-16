@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       registerType: 'prompt',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,wasm,riv,png,jpg,jpeg,svg,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,wasm,riv,webp,png,jpg,jpeg,svg,ico,webmanifest}'],
         navigateFallback: 'index.html',
         // Claim on first activation so the install session is controlled (and
         // offline-ready) without a reload. Activation only ever happens on

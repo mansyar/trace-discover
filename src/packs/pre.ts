@@ -11,7 +11,7 @@ import { createPackEntry, type PackEntry } from './pack';
 export const PRE_LEVELS: readonly LevelDef[] = [
   {
     goal: { x: 285, y: 430 },
-    goalArt: '/art/goal/pre-1.png',
+    goalArt: '/art/goal/pre-1.webp',
     id: 'pre-1',
     stroke: 'line',
     strokes: [
@@ -24,7 +24,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 285, y: 455 },
-    goalArt: '/art/goal/pre-2.png',
+    goalArt: '/art/goal/pre-2.webp',
     id: 'pre-2',
     stroke: 'wave',
     strokes: [
@@ -39,7 +39,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 285, y: 460 },
-    goalArt: '/art/goal/pre-3.png',
+    goalArt: '/art/goal/pre-3.webp',
     id: 'pre-3',
     stroke: 'arc',
     strokes: [
@@ -52,7 +52,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 285, y: 410 },
-    goalArt: '/art/goal/pre-4.png',
+    goalArt: '/art/goal/pre-4.webp',
     id: 'pre-4',
     stroke: 'zigzag',
     strokes: [
@@ -67,7 +67,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 330, y: 460 },
-    goalArt: '/art/goal/pre-5.png',
+    goalArt: '/art/goal/pre-5.webp',
     id: 'pre-5',
     stroke: 'line',
     strokes: [
@@ -80,7 +80,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 330, y: 515 },
-    goalArt: '/art/goal/pre-6.png',
+    goalArt: '/art/goal/pre-6.webp',
     id: 'pre-6',
     stroke: 'wave',
     strokes: [
@@ -95,7 +95,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 330, y: 515 },
-    goalArt: '/art/goal/pre-7.png',
+    goalArt: '/art/goal/pre-7.webp',
     id: 'pre-7',
     stroke: 'arc',
     strokes: [
@@ -108,7 +108,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 330, y: 435 },
-    goalArt: '/art/goal/pre-8.png',
+    goalArt: '/art/goal/pre-8.webp',
     id: 'pre-8',
     stroke: 'zigzag',
     strokes: [
@@ -125,7 +125,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 370, y: 560 },
-    goalArt: '/art/goal/pre-9.png',
+    goalArt: '/art/goal/pre-9.webp',
     id: 'pre-9',
     stroke: 'line',
     strokes: [
@@ -138,7 +138,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 370, y: 560 },
-    goalArt: '/art/goal/pre-10.png',
+    goalArt: '/art/goal/pre-10.webp',
     id: 'pre-10',
     stroke: 'wave',
     strokes: [
@@ -153,7 +153,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 370, y: 605 },
-    goalArt: '/art/goal/pre-11.png',
+    goalArt: '/art/goal/pre-11.webp',
     id: 'pre-11',
     stroke: 'arc',
     strokes: [
@@ -166,7 +166,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 370, y: 430 },
-    goalArt: '/art/goal/pre-12.png',
+    goalArt: '/art/goal/pre-12.webp',
     id: 'pre-12',
     stroke: 'zigzag',
     strokes: [
@@ -189,7 +189,7 @@ export const PRE_LEVELS: readonly LevelDef[] = [
 export const PRE_BONUS_LEVELS: readonly LevelDef[] = [
   {
     goal: { x: 215, y: 355 },
-    goalArt: '/art/goal/pre-bonus-1.png',
+    goalArt: '/art/goal/pre-bonus-1.webp',
     id: 'pre-bonus-1',
     stroke: 'circle',
     strokes: [
@@ -204,7 +204,7 @@ export const PRE_BONUS_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 215, y: 360 },
-    goalArt: '/art/goal/pre-bonus-2.png',
+    goalArt: '/art/goal/pre-bonus-2.webp',
     id: 'pre-bonus-2',
     stroke: 'circle',
     strokes: [
@@ -219,7 +219,7 @@ export const PRE_BONUS_LEVELS: readonly LevelDef[] = [
   },
   {
     goal: { x: 215, y: 300 },
-    goalArt: '/art/goal/pre-bonus-3.png',
+    goalArt: '/art/goal/pre-bonus-3.webp',
     id: 'pre-bonus-3',
     stroke: 'circle',
     strokes: [

@@ -32,7 +32,7 @@ approval** — every asset is *looked at* before it ships.
    flux-1-schnell txt2img (reads `.cf_token`, kept untracked)
 2. `node tools/gen2.mjs …` — flux-2-klein-4b img2img for regenerations/variants
 3. `node tools/cutout.mjs …` — background removal / component selection
-4. `node tools/opt-art.mjs` · `opt-pre.mjs` — downscale + compress into `public/art/…`
+4. `node tools/opt-art.mjs` · `opt-pre.mjs` — downscale + encode into `public/art/…` (WebP; backdrops ≈q0.8, cutouts ≈q0.85)
 5. `composite` · `vignette` · `card` · `pre-sheet` · `gen-rewards` — compose final art; **screenshot and look at it**
 6. Characters: author in `characters/<name>/` with the rive CLI
    (RML → `rive . --verify` → `rive . --once` → screenshots)
@@ -73,6 +73,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
 | `qa-viewport.mjs` | Viewport-matrix screenshots | dev | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
+| `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
@@ -92,6 +93,10 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 
 - `art-src/<pack>/` tracks the **approved cutout layer + derived composites**
   (what the shipped art was built from)
+- Shipped format: `public/art/**` is **WebP** (browser-canvas encode; per-class
+  quality — backdrops ≈0.8, cutouts ≈0.85). `art-src/` stays lossless PNG;
+  icons/favicons remain PNG. Composers (`opt-art`/`opt-pre`/`card`/`vignette`/
+  `letters-compose`/`faces`) write the shipped WebP directly.
 - Raw generations (flux originals) stay **untracked** — regenerate with
   `tools/gen.mjs` when needed
 - `art-src/nums/`: `clean-*` cutouts + `vig-*`/card composites are kept; the
@@ -100,3 +105,14 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
   read `clean-*` only)
 - Characters: shipped `.riv` binaries live in `public/rive/`; authoring sources
   live in `characters/<name>/`
+
+## Payload budget
+
+`pnpm budget` (`tools/dist-budget.mjs`) checks the built `dist/` against the
+payload ceilings — **5.00 MB total / 150 precache entries**, re-anchored from
+the post-diet build (4,161,522 B / 133 entries) to the merged build that
+includes the fifth skin (2026-09-17, PR #7 teddy: 4,641,746 B / 136 entries;
+history + rationale live in the tool). Run it after `pnpm build`; CI runs it
+after the build step too. A re-introduced lossless art batch trips it
+instantly — raise the ceilings only deliberately, with fresh measurements
+(`conductor/archive/payload-diet_20260916/measurements.md`).

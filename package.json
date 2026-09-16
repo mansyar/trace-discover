@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "budget": "node dev/tools/dist-budget.mjs",
     "preview": "vite preview",
     "serve": "vite preview --host",
     "check": "biome check . && tsc --noEmit",

@@ -636,7 +636,7 @@ function render(now: number): void {
       const levelIds = layout.cards.map((card) => card.levelId);
       const stickerImages = new Map<string, HTMLImageElement>();
       for (const levelId of levelIds) {
-        const url = `/art/sticker/${levelId}.png`;
+        const url = `/art/sticker/${levelId}.webp`;
         preloadArt(url);
         const image = artCache.get(url);
         if (image) {

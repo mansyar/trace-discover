@@ -31,6 +31,6 @@ export function levelPresentation(skin: SkinDef, level: LevelDef): LevelPresenta
     backdrop: skin.backdrop,
     character: skin.character,
     goal: level.goalArt,
-    sticker: `/art/sticker/${level.id}.png`,
+    sticker: `/art/sticker/${level.id}.webp`,
   };
 }

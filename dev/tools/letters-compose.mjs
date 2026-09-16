@@ -2,7 +2,8 @@
 // shipped shapes: goal arts (256, transparent like the pre arts), sticker seals
 // (white disc + navy ring + object, composed at 520 and downscaled to 160), bonus
 // scenes (256), pack badge (400) and the "A B C" menu card (mirrors the numerals'
-// "1 2 3" card). Reads art-src/abc/clean, writes art-src/abc/out.
+// "1 2 3" card). Reads art-src/abc/clean, writes art-src/abc/out + shipped WebP
+// into public/art/{goal,sticker,pack}.
 // usage (any cwd): node dev/tools/letters-compose.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -68,7 +69,10 @@ async function compose(kind, srcs) {
         const size = kind === 'goal' ? 256 : 400;
         const { c, g } = scaled(size);
         g.drawImage(images[0], 0, 0, size, size);
-        return c.toDataURL('image/png');
+        return {
+          png: c.toDataURL('image/png'),
+          webp: c.toDataURL('image/webp', 0.85),
+        };
       }
       if (kind === 'sticker') {
         const big = 520;
@@ -89,7 +93,10 @@ async function compose(kind, srcs) {
         g.drawImage(o, 260 - (o.width * s) / 2, 252 - (o.height * s) / 2, o.width * s, o.height * s);
         const { c: small, g: sg } = scaled(160);
         sg.drawImage(c, 0, 0, 160, 160);
-        return small.toDataURL('image/png');
+        return {
+          png: small.toDataURL('image/png'),
+          webp: small.toDataURL('image/webp', 0.85),
+        };
       }
       if (kind === 'card') {
         const height = 260;
@@ -107,7 +114,10 @@ async function compose(kind, srcs) {
           g.drawImage(images[i], x, pad, widths[i], height);
           x += widths[i] + gap;
         }
-        return c.toDataURL('image/png');
+        return {
+          png: c.toDataURL('image/png'),
+          webp: c.toDataURL('image/webp', 0.85),
+        };
       }
       throw new Error(`unknown kind ${kind}`);
     },
@@ -116,9 +126,19 @@ async function compose(kind, srcs) {
   return data;
 }
 
+const SHIPPED = path.resolve(HERE, '..', '..', 'public', 'art');
+for (const d of ['goal', 'sticker', 'pack']) fs.mkdirSync(path.join(SHIPPED, d), { recursive: true });
+const shippedPath = (out) => {
+  const cls = out.startsWith('goal-') ? 'goal' : out.startsWith('sticker-') ? 'sticker' : 'pack';
+  const name =
+    cls === 'pack' ? out.replace(/\.png$/, '') : out.replace(/^(goal|sticker)-/, '').replace(/\.png$/, '');
+  return { cls, path: path.join(SHIPPED, cls, `${name}.webp`) };
+};
 for (const job of jobs) {
   const data = await compose(job.kind, job.src);
-  fs.writeFileSync(path.join(OUT, job.out), Buffer.from(data.split(',')[1], 'base64'));
-  console.log(`ok art-src/abc/out/${job.out}`);
+  fs.writeFileSync(path.join(OUT, job.out), Buffer.from(data.png.split(',')[1], 'base64'));
+  const shipped = shippedPath(job.out);
+  fs.writeFileSync(shipped.path, Buffer.from(data.webp.split(',')[1], 'base64'));
+  console.log(`ok art-src/abc/out/${job.out} + public/art/${shipped.cls}/${path.basename(shipped.path)}`);
 }
 await browser.close();

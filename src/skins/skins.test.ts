@@ -17,9 +17,9 @@ describe('skins registry', () => {
     for (const skin of SKINS) {
       expect(skin.id).not.toBe('');
       expect(skin.character).not.toBe('');
-      expect(skin.backdrop).toMatch(/^\/art\/bg\/.+\.(jpg|png)$/);
+      expect(skin.backdrop).toMatch(/^\/art\/bg\/.+\.webp$/);
       expect(skin.accent).toMatch(/^#[0-9a-f]{6}$/);
-      expect(skin.face).toMatch(/^\/art\/face\/.+\.png$/);
+      expect(skin.face).toMatch(/^\/art\/face\/.+\.webp$/);
       expect(['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox']).toContain(skin.instrument);
     }
   });
@@ -46,16 +46,16 @@ describe('skins registry', () => {
   });
 
   it('points every skin at its backdrop (star included; art lands later)', () => {
-    expect(skinById('star')?.backdrop).toBe('/art/bg/star.jpg');
-    expect(skinById('animal')?.backdrop).toBe('/art/bg/animals.jpg');
-    expect(skinById('teddy')?.backdrop).toBe('/art/bg/teddy.jpg');
+    expect(skinById('star')?.backdrop).toBe('/art/bg/star.webp');
+    expect(skinById('animal')?.backdrop).toBe('/art/bg/animals.webp');
+    expect(skinById('teddy')?.backdrop).toBe('/art/bg/teddy.webp');
   });
 
   it('registers teddy with its cozy-bedroom presentation', () => {
     const teddy = skinById('teddy');
     expect(teddy?.character).toBe('teddy');
-    expect(teddy?.backdrop).toBe('/art/bg/teddy.jpg');
-    expect(teddy?.face).toBe('/art/face/teddy.png');
+    expect(teddy?.backdrop).toBe('/art/bg/teddy.webp');
+    expect(teddy?.face).toBe('/art/face/teddy.webp');
     expect(teddy?.accent).toBe('#e07a5f');
   });
 
