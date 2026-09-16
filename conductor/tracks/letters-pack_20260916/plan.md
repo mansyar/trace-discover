@@ -42,7 +42,7 @@
 - [x] Task: Hop plan — per-stroke hops (TDD) [918a65e]
   - [ ] Tests: letters branch — one hop + one note per stroke, cap 4 (E = 4, C = 1); numerals' counted behavior unchanged; pacing caps
   - [ ] Implement in `character/hops.ts` + session/app wiring
-- [ ] Task: Sticker/badge/bonus flow integration — per-letter sticker fly-in; badge at 26; bonus seals (`ABC`/`MOM`/`ZOO`) mirror the numbers badge flow; screens QA
+- [x] Task: Sticker/badge/bonus flow integration — per-letter sticker fly-in; badge at 26; bonus seals (`ABC`/`MOM`/`ZOO`) mirror the numbers badge flow; screens QA [53c4379]
 - [ ] Task: Device feel check via LAN — completion hops (E vs C) + bonus unlock loop; tune pacing; record findings
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
