@@ -442,6 +442,31 @@ describe('name preservation', () => {
   });
 });
 
+describe('sticker intro preservation', () => {
+  it('keeps the sticker intro flag across a progress reset', () => {
+    const seeded = {
+      ...createDefaultSave(),
+      completedLevels: ['pre-1'],
+      stickerIntroSeen: true,
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.stickerIntroSeen).toBe(true);
+  });
+
+  it('does not fabricate the flag when resetting a save that never saw the intro', () => {
+    let app = startApp(createDefaultSave());
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect('stickerIntroSeen' in app.save).toBe(false);
+  });
+});
+
 describe('name pack navigation', () => {
   const named = { ...createDefaultSave(), name: 'AVA' };
 

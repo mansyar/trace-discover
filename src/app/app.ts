@@ -14,6 +14,7 @@ import {
   awardBadge,
   completeLevel,
   createDefaultSave,
+  markStickerIntroSeen,
   type SaveData,
   sanitizeName,
   setName,
@@ -148,6 +149,12 @@ function badgeTap(state: AppState, packId: string): AppState {
   return { ...state, screen: { name: 'level', packId, levelId: bonusId } };
 }
 
+/** Reset wipes progress but preserves the child's name and the sticker intro flag. */
+function resetSave(save: SaveData): SaveData {
+  const fresh = setName(createDefaultSave(), save.name ?? '');
+  return save.stickerIntroSeen === true ? markStickerIntroSeen(fresh) : fresh;
+}
+
 function parentAction(state: AppState, action: ParentZoneAction): AppState {
   if (state.screen.name !== 'parent') {
     return state;
@@ -192,7 +199,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         pendingBadge: null,
-        save: setName(createDefaultSave(), state.save.name ?? ''),
+        save: resetSave(state.save),
         screen: { ...parent, confirmReset: false },
       };
     case 'install':
