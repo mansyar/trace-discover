@@ -26,7 +26,7 @@
 - **Characters: Rive** — `@rive-app/canvas-lite` 2.42.1 (MIT, ~222 KB brotli) as an npm dependency; script-free `.riv` assets; host TS fires state-machine triggers
 - **Audio: Web Audio API** — synthesized pentatonic sounds; unlocked on first touch
 - **Paths:** code-drawn Canvas trail engine (Path2D, paint-fill, magnetism); level schema v2 — ordered multi-stroke levels (v1 single-stroke content unchanged, engine extended with per-stroke frontiers)
-- **Skins × packs:** content and presentation are orthogonal. `src/skins/` — four skins (dino, star, construction, animal), each carrying a character `.riv`, backdrop, accent, instrument preset, face icon; no levels. `src/packs/` — ordered packs (Pre-writing 12+3, circles unlocking at 4/8/12; Numbers 10); level ids `pre-1..12` / `pre-bonus-1..3` / `num-0..9`; progress + rewards are pack-owned, the skin is cosmetic + persisted (`settings.skin`); replaces the fused `themes/` modules
+- **Skins × packs:** content and presentation are orthogonal. `src/skins/` — five skins (dino, star, construction, animal, teddy), each carrying a character `.riv`, backdrop, accent, instrument preset, face icon; no levels. `src/packs/` — ordered packs (Pre-writing 12+3, circles unlocking at 4/8/12; Numbers 10); level ids `pre-1..12` / `pre-bonus-1..3` / `num-0..9`; progress + rewards are pack-owned, the skin is cosmetic + persisted (`settings.skin`); replaces the fused `themes/` modules
 - **Character contract:** every skin's `.riv` exposes the same state machine — autoplay idle + `celebrate` trigger; hop placement stays canvas-transform based — making new skins drop-in via the asset pipeline
 
 ## Backend
@@ -46,7 +46,7 @@
 
 - **Rive CLI 1.0.2** — agent-authored RML scenes; local `--once` builds; verify/inspect/screenshot loop
 - **Cloudflare Workers AI** — flux-1-schnell (txt2img) + flux-2-klein-4b (img2img)
-- **Dev workspace (`dev/`, never shipped):** `tools/` pipeline scripts (`gen` / `gen2` / `cutout` / `composite` / `gridshot` / `vignette` / `card` / `opt-*` / `make-icons` / `pre-sheet` / `gen-rewards` / `faces` / `findeyes`); `qa/` headless-Edge verification scripts; `harness/` dev pages (`play` / `screens` / `tune`); `characters/` Rive authoring workspaces (dino, star, excavator, lion); `art-src/` per-pack art intermediates — runbook in `dev/README.md`
+- **Dev workspace (`dev/`, never shipped):** `tools/` pipeline scripts (`gen` / `gen2` / `cutout` / `composite` / `gridshot` / `vignette` / `card` / `opt-*` / `make-icons` / `pre-sheet` / `gen-rewards` / `faces` / `findeyes`); `qa/` headless-Edge verification scripts; `harness/` dev pages (`play` / `screens` / `tune`); `characters/` Rive authoring workspaces (dino, star, excavator, lion, teddy); `art-src/` per-pack art intermediates — runbook in `dev/README.md`
 - **Art-source policy:** `dev/art-src/<pack>/` tracks the approved cutout layer + derived composites; raw generations stay untracked
 - **Asset batches:** per track — characters (`.riv`), backdrops, goal art, stickers, card art, icons; each asset lands via generate → cutout → optimize → composite → screenshot approval
 
@@ -74,6 +74,8 @@
 *2026-09-15 — Updated (track `skins-and-packs_20260915`): content/theme decoupling — `skins/` (dino · star · construction · animal) × `packs/` (pre-writing, numbers) registries; save schema v3 with lossless v2→v3 migration; character contract (autoplay idle + `celebrate` trigger) documented for drop-in skins; per-skin instruments (marimba · bell · woodblock · kalimba); content-first menu + top-left skin switch button (tap-to-cycle, persisted). Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/skins-and-packs` (2026-09-16): implemented + acceptance-passed (Android + iPad, toddler session); dist 7.77 MB / 91 precache entries; awaiting the merge/release decision.*
 
 *2026-09-16 — Updated (track `repo-organization_20260916`): dev-time tooling consolidated from the catch-all `spike/` into a purpose-split `dev/` workspace — `tools/` (asset pipeline), `qa/` (headless-Edge verification), `harness/` (dev pages), `characters/` (Rive workspaces), `art-src/` (per-pack intermediates: cutouts + composites tracked, raw generations untracked); scripts anchored to `import.meta.url` so they run from any cwd; dead legacy art + raw generations pruned. Runbooks: root `README.md` + `dev/README.md`. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Completed on branch `track/repo-organization` (2026-09-16): restructure + prunes + reference sweep done; full gates green (320 tests, coverage 98.2% stmts); dist 7.77 → 6.71 MB / precache 91 → 76 entries; awaiting the merge/release decision.*
+
+*2026-09-16 — Updated (track `teddy-skin_20260916`): fifth skin `teddy` (cozy-bedroom backdrop, face icon, `musicbox` instrument preset — soft sine) joins `skins/`; character provisioned through the img2img pipeline (photo → stylized master → cutout → Rive). Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
 
 ## Constraints
 

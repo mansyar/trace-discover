@@ -2,7 +2,7 @@
 
 ## Description
 
-A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles) and Numbers (0–9) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops to its goal and celebrates, and a content-neutral sticker flies into the pack's collection. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads — built at $0 with an agent-driven asset pipeline.
+A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles) and Numbers (0–9) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops to its goal and celebrates, and a content-neutral sticker flies into the pack's collection. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads — built at $0 with an agent-driven asset pipeline.
 
 ## Vision
 
@@ -14,6 +14,8 @@ Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 s
 
 *2026-09-16 — Repo-organization chore (track `repo-organization_20260916`) completed on branch `track/repo-organization`: dev tooling consolidated under `dev/` (tools · qa · harness · characters · art-src) with runbooks in root `README.md` + `dev/README.md`; dead legacy art and raw generation sources pruned. No product behavior change; dist 7.77 → 6.71 MB; awaiting the merge/release decision.*
 
+*2026-09-16 — Fifth skin in progress (track `teddy-skin_20260916`): `teddy` — a family teddy plush restyled through the $0 pipeline (cozy-bedroom backdrop, music-box voice) — joins the skin cycle on branch `track/teddy-skin`; presentation-only per the drop-in contract.*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
@@ -23,10 +25,10 @@ Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 s
 
 - **Packs × skins architecture** — content and presentation are independent: the child picks *what to trace*; *who comes along* is a tap away
   - **Packs:** Pre-writing (12 levels re-ramped small → medium → large; circles unlock at 4/8/12) · Numbers (0–9, toy-piano counted reward)
-  - **Skins:** 🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends — character, backdrop, accent, instrument; switchable anytime via the top-left button; persisted
+  - **Skins:** 🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy — character, backdrop, accent, instrument; switchable anytime via the top-left button; persisted
 - Continuous trail-tip engine: forgiving start zone, capped speed (no skip-swipe), ~12% tolerance, paint-fill feedback
 - No-fail assists: lift keeps progress · star nudge at 2s · hand-hint at 4s · gentle auto-assist + parent toggle
-- Pentatonic audio per skin (marimba · bell · woodblock · kalimba): chime per checkpoint, chord resolve + fanfare on completion
+- Pentatonic audio per skin (marimba · bell · woodblock · kalimba · music box): chime per checkpoint, chord resolve + fanfare on completion
 - Reward loop: content-neutral sticker per level, badge per pack; legacy world badges shown as display-only trophies
 - Zero-text, content-first UI: pack cards → level cards + sticker slots → 3-icon success screen; idle mascot on menu + pack screens
 - Parent zone (2-finger hold): volume, easier tracing, skin setter, trophies, reset progress, install guide
@@ -38,7 +40,7 @@ Long-term direction: **letters A–Z** as the next content pack (Numbers 0–9 s
 
 ## Out of Scope
 
-Letters A–Z tracing (next content pack) · additional skins beyond the four (contract + pipeline documented) · accounts/cloud sync · spoken voice/localization · store shipping/monetization · parent dashboards.
+Letters A–Z tracing (next content pack) · additional skins beyond the five (drop-in contract proven; further skins remain pipeline work) · accounts/cloud sync · spoken voice/localization · store shipping/monetization · parent dashboards.
 
 ## Technical Constraints
 
