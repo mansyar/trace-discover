@@ -4,7 +4,7 @@
 
 **Delivery strategy:** docs-first (tech-stack + READMEs drafted from the target layout), then the history-preserving workspace move (`git mv`, script hardening, ignore rules), then the dead-file prune, then verification and close-out. Work stays local on `track/repo-organization` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Docs first: tech stack + READMEs
+## Phase 1 - Docs first: tech stack + READMEs [checkpoint: 52ff14a]
 
 *Goal: the target layout and policies are written down before anything moves (workflow.md: Tech Stack is Deliberate); the READMEs become the working checklists for Phases 2–3.*
 
