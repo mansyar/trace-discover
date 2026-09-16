@@ -13,7 +13,7 @@
 - [x] Task: `dev/README.md` frame — layout map, pipeline flow (generate → cutout → optimize → composite → screenshot approval), QA inventory table (statuses filled through Phases 2–3), art-source policy [52ff14a]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Restructure: `spike/` → `dev/`
+## Phase 2 — Restructure: `spike/` → `dev/` [checkpoint: 8a26c79]
 
 *Goal: the workspace is moved and every script runs from its new home; nothing live references `spike/` anymore.*
 
