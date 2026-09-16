@@ -1,8 +1,8 @@
 // Production boot: wires the single canvas + mascot canvas to the app state
 // machine, the level session runtime, volume-aware audio, and the Rive
 // character. Primary pointers drive tracing via attachTraceInput (palm
-// rejection included); a separate raw listener tracks the two-finger
-// parent-gate hold, which needs the non-primary pointers tracing ignores.
+// rejection included); a separate raw listener tracks the parent-gate hold
+// (one finger, started in the menu corner).
 import './style.css';
 
 import { type AppState, applyAppEvent, startApp } from './app/app';
@@ -18,6 +18,7 @@ import {
   drawNameOverlay,
   drawPack,
   drawParent,
+  drawParticles,
   drawSkinButton,
   drawSplash,
   drawSuccess,
@@ -44,6 +45,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
+import { type ConfettiParticle, createConfetti, stepConfetti } from './render/confetti';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
@@ -63,7 +65,7 @@ import {
   packStickers,
   paginate,
 } from './ui/pack';
-import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
+import { holdProgress, PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import {
   hitNameOverlay,
   hitParentZone,
@@ -170,6 +172,8 @@ const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
 const MENU_PARK: Point = { x: FIELD_WIDTH / 2, y: 735 };
 const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
+/** Gate burst particles live ~0.7s after the parent gate opens. */
+const GATE_BURST_MS = 700;
 
 // Storage is acquired once; denied or unavailable storage falls back to
 // memory so the app still boots and plays (progress just is not persisted).
@@ -189,6 +193,8 @@ let skinPoofAt: number | null = null;
 let currentRun: { level: LevelDef; packId: string; levelId: string } | null = null;
 let pendingSkinSwap = false;
 let idleCharFor: string | null = null;
+let gateBurst: readonly ConfettiParticle[] = [];
+let gateBurstAgeMs = 0;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -666,8 +672,8 @@ function resize(): void {
   positionNameInput();
 }
 
-// Two-finger hold in the menu corner opens the parent zone. Tracing ignores
-// non-primary pointers, so this raw listener tracks them separately.
+// One-finger hold in the menu corner opens the parent zone. This raw
+// listener tracks pointers that started inside the gate zone.
 trailCanvas.addEventListener('pointerdown', (event) => {
   const point = mapPointerToField(event.clientX, event.clientY, field);
   if (point && app.screen.name === 'menu' && inParentGate(MENU, point)) {
@@ -684,14 +690,27 @@ function frame(now: number): void {
   const dtMs = Math.min(now - lastTime, 50);
   lastTime = now;
   if (app.screen.name === 'menu') {
-    const step = stepParentGate(gateState, gatePointers.size >= 2, dtMs);
+    const step = stepParentGate(gateState, gatePointers.size >= 1, dtMs);
     gateState = step.state;
     if (step.opened) {
       gatePointers.clear();
+      const gate = MENU.parentGate;
+      gateBurst = stepConfetti(
+        createConfetti(14, 41, { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 }),
+        0.12,
+      );
+      gateBurstAgeMs = 0;
       commit(applyAppEvent(app, { type: 'parent-open' }));
     }
   } else if (gateState !== PARENT_GATE_START) {
     gateState = PARENT_GATE_START;
+  }
+  if (gateBurst.length > 0) {
+    gateBurstAgeMs += dtMs;
+    gateBurst = stepConfetti(gateBurst, dtMs / 1000);
+    if (gateBurstAgeMs > GATE_BURST_MS) {
+      gateBurst = [];
+    }
   }
   if ((app.screen.name === 'level' || app.screen.name === 'success') && session) {
     session.update(dtMs);
@@ -737,7 +756,15 @@ function render(now: number): void {
         badge: app.save.badges.includes(pack.badgeId),
       });
     }
-    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent, app.save.name);
+    drawMenu(
+      trailContext,
+      MENU,
+      MENU_FILLS,
+      packArts,
+      activeSkin().accent,
+      app.save.name,
+      holdProgress(gateState),
+    );
   } else if (screen.name === 'pack') {
     const pack = PACKS.find((candidate) => candidate.id === screen.packId);
     const page = packPageIndex(screen.packId);
@@ -807,6 +834,9 @@ function render(now: number): void {
       artCache.get(skin.face) ?? null,
       skinPoofAt,
     );
+  }
+  if (gateBurst.length > 0) {
+    drawParticles(trailContext, gateBurst);
   }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
