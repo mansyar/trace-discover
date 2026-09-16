@@ -91,8 +91,19 @@
 
 *Goal: proven on real hardware with the toddler; every acceptance criterion traced to evidence.*
 
-- [ ] Task: Install/offline re-check (Android + iPad) with new assets cached; rotation/gesture spot-checks
-- [ ] Task: On-device save migration — real v2 save → updated app: progress + trophies intact; reset verified
-- [ ] Task: Independent-play session — toddler completes a re-ramped level; mid-trace skin swap; friction notes → polish
-- [ ] Task: Acceptance criteria 1–9 evidence recorded (plan + git note)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Install/offline re-check (Android + iPad) with new assets cached; rotation/gesture spot-checks — owner device pass: ALL GOOD (Android + iPad, 2026-09-16)
+- [x] Task: On-device save migration — real v2 save → updated app: progress + trophies intact; reset verified — owner device pass: ALL GOOD (migration where an old save existed; reset intact)
+- [x] Task: Independent-play session — toddler completes a re-ramped level; mid-trace skin swap; friction notes → polish — owner report: ALL GOOD, no friction notes, no polish needed
+- [x] Task: Acceptance criteria 1–9 evidence recorded (plan + git note) — evidence below
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+**Acceptance evidence (2026-09-16):**
+1. Four skins × both packs playable incl. star backdrop — qa-pre-pack scenarios 1-5; qa-app full pre pack (dino); qa-pack-app numbers flow; star backdrop + all art integrated [946eb8c].
+2. Skin button on every child screen, cycles with poof+pop, persists, mid-trace swap keeps progress, celebration guard — qa-pre-pack scenario 3 (menu→star / pack→construction / level→animal, screen + progress preserved); skinSwap unit tests; owner device pass.
+3. Content-first menu personalized + idle mascot on menu + pack — qa-pre-pack scenarios 1/4; menu + pack vision reviews (both cards, mascot framing, zero overlap).
+4. Re-ramp blocks small→medium→large + circles unlock 4/8/12 + badge — ramp tests (spans 140/230/310, wave 25/55/85, arc 70/110/160, 2/3/4 teeth, Ø150/200/260); qa-levels 15/15 TRACE SUCCESS; small-vs-large vision check; owner feel check "looks good" (Phase 3).
+5. Numbers unchanged, playable under any skin — qa-numerals + qa-pack-app green post-art (rest + traces); save v3 numbers flow.
+6. Save migration lossless (v2→v3, v1→v3 chain), trophies kept, hostile input sanitized, reset clears everything — store.test exact-mapping fixtures; qa-persistence live probe; owner device pass.
+7. Per-skin instruments on chimes + completion (marimba/bell/woodblock/kalimba); counted notes still toy piano; mute/volume respected — synth/session tests (e.g. bell chimes 1.4s sine); owner audio checks (Phase 2 + 6).
+8. Zero-text + art approved + offline/install on devices + dist/perf — fillText scan (parent zone only); art approved via vision (3 pieces regenerated); qa-offline green (offline cold boot from precache); dist 7.77MB / 91 entries (7931KiB); perf 93ms cold boot, 2.7ms input-to-frame, frames p95 4.3ms; owner install + offline ALL GOOD.
+9. All checks green + toddler session — 320/320 tests, pnpm check clean; owner: toddler completed re-ramped levels + mid-trace skin swap, ALL GOOD.
