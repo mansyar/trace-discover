@@ -4,7 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Letters pack-screen QA: real app boot -> menu (three cards) -> pack:abc
-// page one (A–L) -> pager next (M–Z) -> pager prev -> level:abc-a.
+// page one (A–L) -> pager next (M–Z) -> pager prev -> level:abc-a, then the
+// dev play harness (play.html?level=abc-a).
 // Usage: `pnpm exec vite --port 5199 --strictPort` then `node spike/qa-letters-pack.mjs`.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
@@ -74,6 +75,19 @@ await wait(600);
 await page.screenshot({ path: path.join(OUT, 'letters-pack-level-a.png') });
 const strokeCount = await page.evaluate(() => window.__app.strokes().length);
 console.log(`abc-a strokes: ${strokeCount}`);
+
+// Dev play harness: the abc levels are selectable there too.
+await page.goto(`${BASE}/play.html?level=abc-a`, { waitUntil: 'load' });
+await page.waitForFunction(
+  () => document.getElementById('log')?.textContent.includes('play ready'),
+  null,
+  { timeout: 30000 },
+);
+const play = await page.evaluate(() => ({
+  id: window.__qa.levelId,
+  strokes: window.__qa.path.length,
+}));
+console.log(`play harness: ${play.id} (${play.strokes} pts)`);
 
 console.log(`page errors: ${pageErrors.length === 0 ? '(none)' : pageErrors.join(' | ')}`);
 await browser.close();
