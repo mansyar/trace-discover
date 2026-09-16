@@ -1,6 +1,6 @@
 // Composites the pack menu card art ("1 2 3" row) from the numeral cutouts.
 // Reads dev/art-src/nums/clean-numeral-{1,2,3}.png, writes dev/art-src/nums/clean-card.png.
-// Usage: node dev/tools/card.mjs   (then copy to public/art/pack/card.png)
+// Usage: node dev/tools/card.mjs   (then copy to public/art/pack/card-num.png)
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';

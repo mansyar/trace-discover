@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { hitMenuCard, inParentGate, type MenuLayout, menuLayout, splashLayout } from './menu';
+import {
+  hitMenuCard,
+  inParentGate,
+  type MenuLayout,
+  menuDotPositions,
+  menuLayout,
+  splashLayout,
+} from './menu';
 
 const THEMES = ['dino', 'construction', 'animals'];
 
@@ -105,5 +112,42 @@ describe('splashLayout', () => {
     expect(splash.emblemRadius).toBeGreaterThan(0);
     expect(splash.centerX - splash.emblemRadius).toBeGreaterThanOrEqual(0);
     expect(splash.centerX + splash.emblemRadius).toBeLessThanOrEqual(FIELD_WIDTH);
+  });
+});
+
+describe('menuDotPositions', () => {
+  it('keeps a single centered row for current packs', () => {
+    const card = cardAt(layout(), 0);
+    const dots = menuDotPositions(12, card);
+    expect(dots).toHaveLength(12);
+    expect(new Set(dots.map((dot) => dot.y)).size).toBe(1);
+    const left = dots[0];
+    const right = dots[dots.length - 1];
+    expect((left?.x ?? 0) - card.x).toBeGreaterThanOrEqual(8);
+    expect(card.x + card.width - (right?.x ?? 0)).toBeGreaterThanOrEqual(8);
+    expect(((left?.x ?? 0) + (right?.x ?? 0)) / 2).toBeCloseTo(card.x + card.width / 2, 5);
+  });
+
+  it('wraps twenty-six letters into two centered rows inside the card', () => {
+    const card = cardAt(layout(), 0);
+    const dots = menuDotPositions(26, card);
+    expect(dots).toHaveLength(26);
+    const top = dots.slice(0, 13);
+    const bottom = dots.slice(13);
+    expect(new Set(top.map((dot) => dot.y)).size).toBe(1);
+    expect(new Set(bottom.map((dot) => dot.y)).size).toBe(1);
+    expect((top[0]?.y ?? 0) < (bottom[0]?.y ?? 0)).toBe(true); // reading order: top row first
+    for (const dot of dots) {
+      expect(dot.x).toBeGreaterThanOrEqual(card.x + 8);
+      expect(dot.x).toBeLessThanOrEqual(card.x + card.width - 8);
+      expect(dot.y).toBeGreaterThanOrEqual(card.y + 8);
+      expect(dot.y).toBeLessThanOrEqual(card.y + card.height - 8);
+    }
+    // both rows share the card's center line
+    expect(((top[0]?.x ?? 0) + (top[12]?.x ?? 0)) / 2).toBeCloseTo(card.x + card.width / 2, 5);
+    expect(((bottom[0]?.x ?? 0) + (bottom[12]?.x ?? 0)) / 2).toBeCloseTo(
+      card.x + card.width / 2,
+      5,
+    );
   });
 });

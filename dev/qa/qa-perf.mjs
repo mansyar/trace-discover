@@ -113,7 +113,11 @@ function summarize(name, samples) {
   };
   const downAt = Date.now();
   await tapTarget('splash');
-  const packId = LEVEL.startsWith('num-') ? 'numbers' : 'pre';
+  const packId = LEVEL.startsWith('num-')
+    ? 'numbers'
+    : LEVEL.startsWith('abc-')
+      ? 'abc'
+      : 'pre';
   await tapTarget(`pack:${packId}`);
   await tapTarget(`level:${LEVEL}`);
   await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });

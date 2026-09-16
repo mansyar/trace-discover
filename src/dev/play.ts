@@ -1,7 +1,8 @@
 // Dev-only playable harness: every level end to end (trace -> chimes ->
 // hop -> celebrate -> confetti -> sticker -> success) for feel testing and QA.
-// ?level=<id> selects any of the 25 levels (15 pre-writing + 10 numerals;
-// default pre-1). Excluded from the production build (only index.html builds).
+// ?level=<id> selects any of the 54 levels (15 pre-writing + 10 numerals +
+// 29 letters incl. 3 word bonuses; default pre-1). Excluded from the production
+// build (only index.html builds).
 import '../style.css';
 import { createTonePlayer } from '../audio/player';
 import { createUnlockGate, playCheckpointChime, playCompletion } from '../audio/synth';
@@ -35,6 +36,7 @@ import {
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
+import { LETTER_BONUS_LEVELS, LETTER_LEVELS } from '../packs/letters';
 import { type LevelDef, levelToPath } from '../packs/level';
 import { NUMERAL_LEVELS } from '../packs/numbers';
 import { PRE_BONUS_LEVELS, PRE_LEVELS } from '../packs/pre';
@@ -54,7 +56,13 @@ if (!SKIN) {
   throw new Error('The skin registry is empty.');
 }
 
-const ALL_LEVELS: readonly LevelDef[] = [...PRE_LEVELS, ...PRE_BONUS_LEVELS, ...NUMERAL_LEVELS];
+const ALL_LEVELS: readonly LevelDef[] = [
+  ...PRE_LEVELS,
+  ...PRE_BONUS_LEVELS,
+  ...NUMERAL_LEVELS,
+  ...LETTER_LEVELS,
+  ...LETTER_BONUS_LEVELS,
+];
 
 const query = new URLSearchParams(window.location.search);
 const requestedId = query.get('level');

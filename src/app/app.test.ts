@@ -14,6 +14,12 @@ function numIds(count = 10): readonly string[] {
   return Array.from({ length: count }, (_, index) => `num-${index}`);
 }
 
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+
+function abcIds(count = 26): readonly string[] {
+  return Array.from({ length: count }, (_, index) => `abc-${ALPHABET.charAt(index)}`);
+}
+
 function completeAll(app: AppState, packId: string, ids: readonly string[]): AppState {
   let next = app;
   for (const levelId of ids) {
@@ -266,6 +272,79 @@ describe('numbers pack navigation', () => {
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     expect(app.save.completedLevels).toEqual([]);
     expect(app.save.badges).toEqual([]);
+  });
+});
+
+describe('letters pack navigation', () => {
+  it('flows menu -> pack -> letter -> success for a third pack', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'abc' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'abc' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'abc', levelId: 'abc-k' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-k' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'abc', levelId: 'abc-k' });
+    expect(app.screen).toEqual({ name: 'success', packId: 'abc', levelId: 'abc-k' });
+    expect(app.save.completedLevels).toEqual(['abc-k']);
+    expect(app.save.badges).toEqual([]);
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'abc',
+      levelId: 'abc-k',
+    });
+    expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-l' });
+  });
+
+  it('keeps a sequence bonus locked until its unlock threshold', () => {
+    let app = completeAll(setup(), 'abc', abcIds(8));
+    const before = app;
+    app = applyAppEvent(app, { type: 'open-level', packId: 'abc', levelId: 'abc-bonus-1' });
+    expect(app).toBe(before);
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'abc', levelId: 'abc-i' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'abc', levelId: 'abc-bonus-1' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-bonus-1' });
+  });
+
+  it('awards the letters badge on the twenty-sixth letter and opens the seal flow', () => {
+    let app = completeAll(setup(), 'abc', abcIds(25));
+    expect(app.save.badges).toEqual([]);
+    expect(app.pendingBadge).toBeNull();
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'abc', levelId: 'abc-z' });
+    expect(app.save.badges).toEqual(['abc-badge']);
+    expect(app.pendingBadge).toBe('abc-badge');
+    expect(app.screen).toEqual({ name: 'success', packId: 'abc', levelId: 'abc-z' });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'abc',
+      levelId: 'abc-z',
+    });
+    expect(app.pendingBadge).toBeNull();
+    expect(app.screen).toEqual({ name: 'badge', packId: 'abc' });
+    app = applyAppEvent(app, { type: 'badge-tap', packId: 'abc' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-bonus-1' });
+  });
+
+  it('replays a letter and returns home from an abc success', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'open-pack', packId: 'abc' });
+    app = applyAppEvent(app, { type: 'open-level', packId: 'abc', levelId: 'abc-k' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'abc', levelId: 'abc-k' });
+    const done = app;
+    app = applyAppEvent(done, {
+      type: 'success-action',
+      action: 'replay',
+      packId: 'abc',
+      levelId: 'abc-k',
+    });
+    expect(app.screen).toEqual({ name: 'level', packId: 'abc', levelId: 'abc-k' });
+    app = applyAppEvent(done, {
+      type: 'success-action',
+      action: 'home',
+      packId: 'abc',
+      levelId: 'abc-k',
+    });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'abc' });
   });
 });
 
