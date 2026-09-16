@@ -192,7 +192,9 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         pendingBadge: null,
-        save: setName(createDefaultSave(), state.save.name ?? ''),
+        save: updateSettings(setName(createDefaultSave(), state.save.name ?? ''), {
+          parentHintSeen: state.save.settings.parentHintSeen,
+        }),
         screen: { ...parent, confirmReset: false },
       };
     case 'install':

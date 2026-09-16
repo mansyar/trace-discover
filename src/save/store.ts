@@ -19,6 +19,7 @@ export const MAX_NAME_LENGTH = 7;
 export interface ParentSettings {
   readonly easierTracing: boolean;
   readonly muted: boolean;
+  readonly parentHintSeen: boolean;
   readonly skin: string;
   readonly volume: number;
 }
@@ -60,7 +61,13 @@ export function createDefaultSave(): SaveData {
   return {
     badges: [],
     completedLevels: [],
-    settings: { easierTracing: false, muted: false, skin: DEFAULT_SKIN, volume: 1 },
+    settings: {
+      easierTracing: false,
+      muted: false,
+      parentHintSeen: false,
+      skin: DEFAULT_SKIN,
+      volume: 1,
+    },
     trophies: [],
     version: SAVE_VERSION,
   };
@@ -147,6 +154,10 @@ function asSettings(value: unknown, fallback: ParentSettings): ParentSettings {
     return fallback;
   }
   const muted = 'muted' in value && typeof value.muted === 'boolean' ? value.muted : fallback.muted;
+  const parentHintSeen =
+    'parentHintSeen' in value && typeof value.parentHintSeen === 'boolean'
+      ? value.parentHintSeen
+      : fallback.parentHintSeen;
   const easierTracing =
     'easierTracing' in value && typeof value.easierTracing === 'boolean'
       ? value.easierTracing
@@ -156,7 +167,7 @@ function asSettings(value: unknown, fallback: ParentSettings): ParentSettings {
       ? value.skin
       : fallback.skin;
   const volume = 'volume' in value ? asVolume(value.volume, fallback.volume) : fallback.volume;
-  return { easierTracing, muted, skin, volume };
+  return { easierTracing, muted, parentHintSeen, skin, volume };
 }
 
 function asClearedList(value: unknown): string[] {

@@ -440,6 +440,22 @@ describe('name preservation', () => {
     expect(app.save.completedLevels).toEqual([]);
     expect(app.save.name).toBe('AVA');
   });
+
+  it('keeps the gate hint flag across a progress reset', () => {
+    const base = createDefaultSave();
+    const seeded = {
+      ...base,
+      completedLevels: ['pre-1'],
+      settings: { ...base.settings, parentHintSeen: true },
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.settings.parentHintSeen).toBe(true);
+  });
 });
 
 describe('name pack navigation', () => {
