@@ -10,7 +10,7 @@
 
 - [x] Task: Context docs resync — `tech-stack.md`: `dev/` tooling layout (tools · qa · harness · characters · art-src), updated script paths, art-source policy (documented before implementation per workflow.md) [0df3f9b]
 - [x] Task: Root `README.md` — what the app is, quickstart (`pnpm install / dev / build / test / check / preview / serve`), repo map (`src/ public/ dev/ conductor/`), conductor pointers [291a8f3]
-- [ ] Task: `dev/README.md` frame — layout map, pipeline flow (generate → cutout → optimize → composite → screenshot approval), QA inventory table (statuses filled through Phases 2–3), art-source policy
+- [x] Task: `dev/README.md` frame — layout map, pipeline flow (generate → cutout → optimize → composite → screenshot approval), QA inventory table (statuses filled through Phases 2–3), art-source policy [52ff14a]
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Restructure: `spike/` → `dev/`
