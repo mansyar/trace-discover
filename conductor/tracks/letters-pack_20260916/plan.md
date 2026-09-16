@@ -4,7 +4,7 @@
 
 **Delivery strategy:** wiring-first — the `abc` pack skeleton lands on rough geometry (Phase 1: registration, 26-card grid, gating, third-pack audit) so navigation and progress feel real while content is still cheap to change; then the long pole — content authoring (Phase 2: 26 glyphs + `ABC`/`MOM`/`ZOO`, content doc, early device feel checks on E/S/A); the reward layer next (Phase 3: per-stroke hops, sticker/badge, bonus seals); art batch (Phase 4); compliance sweep (Phase 5); device validation with the toddler (Phase 6). Work stays local on `track/letters-pack` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Wiring: docs, pack registration, 26-card grid, third-pack audit
+## Phase 1 — Wiring: docs, pack registration, 26-card grid, third-pack audit [checkpoint: 7ef4777]
 
 *Goal: menu → pack:abc (two pages, 12 + 14 with centered Y–Z finale) → level → success → next all work on rough geometry; progress/badge/bonus gating generic; two-pack assumptions gone or documented.*
 
