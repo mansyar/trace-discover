@@ -54,7 +54,7 @@
 
 ## Dev Tooling & Testing
 
-- **pnpm scripts:** `dev` / `build` / `preview` / `check` (Biome + tsc)
+- **pnpm scripts:** `dev` / `build` / `preview` / `check` (Biome + tsc) / `budget` (dist size guard)
 - **Verification:** headless Edge (playwright-core) scripts (`dev/qa/`) + Rive CLI screenshot QA (`dev/characters/`); dev pages in `dev/harness/`
 - **LAN test server** for real devices (Android Chrome, iPad Safari)
 - **Targets:** Android Chrome phones + iPads (Safari PWA); DPR-aware canvas + letterbox layout
@@ -62,7 +62,7 @@
 ## CI/CD
 
 - **GitHub Actions** — repository `mansyar/trace-discover` (public; free-tier runners)
-  - **CI** (`.github/workflows/ci.yml`): on PR → `master`, push → `master`, manual dispatch — `pnpm check` → tests + coverage (artifact, informational) → `pnpm build`
+  - **CI** (`.github/workflows/ci.yml`): on PR → `master`, push → `master`, manual dispatch — `pnpm check` → tests + coverage (artifact, informational) → `pnpm build` → `pnpm budget`
   - **CD** (`.github/workflows/release.yml`): on semver tags `v*.*.*` — fail-fast validation (strict semver + tag == `package.json#version`) → same quality gates → `wrangler pages deploy`
 - **Deploy target:** Cloudflare Pages project `trace-discover` (direct upload; `trace-discover.pages.dev` production, `rc.trace-discover.pages.dev` prerelease); stable tags → branch `master` (production), prerelease tags → branch `rc` (preview)
 - **Secrets (Actions):** `CLOUDFLARE_API_TOKEN` (Account · Cloudflare Pages · Edit) + `CLOUDFLARE_ACCOUNT_ID`
@@ -81,7 +81,7 @@
 
 *2026-09-16 — Updated (track `pwa-resilience_20260916`): PWA update safety + save durability — waiting service worker semantics: no ungated `skipWaiting`; a downloaded update activates only once all app instances close (next cold start), and a running session can never be taken over mid-play; `clientsClaim` stays on for first-launch control; no update UI exists (zero-text shell). Save writes are exception-proof (quota/denied → silent no-op, in-memory continuation; later writes persist once storage works) and `navigator.storage.persist()` is requested best-effort at boot; storage-unavailable contexts boot into session-only play. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Implemented and verified on branch `track/pwa-resilience` (2026-09-16): `qa-update` 14/14 GREEN; suite 333/333; `qa-persistence` 13/13 (quota-denied, recovery, denied-storage boot); dist 6.71 MB / 76 precache entries (unchanged); device pass done (LAN scope — Android + iPad gameplay + persistence; SW/offline mechanics proven by desktop probes); awaiting the merge/release decision.*
 
-*2026-09-16 — Updated (track `payload-diet_20260916`): payload diet — shipped raster art re-encoded to WebP (same dimensions; per-class quality: cutouts ≈0.85 lossy-with-alpha, backdrops ≈0.8; browser-canvas pipeline, zero new deps; PNG stays for icons/favicons); pipeline emitters default to WebP so future batches don't regress; `dino.riv` rebuilt to the cast patch-technique standard (same look/animations, target ~460 KB, ≤ 500 KB); and a `pnpm budget` guard (dist total + precache entries vs documented ceilings) added to local gates + CI after build. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Baseline at track start (measured, fresh v1.2.0 build 2026-09-16): dist 9.26 MB / 133 precache entries (of which `public/art` = 6.39 MB, `rive/` = 1.79 MB) — earlier docs cited ~10.31 MB / 148 entries for the letters build; the measured figure supersedes it (see the track's `measurements.md`). Implementation on branch `track/payload-diet`.*
+*2026-09-16 — Updated (track `payload-diet_20260916`): payload diet — shipped raster art re-encoded to WebP (same dimensions; per-class quality: cutouts ≈0.85 lossy-with-alpha, backdrops ≈0.8; browser-canvas pipeline, zero new deps; PNG stays for icons/favicons); pipeline emitters default to WebP so future batches don't regress; `dino.riv` rebuilt to the cast patch-technique standard (same look/animations, target ~460 KB, ≤ 500 KB); and a `pnpm budget` guard (dist total + precache entries vs documented ceilings) added to local gates + CI after build. Documented before implementation per `workflow.md` (Tech Stack is Deliberate). Baseline at track start (measured, fresh v1.2.0 build 2026-09-16): dist 9.26 MB / 133 precache entries (of which `public/art` = 6.39 MB, `rive/` = 1.79 MB) — earlier docs cited ~10.31 MB / 148 entries for the letters build; the measured figure supersedes it (see the track's `measurements.md`). Implementation in progress on branch `track/payload-diet` (2026-09-17): art re-encode + reference migration done (art 6.39 → 1.39 MB); `dino.riv` rebuilt with the cast patch technique (699,844 → 455,201 B); `pnpm budget` guard verified (pass + negative controls) and wired into `ci.yml` after build — ceilings **4.50 MB / 150 entries**, derived from the measured post-diet build (4,161,522 B / 133 entries).*
 
 ## Constraints
 

@@ -1,5 +1,5 @@
 # CI — runs on every PR to master, every push to master, and on demand.
-# Gates: Biome + tsc (`pnpm check`) -> Vitest with coverage (informational artifact) -> production build.
+# Gates: Biome + tsc (`pnpm check`) -> Vitest with coverage (informational artifact) -> production build -> payload budget (`pnpm budget`).
 name: CI
 
 on:
@@ -45,6 +45,9 @@ jobs:
 
       - name: Production build (Vite)
         run: pnpm build
+
+      - name: Payload budget (dist size guard)
+        run: pnpm budget
 
       - name: Upload coverage artifact (informational)
         # Best-effort only: a flaky artifact service must never redden a run

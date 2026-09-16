@@ -103,3 +103,13 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
   read `clean-*` only)
 - Characters: shipped `.riv` binaries live in `public/rive/`; authoring sources
   live in `characters/<name>/`
+
+## Payload budget
+
+`pnpm budget` (`tools/dist-budget.mjs`) checks the built `dist/` against the
+payload ceilings — **4.50 MB total / 150 precache entries**, derived from the
+post-payload-diet build (2026-09-17: 4,161,522 B / 133 entries; headroom
+rationale lives in the tool). Run it after `pnpm build`; CI runs it after the
+build step too. A re-introduced lossless art batch trips it instantly — raise
+the ceilings only deliberately, with fresh measurements
+(`conductor/tracks/payload-diet_20260916/measurements.md`).

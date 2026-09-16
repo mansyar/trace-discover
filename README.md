@@ -19,6 +19,7 @@ pnpm dev        # Vite dev server
 pnpm test       # unit tests (Vitest)
 pnpm check      # Biome lint/format + tsc --noEmit
 pnpm build      # production build → dist/
+pnpm budget     # dist size guard (against payload ceilings)
 pnpm preview    # serve the build locally
 pnpm serve      # LAN server for real-device testing (Android / iPad)
 ```
