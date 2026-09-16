@@ -8,7 +8,7 @@
 
 *Goal: a downloaded update can never take over a running session — activation happens only after all instances close; proven by an automated probe.*
 
-- [ ] Task: `tech-stack.md` dated note — PWA update strategy (waiting SW; activate-on-next-launch; `skipWaiting`/`clientsClaim` off) + save durability approach documented *before* implementation (workflow.md: Tech Stack is Deliberate)
+- [x] Task: `tech-stack.md` dated note — PWA update strategy (waiting SW; activate-on-next-launch; `skipWaiting`/`clientsClaim` off) + save durability approach documented *before* implementation (workflow.md: Tech Stack is Deliberate) [d408e25]
 - [ ] Task: Update probe `dev/qa/qa-update.mjs` (write-first, expect RED against current config)
   - [ ] Build-output audit: generated `sw.js` contains no `skipWaiting()`/`clientsClaim()`; `precacheAndRoute` + `cleanupOutdatedCaches` + navigation fallback intact
   - [ ] Live lifecycle on a sandboxed `dist/` copy: after a synthetic SW update, registration stays `waiting` while a page is open; the running page is not claimed and keeps working (no reload)
