@@ -18,15 +18,15 @@ two pages), ear approval of the note ladder, and the device sign-off.
 
 ## Phase 1: Context docs resync + save foundation
 
-- [ ] Task 1: Context docs resync
-  - [ ] product.md: reward-loop wording + sticker board in core features,
+- [x] Task 1: Context docs resync (9d28a51)
+  - [x] product.md: reward-loop wording + sticker board in core features,
         dated note (previous tracks' style)
-  - [ ] tech-stack.md: additive `stickerIntroSeen`, board screen + pentatonic
+  - [x] tech-stack.md: additive `stickerIntroSeen`, board screen + pentatonic
         ladder mapping note, dated note
-  - [ ] product-guidelines.md: check — no change expected (child-surface rules
+  - [x] product-guidelines.md: check — no change expected (child-surface rules
         unchanged)
-  - [ ] README: check — no change expected
-  - [ ] Commit + git note
+  - [x] README: check — no change expected
+  - [x] Commit + git note
 - [ ] Task 2: `stickerIntroSeen` save field (TDD)
   - [ ] Red: `loadSave` absent/non-boolean → false; roundtrip setter; v1–v3
         fixtures unchanged; reset preserves name + flag
