@@ -20,6 +20,8 @@ dev/**/blinkfull*.png
 dev/**/reg-*.png
 dev/qa/out/
 dev/characters/*/*.png
+dev/characters/*/*.jpg
+dev/characters/*/*.jpeg
 dev/gen/
 dev/ref/
 dev/package-lock.json
