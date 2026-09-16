@@ -70,4 +70,8 @@
 8. **Size** — `teddy.riv` 445,653 B (~435 KiB) ≤ ~500 KB; dist 7.26 MB (Δ ≈ +0.55 MB vs 6.71 MB baseline) within < ~10–15 MB.
 9. **Checks + QA** — biome + tsc clean; Vitest 323/323; coverage 98.2% stmts / 90.92% branch / 100% funcs; spot-sweep evidence recorded (5d8a846, note at fb83cbd).
 10. **Device + docs** — owner device pass both devices 2026-09-16 (music-box speaker check OK); docs synced in FR7 (ea47a7f).
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions 1904858
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
