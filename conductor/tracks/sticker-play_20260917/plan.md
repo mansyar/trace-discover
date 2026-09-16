@@ -27,13 +27,13 @@ two pages), ear approval of the note ladder, and the device sign-off.
         unchanged)
   - [x] README: check — no change expected
   - [x] Commit + git note
-- [ ] Task 2: `stickerIntroSeen` save field (TDD)
-  - [ ] Red: `loadSave` absent/non-boolean → false; roundtrip setter; v1–v3
+- [x] Task 2: `stickerIntroSeen` save field (TDD) (ecfe4cc)
+  - [x] Red: `loadSave` absent/non-boolean → false; roundtrip setter; v1–v3
         fixtures unchanged; reset preserves name + flag
-  - [ ] Green: `src/save/store.ts` sanitizer (+ additive field);
+  - [x] Green: `src/save/store.ts` sanitizer (+ additive field);
         `src/app/app.ts` reset preserves
-  - [ ] Verify coverage on new logic
-  - [ ] Commit + git note
+  - [x] Verify coverage on new logic
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Board logic — layout, hit tests, state machine (pure)
