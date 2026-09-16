@@ -81,11 +81,11 @@
 
 *Goal: offline, zero-text, right-sized, measured — within every constraint.*
 
-- [ ] Task: Build + offline probe — SW precache covers all new assets; `spike/qa-offline.mjs` from preview; dist within budget
-- [ ] Task: Zero-text + 90 px audit of new surfaces (menu, pack screens, success, parent zone, skin button, mascot) — screenshots + vision + code scan
-- [ ] Task: Perf spot-checks — skin swaps (incl. mid-trace), cold start, fps sampling (mid-range Android + base iPad); fix if warranted
-- [ ] Task: Regression sweep — stroke feel/assists/completion parity; numbers unchanged; full suite green; QA script suite pass
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Build + offline probe — SW precache covers all new assets; `spike/qa-offline.mjs` from preview; dist within budget — 91 precache entries (7931KiB); offline boot + pre-1 trace SUCCESS; dist 7.77MB [946eb8c]
+- [x] Task: Zero-text + 90 px audit of new surfaces (menu, pack screens, success, parent zone, skin button, mascot) — screenshots + vision + code scan — fillText only inside drawParent; 90px floors unit-tested on all card/button layouts [946eb8c]
+- [x] Task: Perf spot-checks — skin swaps (incl. mid-trace), cold start, fps sampling (mid-range Android + base iPad); fix if warranted — headless: cold boot 93ms, input-to-frame 2.7ms, frames p95 4.3ms, zero page errors; device sampling folded into the Phase 6 device pass [946eb8c]
+- [x] Task: Regression sweep — stroke feel/assists/completion parity; numbers unchanged; full suite green; QA script suite pass — 320/320; qa-numerals + qa-pack-app green (numbers unchanged); qa-app full pre pack green [946eb8c]
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6 — Device validation & acceptance
 
