@@ -2,8 +2,7 @@
 // success, with badge celebration, circle unlocks, and the parent zone. The
 // shell renders the current screen and feeds tap/runtime events back in;
 // every transition and save update here is unit-tested.
-import { packById } from '../packs/catalog';
-import { NAME_PACK_ID, namePackFor } from '../packs/name';
+import { appPacks } from '../packs/catalog';
 import type { PackEntry } from '../packs/pack';
 import {
   bonusUnlocked,
@@ -64,11 +63,7 @@ export function startApp(save: SaveData): AppState {
 
 /** Static packs, plus the runtime-composed name pack while a name is saved. */
 function packFor(state: AppState, packId: string): PackEntry | undefined {
-  const known = packById(packId);
-  if (known) {
-    return known;
-  }
-  return packId === NAME_PACK_ID ? (namePackFor(state.save.name) ?? undefined) : undefined;
+  return appPacks(state.save).find((pack) => pack.id === packId);
 }
 
 /** Main levels are always open; circles unlock at their pack thresholds. */

@@ -38,8 +38,10 @@ import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
-import { allPacks, packById } from './packs/catalog';
+import { appPacks, packById } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
+import { NAME_PACK_ID } from './packs/name';
+import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, saveSave } from './save/store';
@@ -80,15 +82,8 @@ function requireCharCanvas(doc: Document): HTMLCanvasElement {
   return canvas;
 }
 
-const PACKS = allPacks();
-const MENU = menuLayout(
-  FIELD_WIDTH,
-  FIELD_HEIGHT,
-  PACKS.map((pack) => pack.id),
-);
-const MENU_FILLS = PACKS.map((pack) => pack.menuFill);
-// Grid shape per pack: pre-writing carries 12 levels (3 columns), numbers 10;
-// letters paginate 12 + 14 (A–L / M–Z) so 90 px cards keep their sticker shelf.
+// Pack views: the static packs plus the runtime name mini-pack while a name
+// is saved. Rebuilt whenever the saved name changes.
 interface PackGridConfig extends PackLayoutOptions {
   readonly pages?: readonly number[];
 }
@@ -96,42 +91,60 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
   abc: { cardSize: 90, columns: 4, pages: [12, 14], slotsPerRow: 7 },
   pre: { columns: 3, slotsPerRow: 6 },
 };
-const PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>(
-  PACKS.map((pack) => {
-    const levelIds = pack.levels.map((level) => level.id);
-    const sizes = PACK_GRID[pack.id]?.pages ?? [levelIds.length];
-    return [pack.id, paginate(levelIds, sizes)] as const;
-  }),
-);
-const PACK_LAYOUTS = new Map<string, readonly PackLayout[]>(
-  PACKS.map(
-    (pack) =>
-      [
+
+let PACKS: readonly PackEntry[] = [];
+let MENU = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, []);
+let MENU_FILLS: readonly string[] = [];
+let PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>();
+let PACK_LAYOUTS = new Map<string, readonly PackLayout[]>();
+let PACK_PAGERS = new Map<string, PackPager | null>();
+let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>();
+
+function rebuildPackViews(): void {
+  PACKS = appPacks(app.save);
+  MENU = menuLayout(
+    FIELD_WIDTH,
+    FIELD_HEIGHT,
+    PACKS.map((pack) => pack.id),
+  );
+  MENU_FILLS = PACKS.map((pack) => pack.menuFill);
+  PACK_PAGE_IDS = new Map(
+    PACKS.map((pack) => {
+      const levelIds = pack.levels.map((level) => level.id);
+      const sizes = PACK_GRID[pack.id]?.pages ?? [levelIds.length];
+      return [pack.id, paginate(levelIds, sizes)] as const;
+    }),
+  );
+  PACK_LAYOUTS = new Map(
+    PACKS.map(
+      (pack) =>
+        [
+          pack.id,
+          (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
+            packLayout(FIELD_WIDTH, FIELD_HEIGHT, levelIds, PACK_GRID[pack.id]),
+          ),
+        ] as const,
+    ),
+  );
+  PACK_PAGERS = new Map(
+    PACKS.map((pack) => {
+      const pageCount = PACK_LAYOUTS.get(pack.id)?.length ?? 0;
+      return [
         pack.id,
-        (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
-          packLayout(FIELD_WIDTH, FIELD_HEIGHT, levelIds, PACK_GRID[pack.id]),
-        ),
-      ] as const,
-  ),
-);
-const PACK_PAGERS = new Map<string, PackPager | null>(
-  PACKS.map((pack) => {
-    const pageCount = PACK_LAYOUTS.get(pack.id)?.length ?? 0;
-    return [
-      pack.id,
-      pageCount > 1 ? packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, pageCount) : null,
-    ] as const;
-  }),
-);
-const PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>(
-  PACKS.map(
-    (pack) =>
-      [
-        pack.id,
-        new Map(pack.levels.map((level) => [level.id, levelToPath(level)] as const)),
-      ] as const,
-  ),
-);
+        pageCount > 1 ? packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, pageCount) : null,
+      ] as const;
+    }),
+  );
+  PACK_MINIS = new Map(
+    PACKS.map(
+      (pack) =>
+        [
+          pack.id,
+          new Map(pack.levels.map((level) => [level.id, levelToPath(level)] as const)),
+        ] as const,
+    ),
+  );
+}
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const SPLASH = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const PARENT = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
@@ -155,6 +168,7 @@ const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
 const saveStorage = acquireSaveStorage();
 requestPersistence();
 let app: AppState = startApp(loadSave(saveStorage));
+rebuildPackViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
@@ -212,7 +226,11 @@ function packLandingPage(packId: string): number {
 
 function commit(next: AppState): void {
   const previous = app.screen;
+  const nameChanged = next.save.name !== app.save.name;
   app = next;
+  if (nameChanged) {
+    rebuildPackViews();
+  }
   const screen = app.screen;
   if (screen.name === 'pack' && (previous.name !== 'pack' || previous.packId !== screen.packId)) {
     packPage = packLandingPage(screen.packId);
@@ -618,16 +636,18 @@ function render(now: number): void {
   } else if (screen.name === 'menu') {
     const packArts = new Map<string, PackMenuArt>();
     for (const pack of PACKS) {
-      const cardUrl = menuCardArtUrl(pack.id);
-      preloadArt(cardUrl);
+      const cardUrl = pack.id === NAME_PACK_ID ? null : menuCardArtUrl(pack.id);
+      if (cardUrl) {
+        preloadArt(cardUrl);
+      }
       packArts.set(pack.id, {
-        image: artCache.get(cardUrl) ?? null,
+        image: cardUrl ? (artCache.get(cardUrl) ?? null) : null,
         cleared: pack.levels.filter((level) => app.save.completedLevels.includes(level.id)).length,
         total: pack.levels.length,
         badge: app.save.badges.includes(pack.badgeId),
       });
     }
-    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent);
+    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent, app.save.name);
   } else if (screen.name === 'pack') {
     const pack = packById(screen.packId);
     const page = packPageIndex(screen.packId);

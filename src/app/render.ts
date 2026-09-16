@@ -340,6 +340,7 @@ export function drawMenu(
   fills: readonly string[],
   packArts?: ReadonlyMap<string, PackMenuArt>,
   accent?: string,
+  name?: string,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -354,7 +355,7 @@ export function drawMenu(
     }
     const art = packArts?.get(card.packId);
     if (art) {
-      drawMenuPackCard(ctx, card, art);
+      drawMenuPackCard(ctx, card, art, name);
     } else {
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
     }
@@ -372,7 +373,12 @@ export function drawMenu(
 }
 
 /** Pack card: pack art (numbers "1 2 3" / letters "A B C" fallbacks), a progress dot strip, star on badge. */
-function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: PackMenuArt): void {
+function drawMenuPackCard(
+  ctx: CanvasRenderingContext2D,
+  card: MenuCard,
+  art?: PackMenuArt,
+  name?: string,
+): void {
   const centerX = card.x + card.width / 2;
   const image = art?.image;
   if (image) {
@@ -389,7 +395,7 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
       height,
     );
   } else {
-    const sets = menuFallbackStrokes(card.packId);
+    const sets = menuFallbackStrokes(card.packId, name);
     if (sets.length > 0) {
       drawMenuFallback(ctx, card, sets);
     } else {
@@ -419,12 +425,28 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
   }
 }
 
-/** Fallback "1 2 3" / "A B C" strokes for the first frames before card art loads. */
+/** Fallback mini strokes for cards without art: "1 2 3", "A B C", or the composed name. */
 function drawMenuFallback(
   ctx: CanvasRenderingContext2D,
   card: MenuCard,
   sets: readonly (readonly (readonly Point[])[])[],
 ): void {
+  if (sets.length === 1) {
+    // One composed set (the name pack) uses the full card width.
+    const composed = sets[0];
+    if (composed) {
+      drawMiniPath(
+        ctx,
+        composed,
+        card.x + 24,
+        card.y + 12,
+        card.width - 48,
+        card.height - 24,
+        false,
+      );
+    }
+    return;
+  }
   const boxWidth = card.width / 4;
   const startX = card.x + (card.width - boxWidth * 3) / 2;
   sets.forEach((strokes, index) => {
