@@ -19,7 +19,7 @@
 
 - [x] Task: History-preserving move (`git mv`) — `tools/`, QA scripts, harness pages, character workspaces, `art-src`, `package.json` into `dev/`; spot-check `git log --follow` on moved files [69a908f]
 - [x] Task: Script path hardening (TDD-adapted: run-proof, no unit tests) — `import.meta.url`-anchored paths replacing cwd assumptions; QA outputs unified under ignored `dev/qa/out/`; harness URLs updated to `/dev/harness/*.html`; run-proof each family: one pipeline tool, one QA script (`qa-app`), harness page load [9f3b2cd]
-- [ ] Task: `.gitignore` restructure — `dev/` patterns; single QA output dir; remove stale entries (spike/web, per-dir `.gitignore` lineages, obsolete negations)
+- [x] Task: `.gitignore` restructure — `dev/` patterns; single QA output dir; remove stale entries (spike/web, per-dir `.gitignore` lineages, obsolete negations) [60a2c5c]
 - [ ] Task: Live-reference sweep — `.agents/skills/rive-cli/SKILL.md`, `src/packs/numbers.ts` comment, current docs; `git grep spike/` clean outside `conductor/archive/` + history
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
