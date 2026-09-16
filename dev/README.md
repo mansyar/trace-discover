@@ -46,8 +46,8 @@ Start the right server first, then run the script (most accept a URL argument).
 
 | Server | Command | Typical consumers |
 | --- | --- | --- |
-| Production preview `:4173` | `pnpm preview` (LAN: `pnpm serve`) | `qa-app`, `qa-pack-app`, `qa-offline`, `qa-perf` |
-| Dev server `:5199` | `pnpm exec vite --port 5199 --strictPort` | `qa-harness`, `qa-pre-pack`, `qa-menu-pack`, `qa-persistence`, `qa-pack-badge` |
+| Production preview `:4173` | `pnpm preview` (LAN: `pnpm serve`) | `qa-app`, `qa-name`, `qa-pack-app`, `qa-offline`, `qa-perf` |
+| Dev server `:5199` | `pnpm exec vite --port 5199 --strictPort` | `qa-harness`, `qa-pre-pack`, `qa-menu-pack`, `qa-persistence`, `qa-pack-badge`, `qa-name-hostile`, `qa-name-art` |
 
 | Script | Purpose | Needs | Status |
 | --- | --- | --- | --- |
@@ -68,6 +68,9 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-letters-glyphs.mjs` | Per-glyph harness screenshots — A–Z + `ABC`/`MOM`/`ZOO` | dev `:5199` | utility |
 | `qa-letters-rewards.mjs` | Letters reward chain: 25 cleared → z → badge → bonus | dev `:5199` | canonical |
 | `qa-letters-sweep.mjs` | Traces all 29 letters levels end-to-end in one chain | dev `:5199` | canonical |
+| `qa-name.mjs` | My Name journey: gate → name overlay → 4-card menu → trace → sticker/badge → reload persistence → clear | preview `:4173` | canonical |
+| `qa-name-hostile.mjs` | Hostile stored-name fixtures: boot + first-save sanitize rewrite | dev `:5199` | canonical |
+| `qa-name-art.mjs` | Name reward art screenshots (menu/pack/level/success/badge) on a seeded `AVA` save | dev `:5199` | one-off |
 | `qa-letters-parity.mjs` | Four-skin smoke — boots + opens a letter per skin | dev `:5199` | one-off |
 | `qa-menu-dots.mjs` | Menu dot-wrap check with a seeded 5/26 save | dev `:5199` | one-off |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
@@ -96,7 +99,7 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 - Shipped format: `public/art/**` is **WebP** (browser-canvas encode; per-class
   quality — backdrops ≈0.8, cutouts ≈0.85). `art-src/` stays lossless PNG;
   icons/favicons remain PNG. Composers (`opt-art`/`opt-pre`/`card`/`vignette`/
-  `letters-compose`/`faces`) write the shipped WebP directly.
+  `letters-compose`/`name-rewards`/`faces`) write the shipped WebP directly.
 - Raw generations (flux originals) stay **untracked** — regenerate with
   `tools/gen.mjs` when needed
 - `art-src/nums/`: `clean-*` cutouts + `vig-*`/card composites are kept; the

@@ -8,7 +8,9 @@
 import { describe, expect, it } from 'vitest';
 import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import { levelPresentation } from './app/skinSwap';
-import { allPacks } from './packs/catalog';
+import { appPacks } from './packs/catalog';
+import { NAME_PACK_ID } from './packs/name';
+import { createDefaultSave } from './save/store';
 import { SKINS } from './skins/skins';
 
 // Glob keys look like "/public/art/bg/dino.webp" for a served URL "/art/bg/dino.webp".
@@ -27,14 +29,19 @@ const STICKERLESS_LEVELS = new Set(['abc-bonus-1', 'abc-bonus-2', 'abc-bonus-3']
 describe('art references', () => {
   it('resolves every referenced art URL to an existing WebP file', () => {
     const urls = new Set<string>();
-    for (const pack of allPacks()) {
-      urls.add(menuCardArtUrl(pack.id));
+    const packs = appPacks({ ...createDefaultSave(), name: 'AVA' });
+    for (const pack of packs) {
+      // The name mini-pack's menu card is drawn from geometry - no card art
+      // ships (or is requested) for it; its badge art does.
+      if (pack.id !== NAME_PACK_ID) {
+        urls.add(menuCardArtUrl(pack.id));
+      }
       urls.add(packBadgeArtUrl(pack.id));
     }
     for (const skin of SKINS) {
       urls.add(skin.backdrop);
       urls.add(skin.face);
-      for (const pack of allPacks()) {
+      for (const pack of packs) {
         for (const level of pack.levels) {
           urls.add(level.goalArt);
           if (!STICKERLESS_LEVELS.has(level.id)) {

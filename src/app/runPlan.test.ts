@@ -34,6 +34,12 @@ describe('run planning', () => {
     expect(hopPlanFor('abc', 'abc-?')).toBeUndefined();
   });
 
+  it('hops once per glyph stroke for the saved name, capped at four', () => {
+    expect(hopPlanFor('name', 'name-1', 12)?.hops).toHaveLength(4);
+    expect(hopPlanFor('name', 'name-1', 2)?.hops).toHaveLength(2);
+    expect(hopPlanFor('name', 'name-1')).toBeUndefined();
+  });
+
   it('ignores malformed numeral ids', () => {
     expect(hopPlanFor('numbers', 'num-x')).toBeUndefined();
   });

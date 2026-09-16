@@ -161,7 +161,12 @@ describe('app navigation', () => {
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     expect(app.save.completedLevels).toEqual([]);
     app = applyAppEvent(app, { type: 'parent-action', action: 'install' });
-    expect(app.screen).toEqual({ name: 'parent', confirmReset: false, showInstall: true });
+    expect(app.screen).toEqual({
+      name: 'parent',
+      confirmReset: false,
+      showInstall: true,
+      showName: false,
+    });
     app = applyAppEvent(app, { type: 'parent-action', action: 'done' });
     expect(app.screen).toEqual({ name: 'menu' });
   });
@@ -417,5 +422,121 @@ describe('skin cycling', () => {
     const app = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
     const cycled = applyAppEvent(app, { type: 'skin-cycle' });
     expect(cycled.screen).toEqual({ name: 'menu' });
+  });
+});
+
+describe('name preservation', () => {
+  it('keeps the parent-set name across a progress reset', () => {
+    const seeded = {
+      ...createDefaultSave(),
+      completedLevels: ['pre-1'],
+      name: 'AVA',
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.name).toBe('AVA');
+  });
+});
+
+describe('name pack navigation', () => {
+  const named = { ...createDefaultSave(), name: 'AVA' };
+
+  it('opens the composed name pack only when a name is saved', () => {
+    const before = setup();
+    expect(applyAppEvent(before, { type: 'open-pack', packId: 'name' })).toBe(before);
+    const app = applyAppEvent(startApp(named), { type: 'open-pack', packId: 'name' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'name' });
+  });
+
+  it('traces the single level to its sticker and badge celebration', () => {
+    let app = startApp(named);
+    app = applyAppEvent(app, { type: 'open-level', packId: 'name', levelId: 'name-1' });
+    expect(app.screen).toEqual({ name: 'level', packId: 'name', levelId: 'name-1' });
+    app = applyAppEvent(app, { type: 'level-complete', packId: 'name', levelId: 'name-1' });
+    expect(app.screen).toEqual({ name: 'success', packId: 'name', levelId: 'name-1' });
+    expect(app.save.completedLevels).toEqual(['name-1']);
+    expect(app.save.badges).toEqual(['name-badge']);
+    expect(app.pendingBadge).toBe('name-badge');
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'name',
+      levelId: 'name-1',
+    });
+    expect(app.screen).toEqual({ name: 'badge', packId: 'name' });
+    expect(app.pendingBadge).toBeNull();
+    app = applyAppEvent(app, { type: 'badge-tap', packId: 'name' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'name' });
+  });
+
+  it('wraps next back onto the same level once the badge is earned', () => {
+    let app = startApp({ ...named, badges: ['name-badge'], completedLevels: ['name-1'] });
+    app = applyAppEvent(app, {
+      type: 'success-action',
+      action: 'next',
+      packId: 'name',
+      levelId: 'name-1',
+    });
+    expect(app.screen).toEqual({ name: 'level', packId: 'name', levelId: 'name-1' });
+  });
+});
+
+describe('name editing', () => {
+  function openOverlay(save = createDefaultSave()): AppState {
+    let app = startApp(save);
+    app = applyAppEvent(app, { type: 'parent-open' });
+    return applyAppEvent(app, { type: 'parent-action', action: 'name' });
+  }
+
+  it('opens the overlay from the parent zone', () => {
+    const app = openOverlay();
+    expect(app.screen).toMatchObject({ name: 'parent', showName: true });
+  });
+
+  it('saves a sanitized, clamped name and closes the overlay', () => {
+    let app = openOverlay();
+    app = applyAppEvent(app, { type: 'name-set', name: 'a i r a' });
+    expect(app.save.name).toBe('AIRA');
+    expect(app.screen).toMatchObject({ name: 'parent', showName: false });
+
+    app = openOverlay();
+    app = applyAppEvent(app, { type: 'name-set', name: 'abcdefgh' });
+    expect(app.save.name).toBe('ABCDEFG');
+  });
+
+  it('rejects names shorter than two letters and stays open', () => {
+    let app = openOverlay();
+    const kept = app;
+    app = applyAppEvent(app, { type: 'name-set', name: 'a' });
+    expect(app).toBe(kept);
+    app = applyAppEvent(app, { type: 'name-set', name: '1 2' });
+    expect(app).toBe(kept);
+    expect(app.save.name).toBeUndefined();
+    expect(app.screen).toMatchObject({ showName: true });
+  });
+
+  it('clears the name but keeps the overlay open', () => {
+    let app = openOverlay({ ...createDefaultSave(), name: 'AVA' });
+    app = applyAppEvent(app, { type: 'name-clear' });
+    expect(app.save.name).toBeUndefined();
+    expect(app.screen).toMatchObject({ name: 'parent', showName: true });
+  });
+
+  it('cancels the overlay without touching the name', () => {
+    let app = openOverlay({ ...createDefaultSave(), name: 'AVA' });
+    app = applyAppEvent(app, { type: 'name-close' });
+    expect(app.save.name).toBe('AVA');
+    expect(app.screen).toMatchObject({ name: 'parent', showName: false });
+  });
+
+  it('ignores name events outside the parent overlay', () => {
+    const app = startApp(createDefaultSave());
+    expect(applyAppEvent(app, { type: 'name-set', name: 'AVA' })).toBe(app);
+    expect(applyAppEvent(app, { type: 'name-clear' })).toBe(app);
+    expect(applyAppEvent(app, { type: 'name-close' })).toBe(app);
   });
 });

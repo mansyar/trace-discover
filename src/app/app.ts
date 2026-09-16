@@ -2,7 +2,8 @@
 // success, with badge celebration, circle unlocks, and the parent zone. The
 // shell renders the current screen and feeds tap/runtime events back in;
 // every transition and save update here is unit-tested.
-import { packById } from '../packs/catalog';
+import { appPacks } from '../packs/catalog';
+import type { PackEntry } from '../packs/pack';
 import {
   bonusUnlocked,
   firstUnlockedBonusId,
@@ -14,6 +15,8 @@ import {
   completeLevel,
   createDefaultSave,
   type SaveData,
+  sanitizeName,
+  setName,
   updateSettings,
 } from '../save/store';
 import { nextSkinId } from '../skins/skins';
@@ -28,7 +31,12 @@ export type AppScreen =
   | { readonly name: 'level'; readonly packId: string; readonly levelId: string }
   | { readonly name: 'success'; readonly packId: string; readonly levelId: string }
   | { readonly name: 'badge'; readonly packId: string }
-  | { readonly name: 'parent'; readonly confirmReset: boolean; readonly showInstall: boolean };
+  | {
+      readonly name: 'parent';
+      readonly confirmReset: boolean;
+      readonly showInstall: boolean;
+      readonly showName: boolean;
+    };
 
 export interface AppState {
   /** Badge earned but not yet celebrated (success "next" routes to it). */
@@ -53,15 +61,23 @@ export type AppEvent =
   | { readonly type: 'badge-exit' }
   | { readonly type: 'skin-cycle' }
   | { readonly type: 'parent-open' }
-  | { readonly type: 'parent-action'; readonly action: ParentZoneAction };
+  | { readonly type: 'parent-action'; readonly action: ParentZoneAction }
+  | { readonly type: 'name-set'; readonly name: string }
+  | { readonly type: 'name-clear' }
+  | { readonly type: 'name-close' };
 
 export function startApp(save: SaveData): AppState {
   return { pendingBadge: null, save, screen: { name: 'splash' } };
 }
 
+/** Static packs, plus the runtime-composed name pack while a name is saved. */
+function packFor(state: AppState, packId: string): PackEntry | undefined {
+  return appPacks(state.save).find((pack) => pack.id === packId);
+}
+
 /** Main levels are always open; circles unlock at their pack thresholds. */
 function openLevel(state: AppState, packId: string, levelId: string): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return state;
   }
@@ -78,7 +94,7 @@ function openLevel(state: AppState, packId: string, levelId: string): AppState {
 }
 
 function completeLevelRun(state: AppState, packId: string, levelId: string): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return state;
   }
@@ -100,7 +116,7 @@ function successAction(
   packId: string,
   levelId: string,
 ): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return { ...state, screen: { name: 'menu' } };
   }
@@ -121,7 +137,7 @@ function successAction(
 
 /** Badge seal: circles open the first unlocked bonus; other packs go back. */
 function badgeTap(state: AppState, packId: string): AppState {
-  const pack = packById(packId);
+  const pack = packFor(state, packId);
   if (!pack) {
     return state;
   }
@@ -167,6 +183,8 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
         ...state,
         save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
       };
+    case 'name':
+      return { ...state, screen: { ...parent, showName: true } };
     case 'reset':
       if (!parent.confirmReset) {
         return { ...state, screen: { ...parent, confirmReset: true } };
@@ -174,7 +192,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         pendingBadge: null,
-        save: createDefaultSave(),
+        save: setName(createDefaultSave(), state.save.name ?? ''),
         screen: { ...parent, confirmReset: false },
       };
     case 'install':
@@ -189,7 +207,7 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'splash-tap':
       return state.screen.name === 'splash' ? { ...state, screen: { name: 'menu' } } : state;
     case 'open-pack':
-      return packById(event.packId)
+      return packFor(state, event.packId)
         ? { ...state, screen: { name: 'pack', packId: event.packId } }
         : state;
     case 'pack-back':
@@ -210,8 +228,37 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
         save: updateSettings(state.save, { skin: nextSkinId(state.save.settings.skin) }),
       };
     case 'parent-open':
-      return { ...state, screen: { name: 'parent', confirmReset: false, showInstall: false } };
+      return {
+        ...state,
+        screen: { name: 'parent', confirmReset: false, showInstall: false, showName: false },
+      };
     case 'parent-action':
       return parentAction(state, event.action);
+    case 'name-set': {
+      if (state.screen.name !== 'parent' || !state.screen.showName) {
+        return state;
+      }
+      const name = sanitizeName(event.name);
+      if (name === '') {
+        return state;
+      }
+      return {
+        ...state,
+        save: setName(state.save, name),
+        screen: { ...state.screen, showName: false },
+      };
+    }
+    case 'name-clear': {
+      if (state.screen.name !== 'parent' || !state.screen.showName) {
+        return state;
+      }
+      return { ...state, save: setName(state.save, '') };
+    }
+    case 'name-close': {
+      if (state.screen.name !== 'parent' || !state.screen.showName) {
+        return state;
+      }
+      return { ...state, screen: { ...state.screen, showName: false } };
+    }
   }
 }

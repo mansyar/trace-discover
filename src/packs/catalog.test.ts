@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { allPacks, packById } from './catalog';
+import { createDefaultSave } from '../save/store';
+import { allPacks, appPacks, packById } from './catalog';
 import { LETTERS_PACK } from './letters';
 import { NUMBERS_PACK } from './numbers';
 import { PRE_PACK } from './pre';
@@ -59,5 +60,15 @@ describe('pack catalog', () => {
       'abc-bonus-3',
     ]);
     expect(LETTERS_PACK.bonusUnlocks).toEqual([9, 18, 26]);
+  });
+});
+
+describe('appPacks', () => {
+  it('appends the name mini-pack only while a name is saved', () => {
+    const base = allPacks().map((pack) => pack.id);
+    expect(appPacks(createDefaultSave()).map((pack) => pack.id)).toEqual(base);
+    const withName = appPacks({ ...createDefaultSave(), name: 'AIRA' });
+    expect(withName.map((pack) => pack.id)).toEqual([...base, 'name']);
+    expect(withName.at(-1)?.levels[0]?.id).toBe('name-1');
   });
 });

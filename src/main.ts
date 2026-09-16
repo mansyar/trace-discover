@@ -15,6 +15,7 @@ import {
   drawBadge,
   drawLevel,
   drawMenu,
+  drawNameOverlay,
   drawPack,
   drawParent,
   drawSkinButton,
@@ -38,11 +39,13 @@ import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
-import { allPacks, packById } from './packs/catalog';
+import { appPacks } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
+import { NAME_PACK_ID } from './packs/name';
+import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
-import { loadSave, saveSave } from './save/store';
+import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
@@ -61,7 +64,13 @@ import {
   paginate,
 } from './ui/pack';
 import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
-import { hitParentZone, parentZoneLayout } from './ui/parentZone';
+import {
+  hitNameOverlay,
+  hitParentZone,
+  type NameOverlayLayout,
+  nameOverlayLayout,
+  parentZoneLayout,
+} from './ui/parentZone';
 import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
 import { hitSuccessButton, successLayout } from './ui/success';
 
@@ -80,58 +89,70 @@ function requireCharCanvas(doc: Document): HTMLCanvasElement {
   return canvas;
 }
 
-const PACKS = allPacks();
-const MENU = menuLayout(
-  FIELD_WIDTH,
-  FIELD_HEIGHT,
-  PACKS.map((pack) => pack.id),
-);
-const MENU_FILLS = PACKS.map((pack) => pack.menuFill);
-// Grid shape per pack: pre-writing carries 12 levels (3 columns), numbers 10;
-// letters paginate 12 + 14 (A–L / M–Z) so 90 px cards keep their sticker shelf.
+// Pack views: the static packs plus the runtime name mini-pack while a name
+// is saved. Rebuilt whenever the saved name changes.
 interface PackGridConfig extends PackLayoutOptions {
   readonly pages?: readonly number[];
 }
 const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
   abc: { cardSize: 90, columns: 4, pages: [12, 14], slotsPerRow: 7 },
+  name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
   pre: { columns: 3, slotsPerRow: 6 },
 };
-const PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>(
-  PACKS.map((pack) => {
-    const levelIds = pack.levels.map((level) => level.id);
-    const sizes = PACK_GRID[pack.id]?.pages ?? [levelIds.length];
-    return [pack.id, paginate(levelIds, sizes)] as const;
-  }),
-);
-const PACK_LAYOUTS = new Map<string, readonly PackLayout[]>(
-  PACKS.map(
-    (pack) =>
-      [
+
+let PACKS: readonly PackEntry[] = [];
+let MENU = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, []);
+let MENU_FILLS: readonly string[] = [];
+let PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>();
+let PACK_LAYOUTS = new Map<string, readonly PackLayout[]>();
+let PACK_PAGERS = new Map<string, PackPager | null>();
+let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>();
+
+function rebuildPackViews(): void {
+  PACKS = appPacks(app.save);
+  MENU = menuLayout(
+    FIELD_WIDTH,
+    FIELD_HEIGHT,
+    PACKS.map((pack) => pack.id),
+  );
+  MENU_FILLS = PACKS.map((pack) => pack.menuFill);
+  PACK_PAGE_IDS = new Map(
+    PACKS.map((pack) => {
+      const levelIds = pack.levels.map((level) => level.id);
+      const sizes = PACK_GRID[pack.id]?.pages ?? [levelIds.length];
+      return [pack.id, paginate(levelIds, sizes)] as const;
+    }),
+  );
+  PACK_LAYOUTS = new Map(
+    PACKS.map(
+      (pack) =>
+        [
+          pack.id,
+          (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
+            packLayout(FIELD_WIDTH, FIELD_HEIGHT, levelIds, PACK_GRID[pack.id]),
+          ),
+        ] as const,
+    ),
+  );
+  PACK_PAGERS = new Map(
+    PACKS.map((pack) => {
+      const pageCount = PACK_LAYOUTS.get(pack.id)?.length ?? 0;
+      return [
         pack.id,
-        (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
-          packLayout(FIELD_WIDTH, FIELD_HEIGHT, levelIds, PACK_GRID[pack.id]),
-        ),
-      ] as const,
-  ),
-);
-const PACK_PAGERS = new Map<string, PackPager | null>(
-  PACKS.map((pack) => {
-    const pageCount = PACK_LAYOUTS.get(pack.id)?.length ?? 0;
-    return [
-      pack.id,
-      pageCount > 1 ? packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, pageCount) : null,
-    ] as const;
-  }),
-);
-const PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>(
-  PACKS.map(
-    (pack) =>
-      [
-        pack.id,
-        new Map(pack.levels.map((level) => [level.id, levelToPath(level)] as const)),
-      ] as const,
-  ),
-);
+        pageCount > 1 ? packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, pageCount) : null,
+      ] as const;
+    }),
+  );
+  PACK_MINIS = new Map(
+    PACKS.map(
+      (pack) =>
+        [
+          pack.id,
+          new Map(pack.levels.map((level) => [level.id, levelToPath(level)] as const)),
+        ] as const,
+    ),
+  );
+}
 const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const SPLASH = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
 const PARENT = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
@@ -155,6 +176,7 @@ const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
 const saveStorage = acquireSaveStorage();
 requestPersistence();
 let app: AppState = startApp(loadSave(saveStorage));
+rebuildPackViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
@@ -193,6 +215,69 @@ function pop(): void {
   meteredPlayer?.play({ delay: 0, duration: 0.15, frequency: 660, gain: 0.22, type: 'sine' });
 }
 
+/** Lazily-created DOM field for the parent-set name (child screens never see it). */
+let nameInput: HTMLInputElement | null = null;
+
+function currentNameOverlay(): NameOverlayLayout {
+  return nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, app.save.name !== undefined);
+}
+
+function ensureNameInput(): HTMLInputElement {
+  if (nameInput) {
+    return nameInput;
+  }
+  const input = document.createElement('input');
+  input.className = 'name-input';
+  input.type = 'text';
+  input.autocomplete = 'off';
+  input.autocapitalize = 'characters';
+  input.spellcheck = false;
+  input.maxLength = MAX_NAME_LENGTH;
+  input.enterKeyHint = 'done';
+  input.setAttribute('aria-label', "Child's name");
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      commit(applyAppEvent(app, { type: 'name-set', name: input.value }));
+    }
+  });
+  document.body.appendChild(input);
+  nameInput = input;
+  return input;
+}
+
+function positionNameInput(): void {
+  if (!nameInput?.classList.contains('is-open')) {
+    return;
+  }
+  const overlay = currentNameOverlay();
+  const scale = field.width / FIELD_WIDTH;
+  nameInput.style.left = `${field.x + overlay.field.x * scale}px`;
+  nameInput.style.top = `${field.y + overlay.field.y * scale}px`;
+  nameInput.style.width = `${overlay.field.width * scale}px`;
+  nameInput.style.height = `${overlay.field.height * scale}px`;
+  nameInput.style.fontSize = `${Math.round(overlay.field.height * scale * 0.55)}px`;
+}
+
+/** Shows / hides the DOM field with the overlay screen state. */
+function syncNameInput(): void {
+  const screen = app.screen;
+  const open = screen.name === 'parent' && screen.showName;
+  if (!open) {
+    if (nameInput) {
+      nameInput.classList.remove('is-open');
+      nameInput.blur();
+    }
+    return;
+  }
+  const input = ensureNameInput();
+  if (!input.classList.contains('is-open')) {
+    input.value = app.save.name ?? '';
+    input.classList.add('is-open');
+    input.focus({ preventScroll: true });
+  }
+  positionNameInput();
+}
+
 /** Pack screen page state; landing page resets every time a pack opens. */
 let packPage = 0;
 
@@ -212,12 +297,17 @@ function packLandingPage(packId: string): number {
 
 function commit(next: AppState): void {
   const previous = app.screen;
+  const nameChanged = next.save.name !== app.save.name;
   app = next;
+  if (nameChanged) {
+    rebuildPackViews();
+  }
   const screen = app.screen;
   if (screen.name === 'pack' && (previous.name !== 'pack' || previous.packId !== screen.packId)) {
     packPage = packLandingPage(screen.packId);
   }
   saveSave(saveStorage, app.save);
+  syncNameInput();
 }
 
 /** Level-art cache: loaded files by bundle URL, with one in-flight load each. */
@@ -341,7 +431,7 @@ function syncIdleMascot(): void {
 
 /** Opens any level (main or circle) of a pack under the active skin. */
 function enterPackLevel(packId: string, levelId: string): void {
-  const pack = packById(packId);
+  const pack = PACKS.find((candidate) => candidate.id === packId);
   const level = pack
     ? [...pack.levels, ...pack.bonuses].find((candidate) => candidate.id === levelId)
     : undefined;
@@ -368,7 +458,7 @@ function enterPackLevel(packId: string, levelId: string): void {
     packId,
     levelId,
     player,
-    hopPlanFor(packId, levelId),
+    hopPlanFor(packId, levelId, level.strokes.length),
   );
 }
 
@@ -469,7 +559,7 @@ const handlers: TraceHandlers = {
         pop();
         return;
       }
-      const pack = packById(screen.packId);
+      const pack = PACKS.find((candidate) => candidate.id === screen.packId);
       const badgeDistance = Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y);
       if (
         pack &&
@@ -523,6 +613,23 @@ const handlers: TraceHandlers = {
         pop();
       }
     } else if (screen.name === 'parent') {
+      if (screen.showName) {
+        const overlayAction = hitNameOverlay(currentNameOverlay(), point);
+        if (overlayAction === 'save') {
+          commit(applyAppEvent(app, { type: 'name-set', name: nameInput?.value ?? '' }));
+          pop();
+        } else if (overlayAction === 'clear') {
+          if (nameInput) {
+            nameInput.value = '';
+          }
+          commit(applyAppEvent(app, { type: 'name-clear' }));
+          pop();
+        } else if (overlayAction === 'cancel') {
+          commit(applyAppEvent(app, { type: 'name-close' }));
+          pop();
+        }
+        return;
+      }
       const action = hitParentZone(PARENT, point);
       if (action) {
         commit(applyAppEvent(app, { type: 'parent-action', action }));
@@ -556,6 +663,7 @@ function resize(): void {
   field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
   detachInput();
   detachInput = attachTraceInput(trailCanvas, field, handlers);
+  positionNameInput();
 }
 
 // Two-finger hold in the menu corner opens the parent zone. Tracing ignores
@@ -618,18 +726,20 @@ function render(now: number): void {
   } else if (screen.name === 'menu') {
     const packArts = new Map<string, PackMenuArt>();
     for (const pack of PACKS) {
-      const cardUrl = menuCardArtUrl(pack.id);
-      preloadArt(cardUrl);
+      const cardUrl = pack.id === NAME_PACK_ID ? null : menuCardArtUrl(pack.id);
+      if (cardUrl) {
+        preloadArt(cardUrl);
+      }
       packArts.set(pack.id, {
-        image: artCache.get(cardUrl) ?? null,
+        image: cardUrl ? (artCache.get(cardUrl) ?? null) : null,
         cleared: pack.levels.filter((level) => app.save.completedLevels.includes(level.id)).length,
         total: pack.levels.length,
         badge: app.save.badges.includes(pack.badgeId),
       });
     }
-    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent);
+    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent, app.save.name);
   } else if (screen.name === 'pack') {
-    const pack = packById(screen.packId);
+    const pack = PACKS.find((candidate) => candidate.id === screen.packId);
     const page = packPageIndex(screen.packId);
     const layout = PACK_LAYOUTS.get(screen.packId)?.[page];
     if (pack && layout) {
@@ -683,6 +793,9 @@ function render(now: number): void {
       artCache.get(activeSkin().face) ?? null,
       app.save.trophies,
     );
+    if (screen.showName) {
+      drawNameOverlay(trailContext, currentNameOverlay());
+    }
   }
   if (SKIN_BUTTON_SCREENS.has(screen.name)) {
     const skin = activeSkin();
@@ -798,12 +911,24 @@ function screenTargets(): AppTarget[] {
     ];
   }
   if (screen.name === 'parent') {
+    if (screen.showName) {
+      const overlay = currentNameOverlay();
+      const targets = [
+        { id: 'name:save', x: overlay.save.x, y: overlay.save.y },
+        { id: 'name:cancel', x: overlay.cancel.x, y: overlay.cancel.y },
+      ];
+      if (overlay.clear) {
+        targets.push({ id: 'name:clear', x: overlay.clear.x, y: overlay.clear.y });
+      }
+      return targets;
+    }
     const buttons = [
       PARENT.volumeDown,
       PARENT.volumeUp,
       PARENT.mute,
       PARENT.easier,
       PARENT.skin,
+      PARENT.name,
       PARENT.reset,
       PARENT.install,
       PARENT.done,

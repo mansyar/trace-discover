@@ -5,9 +5,12 @@ import {
   createDefaultSave,
   hasSticker,
   loadSave,
+  MAX_NAME_LENGTH,
   SAVE_KEY,
   type SaveStorage,
+  sanitizeName,
   saveSave,
+  setName,
   updateSettings,
 } from './store';
 
@@ -300,5 +303,57 @@ describe('saveSave durability', () => {
     failing = false;
     saveSave(storage, save);
     expect(loadSave(storage)).toEqual(save);
+  });
+});
+
+describe('sanitizeName', () => {
+  it('uppercases and strips everything that is not A-Z', () => {
+    expect(sanitizeName('Aira')).toBe('AIRA');
+    expect(sanitizeName('a i-r a!')).toBe('AIRA');
+    expect(sanitizeName('  ava  ')).toBe('AVA');
+  });
+
+  it('drops digits and accented letters instead of trusting them', () => {
+    expect(sanitizeName('R2D2')).toBe('RD');
+    expect(sanitizeName('Zoé')).toBe('ZO');
+  });
+
+  it('clamps to MAX_NAME_LENGTH letters', () => {
+    expect(MAX_NAME_LENGTH).toBe(7);
+    expect(sanitizeName('ABCDEFGHIJ')).toBe('ABCDEFG');
+  });
+
+  it('rejects anything with fewer than two letters', () => {
+    expect(sanitizeName('')).toBe('');
+    expect(sanitizeName('A')).toBe('');
+    expect(sanitizeName('1 2 3')).toBe('');
+  });
+});
+
+describe('name persistence', () => {
+  it('sets, round-trips, and clears the name through storage', () => {
+    const storage = createMemoryStorage();
+    const saved = setName(createDefaultSave(), 'aira');
+    expect(saved.name).toBe('AIRA');
+    saveSave(storage, saved);
+    expect(loadSave(storage)).toEqual(saved);
+    const cleared = setName(saved, '');
+    expect(cleared.name).toBeUndefined();
+    saveSave(storage, cleared);
+    expect(loadSave(storage).name).toBeUndefined();
+  });
+
+  it('sanitizes hostile stored names and drops invalid ones on load', () => {
+    const mistyped = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"name":123}' });
+    expect(loadSave(mistyped).name).toBeUndefined();
+    const short = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"name":"A"}' });
+    expect(loadSave(short).name).toBeUndefined();
+    const messy = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"name":"a i r a"}' });
+    expect(loadSave(messy).name).toBe('AIRA');
+  });
+
+  it('keeps saves without a name absent-safe', () => {
+    const storage = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"badges":[]}' });
+    expect(loadSave(storage).name).toBeUndefined();
   });
 });
