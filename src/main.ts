@@ -22,6 +22,7 @@ import {
   endField,
   type LevelArt,
   NO_LEVEL_ART,
+  type PackMenuArt,
 } from './app/render';
 import { createSession, type LevelSession } from './app/session';
 import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
@@ -565,21 +566,19 @@ function render(now: number): void {
   if (screen.name === 'splash') {
     drawSplash(trailContext, now, SPLASH);
   } else if (screen.name === 'menu') {
-    const cardUrl = '/art/pack/card.png';
-    preloadArt(cardUrl);
-    drawMenu(
-      trailContext,
-      MENU,
-      MENU_FILLS,
-      {
+    const packArts = new Map<string, PackMenuArt>();
+    for (const pack of PACKS) {
+      const cardUrl =
+        pack.id === NUMBERS_PACK.id ? '/art/pack/card.png' : `/art/pack/card-${pack.id}.png`;
+      preloadArt(cardUrl);
+      packArts.set(pack.id, {
         image: artCache.get(cardUrl) ?? null,
-        cleared: NUMBERS_PACK.levels.filter((level) => app.save.completedLevels.includes(level.id))
-          .length,
-        total: NUMBERS_PACK.levels.length,
-        badge: app.save.badges.includes(NUMBERS_PACK.badgeId),
-      },
-      activeSkin().accent,
-    );
+        cleared: pack.levels.filter((level) => app.save.completedLevels.includes(level.id)).length,
+        total: pack.levels.length,
+        badge: app.save.badges.includes(pack.badgeId),
+      });
+    }
+    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent);
   } else if (screen.name === 'pack') {
     const pack = packById(screen.packId);
     const layout = PACK_LAYOUTS.get(screen.packId);

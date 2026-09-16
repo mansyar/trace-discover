@@ -8,8 +8,8 @@ const SUFFIX =
   "cute kawaii children's illustration sticker, thick dark navy blue outlines, flat pastel colors, simple white highlight shapes, centered on pure white background, no text, no shadow";
 
 const JOBS = [
-  { out: 'pre-1', prompt: 'a short chunky crayon, coral pink wrapper, stubby rounded tip' },
-  { out: 'pre-2', prompt: 'a tiny puddle with two ripple rings, soft blue' },
+  { out: 'pre-1', prompt: 'a short pink wax crayon with a blue paper sleeve, art supply for kids' },
+  { out: 'pre-2', prompt: 'a shallow puddle of water with gentle circular ripples, soft blue' },
   { out: 'pre-3', prompt: 'a small rainbow arc, half circle with three pastel bands' },
   { out: 'pre-4', prompt: 'a chunky little lightning bolt, rounded corners, soft yellow' },
   { out: 'pre-5', prompt: 'a friendly yellow pencil with a pink eraser' },
@@ -41,6 +41,7 @@ const JOBS = [
 ];
 
 let failed = 0;
+let consecutive = 0;
 for (const job of JOBS) {
   const file = `gen/${job.out}.png`;
   if (existsSync(file)) {
@@ -51,9 +52,15 @@ for (const job of JOBS) {
   const args = ['tools/gen.mjs', '--prompt', prompt, '--out', file];
   const run = spawnSync('node', args, { stdio: 'inherit' });
   if (run.status !== 0) {
-    console.log(`FAILED ${file} — stopping (likely quota).`);
+    consecutive++;
     failed = 1;
-    break;
+    console.log(`FAILED ${file} (consecutive: ${consecutive})`);
+    if (consecutive >= 3) {
+      console.log('3 consecutive failures - stopping (likely quota).');
+      break;
+    }
+  } else {
+    consecutive = 0;
   }
 }
 process.exit(failed);

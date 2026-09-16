@@ -338,7 +338,7 @@ export function drawMenu(
   ctx: CanvasRenderingContext2D,
   layout: MenuLayout,
   fills: readonly string[],
-  packArt?: PackMenuArt,
+  packArts?: ReadonlyMap<string, PackMenuArt>,
   accent?: string,
 ): void {
   layout.cards.forEach((card, index) => {
@@ -352,8 +352,9 @@ export function drawMenu(
     if (accent) {
       drawAccentTag(ctx, card.x + 16, card.y + 14, 44, 12, accent);
     }
-    if (card.packId === NUMBERS_PACK.id) {
-      drawMenuPackCard(ctx, card, packArt);
+    const art = packArts?.get(card.packId);
+    if (art) {
+      drawMenuPackCard(ctx, card, art);
     } else {
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
     }
@@ -387,8 +388,10 @@ function drawMenuPackCard(ctx: CanvasRenderingContext2D, card: MenuCard, art?: P
       width,
       height,
     );
-  } else {
+  } else if (card.packId === NUMBERS_PACK.id) {
     drawMenuPackArt(ctx, card);
+  } else {
+    drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
   }
   if (!art || art.cleared <= 0) {
     return;
