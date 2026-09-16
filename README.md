@@ -3,11 +3,11 @@
 A zero-text, offline-first tracing game for toddlers (~3–4) — building fine-motor
 and pre-writing skills by tracing glowing paths with a finger.
 
-Four characters (dino · star · excavator · lion cub) × three content packs
-(pre-writing shapes · numerals 0–9 · uppercase letters A–Z), plus a personalized
-**My Name** mini-pack — a parent sets the name once and the level is composed
-from the letter glyphs. Stickers and badges as rewards; child surfaces are
-zero-text and sound-first; no failure states. Installs as a PWA.
+Five characters (dino · star · excavator · lion cub · teddy bear) × three content
+packs (pre-writing shapes · numerals 0–9 · uppercase letters A–Z), plus a
+personalized **My Name** mini-pack — a parent sets the name once and the level is
+composed from the letter glyphs. Stickers and badges as rewards; child surfaces
+are zero-text and sound-first; no failure states. Installs as a PWA.
 
 **Live:** https://trace-discover.pages.dev
 
@@ -21,6 +21,7 @@ pnpm dev        # Vite dev server
 pnpm test       # unit tests (Vitest)
 pnpm check      # Biome lint/format + tsc --noEmit
 pnpm build      # production build → dist/
+pnpm budget     # dist size guard (against payload ceilings)
 pnpm preview    # serve the build locally
 pnpm serve      # LAN server for real-device testing (Android / iPad)
 ```

@@ -1,9 +1,9 @@
 // tools/faces.mjs — one-shot: head-crop face icons for the skin switch button.
 // Finds the eye whites in each character source, crops a square around them,
-// composites onto the skin accent disc, and writes public/art/face/*.png.
-// Also emits a 2x2 contact sheet for review. usage: node dev/tools/faces.mjs
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// composites onto the skin accent disc, and writes public/art/face/*.webp.
+// Also emits a 2x2 contact sheet for review. usage: node dev/tools/faces.mjs [id ...]  (default: all)
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const SOURCES = [
@@ -26,6 +26,16 @@ const SOURCES = [
     box: { x0: 30, y0: 0, x1: 450, y1: 440 },
   },
   { id: 'animal', file: 'gen/cut-lion-ref.png', accent: '#90be6d', region: null, minArea: 40, sideMul: 1.28, box: null },
+  {
+    id: 'teddy',
+    file: 'characters/teddy/base.png',
+    accent: '#e07a5f',
+    region: null,
+    minArea: 40,
+    // Dark dot eyes (no eye whites) — hand-placed like star. Box tuned on the
+    // teddy cut; icon verified at button scale (menu + parent setter).
+    box: { x0: 130, y0: 0, x1: 470, y1: 340 },
+  },
 ];
 
 async function launch() {
@@ -39,10 +49,17 @@ async function launch() {
   }
 }
 
-const payload = SOURCES.map((s) => ({
-  ...s,
-  b64: 'data:image/png;base64,' + readFileSync(resolve(s.file)).toString('base64'),
-}));
+const wanted = process.argv.slice(2);
+const picked = SOURCES.filter((s) => wanted.length === 0 || wanted.includes(s.id));
+const payload = [];
+for (const s of picked) {
+  const file = join(import.meta.dirname, '..', s.file);
+  if (!existsSync(file)) {
+    console.log(`skip ${s.id} (missing ${s.file})`);
+    continue;
+  }
+  payload.push({ ...s, b64: 'data:image/png;base64,' + readFileSync(file).toString('base64') });
+}
 
 const browser = await launch();
 const page = await browser.newPage();
@@ -229,7 +246,7 @@ const out = await page.evaluate(async (sources) => {
       clusters: diag,
       paired: Boolean(eyes),
       crop: { side: Math.round(side), sx: Math.round(sx), sy: Math.round(sy) },
-      png: face.toDataURL('image/png').split(',')[1],
+      webp: face.toDataURL('image/webp', 0.85).split(',')[1],
     });
   }
   return { results, sheet: sheet.toDataURL('image/png').split(',')[1] };
@@ -238,11 +255,11 @@ const out = await page.evaluate(async (sources) => {
 mkdirSync(new URL('../../public/art/face', import.meta.url), { recursive: true });
 for (const r of out.results) {
   writeFileSync(
-    new URL(`../../public/art/face/${r.id}.png`, import.meta.url),
-    Buffer.from(r.png, 'base64'),
+    new URL(`../../public/art/face/${r.id}.webp`, import.meta.url),
+    Buffer.from(r.webp, 'base64'),
   );
   console.log(
-    `${r.id}: paired=${r.paired} crop=${JSON.stringify(r.crop)} clusters=${JSON.stringify(r.clusters)} -> public/art/face/${r.id}.png`,
+    `${r.id}: paired=${r.paired} crop=${JSON.stringify(r.crop)} clusters=${JSON.stringify(r.clusters)} -> public/art/face/${r.id}.webp`,
   );
 }
 mkdirSync(new URL('../gen', import.meta.url), { recursive: true });

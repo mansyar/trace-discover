@@ -9,7 +9,7 @@ afterEach(() => {
 describe('loadArtImage', () => {
   it('resolves null when the platform has no Image constructor', async () => {
     vi.stubGlobal('Image', undefined);
-    await expect(loadArtImage('/art/goal/dino-1.png')).resolves.toBeNull();
+    await expect(loadArtImage('/art/goal/dino-1.webp')).resolves.toBeNull();
   });
 
   it('resolves the element once it loads', async () => {
@@ -21,7 +21,7 @@ describe('loadArtImage', () => {
         return instance;
       }),
     );
-    const pending = loadArtImage('/art/goal/dino-1.png');
+    const pending = loadArtImage('/art/goal/dino-1.webp');
     if (!instance) {
       throw new Error('expected an image instance');
     }
@@ -40,7 +40,7 @@ describe('loadArtImage', () => {
         return instance;
       }),
     );
-    const pending = loadArtImage('/art/goal/missing.png');
+    const pending = loadArtImage('/art/goal/missing.webp');
     if (!instance) {
       throw new Error('expected an image instance');
     }

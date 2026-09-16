@@ -23,7 +23,7 @@ export function letterLevel(
   if (!goal) {
     throw new Error(`letter level ${id} needs at least one control point`);
   }
-  return { goal, goalArt: `/art/goal/${id}.png`, id, stroke, strokes };
+  return { goal, goalArt: `/art/goal/${id}.webp`, id, stroke, strokes };
 }
 
 /** The twenty-six uppercase letters in play order (A → Z). */

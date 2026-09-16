@@ -13,39 +13,47 @@ export interface SkinDef {
   readonly instrument: InstrumentId;
 }
 
-/** Cycle order for the skin switch button: dino -> star -> construction -> animal. */
+/** Cycle order for the skin switch button: dino -> star -> construction -> animal -> teddy. */
 export const SKINS: readonly SkinDef[] = [
   {
     accent: '#8ecae6',
-    backdrop: '/art/bg/dino.jpg',
+    backdrop: '/art/bg/dino.webp',
     character: 'dino',
-    face: '/art/face/dino.png',
+    face: '/art/face/dino.webp',
     id: 'dino',
     instrument: 'marimba',
   },
   {
     accent: '#f3c969',
-    backdrop: '/art/bg/star.jpg',
+    backdrop: '/art/bg/star.webp',
     character: 'star',
-    face: '/art/face/star.png',
+    face: '/art/face/star.webp',
     id: 'star',
     instrument: 'bell',
   },
   {
     accent: '#ffd166',
-    backdrop: '/art/bg/construction.jpg',
+    backdrop: '/art/bg/construction.webp',
     character: 'excavator',
-    face: '/art/face/construction.png',
+    face: '/art/face/construction.webp',
     id: 'construction',
     instrument: 'woodblock',
   },
   {
     accent: '#90be6d',
-    backdrop: '/art/bg/animals.jpg',
+    backdrop: '/art/bg/animals.webp',
     character: 'lion',
-    face: '/art/face/animal.png',
+    face: '/art/face/animal.webp',
     id: 'animal',
     instrument: 'kalimba',
+  },
+  {
+    accent: '#e07a5f',
+    backdrop: '/art/bg/teddy.webp',
+    character: 'teddy',
+    face: '/art/face/teddy.webp',
+    id: 'teddy',
+    instrument: 'musicbox',
   },
 ];
 

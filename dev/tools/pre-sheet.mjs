@@ -9,27 +9,27 @@ const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const GEN = resolve(fileURLToPath(new URL('../gen', import.meta.url)));
 
 const files = [
-  'goal/pre-1.png',
-  'goal/pre-2.png',
-  'goal/pre-3.png',
-  'goal/pre-4.png',
-  'goal/pre-5.png',
-  'goal/pre-6.png',
-  'goal/pre-7.png',
-  'goal/pre-8.png',
-  'goal/pre-9.png',
-  'goal/pre-10.png',
-  'goal/pre-11.png',
-  'goal/pre-12.png',
-  'goal/pre-bonus-1.png',
-  'goal/pre-bonus-2.png',
-  'goal/pre-bonus-3.png',
-  'pack/pre-badge.png',
+  'goal/pre-1.webp',
+  'goal/pre-2.webp',
+  'goal/pre-3.webp',
+  'goal/pre-4.webp',
+  'goal/pre-5.webp',
+  'goal/pre-6.webp',
+  'goal/pre-7.webp',
+  'goal/pre-8.webp',
+  'goal/pre-9.webp',
+  'goal/pre-10.webp',
+  'goal/pre-11.webp',
+  'goal/pre-12.webp',
+  'goal/pre-bonus-1.webp',
+  'goal/pre-bonus-2.webp',
+  'goal/pre-bonus-3.webp',
+  'pack/pre-badge.webp',
 ];
 
 const payload = files.map((f) => ({
   name: f,
-  b64: 'data:image/png;base64,' + readFileSync(resolve(ROOT, 'public', 'art', f)).toString('base64'),
+  b64: 'data:image/webp;base64,' + readFileSync(resolve(ROOT, 'public', 'art', f)).toString('base64'),
 }));
 
 let browser;
