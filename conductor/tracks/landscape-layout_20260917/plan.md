@@ -54,14 +54,14 @@ no new deps/assets.
 
 ## Phase 2: Level composition + rotation reflow
 
-- [ ] Task 1: Word-row composer generalization (TDD)
-  - [ ] Red: `composeWordRow(glyphs, box, gap, cap)` — order, bounds, centering,
+- [x] Task 1: Word-row composer generalization (TDD) (2f23dcd)
+  - [x] Red: `composeWordRow(glyphs, box, gap, cap)` — order, bounds, centering,
         scale cap, natural gaps
-  - [ ] Green: extract from `name.ts`; portrait outputs byte-identical
+  - [x] Green: extract from `name.ts`; portrait outputs byte-identical
         (fixture)
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 2: Level projection layer (TDD)
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [~] Task 2: Level projection layer (TDD)
   - [ ] Red: `levelForOrientation(level, orientation)` — portrait identity
         (deep equality with authored levels); landscape: single glyphs
         uniformly fit/center (scale ≤ 1.0, margins honored)
