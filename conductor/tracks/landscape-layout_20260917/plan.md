@@ -33,15 +33,15 @@ no new deps/assets.
         hook
   - [x] Verify coverage on new logic
   - [x] Commit + git note
-- [~] Task 3: Layout rebuilds — child surfaces (TDD)
-  - [ ] Red: menu/splash/skin/success/badge layouts produce in-bounds landscape
+- [x] Task 3: Layout rebuilds — child surfaces (TDD) (e7ebab1)
+  - [x] Red: menu/splash/skin/success/badge layouts produce in-bounds landscape
         arrangements (centered card row/wrap, gate zone, parks); portrait
         outputs equal current snapshots
-  - [ ] Green: boot-time layout constants become `rebuildViews()` recomputed on
+  - [x] Green: boot-time layout constants become `rebuildViews()` recomputed on
         orientation change; render/input read current views
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 4: Layout rebuilds — pack grids, pagers, sticker shelves (TDD)
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [~] Task 4: Layout rebuilds — pack grids, pagers, sticker shelves (TDD)
   - [ ] Red: per-pack landscape configurations (letters/numbers/pre/name)
         in-bounds; page counts; shelf slots
   - [ ] Green: landscape `PACK_GRID` configs; layouts/pagers/minis recompute;
