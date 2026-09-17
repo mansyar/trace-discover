@@ -16,7 +16,7 @@
 
 ## Phase 2: Dynamic-fit layout math — count × orientation matrix (TDD)
 
-- [ ] Task 1: Matrix tests red → dynamic-fit `menuLayout` green
+- [x] Task 1: Matrix tests red → dynamic-fit `menuLayout` green [1ceead5]
   - [ ] Red: extend `src/ui/menu.test.ts` — 1–6 × portrait/landscape matrix (fit inside field, ≥ 90px dims, no card overlap, park/gate clearance, hit parity); fidelity lock — recorded rects for today's counts (3 packs; 4 with name) unchanged; confirm red at 5–6 against the current implementation (documents the overflow bug)
   - [ ] Green: `src/ui/menu.ts` dynamic-fit — columns-first growth (portrait stack → centered 2-column grid; landscape row → 2-column → 3-column wrap), secondary shrink within floors, deterministic centering/last-row rules
   - [ ] Verify coverage
