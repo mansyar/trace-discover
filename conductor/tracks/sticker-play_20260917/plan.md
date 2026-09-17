@@ -47,15 +47,15 @@ two pages), ear approval of the note ladder, and the device sign-off.
   - [x] Green: new pure `src/ui/stickerBoard.ts`
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: App state machine (TDD)
-  - [ ] Red: `sticker-open` (pack exists && ≥1 sticker) → board screen;
+- [x] Task 2: App state machine (TDD) (54ad7ed)
+  - [x] Red: `sticker-open` (pack exists && ≥1 sticker) → board screen;
         `sticker-close` → pack; `sticker-tap` only on earned stickers (drives
         moment state); open sets the intro flag once; pulse predicate (flag
         unseen && ≥1 sticker)
-  - [ ] Green: `src/app/app.ts` (new screen variant + events) + predicate
+  - [x] Green: `src/app/app.ts` (new screen variant + events) + predicate
         helper
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Rendering + shell wiring — board, pop moment, shelf pulse
