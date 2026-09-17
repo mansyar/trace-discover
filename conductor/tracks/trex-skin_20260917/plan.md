@@ -8,7 +8,7 @@
 
 *Goal: the context docs describe the sixth skin before implementation; the stylized character master exists in the house art language and is approved by the owner — the hard gate before any build work.*
 
-- [ ] Task: Context docs resync — before implementation per workflow.md
+- [x] Task: Context docs resync — before implementation per workflow.md [59f7fc6]
   - [ ] `product.md`: sixth skin noted; out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
   - [ ] `tech-stack.md`: skins list gains trex; instruments list gains the new preset; dated note
   - [ ] `dev/README.md`: character workspace list gains trex
