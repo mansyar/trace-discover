@@ -2,7 +2,7 @@
 
 ## Description
 
-A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles), Numbers (0–9), and Letters (uppercase A–Z + `ABC`/`MOM`/`ZOO` word bonuses), plus a personalized **My Name** mini-pack (composed at runtime from the letter glyphs; parent-set, on-device only) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops in, waits by the path, then hops to its goal and celebrates with its own signature flourish, and a content-neutral sticker flies into the pack's collection — where it can be tapped on the pack's sticker board for a springy pop, sparkles, and a note. Between levels the cast stays alive — tap it and it giggles; left alone it breathes, bobs, and blinks. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads, in portrait or landscape — built at $0 with an agent-driven asset pipeline.
+A mobile-first, installable PWA where toddlers (~3–4 years) build fine-motor control and pre-writing skills by tracing generous, guided paths. Content ships in **packs** — Pre-writing (12 levels + 3 bonus circles), Numbers (0–9), and Letters (uppercase A–Z + `ABC`/`MOM`/`ZOO` word bonuses), plus a personalized **My Name** mini-pack (composed at runtime from the letter glyphs; parent-set, on-device only) — and the child chooses **who comes along** with a one-tap skin switch (🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy · 🦕 Trex): character, backdrop, accent, and instrument change; progress never does. Each level pairs a code-drawn path with an AI-generated, Rive-animated character: the child drags a glowing tip along the trail (paint-fill reveals progress, a pentatonic chime per checkpoint), the character hops in, waits by the path, then hops to its goal and celebrates with its own signature flourish, and a content-neutral sticker flies into the pack's collection — where it can be tapped on the pack's sticker board for a springy pop, sparkles, and a note. Between levels the cast stays alive — tap it and it giggles; left alone it breathes, bobs, and blinks. Zero-text, zero-network, zero-failure-state: fully offline, sounds-only, tuned for little fingers on Android phones and iPads, in portrait or landscape — built at $0 with an agent-driven asset pipeline.
 
 ## Vision
 
@@ -32,6 +32,8 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 *2026-09-17 — Landscape layout (track `landscape-layout_20260917`) completed on branch `track/landscape-layout`: a native landscape design space (860×430) beside the portrait field — every screen re-laid for the wide box with portrait visually unchanged; word-class tracing (My Name, `ABC`/`MOM`/`ZOO`) recomposes at full letter size (5-letter names at full scale, 7-letter ≈2× portrait); rotation re-flows instantly with tracing progress preserved; child shells, success, badge, splash, parent zone, install panel and name modal all recomposed; QA canonicalized in `qa-landscape` (portrait + landscape matrix, rotation assertions, screenshots); offline cold start, perf spot-check and payload budget re-verified; owner device pass passed 2026-09-17; awaiting the merge/release decision.*
 
+*2026-09-17 — Sixth skin (track `trex-skin_20260917`) begun on branch `track/trex-skin`: `trex` — the family's toy T-Rex restyled through the img2img pipeline (photo input only → owner-approved stylized master → cutout → Rive) — joins the skin cycle with its own backdrop, face icon, and instrument voice (`squeak`, provisional — confirmed by ear at the art review); second production proof of the drop-in contract after `teddy`. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
@@ -41,12 +43,12 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 - **Packs × skins architecture** — content and presentation are independent: the child picks *what to trace*; *who comes along* is a tap away
   - **Packs:** Pre-writing (12 levels re-ramped small → medium → large; circles unlock at 4/8/12) · Numbers (0–9, toy-piano counted reward) · Letters (uppercase A–Z in two pages, per-stroke counted reward; `ABC`/`MOM`/`ZOO` bonuses at 9/18/26)
-  - **Skins:** 🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy — character, backdrop, accent, instrument; switchable anytime via the top-left button; persisted
+  - **Skins:** 🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy · 🦕 Trex — character, backdrop, accent, instrument; switchable anytime via the top-left button; persisted
 - **My Name mini-pack** — the parent sets the child's name once (behind the parent gate; 2–7 uppercase letters); the trace level is composed at runtime from the shipped letter glyphs — her own sticker and badge, fully on-device
 - **Portrait + landscape play** (track `landscape-layout_20260917`): every screen re-lays for the wide field — an 860×430 landscape design space beside the portrait 430×860 — so word tracing (My Name, `ABC`/`MOM`/`ZOO`) composes at full letter size, and rotation re-flows instantly with progress kept
 - Continuous trail-tip engine: forgiving start zone, capped speed (no skip-swipe), ~12% tolerance, paint-fill feedback
 - No-fail assists: lift keeps progress · star nudge at 2s · hand-hint at 4s · gentle auto-assist + parent toggle
-- Pentatonic audio per skin (marimba · bell · woodblock · kalimba · music box): chime per checkpoint, chord resolve + fanfare on completion
+- Pentatonic audio per skin (marimba · bell · woodblock · kalimba · music box · squeak): chime per checkpoint, chord resolve + fanfare on completion
 - Reward loop: content-neutral sticker per level; a per-pack **sticker board** makes collected stickers playable — tapping one springs it up with sparkles and a pentatonic note (stable per sticker, so taps play little melodies); badge per pack; legacy world badges shown as display-only trophies
 - Zero-text, content-first UI: pack cards → level cards + sticker slots → 3-icon success screen; idle mascot on menu + pack screens (tap → giggle with one note and sparkles)
 - Parent zone (hold-to-open gate): sound with level pips + preview, easier tracing, skin setter, trophies, reset progress, platform-aware install guide
@@ -58,7 +60,7 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 ## Out of Scope
 
-Lowercase letters & phonics · additional skins beyond the five (drop-in contract proven; further skins remain pipeline work) · accounts/cloud sync · spoken voice/localization · store shipping/monetization · parent dashboards.
+Lowercase letters & phonics · additional skins beyond the six (drop-in contract proven; further skins remain pipeline work) · accounts/cloud sync · spoken voice/localization · store shipping/monetization · parent dashboards.
 
 ## Technical Constraints
 
