@@ -37,7 +37,7 @@
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — CI wiring + recorded runs
+## Phase 3 — CI wiring + recorded runs [checkpoint: 25b107b]
 
 *Goal: every PR boots the real app on GitHub's Edge; the failure path (red step, best-effort artifact) is proven on a live run.*
 
@@ -53,7 +53,7 @@
 - [x] Task: Green end-to-end CI evidence [ccbbb53]
   - [x] Final state green; record run URL + step timings (smoke's added wall time vs 20 min budget)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Coverage enforcement
 
