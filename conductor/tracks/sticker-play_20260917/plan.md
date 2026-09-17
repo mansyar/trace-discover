@@ -93,9 +93,11 @@ two pages), ear approval of the note ladder, and the device sign-off.
   - [x] Green: mapping helper + existing synth/player wiring
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: Ear tuning pass — final mapping recorded (owner listen approval
-      gate)
-  - [ ] Commit + git note (if adjusted)
+- [x] Task 2: Ear tuning pass — final mapping recorded (owner listen approval
+      gate) (964823f)
+  - [x] Owner ear pick: wrap at two octaves, C5..A6 then repeat (2026-09-17);
+        big-board tops kept audible (letters previously ~25 kHz)
+  - [x] Wrap implemented, tests added, commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: QA evidence + tooling
