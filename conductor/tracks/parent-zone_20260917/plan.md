@@ -129,12 +129,12 @@ one-finger hold fails device tuning.
 
 ## Phase 7: QA evidence, device tuning, acceptance, docs finalize
 
-- [~] Task 1: QA probe updates: single-pointer gate in `qa-name` /
+- [x] Task 1: QA probe updates: single-pointer gate in `qa-name` /
       `qa-pre-pack` / `qa-teddy-screens`; `dev/screens.ts` `?screen=parent`; new
       `qa-parent-zone.mjs` (hint → hold → open → flag → reload → hint gone →
-      sound → install variants → restart confirm → screenshots)
-  - [ ] Commit + git note
-- [ ] Task 2: Zero-text audit (hint = documented exception); hostile fixtures;
+      sound → install variants → restart confirm → screenshots) (d73684a)
+  - [x] Commit + git note
+- [~] Task 2: Zero-text audit (hint = documented exception); hostile fixtures;
       `qa-offline` cold start unchanged; perf spot-check
   - [ ] Commit + git note
 - [ ] Task 3: Device pass Android + iPad — one-handed gate feel, ring
