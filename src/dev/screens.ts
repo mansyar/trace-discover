@@ -5,6 +5,15 @@
 // double-tapping the badge resets progress. ?screen=menu|pack|success picks
 // the starting screen for headless screenshots.
 import '../style.css';
+import {
+  createEntrance,
+  type EntranceState,
+  type EntranceTimeline,
+  entrancePos,
+  entranceStart,
+  settleEntrance,
+  stepEntrance,
+} from '../character/entrance';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
@@ -12,6 +21,7 @@ import { allPacks } from '../packs/catalog';
 import { levelToPath } from '../packs/level';
 import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { shouldAwardPackBadge } from '../packs/progress';
+import { type ConfettiParticle, createConfetti, stepConfetti } from '../render/confetti';
 import {
   awardBadge,
   completeLevel,
@@ -22,6 +32,7 @@ import {
 } from '../save/store';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
+import { MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, mascotZone } from '../ui/mascot';
 import { hitMenuCard, inParentGate, menuLayout } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
@@ -40,6 +51,18 @@ const CREAM = '#f6e3b8';
 const FIELD_FILL = '#edf5d9';
 const CYCLE = { height: 64, width: 64, x: 24, y: 24 };
 const DOUBLE_TAP_MS = 400;
+const TUNING_BUTTON_SIZE = 64;
+const TUNING_BUTTONS = [
+  { id: 'giggle', label: 'G', x: CYCLE.x, y: CYCLE.y + 72 },
+  { id: 'entrance', label: 'E', x: CYCLE.x, y: CYCLE.y + 144 },
+  { id: 'settle', label: 'S', x: CYCLE.x, y: CYCLE.y + 216 },
+] as const;
+const GIGGLE_SPARKLES_MS = 1200; // mirrors src/main.ts
+/** Mascot parks for the tuning overlay; mirrors src/main.ts MASCOT_SCALE_* / *_PARK. */
+const MASCOT_PARKS: Partial<Record<PreviewScreen, { park: Point; scale: number }>> = {
+  menu: { park: { x: 215, y: 735 }, scale: 0.32 },
+  pack: { park: { x: 215, y: 572 }, scale: 0.26 },
+};
 
 const canvas = requireCanvas(document);
 const context = require2dContext(canvas);
@@ -54,6 +77,12 @@ let save: SaveData = loadSave(localStorage);
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
 let detachInput: () => void = () => {};
 let lastBadgeTap = 0;
+let mascotOn = false;
+let mascotEntrance: { timeline: EntranceTimeline; state: EntranceState } | null = null;
+let sparkles: ConfettiParticle[] = [];
+let sparklesUntil = 0;
+let frameHandle = 0;
+let lastFrameAt = 0;
 
 function log(message: string): void {
   lines.push(message);
@@ -291,6 +320,65 @@ function drawCycle(): void {
   context.fill();
 }
 
+/** Tuning overlay: dashed hit zone + placeholder buddy at the park (or mid-hop). */
+function drawMascotOverlay(): void {
+  const config = MASCOT_PARKS[screen];
+  if (!mascotOn || config === undefined || mascotEntrance === null) {
+    return;
+  }
+  const zone = mascotZone(config.park, config.scale);
+  const pos = entrancePos(mascotEntrance.timeline, mascotEntrance.state);
+  const size = FIELD_WIDTH * config.scale;
+  const centerX = pos.x;
+  const centerY = pos.y + size * 0.38;
+  const radius = size / 2;
+  drawCircle(centerX, centerY, radius, '#cfe3f2');
+  drawDashedCircle(zone.x, zone.y, zone.radius);
+  const eye = radius * 0.14;
+  context.fillStyle = NAVY;
+  context.beginPath();
+  context.arc(centerX - radius * 0.3, centerY - radius * 0.12, eye, 0, Math.PI * 2);
+  context.arc(centerX + radius * 0.3, centerY - radius * 0.12, eye, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = NAVY;
+  context.lineWidth = 5;
+  context.beginPath();
+  context.arc(centerX, centerY + radius * 0.18, radius * 0.34, 0.25 * Math.PI, 0.75 * Math.PI);
+  context.stroke();
+}
+
+/** Giggle sparkles in field space (mirrors src/main.ts drawMascotSparkles). */
+function drawSparkles(): void {
+  for (const particle of sparkles) {
+    context.save();
+    context.translate(particle.x, particle.y);
+    context.rotate(particle.x * 0.05 + particle.y * 0.02);
+    context.fillStyle = particle.color;
+    context.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+    context.restore();
+  }
+}
+
+/** Dev-only tuning controls (G/E/S) tucked below the screen cycle button. */
+function drawTuningButtons(): void {
+  context.font = 'bold 30px monospace';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  for (const button of TUNING_BUTTONS) {
+    context.fillStyle = '#ffffff';
+    context.fillRect(button.x, button.y, TUNING_BUTTON_SIZE, TUNING_BUTTON_SIZE);
+    context.lineWidth = 5;
+    context.strokeStyle = NAVY;
+    context.strokeRect(button.x, button.y, TUNING_BUTTON_SIZE, TUNING_BUTTON_SIZE);
+    context.fillStyle = NAVY;
+    context.fillText(
+      button.label,
+      button.x + TUNING_BUTTON_SIZE / 2,
+      button.y + TUNING_BUTTON_SIZE / 2,
+    );
+  }
+}
+
 function render(): void {
   const dpr = canvas.width / window.innerWidth;
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -307,7 +395,10 @@ function render(): void {
   } else {
     drawSuccess();
   }
+  drawMascotOverlay();
+  drawSparkles();
   drawCycle();
+  drawTuningButtons();
 }
 
 function cycle(): void {
@@ -318,7 +409,99 @@ function cycle(): void {
   } else {
     screen = 'menu';
   }
+  if (mascotOn) {
+    parkMascot();
+  }
   log(`preview: ${screen}`);
+}
+
+/** Places the overlay mascot at the current screen's park, already settled. */
+function parkMascot(): void {
+  const config = MASCOT_PARKS[screen];
+  if (config === undefined) {
+    mascotEntrance = null;
+    return;
+  }
+  mascotOn = true;
+  const timeline = createEntrance(config.park);
+  mascotEntrance = { timeline, state: settleEntrance(timeline, entranceStart()) };
+}
+
+function ensureFrame(): void {
+  if (frameHandle !== 0) {
+    return;
+  }
+  lastFrameAt = performance.now();
+  frameHandle = requestAnimationFrame(frame);
+}
+
+function frame(): void {
+  frameHandle = 0;
+  const now = performance.now();
+  const dtMs = Math.min(50, now - lastFrameAt);
+  lastFrameAt = now;
+  if (mascotEntrance !== null && !mascotEntrance.state.settled) {
+    mascotEntrance.state = stepEntrance(mascotEntrance.timeline, mascotEntrance.state, dtMs);
+  }
+  if (sparkles.length > 0) {
+    if (now >= sparklesUntil) {
+      sparkles = [];
+    } else {
+      sparkles = stepConfetti(sparkles, dtMs / 1000);
+    }
+  }
+  render();
+  const busy = (mascotEntrance !== null && !mascotEntrance.state.settled) || sparkles.length > 0;
+  if (busy) {
+    ensureFrame();
+  }
+}
+
+function tuningTap(id: (typeof TUNING_BUTTONS)[number]['id']): void {
+  const config = MASCOT_PARKS[screen];
+  if (config === undefined) {
+    log(`tuning: no mascot on the ${screen} screen`);
+    return;
+  }
+  if (id === 'giggle') {
+    if (mascotEntrance === null) {
+      parkMascot();
+    }
+    const zone = mascotZone(config.park, config.scale);
+    sparkles = createConfetti(MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, {
+      x: zone.x,
+      y: zone.y,
+    });
+    sparklesUntil = performance.now() + GIGGLE_SPARKLES_MS;
+    log('tuning: giggle burst');
+  } else if (id === 'entrance') {
+    mascotOn = true;
+    const timeline = createEntrance(config.park);
+    mascotEntrance = { timeline, state: entranceStart() };
+    log('tuning: entrance replay');
+  } else if (mascotEntrance !== null && !mascotEntrance.state.settled) {
+    mascotEntrance.state = settleEntrance(mascotEntrance.timeline, mascotEntrance.state);
+    log('tuning: settled');
+  } else {
+    log('tuning: already settled');
+  }
+  ensureFrame();
+}
+
+function hitTuningButton(point: Point): (typeof TUNING_BUTTONS)[number]['id'] | null {
+  for (const button of TUNING_BUTTONS) {
+    if (
+      insideRect(point, {
+        height: TUNING_BUTTON_SIZE,
+        width: TUNING_BUTTON_SIZE,
+        x: button.x,
+        y: button.y,
+      })
+    ) {
+      return button.id;
+    }
+  }
+  return null;
 }
 
 function tapPack(point: Point): void {
@@ -353,6 +536,12 @@ function tapPack(point: Point): void {
 function onTap(point: Point): void {
   if (insideRect(point, CYCLE)) {
     cycle();
+    render();
+    return;
+  }
+  const tuning = hitTuningButton(point);
+  if (tuning !== null) {
+    tuningTap(tuning);
     render();
     return;
   }
@@ -404,4 +593,4 @@ function resize(): void {
 
 window.addEventListener('resize', resize);
 resize();
-log('screens ready — tap cards; top-left triangle switches screen');
+log('screens ready — tap cards; top-left triangle switches screen; G/E/S tune the mascot');
