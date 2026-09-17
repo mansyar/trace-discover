@@ -58,7 +58,7 @@ two pages), ear approval of the note ladder, and the device sign-off.
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Rendering + shell wiring — board, pop moment, shelf pulse
+## Phase 3: Rendering + shell wiring — board, pop moment, shelf pulse [checkpoint: b8d7db4]
 
 - [x] Task 1: Board rendering (368ed6c)
   - [x] Draw board: skin backdrop, filled sticker art (earned) / ghosted
@@ -76,6 +76,11 @@ two pages), ear approval of the note ladder, and the device sign-off.
         board pointer handling (cells → moment + note); shelf pulse while the
         intro is unseen; `targets()` gains shelf band + board targets
   - [x] Screenshots (pulse state, board open, pop)
+  - [x] Commit + git note
+- [x] Task 4: Pop containment fix (verification finding) (b8d7db4)
+  - [x] Cap pop size to the field + clamp edge-cell centers so the whole
+        sticker + sparkles stay on-field (owner bug report); placement tests +
+        probe edge-cell pass
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
