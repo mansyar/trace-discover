@@ -71,12 +71,12 @@ no push/PR/release; no new runtime dependency.
 
 ## Phase 4: Dev CLI validator [checkpoint: ]
 
-- [ ] Task 1: Problem-collector API (TDD)
-  - [ ] Red: `collectPackProblems` returns path-labeled problems for bad packs
+- [x] Task 1: Problem-collector API (TDD) (dd74697)
+  - [x] Red: `collectPackProblems` returns path-labeled problems for bad packs
         (file → level id → problem), empty for good input
-  - [ ] Green: export from the parser module; used by both runtime throw and CLI
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Green: export from the parser module; used by both runtime throw and CLI
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: `dev/tools/pack-validate.mjs` + `pnpm pack:check`
   - [ ] Validates every `src/packs/data/*.json` via Node 24 native TS type-stripping;
         prints per-file/per-level problems; exit non-zero on failure
