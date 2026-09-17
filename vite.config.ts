@@ -30,5 +30,11 @@ export default defineConfig({
     environment: 'node',
     // Dev-tooling suites (e.g. the pack validator) run alongside app tests.
     include: ['src/**/*.test.ts', 'dev/tools/**/*.test.ts'],
+    coverage: {
+      // Enforced gate calibrated to the measured master baseline (track
+      // ci-qa-hardening_20260917): 72.88 / 77.55 / 89.57 / 72.42 at fa84ee1.
+      // Active only when coverage runs (`pnpm test --coverage`); CI runs it.
+      thresholds: { statements: 72, branches: 76, functions: 88, lines: 72 },
+    },
   },
 });
