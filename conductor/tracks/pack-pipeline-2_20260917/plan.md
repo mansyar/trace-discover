@@ -33,11 +33,11 @@
 
 ## Phase 3: Letters port — byte-level parity (TDD)
 
-- [ ] Task 1: Letters parity + loader contract, then thin loader (TDD)
-  - [ ] Red: `src/packs/letters-parity.test.ts` — parity vs frozen fixture for all 29 levels incl. derived goal/goalArt; identity + `bonusUnlocks [9,18,26]`; loader contract via mocked malformed `./data/abc.json` → labeled load error — confirm the contract test fails against the current inline `letters.ts`
-  - [ ] Green: author `src/packs/data/abc.json`; rewrite `letters.ts` as a thin loader (`LETTER_LEVELS`, `LETTER_BONUS_LEVELS`, `LETTERS_PACK` preserved; `letterLevel` / `letterGlyph` / `bonusRunLevel` keep behavior); tests green
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+- [x] Task 1: Letters parity + loader contract, then thin loader (TDD) [9b4259e]
+  - [x] Red: `src/packs/letters-parity.test.ts` — parity vs frozen fixture for all 29 levels incl. derived goal/goalArt; identity + `bonusUnlocks [9,18,26]`; loader contract via mocked malformed `./data/abc.json` → labeled load error — confirm the contract test fails against the current inline `letters.ts`
+  - [x] Green: author `src/packs/data/abc.json`; rewrite `letters.ts` as a thin loader (`LETTER_LEVELS`, `LETTER_BONUS_LEVELS`, `LETTERS_PACK` preserved; `letterLevel` / `letterGlyph` / `bonusRunLevel` keep behavior); tests green
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: Regression + Name composition untouched
   - [ ] `CI=true pnpm check && CI=true pnpm test`; `name` tests green unmodified (glyph chain byte-identical)
   - [ ] Commit + git note (empty evidence commit permitted)
