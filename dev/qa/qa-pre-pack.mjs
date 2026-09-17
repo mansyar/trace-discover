@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BASE = 'http://localhost:5199';
+const BASE = process.env.QA_BASE ?? 'http://localhost:5199';
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out');
 const FIELD_WIDTH = 430;
 const FIELD_HEIGHT = 860;

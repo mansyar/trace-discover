@@ -30,6 +30,11 @@ export interface SaveData {
   /** Parent-set child name: uppercase A–Z, 2–MAX_NAME_LENGTH letters. Absent = no name. */
   readonly name?: string;
   readonly settings: ParentSettings;
+  /**
+   * One-time sticker-board intro flag: set on the first board open, absent =
+   * never seen. Preserved across progress resets.
+   */
+  readonly stickerIntroSeen?: boolean;
   readonly trophies: readonly string[];
   readonly version: 3;
 }
@@ -111,6 +116,14 @@ export function sanitizeName(raw: string): string {
 export function setName(save: SaveData, raw: string): SaveData {
   const name = sanitizeName(raw);
   return { ...save, name: name === '' ? undefined : name };
+}
+
+/** Records the one-time sticker-board intro as seen; idempotent. */
+export function markStickerIntroSeen(save: SaveData): SaveData {
+  if (save.stickerIntroSeen === true) {
+    return save;
+  }
+  return { ...save, stickerIntroSeen: true };
 }
 
 export function completeLevel(save: SaveData, levelId: string): SaveData {
@@ -249,6 +262,7 @@ function sanitizeSave(parsed: unknown): SaveData {
   if (version === SAVE_VERSION) {
     const name =
       'name' in parsed && typeof parsed.name === 'string' ? sanitizeName(parsed.name) : '';
+    const stickerIntroSeen = 'stickerIntroSeen' in parsed && parsed.stickerIntroSeen === true;
     return {
       badges: 'badges' in parsed ? asStringArray(parsed.badges) : fallback.badges,
       completedLevels:
@@ -257,6 +271,7 @@ function sanitizeSave(parsed: unknown): SaveData {
           : fallback.completedLevels,
       ...(name === '' ? {} : { name }),
       settings,
+      ...(stickerIntroSeen ? { stickerIntroSeen: true } : {}),
       trophies: 'trophies' in parsed ? asStringArray(parsed.trophies) : fallback.trophies,
       version: SAVE_VERSION,
     };

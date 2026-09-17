@@ -14,6 +14,8 @@ import {
   awardBadge,
   completeLevel,
   createDefaultSave,
+  hasSticker,
+  markStickerIntroSeen,
   type SaveData,
   sanitizeName,
   setName,
@@ -36,13 +38,17 @@ export type AppScreen =
       readonly confirmReset: boolean;
       readonly showInstall: boolean;
       readonly showName: boolean;
-    };
+    }
+  | { readonly name: 'sticker-board'; readonly packId: string };
 
 export interface AppState {
   /** Badge earned but not yet celebrated (success "next" routes to it). */
   readonly pendingBadge: string | null;
   readonly save: SaveData;
   readonly screen: AppScreen;
+  /** Earned sticker tapped on the board; the shell plays the pop + note.
+   *  `nonce` bumps on every tap so a re-tap restarts the moment. */
+  readonly stickerMoment: { readonly levelId: string; readonly nonce: number } | null;
 }
 
 export type AppEvent =
@@ -64,10 +70,13 @@ export type AppEvent =
   | { readonly type: 'parent-action'; readonly action: ParentZoneAction }
   | { readonly type: 'name-set'; readonly name: string }
   | { readonly type: 'name-clear' }
-  | { readonly type: 'name-close' };
+  | { readonly type: 'name-close' }
+  | { readonly type: 'sticker-open'; readonly packId: string }
+  | { readonly type: 'sticker-close' }
+  | { readonly type: 'sticker-tap'; readonly levelId: string };
 
 export function startApp(save: SaveData): AppState {
-  return { pendingBadge: null, save, screen: { name: 'splash' } };
+  return { pendingBadge: null, save, screen: { name: 'splash' }, stickerMoment: null };
 }
 
 /** Static packs, plus the runtime-composed name pack while a name is saved. */
@@ -148,6 +157,63 @@ function badgeTap(state: AppState, packId: string): AppState {
   return { ...state, screen: { name: 'level', packId, levelId: bonusId } };
 }
 
+/** Every level id in the pack: main levels first, then bonus circles. */
+export function packLevelIds(pack: PackEntry): readonly string[] {
+  return [...pack.levels, ...pack.bonuses].map((level) => level.id);
+}
+
+/** True when the pack already holds at least one earned sticker. */
+function packHasStickers(save: SaveData, pack: PackEntry): boolean {
+  return packLevelIds(pack).some((levelId) => hasSticker(save, levelId));
+}
+
+/** Shelf pulse (child-side discovery cue): the intro is unseen and this pack
+ *  already has a sticker to show. */
+export function shouldPulseStickerShelf(save: SaveData, packId: string): boolean {
+  const pack = appPacks(save).find((entry) => entry.id === packId);
+  if (!pack || save.stickerIntroSeen === true) {
+    return false;
+  }
+  return packHasStickers(save, pack);
+}
+
+/** Shelf tap: opens the pack's board when it has something to show; the first
+ *  successful open records the one-time intro flag. */
+function openStickerBoard(state: AppState, packId: string): AppState {
+  const pack = packFor(state, packId);
+  if (!pack || !packHasStickers(state.save, pack)) {
+    return state;
+  }
+  return {
+    ...state,
+    save: markStickerIntroSeen(state.save),
+    screen: { name: 'sticker-board', packId },
+  };
+}
+
+/** Earned sticker tap on the open board: starts (or restarts) the pop moment. */
+function stickerTap(state: AppState, levelId: string): AppState {
+  if (state.screen.name !== 'sticker-board') {
+    return state;
+  }
+  const pack = packFor(state, state.screen.packId);
+  if (!pack || !packLevelIds(pack).includes(levelId) || !hasSticker(state.save, levelId)) {
+    return state;
+  }
+  const nonce = (state.stickerMoment?.nonce ?? 0) + 1;
+  return { ...state, stickerMoment: { levelId, nonce } };
+}
+
+/**
+ * Reset wipes progress but preserves the child's name, the parent hint flag,
+ * and the sticker intro flag — the state that outlives progress.
+ */
+function resetSave(save: SaveData): SaveData {
+  const fresh = setName(createDefaultSave(), save.name ?? '');
+  const withHint = updateSettings(fresh, { parentHintSeen: save.settings.parentHintSeen });
+  return save.stickerIntroSeen === true ? markStickerIntroSeen(withHint) : withHint;
+}
+
 function parentAction(state: AppState, action: ParentZoneAction): AppState {
   if (state.screen.name !== 'parent') {
     return state;
@@ -194,9 +260,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         pendingBadge: null,
-        save: updateSettings(setName(createDefaultSave(), state.save.name ?? ''), {
-          parentHintSeen: state.save.settings.parentHintSeen,
-        }),
+        save: resetSave(state.save),
         screen: { ...parent, confirmReset: false },
       };
     case 'install':
@@ -265,6 +329,20 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
       }
       return { ...state, screen: { ...state.screen, showName: false } };
     }
+    case 'sticker-open':
+      return openStickerBoard(state, event.packId);
+    case 'sticker-close': {
+      if (state.screen.name !== 'sticker-board') {
+        return state;
+      }
+      return {
+        ...state,
+        screen: { name: 'pack', packId: state.screen.packId },
+        stickerMoment: null,
+      };
+    }
+    case 'sticker-tap':
+      return stickerTap(state, event.levelId);
   }
 }
 

@@ -12,6 +12,7 @@ import {
   playCheckpointChime,
   playCompletion,
   playCountedNotes,
+  playStickerNote,
   playVolumePreview,
   presetForInstrument,
   TOY_PIANO_PRESET,
@@ -279,6 +280,94 @@ describe('instrument preset registry', () => {
     expect(spec.duration).toBe(woodblock.duration);
     expect(spec.gain).toBe(woodblock.gain);
     expect(spec.type).toBe(woodblock.type);
+  });
+});
+
+describe('sticker board ladder', () => {
+  it('plays one note per sticker tap at the ladder pitch', () => {
+    const player = recordingPlayer();
+    playStickerNote(player, 2);
+    expect(player.played).toHaveLength(1);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(checkpointMidi(2)), 6);
+    expect(spec.delay).toBe(0);
+  });
+
+  it('walks the pentatonic ladder upward for a run of taps', () => {
+    const frequencies = [0, 1, 2, 3, 4].map((index) => {
+      const player = recordingPlayer();
+      playStickerNote(player, index);
+      return player.played[0]?.frequency ?? 0;
+    });
+    for (let index = 1; index < frequencies.length; index += 1) {
+      expect(frequencies[index] ?? 0).toBeGreaterThan(frequencies[index - 1] ?? 0);
+    }
+  });
+
+  it('is stable per sticker and rises an octave every five steps', () => {
+    const first = recordingPlayer();
+    playStickerNote(first, 7);
+    const repeat = recordingPlayer();
+    playStickerNote(repeat, 7);
+    expect(first.played[0]?.frequency).toBe(repeat.played[0]?.frequency);
+    const low = recordingPlayer();
+    playStickerNote(low, 0);
+    const high = recordingPlayer();
+    playStickerNote(high, 5);
+    const lowFrequency = low.played[0]?.frequency ?? 0;
+    const highFrequency = high.played[0]?.frequency ?? 0;
+    expect(highFrequency / lowFrequency).toBeCloseTo(2, 6);
+  });
+
+  it('voices the note with the active skin instrument preset', () => {
+    const player = recordingPlayer();
+    const woodblock = presetForInstrument('woodblock');
+    playStickerNote(player, 1, woodblock);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.duration).toBe(woodblock.duration);
+    expect(spec.gain).toBe(woodblock.gain);
+    expect(spec.type).toBe(woodblock.type);
+  });
+
+  it('defaults to the marimba voice when no preset is given', () => {
+    const player = recordingPlayer();
+    playStickerNote(player, 0);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.duration).toBe(MARIMBA_PRESET.duration);
+    expect(spec.gain).toBe(MARIMBA_PRESET.gain);
+  });
+
+  it('repeats the two-octave ladder after ten stickers', () => {
+    const wrapLow = recordingPlayer();
+    playStickerNote(wrapLow, 10);
+    const first = recordingPlayer();
+    playStickerNote(first, 0);
+    expect(wrapLow.played[0]?.frequency).toBe(first.played[0]?.frequency);
+    const wrapMid = recordingPlayer();
+    playStickerNote(wrapMid, 14);
+    const mid = recordingPlayer();
+    playStickerNote(mid, 4);
+    expect(wrapMid.played[0]?.frequency).toBe(mid.played[0]?.frequency);
+  });
+
+  it('keeps every letters-board sticker inside the two-octave band', () => {
+    for (let index = 0; index < 29; index += 1) {
+      const player = recordingPlayer();
+      playStickerNote(player, index);
+      expect(player.played[0]?.frequency).toBeCloseTo(
+        midiToFrequency(checkpointMidi(index % 10)),
+        6,
+      );
+    }
   });
 });
 

@@ -1,0 +1,136 @@
+# Implementation Plan: Sticker Play — interactive sticker rewards
+
+**Track ID:** `sticker-play_20260917`
+**Specification:** [./spec.md](./spec.md)
+**Branch:** `track/sticker-play`
+**Methodology:** `conductor/workflow.md` — TDD per task (failing tests first,
+then implementation, then coverage verification), commit + git note per task,
+7-char commit SHA recorded here. Every phase ends with its Phase Verification &
+Checkpoint task.
+
+**Delivery strategy:** docs + persistence first, then the pure board logic
+(layout → state machine), the canvas rendering + shell wiring (board, pop
+moment, shelf pulse), the pentatonic ladder audio, then QA probes + preview
+tooling, and finally device tuning → acceptance → docs finalize. All work
+stays local on `track/sticker-play` (push/PR/release is an owner decision
+after acceptance). Owner gates: letters-board single-screen fit (fallback:
+two pages), ear approval of the note ladder, and the device sign-off.
+
+## Phase 1: Context docs resync + save foundation [checkpoint: ecfe4cc]
+
+- [x] Task 1: Context docs resync (9d28a51)
+  - [x] product.md: reward-loop wording + sticker board in core features,
+        dated note (previous tracks' style)
+  - [x] tech-stack.md: additive `stickerIntroSeen`, board screen + pentatonic
+        ladder mapping note, dated note
+  - [x] product-guidelines.md: check — no change expected (child-surface rules
+        unchanged)
+  - [x] README: check — no change expected
+  - [x] Commit + git note
+- [x] Task 2: `stickerIntroSeen` save field (TDD) (ecfe4cc)
+  - [x] Red: `loadSave` absent/non-boolean → false; roundtrip setter; v1–v3
+        fixtures unchanged; reset preserves name + flag
+  - [x] Green: `src/save/store.ts` sanitizer (+ additive field);
+        `src/app/app.ts` reset preserves
+  - [x] Verify coverage on new logic
+  - [x] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 2: Board logic — layout, hit tests, state machine (pure) [checkpoint: 54ad7ed]
+
+- [x] Task 1: Board layout module (TDD) (be090ca)
+  - [x] Red: per-pack grid fits 430×860 field bounds (pre 15 / nums 10 /
+        letters 29 / name 1); cells ≈96 units where count allows, letters
+        densest-fit (~74); earned/ghost states from save; hit tests (cell →
+        levelId, home, miss); shelf band hit rect excludes home + pager
+        corner zones
+  - [x] Green: new pure `src/ui/stickerBoard.ts`
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [x] Task 2: App state machine (TDD) (54ad7ed)
+  - [x] Red: `sticker-open` (pack exists && ≥1 sticker) → board screen;
+        `sticker-close` → pack; `sticker-tap` only on earned stickers (drives
+        moment state); open sets the intro flag once; pulse predicate (flag
+        unseen && ≥1 sticker)
+  - [x] Green: `src/app/app.ts` (new screen variant + events) + predicate
+        helper
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 3: Rendering + shell wiring — board, pop moment, shelf pulse [checkpoint: b8d7db4]
+
+- [x] Task 1: Board rendering (368ed6c)
+  - [x] Draw board: skin backdrop, filled sticker art (earned) / ghosted
+        slots, home button in pack style; reuse existing art + particle
+        modules; no new assets
+  - [x] Screenshot evidence (harness, seeded save; visually confirmed)
+  - [x] Commit + git note
+- [x] Task 2: Pop moment + sparkle animation (077315d)
+  - [x] rAF spring pop to ~400 units (squash & stretch, overshoot), sparkle
+        burst, settle ≤ ~1.5s; rapid re-tap restarts; one note at a time
+  - [x] Screenshots (mid-pop frames)
+  - [x] Commit + git note
+- [x] Task 3: Shell wiring (`src/main.ts`) (ceed9e5)
+  - [x] Shelf band tap opens the board (control corners keep precedence);
+        board pointer handling (cells → moment + note); shelf pulse while the
+        intro is unseen; `targets()` gains shelf band + board targets
+  - [x] Screenshots (pulse state, board open, pop)
+  - [x] Commit + git note
+- [x] Task 4: Pop containment fix (verification finding) (b8d7db4)
+  - [x] Cap pop size to the field + clamp edge-cell centers so the whole
+        sticker + sparkles stay on-field (owner bug report); placement tests +
+        probe edge-cell pass
+  - [x] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 4: Pentatonic ladder audio [checkpoint: 964823f]
+
+- [x] Task 1: Note mapping + playback (TDD) (437759b)
+  - [x] Red: sticker index → scale degree (C D E G A) with rising octave
+        cycle; stable per sticker; active skin's instrument; volume/mute
+        respected
+  - [x] Green: mapping helper + existing synth/player wiring
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [x] Task 2: Ear tuning pass — final mapping recorded (owner listen approval
+      gate) (964823f)
+  - [x] Owner ear pick: wrap at two octaves, C5..A6 then repeat (2026-09-17);
+        big-board tops kept audible (letters previously ~25 kHz)
+  - [x] Wrap implemented, tests added, commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 5: QA evidence + tooling [checkpoint: b195176]
+
+- [x] Task 1: `dev/screens.ts` preview `?screen=board` (seeded) + new
+      `dev/qa/qa-sticker-play.mjs` (pulse → shelf tap → board → sticker tap →
+      moment state + note asserted → home → reload → pulse gone → fresh-save
+      inert → letters fit → screenshots) (83db811)
+  - [x] Commit + git note
+- [x] Task 2: Probe audit — shelf-region touches in `qa-name`, `qa-pre-pack`,
+      `qa-menu-pack`; update for the new hit area (b195176)
+  - [x] Audit clean: all three probes green on the new code; band inert for
+        legacy taps; QA_BASE added to pre-pack/menu-pack
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase 6: Device tuning, acceptance, docs finalize [checkpoint: c6217e0]
+
+- [x] Task 1: Device pass Android + iPad — tap targets land, pop feel, ladder
+      musical, letters-board fit; tune cell sizes + record values (STOP +
+      owner fallback decision → two-page letters board if cells fail tuning)
+  - [x] Owner pass (2026-09-17): clean on Android + iPad; no tuning — shipped
+        layout values stand (48-radius cells, letters densest fit); two-page
+        fallback not triggered
+- [x] Task 2: Acceptance session (owner): zero-text audit; hostile fixtures;
+      `qa-offline` cold start unchanged; perf spot-check; sign-off; docs
+      finalize (tuned values recorded, dev/README QA table row, dated notes)
+      (c6217e0)
+  - [x] Commit + git note
+- [x] Task 3: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
+      dist record; review summary — all green (480 tests; budget 4,675,279 B /
+      138 entries); evidence in the Phase 6 verification report (on c6217e0)
+  - [x] Commit + git note
+- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 4aa9b5b

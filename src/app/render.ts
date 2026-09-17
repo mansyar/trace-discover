@@ -28,9 +28,11 @@ import type {
   ZoneCard,
 } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
+import type { StickerBoardLayout } from '../ui/stickerBoard';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
+import { POP_ART_SCALE, type StickerPopFrame, stickerPopPlacement } from './stickerPop';
 
 export const NAVY = '#2e4a63';
 export const GOLD = '#e8c15a';
@@ -725,6 +727,91 @@ function drawPagerButton(
   ctx.lineWidth = 9;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Sticker board: skin backdrop, earned sticker art / ghosted slots, home corner. */
+export function drawStickerBoard(
+  ctx: CanvasRenderingContext2D,
+  layout: StickerBoardLayout,
+  stickers: readonly boolean[],
+  stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+  backdrop: HTMLImageElement | null = null,
+  accent?: string,
+): void {
+  if (backdrop) {
+    drawBackdrop(ctx, backdrop);
+  } else if (accent) {
+    ctx.save();
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+    ctx.restore();
+  }
+  layout.cells.forEach((cell, index) => {
+    const earned = stickers[index] === true;
+    const sticker = earned ? stickerImages.get(cell.levelId) : undefined;
+    if (sticker) {
+      drawGoalArt(ctx, sticker, cell.x, cell.y, cell.radius * POP_ART_SCALE);
+    } else {
+      drawSeal(ctx, cell.x, cell.y, cell.radius, earned);
+    }
+  });
+  ctx.beginPath();
+  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
+/** Pop overlay for a tapped board sticker: the cell's sticker springs up
+ *  (scaled with squash-and-stretch) with a radial sparkle burst. */
+export function drawStickerPop(
+  ctx: CanvasRenderingContext2D,
+  cell: { readonly radius: number; readonly x: number; readonly y: number },
+  image: HTMLImageElement | null,
+  frame: StickerPopFrame,
+  tint: string = GOLD,
+): void {
+  const placement = stickerPopPlacement(cell, frame, FIELD_WIDTH, FIELD_HEIGHT);
+  if (frame.sparkle > 0) {
+    const count = 10;
+    ctx.globalAlpha = frame.sparkle;
+    for (let index = 0; index < count; index += 1) {
+      const angle = (index / count) * Math.PI * 2;
+      const distance = cell.radius * 0.9 + 90 * frame.sparkle;
+      ctx.beginPath();
+      ctx.arc(
+        placement.x + Math.cos(angle) * distance,
+        placement.y + Math.sin(angle) * distance * 0.8,
+        5 + 6 * frame.sparkle,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fillStyle = index % 2 === 0 ? GOLD : tint;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  const width = cell.radius * POP_ART_SCALE * placement.scaleX;
+  const height = cell.radius * POP_ART_SCALE * placement.scaleY;
+  if (image) {
+    ctx.drawImage(image, placement.x - width / 2, placement.y - height / 2, width, height);
+    return;
+  }
+  ctx.save();
+  ctx.translate(placement.x, placement.y);
+  ctx.scale(placement.scaleX, placement.scaleY);
+  ctx.beginPath();
+  drawStar(ctx, 0, 0, cell.radius * 0.62);
+  ctx.fillStyle = GOLD;
+  ctx.fill();
+  ctx.lineWidth = 4;
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   ctx.restore();

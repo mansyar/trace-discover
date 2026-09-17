@@ -6,6 +6,7 @@ import {
   hasSticker,
   loadSave,
   MAX_NAME_LENGTH,
+  markStickerIntroSeen,
   SAVE_KEY,
   type SaveStorage,
   sanitizeName,
@@ -381,6 +382,39 @@ describe('name persistence', () => {
   it('keeps saves without a name absent-safe', () => {
     const storage = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"badges":[]}' });
     expect(loadSave(storage).name).toBeUndefined();
+  });
+});
+
+describe('sticker intro flag', () => {
+  it('treats absent, false, and non-boolean stored values as not seen', () => {
+    const absent = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"badges":[]}' });
+    expect(loadSave(absent).stickerIntroSeen).toBeUndefined();
+    const falsy = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"stickerIntroSeen":false}' });
+    expect(loadSave(falsy).stickerIntroSeen).toBeUndefined();
+    const hostile = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"stickerIntroSeen":"yes"}' });
+    expect(loadSave(hostile).stickerIntroSeen).toBeUndefined();
+  });
+
+  it('loads a stored true flag and round-trips it through storage', () => {
+    const storage = createMemoryStorage();
+    const marked = markStickerIntroSeen(createDefaultSave());
+    expect(marked.stickerIntroSeen).toBe(true);
+    saveSave(storage, marked);
+    expect(loadSave(storage)).toEqual(marked);
+  });
+
+  it('is idempotent and does not mutate the input save', () => {
+    const before = createDefaultSave();
+    const marked = markStickerIntroSeen(before);
+    expect(markStickerIntroSeen(marked)).toBe(marked);
+    expect(before.stickerIntroSeen).toBeUndefined();
+  });
+
+  it('never leaks the flag into legacy migrations', () => {
+    const storage = createMemoryStorage({
+      [SAVE_KEY]: '{"version":2,"completedLevels":["dino-1"]}',
+    });
+    expect('stickerIntroSeen' in loadSave(storage)).toBe(false);
   });
 });
 
