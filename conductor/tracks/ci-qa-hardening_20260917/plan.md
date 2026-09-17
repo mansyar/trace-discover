@@ -59,12 +59,12 @@
 
 *Goal: coverage is a gate that provably bites, calibrated to the measured baseline.*
 
-- [ ] Task: Thresholds in `vite.config.ts`
-  - [ ] Global thresholds (statements 72 / branches 76 / functions 88 / lines 72 — ≤ ~1.5 pt headroom vs measured 72.88 / 77.55 / 89.57 / 72.42; exact ints re-checked at implementation); plain `pnpm test` unaffected
-  - [ ] Local `pnpm test --coverage` green; record the covered summary line
-  - [ ] Commit + git note
-- [ ] Task: Negative control — temporary threshold raise → coverage red → revert → green; recorded
-  - [ ] Commit + git note
+- [x] Task: Thresholds in `vite.config.ts` [8143243]
+  - [x] Global thresholds (statements 72 / branches 76 / functions 88 / lines 72 — ≤ ~1.5 pt headroom vs measured 72.88 / 77.55 / 89.57 / 72.42; exact ints re-checked at implementation); plain `pnpm test` unaffected
+  - [x] Local `pnpm test --coverage` green; record the covered summary line
+  - [x] Commit + git note
+- [~] Task: Negative control — temporary threshold raise → coverage red → revert → green; recorded
+  - [~] Commit + git note
 - [ ] Task: CI evidence — push; PR run shows the gate enforced and green; recorded
   - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
