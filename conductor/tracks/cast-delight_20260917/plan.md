@@ -78,12 +78,12 @@ conflicts, resolved by preserving both behaviors.
   - [x] Screenshot set (idle beat / giggle / flourish) → owner confirmation;
         tune in-task
   - [x] Commit + git note
-- [ ] Task 2: Star upgrade (`dev/characters/star`, + blinkpatch)
-  - [ ] Compose star blink overlay art; add the blinkpatch technique matching
+- [x] Task 2: Star upgrade (`dev/characters/star`, + blinkpatch) (b72247f)
+  - [x] Compose star blink overlay art; add the blinkpatch technique matching
         the other four casts
-  - [ ] Author giggle + flourish + idle beat; rebuild; size check
-  - [ ] Screenshots → owner confirmation; commit + git note
-- [ ] Task 3: Excavator upgrade (`dev/characters/excavator`)
+  - [x] Author giggle + flourish + idle beat; rebuild; size check
+  - [x] Screenshots → owner confirmation; commit + git note
+- [~] Task 3: Excavator upgrade (`dev/characters/excavator`)
   - [ ] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
   - [ ] Screenshots → owner confirmation; commit + git note
 - [ ] Task 4: Lion upgrade (`dev/characters/lion`)
