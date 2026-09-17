@@ -11,6 +11,7 @@ import {
   playCompletion,
   playCountedNotes,
   playStickerNote,
+  playVolumePreview,
   presetForInstrument,
   TOY_PIANO_PRESET,
   type ToneSpec,
@@ -177,6 +178,24 @@ describe('toy piano counted notes', () => {
     }
     expect(swap.duration).toBe(TOY_PIANO_PRESET.duration);
     expect(swap.gain).toBe(TOY_PIANO_PRESET.gain);
+  });
+});
+
+describe('playVolumePreview', () => {
+  it('plays a single note with the instrument voice', () => {
+    const player = recordingPlayer();
+    const bell = presetForInstrument('bell');
+    playVolumePreview(player, bell);
+    expect(player.played).toHaveLength(1);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(checkpointMidi(0)), 6);
+    expect(spec.duration).toBe(bell.duration);
+    expect(spec.gain).toBe(bell.gain);
+    expect(spec.type).toBe(bell.type);
+    expect(spec.delay).toBe(0);
   });
 });
 

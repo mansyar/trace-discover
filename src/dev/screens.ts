@@ -1,12 +1,18 @@
-// Dev-only preview for the shell screens (menu / pack / success / board).
-// Draws the real layout modules through the real pointer pipeline and
+// Dev-only preview for the shell screens (menu / pack / success / parent /
+// board). Draws the real layout modules through the real pointer pipeline and
 // wires card taps to the real localStorage save: tapping a card completes
 // its level (sticker lights), finishing a pack earns its badge,
 // double-tapping the badge resets progress, and the sticker-board preview
-// runs the production renderer. ?screen=menu|pack|success|board picks the
-// starting screen for headless screenshots.
+// runs the production renderer. ?screen=menu|pack|success|parent|board picks
+// the starting screen for headless screenshots.
 import '../style.css';
-import { drawStickerBoard, drawStickerPop } from '../app/render';
+import {
+  drawGateRing,
+  drawParent,
+  drawParticles,
+  drawStickerBoard,
+  drawStickerPop,
+} from '../app/render';
 import { stickerPopFrame } from '../app/stickerPop';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
@@ -15,6 +21,7 @@ import { allPacks } from '../packs/catalog';
 import { levelToPath } from '../packs/level';
 import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { shouldAwardPackBadge } from '../packs/progress';
+import { createConfetti, stepConfetti } from '../render/confetti';
 import {
   awardBadge,
   completeLevel,
@@ -25,12 +32,14 @@ import {
 } from '../save/store';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
+import { SKINS, type SkinDef, skinById } from '../skins/skins';
 import { hitMenuCard, inParentGate, menuLayout } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
+import { parentZoneLayout } from '../ui/parentZone';
 import { hitBoardHome, hitStickerCell, stickerBoardLayout } from '../ui/stickerBoard';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
-type PreviewScreen = 'menu' | 'pack' | 'success' | 'board';
+type PreviewScreen = 'menu' | 'pack' | 'success' | 'parent' | 'board';
 
 const PACK_IDS = allPacks().map((pack) => pack.id);
 const NUMERALS = NUMERAL_LEVELS.map((level) => level.id);
@@ -51,7 +60,7 @@ const lines: string[] = [];
 
 let screen: PreviewScreen = 'menu';
 const wanted = new URLSearchParams(window.location.search).get('screen');
-if (wanted === 'success' || wanted === 'pack' || wanted === 'board') {
+if (wanted === 'success' || wanted === 'pack' || wanted === 'parent' || wanted === 'board') {
   screen = wanted;
 }
 let save: SaveData = loadSave(localStorage);
@@ -184,6 +193,13 @@ function drawMenu(): void {
     layout.parentGate.height,
   );
   context.setLineDash([]);
+  // Static preview of the one-finger hold ring + open burst (Task 2 evidence).
+  const gateCenter = {
+    x: layout.parentGate.x + layout.parentGate.width / 2,
+    y: layout.parentGate.y + layout.parentGate.height / 2,
+  };
+  drawGateRing(context, gateCenter, 0.6);
+  drawParticles(context, stepConfetti(createConfetti(12, 7, gateCenter), 0.18));
 }
 
 function drawPackPreview(): void {
@@ -298,6 +314,28 @@ function drawSuccess(): void {
   }
 }
 
+function previewSkin(): SkinDef {
+  const skin = skinById(save.settings.skin) ?? SKINS[0];
+  if (!skin) {
+    throw new Error('The skin registry is empty.');
+  }
+  return skin;
+}
+
+function drawParentPreview(): void {
+  drawParent(
+    context,
+    performance.now(),
+    parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT),
+    save.settings,
+    false,
+    false,
+    previewSkin(),
+    null,
+    save.trophies,
+  );
+}
+
 function drawCycle(): void {
   context.fillStyle = GOLD;
   context.fillRect(CYCLE.x, CYCLE.y, CYCLE.width, CYCLE.height);
@@ -328,6 +366,8 @@ function render(now: number = performance.now()): void {
     drawPackPreview();
   } else if (screen === 'success') {
     drawSuccess();
+  } else if (screen === 'parent') {
+    drawParentPreview();
   } else {
     drawBoardPreview();
     const active = pop;
@@ -352,6 +392,8 @@ function cycle(): void {
   } else if (screen === 'pack') {
     screen = 'success';
   } else if (screen === 'success') {
+    screen = 'parent';
+  } else if (screen === 'parent') {
     screen = 'board';
   } else {
     screen = 'menu';

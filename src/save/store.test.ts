@@ -33,7 +33,13 @@ describe('createDefaultSave', () => {
     expect(createDefaultSave()).toEqual({
       badges: [],
       completedLevels: [],
-      settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+      settings: {
+        easierTracing: false,
+        muted: false,
+        parentHintSeen: false,
+        skin: 'dino',
+        volume: 1,
+      },
       trophies: [],
       version: 3,
     });
@@ -104,7 +110,13 @@ describe('loadSave', () => {
         'num-0',
         'num-9',
       ],
-      settings: { easierTracing: true, muted: true, skin: 'dino', volume: 0.5 },
+      settings: {
+        easierTracing: true,
+        muted: true,
+        parentHintSeen: false,
+        skin: 'dino',
+        volume: 0.5,
+      },
       trophies: ['dino', 'animals'],
       version: 3,
     });
@@ -155,7 +167,13 @@ describe('loadSave', () => {
     expect(loadSave(storage)).toEqual({
       badges: [],
       completedLevels: ['pre-1'],
-      settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+      settings: {
+        easierTracing: false,
+        muted: false,
+        parentHintSeen: false,
+        skin: 'dino',
+        volume: 1,
+      },
       trophies: [],
       version: 3,
     });
@@ -178,6 +196,7 @@ describe('loadSave', () => {
     expect(loadSave(storage).settings).toEqual({
       easierTracing: false,
       muted: true,
+      parentHintSeen: false,
       skin: 'dino',
       volume: 1,
     });
@@ -220,6 +239,7 @@ describe('updateSettings', () => {
     expect(updated.settings).toEqual({
       easierTracing: false,
       muted: true,
+      parentHintSeen: false,
       skin: 'dino',
       volume: 1,
     });
@@ -264,7 +284,13 @@ describe('v1 fixture migration', () => {
         'pre-9',
         'pre-10',
       ],
-      settings: { easierTracing: true, muted: false, skin: 'dino', volume: 0.7 },
+      settings: {
+        easierTracing: true,
+        muted: false,
+        parentHintSeen: false,
+        skin: 'dino',
+        volume: 0.7,
+      },
       trophies: ['dino'],
       version: 3,
     });
@@ -389,5 +415,28 @@ describe('sticker intro flag', () => {
       [SAVE_KEY]: '{"version":2,"completedLevels":["dino-1"]}',
     });
     expect('stickerIntroSeen' in loadSave(storage)).toBe(false);
+  });
+});
+
+describe('parentHintSeen persistence', () => {
+  it('defaults to false and round-trips true through storage', () => {
+    expect(createDefaultSave().settings.parentHintSeen).toBe(false);
+    const storage = createMemoryStorage();
+    const seen = updateSettings(createDefaultSave(), { parentHintSeen: true });
+    saveSave(storage, seen);
+    expect(loadSave(storage).settings.parentHintSeen).toBe(true);
+  });
+
+  it('falls back to false for missing or mistyped values', () => {
+    const absent = createMemoryStorage({ [SAVE_KEY]: '{"version":3,"settings":{}}' });
+    expect(loadSave(absent).settings.parentHintSeen).toBe(false);
+    const mistyped = createMemoryStorage({
+      [SAVE_KEY]: '{"version":3,"settings":{"parentHintSeen":"yes"}}',
+    });
+    expect(loadSave(mistyped).settings.parentHintSeen).toBe(false);
+    const numeric = createMemoryStorage({
+      [SAVE_KEY]: '{"version":3,"settings":{"parentHintSeen":1}}',
+    });
+    expect(loadSave(numeric).settings.parentHintSeen).toBe(false);
   });
 });

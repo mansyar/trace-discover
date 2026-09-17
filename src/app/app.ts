@@ -204,10 +204,14 @@ function stickerTap(state: AppState, levelId: string): AppState {
   return { ...state, stickerMoment: { levelId, nonce } };
 }
 
-/** Reset wipes progress but preserves the child's name and the sticker intro flag. */
+/**
+ * Reset wipes progress but preserves the child's name, the parent hint flag,
+ * and the sticker intro flag — the state that outlives progress.
+ */
 function resetSave(save: SaveData): SaveData {
   const fresh = setName(createDefaultSave(), save.name ?? '');
-  return save.stickerIntroSeen === true ? markStickerIntroSeen(fresh) : fresh;
+  const withHint = updateSettings(fresh, { parentHintSeen: save.settings.parentHintSeen });
+  return save.stickerIntroSeen === true ? markStickerIntroSeen(withHint) : withHint;
 }
 
 function parentAction(state: AppState, action: ParentZoneAction): AppState {
@@ -220,6 +224,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         save: updateSettings(state.save, {
+          muted: false,
           volume: changeVolume(state.save.settings.volume, -0.1),
         }),
       };
@@ -227,6 +232,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         save: updateSettings(state.save, {
+          muted: false,
           volume: changeVolume(state.save.settings.volume, 0.1),
         }),
       };
@@ -292,6 +298,7 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'parent-open':
       return {
         ...state,
+        save: updateSettings(state.save, { parentHintSeen: true }),
         screen: { name: 'parent', confirmReset: false, showInstall: false, showName: false },
       };
     case 'parent-action':
@@ -337,4 +344,9 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'sticker-tap':
       return stickerTap(state, event.levelId);
   }
+}
+
+/** One-time menu hint: shown until the gate has been opened successfully once. */
+export function shouldShowParentHint(save: SaveData): boolean {
+  return !save.settings.parentHintSeen;
 }

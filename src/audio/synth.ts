@@ -156,6 +156,14 @@ export function playCountedNotes(
   }
 }
 
+/** Single preview note so parents hear the new level (and their skin's voice). */
+export function playVolumePreview(
+  player: TonePlayer,
+  preset: InstrumentPreset = MARIMBA_PRESET,
+): void {
+  player.play(noteSpec(0, 0, preset));
+}
+
 function noteSpec(index: number, delay: number, preset: InstrumentPreset): ToneSpec {
   return {
     delay,
