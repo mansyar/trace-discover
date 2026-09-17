@@ -14,7 +14,7 @@
   - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Dynamic-fit layout math — count × orientation matrix (TDD)
+## Phase 2: Dynamic-fit layout math — count × orientation matrix (TDD) [checkpoint: 9a30ac5]
 
 - [x] Task 1: Matrix tests red → dynamic-fit `menuLayout` green [1ceead5]
   - [x] Red: extend `src/ui/menu.test.ts` — 1–6 × portrait/landscape matrix (fit inside field, ≥ 90px dims, no card overlap, park/gate clearance, hit parity); fidelity lock — recorded rects for today's counts (3 packs; 4 with name) unchanged; confirm red at 5–6 against the current implementation (documents the overflow bug)
@@ -28,7 +28,7 @@
 
 ## Phase 3: Dots & art adaptation for grid-scaled cards (TDD)
 
-- [ ] Task 1: Dot/art tests red → adaptation green
+- [~] Task 1: Dot/art tests red → adaptation green
   - [ ] Red: tests in `src/ui/menu.test.ts` — max-dot case (letters, 29) at 5–6 card footprints: dot rows wrap, radius/spacing hold legibility floors, every dot inside the card; `menuCardArtMaxHeight` stays ≥ floor and clear of the dot strip at every count
   - [ ] Green: adapt `menuDotPositions` / `dotsPerRow` / `menuCardArtMaxHeight` (scale within floors; no negative or overlapping art)
   - [ ] Verify coverage
