@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultSave } from '../save/store';
-import { type AppState, applyAppEvent, startApp } from './app';
+import {
+  type AppState,
+  applyAppEvent,
+  shouldPulseStickerShelf,
+  shouldShowParentHint,
+  startApp,
+} from './app';
 
 function setup(): AppState {
   return startApp(createDefaultSave());
@@ -193,6 +199,40 @@ describe('app navigation', () => {
     expect(resetting.save.badges).toEqual([]);
     expect(resetting.save.completedLevels).toEqual([]);
     expect(resetting.save.trophies).toEqual([]);
+  });
+});
+
+describe('gate hint', () => {
+  it('marks the one-time hint as learned when the parent zone opens', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    expect(app.save.settings.parentHintSeen).toBe(false);
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(app.screen.name).toBe('parent');
+    expect(app.save.settings.parentHintSeen).toBe(true);
+  });
+
+  it('shows the hint until it is learned, then never again', () => {
+    expect(shouldShowParentHint(createDefaultSave())).toBe(true);
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(shouldShowParentHint(app.save)).toBe(false);
+  });
+});
+
+describe('sound controls', () => {
+  it('unmutes when the volume steps', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
+    expect(app.save.settings.muted).toBe(true);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-up' });
+    expect(app.save.settings.muted).toBe(false);
+    expect(app.save.settings.volume).toBe(1);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
+    expect(app.save.settings.muted).toBe(true);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-down' });
+    expect(app.save.settings.muted).toBe(false);
+    expect(app.save.settings.volume).toBe(0.9);
   });
 });
 
@@ -440,6 +480,47 @@ describe('name preservation', () => {
     expect(app.save.completedLevels).toEqual([]);
     expect(app.save.name).toBe('AVA');
   });
+
+  it('keeps the gate hint flag across a progress reset', () => {
+    const base = createDefaultSave();
+    const seeded = {
+      ...base,
+      completedLevels: ['pre-1'],
+      settings: { ...base.settings, parentHintSeen: true },
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.settings.parentHintSeen).toBe(true);
+  });
+});
+
+describe('sticker intro preservation', () => {
+  it('keeps the sticker intro flag across a progress reset', () => {
+    const seeded = {
+      ...createDefaultSave(),
+      completedLevels: ['pre-1'],
+      stickerIntroSeen: true,
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.stickerIntroSeen).toBe(true);
+  });
+
+  it('does not fabricate the flag when resetting a save that never saw the intro', () => {
+    let app = startApp(createDefaultSave());
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect('stickerIntroSeen' in app.save).toBe(false);
+  });
 });
 
 describe('name pack navigation', () => {
@@ -538,5 +619,82 @@ describe('name editing', () => {
     expect(applyAppEvent(app, { type: 'name-set', name: 'AVA' })).toBe(app);
     expect(applyAppEvent(app, { type: 'name-clear' })).toBe(app);
     expect(applyAppEvent(app, { type: 'name-close' })).toBe(app);
+  });
+});
+
+describe('sticker board navigation', () => {
+  function stockedApp(): AppState {
+    return startApp({ ...createDefaultSave(), completedLevels: ['pre-1'] });
+  }
+
+  it('opens the board from the shelf when the pack has a sticker, setting the intro flag', () => {
+    const app = applyAppEvent(stockedApp(), { type: 'sticker-open', packId: 'pre' });
+    expect(app.screen).toEqual({ name: 'sticker-board', packId: 'pre' });
+    expect(app.save.stickerIntroSeen).toBe(true);
+  });
+
+  it('opens the solo board for the name pack', () => {
+    const named = { ...createDefaultSave(), completedLevels: ['name-1'], name: 'AVA' };
+    const app = applyAppEvent(startApp(named), { type: 'sticker-open', packId: 'name' });
+    expect(app.screen).toEqual({ name: 'sticker-board', packId: 'name' });
+  });
+
+  it('ignores unknown packs and packs with no stickers yet', () => {
+    const empty = startApp(createDefaultSave());
+    expect(applyAppEvent(empty, { type: 'sticker-open', packId: 'pre' })).toBe(empty);
+    expect(applyAppEvent(empty, { type: 'sticker-open', packId: 'space' })).toBe(empty);
+    expect(empty.save.stickerIntroSeen).toBeUndefined();
+  });
+
+  it('sets the intro flag once and closes back to the pack', () => {
+    let app = applyAppEvent(stockedApp(), { type: 'sticker-open', packId: 'pre' });
+    const opened = app;
+    app = applyAppEvent(app, { type: 'sticker-close' });
+    expect(app.screen).toEqual({ name: 'pack', packId: 'pre' });
+    app = applyAppEvent(app, { type: 'sticker-open', packId: 'pre' });
+    expect(app.save).toBe(opened.save);
+  });
+
+  it('ignores sticker-close outside the board', () => {
+    const menu = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
+    expect(applyAppEvent(menu, { type: 'sticker-close' })).toBe(menu);
+  });
+
+  it('taps an earned sticker to start a pop moment and ignores ghosts', () => {
+    let app = startApp({ ...createDefaultSave(), completedLevels: ['num-1', 'pre-1'] });
+    app = applyAppEvent(app, { type: 'sticker-open', packId: 'pre' });
+    const opened = app;
+    app = applyAppEvent(app, { type: 'sticker-tap', levelId: 'pre-2' });
+    expect(app).toBe(opened);
+    app = applyAppEvent(app, { type: 'sticker-tap', levelId: 'num-1' });
+    expect(app).toBe(opened);
+    app = applyAppEvent(app, { type: 'sticker-tap', levelId: 'pre-1' });
+    expect(app.stickerMoment).toEqual({ levelId: 'pre-1', nonce: 1 });
+    app = applyAppEvent(app, { type: 'sticker-tap', levelId: 'pre-1' });
+    expect(app.stickerMoment).toEqual({ levelId: 'pre-1', nonce: 2 });
+  });
+
+  it('ignores sticker taps outside the board', () => {
+    const menu = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
+    expect(applyAppEvent(menu, { type: 'sticker-tap', levelId: 'pre-1' })).toBe(menu);
+  });
+
+  it('clears the pop moment when leaving the board', () => {
+    let app = applyAppEvent(stockedApp(), { type: 'sticker-open', packId: 'pre' });
+    app = applyAppEvent(app, { type: 'sticker-tap', levelId: 'pre-1' });
+    expect(app.stickerMoment).not.toBeNull();
+    app = applyAppEvent(app, { type: 'sticker-close' });
+    expect(app.stickerMoment).toBeNull();
+  });
+});
+
+describe('shouldPulseStickerShelf', () => {
+  it('pulses only while the intro is unseen and the pack holds a sticker', () => {
+    expect(shouldPulseStickerShelf(createDefaultSave(), 'pre')).toBe(false);
+    const stocked = { ...createDefaultSave(), completedLevels: ['num-1'] };
+    expect(shouldPulseStickerShelf(stocked, 'numbers')).toBe(true);
+    expect(shouldPulseStickerShelf(stocked, 'pre')).toBe(false);
+    expect(shouldPulseStickerShelf({ ...stocked, stickerIntroSeen: true }, 'numbers')).toBe(false);
+    expect(shouldPulseStickerShelf(stocked, 'space')).toBe(false);
   });
 });

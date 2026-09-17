@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const BASE = 'http://localhost:5199';
+const BASE = process.env.QA_BASE ?? 'http://localhost:5199';
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out');
 const FIELD_WIDTH = 430;
 const FIELD_HEIGHT = 860;
@@ -158,20 +158,18 @@ await page.evaluate(() => {
   }
   const clientX = field.x + (gate.x / 430) * field.width;
   const clientY = field.y + (gate.y / 860) * field.height;
-  for (const pointerId of [11, 12]) {
-    canvas.dispatchEvent(
-      new PointerEvent('pointerdown', {
-        bubbles: true,
-        clientX,
-        clientY,
-        isPrimary: pointerId === 11,
-        pointerId,
-        pointerType: 'touch',
-      }),
-    );
-  }
+  canvas.dispatchEvent(
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      clientX,
+      clientY,
+      isPrimary: true,
+      pointerId: 11,
+      pointerType: 'touch',
+    }),
+  );
 });
-await wait(3600);
+await wait(3000);
 const parentScreen = await page.evaluate(() => window.__app.screen());
 findings.push(`parent gate hold -> ${JSON.stringify(parentScreen)}`);
 await shot('pre-journey-parent.png');

@@ -1,7 +1,8 @@
 // Parent-zone screen layout math (pure; text labels render in shell
 // wiring — parent copy is the one place text is allowed). Big circular
-// targets: volume row, easier + name + skin setters, reset + install guide,
-// done; a display-only row of legacy trophies sits between reset and done.
+// targets are grouped into labeled section cards (Sound, Skin & Name,
+// Play, Data, Help) plus a big Done; a display-only row of legacy
+// trophies sits between the cards and Done.
 import type { Point } from '../engine/types';
 
 export type ParentZoneAction =
@@ -29,6 +30,17 @@ export interface TrophySlot {
   readonly y: number;
 }
 
+export type ZoneCardId = 'sound' | 'skinName' | 'play' | 'data' | 'help';
+
+/** Rounded panel that groups related controls under a section label. */
+export interface ZoneCard {
+  readonly id: ZoneCardId;
+  readonly label: string;
+  readonly rect: OverlayRect;
+  /** Mini cards stack three across; labels center instead of aligning left. */
+  readonly mini: boolean;
+}
+
 export interface ParentZoneLayout {
   readonly volumeDown: ZoneButton;
   readonly volumeUp: ZoneButton;
@@ -39,14 +51,21 @@ export interface ParentZoneLayout {
   readonly reset: ZoneButton;
   readonly install: ZoneButton;
   readonly done: ZoneButton;
+  readonly cards: readonly ZoneCard[];
   readonly trophies: readonly TrophySlot[];
 }
 
 const SMALL_RADIUS = 46; // 92px: above the 90px toddler target minimum
 const BIG_RADIUS = 56;
 const TROPHY_RADIUS = 26;
-const TROPHY_Y = 688;
+const TROPHY_Y = 620;
 const TROPHY_SPACING = 120;
+const CARD_MARGIN = 40;
+const CARD_GAP = 10;
+const MINI_CARD_WIDTH = 110;
+const CARD_LABEL_ROW = 34; // label strip above the controls
+const ROW_CARD_HEIGHT = 138; // label + one 92px control row + padding
+const LABELED_CARD_HEIGHT = 164; // adds room for the label under each control
 
 function button(action: ParentZoneAction, x: number, y: number, radius: number): ZoneButton {
   return { action, radius, x, y };
@@ -65,6 +84,8 @@ function wideZone(fieldWidth: number): ParentZoneLayout {
     reset: button('reset', centerX - 260, 310, SMALL_RADIUS),
     install: button('install', centerX - 140, 310, SMALL_RADIUS),
     done: button('done', centerX + 370, 310, BIG_RADIUS),
+    // The wide ribbon keeps no section cards (approved landscape look).
+    cards: [],
     trophies: [
       { radius: TROPHY_RADIUS, x: centerX + 10, y: 310 },
       { radius: TROPHY_RADIUS, x: centerX + 80, y: 310 },
@@ -73,22 +94,60 @@ function wideZone(fieldWidth: number): ParentZoneLayout {
   };
 }
 
-/** Nine big targets in rows plus the display-only trophy row. */
+function card(
+  id: ZoneCardId,
+  label: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  mini: boolean,
+): ZoneCard {
+  return { id, label, mini, rect: { height, width, x, y } };
+}
+
+/**
+ * Nine big targets grouped into labeled section cards plus the display-only
+ * trophy row: Sound (quieter · mute · louder), Skin & Name (name · skin),
+ * then a Play / Data / Help row, and a big Done at the bottom.
+ */
 export function parentZoneLayout(fieldWidth: number, fieldHeight: number): ParentZoneLayout {
   if (fieldWidth > fieldHeight) {
     return wideZone(fieldWidth);
   }
   const centerX = fieldWidth / 2;
+  const fullWidth = fieldWidth - CARD_MARGIN * 2;
+  const soundY = 96;
+  const skinNameY = soundY + ROW_CARD_HEIGHT + CARD_GAP; // 244
+  const miniY = skinNameY + LABELED_CARD_HEIGHT + CARD_GAP; // 418
+  const miniGap = (fullWidth - MINI_CARD_WIDTH * 3) / 2; // 10
+  const miniX = (index: number): number => CARD_MARGIN + index * (MINI_CARD_WIDTH + miniGap);
+  const controlY = (top: number): number => top + CARD_LABEL_ROW + SMALL_RADIUS; // circle center
   return {
-    volumeDown: button('volume-down', centerX - 130, 250, SMALL_RADIUS),
-    volumeUp: button('volume-up', centerX + 130, 250, SMALL_RADIUS),
-    mute: button('mute', centerX, 250, SMALL_RADIUS),
-    easier: button('easier', centerX, 400, BIG_RADIUS),
-    skin: button('skin', centerX + 130, 400, SMALL_RADIUS),
-    name: button('name', centerX - 130, 400, SMALL_RADIUS),
-    reset: button('reset', centerX - 110, 555, SMALL_RADIUS),
-    install: button('install', centerX + 110, 555, SMALL_RADIUS),
+    volumeDown: button('volume-down', centerX - 120, controlY(soundY), SMALL_RADIUS),
+    volumeUp: button('volume-up', centerX + 120, controlY(soundY), SMALL_RADIUS),
+    mute: button('mute', centerX, controlY(soundY), SMALL_RADIUS),
+    easier: button('easier', centerX - 120, controlY(miniY), SMALL_RADIUS),
+    reset: button('reset', centerX, controlY(miniY), SMALL_RADIUS),
+    install: button('install', centerX + 120, controlY(miniY), SMALL_RADIUS),
+    name: button('name', centerX - 110, controlY(skinNameY), SMALL_RADIUS),
+    skin: button('skin', centerX + 110, controlY(skinNameY), SMALL_RADIUS),
     done: button('done', centerX, Math.min(770, fieldHeight - 90), BIG_RADIUS),
+    cards: [
+      card('sound', 'Sound', CARD_MARGIN, soundY, fullWidth, ROW_CARD_HEIGHT, false),
+      card(
+        'skinName',
+        'Skin & Name',
+        CARD_MARGIN,
+        skinNameY,
+        fullWidth,
+        LABELED_CARD_HEIGHT,
+        false,
+      ),
+      card('play', 'Play', miniX(0), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT, true),
+      card('data', 'Data', miniX(1), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT, true),
+      card('help', 'Help', miniX(2), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT, true),
+    ],
     trophies: [
       { radius: TROPHY_RADIUS, x: centerX - TROPHY_SPACING, y: TROPHY_Y },
       { radius: TROPHY_RADIUS, x: centerX, y: TROPHY_Y },

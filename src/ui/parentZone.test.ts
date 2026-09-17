@@ -6,6 +6,7 @@ import {
   hitParentZone,
   type NameOverlayButton,
   nameOverlayLayout,
+  type OverlayRect,
   parentZoneLayout,
 } from './parentZone';
 
@@ -58,12 +59,112 @@ describe('parent zone', () => {
     });
   });
 
-  it('places the name setter beside the skin setter', () => {
+  it('groups the controls into five labeled section cards inside the field', () => {
+    const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    expect(layout.cards.map((card) => card.id)).toEqual([
+      'sound',
+      'skinName',
+      'play',
+      'data',
+      'help',
+    ]);
+    expect(layout.cards.map((card) => card.label)).toEqual([
+      'Sound',
+      'Skin & Name',
+      'Play',
+      'Data',
+      'Help',
+    ]);
+    expect(layout.cards.map((card) => card.mini)).toEqual([false, false, true, true, true]);
+    for (const card of layout.cards) {
+      expect(card.rect.x).toBeGreaterThanOrEqual(0);
+      expect(card.rect.x + card.rect.width).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(card.rect.y).toBeGreaterThanOrEqual(0);
+      expect(card.rect.y + card.rect.height).toBeLessThanOrEqual(FIELD_HEIGHT);
+    }
+  });
+
+  it('keeps every control fully inside its section card', () => {
+    const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    const cardFor: Record<string, string> = {
+      mute: 'sound',
+      easier: 'play',
+      'volume-down': 'sound',
+      'volume-up': 'sound',
+      name: 'skinName',
+      reset: 'data',
+      skin: 'skinName',
+      install: 'help',
+    };
+    const controls = [
+      layout.volumeDown,
+      layout.volumeUp,
+      layout.mute,
+      layout.easier,
+      layout.name,
+      layout.skin,
+      layout.reset,
+      layout.install,
+    ];
+    for (const control of controls) {
+      const card = layout.cards.find((candidate) => candidate.id === cardFor[control.action]);
+      if (!card) {
+        throw new Error(`no section card for ${control.action}`);
+      }
+      expect(control.x - control.radius).toBeGreaterThanOrEqual(card.rect.x);
+      expect(control.x + control.radius).toBeLessThanOrEqual(card.rect.x + card.rect.width);
+      expect(control.y - control.radius).toBeGreaterThanOrEqual(card.rect.y);
+      expect(control.y + control.radius).toBeLessThanOrEqual(card.rect.y + card.rect.height);
+    }
+  });
+
+  it('never overlaps cards, trophies, or done', () => {
+    const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    const rects = layout.cards.map((card) => card.rect);
+    for (let first = 0; first < rects.length; first += 1) {
+      for (let second = first + 1; second < rects.length; second += 1) {
+        const a = rects[first];
+        const b = rects[second];
+        if (!a || !b) {
+          continue;
+        }
+        const overlaps =
+          a.x < b.x + b.width &&
+          b.x < a.x + a.width &&
+          a.y < b.y + b.height &&
+          b.y < a.y + a.height;
+        expect(overlaps, `card ${first} vs card ${second}`).toBe(false);
+      }
+    }
+    const clamp = (value: number, low: number, high: number): number =>
+      Math.max(low, Math.min(value, high));
+    const distanceToRect = (x: number, y: number, rect: OverlayRect): number =>
+      Math.hypot(
+        x - clamp(x, rect.x, rect.x + rect.width),
+        y - clamp(y, rect.y, rect.y + rect.height),
+      );
+    for (const card of layout.cards) {
+      expect(distanceToRect(layout.done.x, layout.done.y, card.rect)).toBeGreaterThan(
+        layout.done.radius,
+      );
+      for (const slot of layout.trophies) {
+        expect(distanceToRect(slot.x, slot.y, card.rect)).toBeGreaterThan(slot.radius);
+      }
+    }
+    for (const slot of layout.trophies) {
+      expect(Math.hypot(slot.x - layout.done.x, slot.y - layout.done.y)).toBeGreaterThan(
+        slot.radius + layout.done.radius,
+      );
+    }
+  });
+
+  it('places the name setter beside the skin setter in the Skin & Name card', () => {
     const layout = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
     expect(layout.name.action).toBe('name');
     expect(layout.name.radius * 2).toBeGreaterThanOrEqual(90);
-    expect(layout.name.x).toBe(FIELD_WIDTH / 2 - 130);
-    expect(layout.name.y).toBe(layout.easier.y);
+    expect(layout.name.x).toBe(FIELD_WIDTH / 2 - 110);
+    expect(layout.skin.x).toBe(FIELD_WIDTH / 2 + 110);
+    expect(layout.name.y).toBe(layout.skin.y);
     expect(hitParentZone(layout, { x: layout.name.x, y: layout.name.y })).toBe('name');
   });
 

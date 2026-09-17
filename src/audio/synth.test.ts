@@ -5,11 +5,15 @@ import {
   countedNoteSpecs,
   createUnlockGate,
   envelopeGain,
+  GIGGLE_MIDI,
+  giggleNoteSpec,
   MARIMBA_PRESET,
   midiToFrequency,
   playCheckpointChime,
   playCompletion,
   playCountedNotes,
+  playStickerNote,
+  playVolumePreview,
   presetForInstrument,
   TOY_PIANO_PRESET,
   type ToneSpec,
@@ -179,6 +183,24 @@ describe('toy piano counted notes', () => {
   });
 });
 
+describe('playVolumePreview', () => {
+  it('plays a single note with the instrument voice', () => {
+    const player = recordingPlayer();
+    const bell = presetForInstrument('bell');
+    playVolumePreview(player, bell);
+    expect(player.played).toHaveLength(1);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(checkpointMidi(0)), 6);
+    expect(spec.duration).toBe(bell.duration);
+    expect(spec.gain).toBe(bell.gain);
+    expect(spec.type).toBe(bell.type);
+    expect(spec.delay).toBe(0);
+  });
+});
+
 describe('instrument preset registry', () => {
   const IDS = ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox'] as const;
 
@@ -258,5 +280,123 @@ describe('instrument preset registry', () => {
     expect(spec.duration).toBe(woodblock.duration);
     expect(spec.gain).toBe(woodblock.gain);
     expect(spec.type).toBe(woodblock.type);
+  });
+});
+
+describe('sticker board ladder', () => {
+  it('plays one note per sticker tap at the ladder pitch', () => {
+    const player = recordingPlayer();
+    playStickerNote(player, 2);
+    expect(player.played).toHaveLength(1);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(checkpointMidi(2)), 6);
+    expect(spec.delay).toBe(0);
+  });
+
+  it('walks the pentatonic ladder upward for a run of taps', () => {
+    const frequencies = [0, 1, 2, 3, 4].map((index) => {
+      const player = recordingPlayer();
+      playStickerNote(player, index);
+      return player.played[0]?.frequency ?? 0;
+    });
+    for (let index = 1; index < frequencies.length; index += 1) {
+      expect(frequencies[index] ?? 0).toBeGreaterThan(frequencies[index - 1] ?? 0);
+    }
+  });
+
+  it('is stable per sticker and rises an octave every five steps', () => {
+    const first = recordingPlayer();
+    playStickerNote(first, 7);
+    const repeat = recordingPlayer();
+    playStickerNote(repeat, 7);
+    expect(first.played[0]?.frequency).toBe(repeat.played[0]?.frequency);
+    const low = recordingPlayer();
+    playStickerNote(low, 0);
+    const high = recordingPlayer();
+    playStickerNote(high, 5);
+    const lowFrequency = low.played[0]?.frequency ?? 0;
+    const highFrequency = high.played[0]?.frequency ?? 0;
+    expect(highFrequency / lowFrequency).toBeCloseTo(2, 6);
+  });
+
+  it('voices the note with the active skin instrument preset', () => {
+    const player = recordingPlayer();
+    const woodblock = presetForInstrument('woodblock');
+    playStickerNote(player, 1, woodblock);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.duration).toBe(woodblock.duration);
+    expect(spec.gain).toBe(woodblock.gain);
+    expect(spec.type).toBe(woodblock.type);
+  });
+
+  it('defaults to the marimba voice when no preset is given', () => {
+    const player = recordingPlayer();
+    playStickerNote(player, 0);
+    const spec = player.played[0];
+    if (!spec) {
+      throw new Error('missing spec');
+    }
+    expect(spec.duration).toBe(MARIMBA_PRESET.duration);
+    expect(spec.gain).toBe(MARIMBA_PRESET.gain);
+  });
+
+  it('repeats the two-octave ladder after ten stickers', () => {
+    const wrapLow = recordingPlayer();
+    playStickerNote(wrapLow, 10);
+    const first = recordingPlayer();
+    playStickerNote(first, 0);
+    expect(wrapLow.played[0]?.frequency).toBe(first.played[0]?.frequency);
+    const wrapMid = recordingPlayer();
+    playStickerNote(wrapMid, 14);
+    const mid = recordingPlayer();
+    playStickerNote(mid, 4);
+    expect(wrapMid.played[0]?.frequency).toBe(mid.played[0]?.frequency);
+  });
+
+  it('keeps every letters-board sticker inside the two-octave band', () => {
+    for (let index = 0; index < 29; index += 1) {
+      const player = recordingPlayer();
+      playStickerNote(player, index);
+      expect(player.played[0]?.frequency).toBeCloseTo(
+        midiToFrequency(checkpointMidi(index % 10)),
+        6,
+      );
+    }
+  });
+});
+
+describe('giggleNoteSpec', () => {
+  it('plays one short note at the giggle pitch in the preset voice', () => {
+    const spec = giggleNoteSpec(MARIMBA_PRESET);
+    expect(spec.delay).toBe(0);
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(GIGGLE_MIDI), 6);
+    expect(spec.type).toBe(MARIMBA_PRESET.type);
+    expect(spec.gain).toBeGreaterThan(0);
+    expect(spec.gain).toBeLessThan(MARIMBA_PRESET.gain);
+    expect(spec.duration).toBeLessThanOrEqual(0.6);
+  });
+
+  it('keeps every skin instrument timbre and softens the voice', () => {
+    for (const instrument of ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox'] as const) {
+      const preset = presetForInstrument(instrument);
+      const spec = giggleNoteSpec(preset);
+      expect(spec.type).toBe(preset.type);
+      expect(spec.duration).toBe(Math.min(preset.duration, 0.6));
+      expect(spec.gain).toBeCloseTo(preset.gain * 0.8, 6);
+      expect(spec.frequency).toBeCloseTo(midiToFrequency(GIGGLE_MIDI), 6);
+    }
+  });
+
+  it('sits inside the app pentatonic family', () => {
+    const offsets = [0, 2, 4, 7, 9];
+    expect(GIGGLE_MIDI).toBeGreaterThanOrEqual(72);
+    expect(GIGGLE_MIDI).toBeLessThanOrEqual(88);
+    expect(offsets).toContain((GIGGLE_MIDI - 72) % 12);
   });
 });

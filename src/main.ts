@@ -1,11 +1,18 @@
 // Production boot: wires the single canvas + mascot canvas to the app state
 // machine, the level session runtime, volume-aware audio, and the Rive
 // character. Primary pointers drive tracing via attachTraceInput (palm
-// rejection included); a separate raw listener tracks the two-finger
-// parent-gate hold, which needs the non-primary pointers tracing ignores.
+// rejection included); a separate raw listener tracks the parent-gate hold
+// (one finger, started in the menu corner).
 import './style.css';
 
-import { type AppState, applyAppEvent, startApp } from './app/app';
+import {
+  type AppState,
+  applyAppEvent,
+  packLevelIds,
+  shouldPulseStickerShelf,
+  shouldShowParentHint,
+  startApp,
+} from './app/app';
 import { loadArtImage } from './app/art';
 import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
@@ -16,23 +23,44 @@ import {
   drawNameOverlay,
   drawPack,
   drawParent,
+  drawParticles,
   drawSkinButton,
   drawSplash,
+  drawStickerBoard,
+  drawStickerPop,
   drawSuccess,
   endField,
+  GOLD,
   type LevelArt,
   NO_LEVEL_ART,
   type PackMenuArt,
+  type ParentPress,
 } from './app/render';
 import { hopPlanFor } from './app/runPlan';
 import { createSession, type LevelSession } from './app/session';
 import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
+import { stickerPopFrame } from './app/stickerPop';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
-import { createUnlockGate, presetForInstrument } from './audio/synth';
+import {
+  createUnlockGate,
+  giggleNoteSpec,
+  playStickerNote,
+  playVolumePreview,
+  presetForInstrument,
+} from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
+import {
+  createEntrance,
+  type EntranceState,
+  type EntranceTimeline,
+  entrancePos,
+  entranceStart,
+  settleEntrance,
+  stepEntrance,
+} from './character/entrance';
 import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { fieldSizeFor, type Orientation, orientationFor } from './field';
@@ -44,12 +72,21 @@ import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
 import { levelForOrientation, pathGeometryLength } from './packs/wide';
+import { type ConfettiParticle, createConfetti, stepConfetti } from './render/confetti';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
 import { badgeLayout } from './ui/badge';
+import { type InstallVariant, installVariant } from './ui/install';
+import {
+  canGiggle,
+  hitMascot,
+  MASCOT_SPARKLE_COUNT,
+  MASCOT_SPARKLE_SEED,
+  mascotZone,
+} from './ui/mascot';
 import { hitMenuCard, inParentGate, menuLayout, menuParkPosition, splashLayout } from './ui/menu';
 import {
   hitPackCard,
@@ -65,7 +102,7 @@ import {
   packStickers,
   paginate,
 } from './ui/pack';
-import { PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
+import { holdProgress, PARENT_GATE_START, type ParentGateState, stepParentGate } from './ui/parent';
 import {
   hitNameOverlay,
   hitParentZone,
@@ -74,6 +111,7 @@ import {
   parentZoneLayout,
 } from './ui/parentZone';
 import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
+import { hitBoardHome, hitShelfBand, hitStickerCell, stickerBoardLayout } from './ui/stickerBoard';
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
@@ -195,6 +233,10 @@ const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
 let MENU_PARK: Point = menuParkPosition(space.width, space.height);
 let PACK_PARK: Point = packParkPosition(space.width, space.height);
+/** How long a giggle sparkle burst lives before frame() clears it. */
+const GIGGLE_SPARKLES_MS = 1200;
+/** Gate burst particles live ~0.7s after the parent gate opens. */
+const GATE_BURST_MS = 700;
 
 // Storage is acquired once; denied or unavailable storage falls back to
 // memory so the app still boots and plays (progress just is not persisted).
@@ -219,6 +261,17 @@ let currentRun: {
 } | null = null;
 let pendingSkinSwap = false;
 let idleCharFor: string | null = null;
+// Board pop bookkeeping: a fresh sticker moment (new object identity from the
+// state machine) restarts the pop clock that the rAF spring reads.
+let lastMoment: AppState['stickerMoment'] = null;
+let momentStartedAt = 0;
+let lastGiggle: number | null = null;
+let mascotSparkles: ConfettiParticle[] = [];
+let mascotSparklesUntil = 0;
+let entrance: { timeline: EntranceTimeline; state: EntranceState } | null = null;
+let gateBurst: readonly ConfettiParticle[] = [];
+let gateBurstAgeMs = 0;
+let parentPress: ParentPress | null = null;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -244,6 +297,25 @@ function ensureAudio(): TonePlayer | null {
 function pop(): void {
   meteredPlayer?.play({ delay: 0, duration: 0.15, frequency: 660, gain: 0.22, type: 'sine' });
 }
+
+/** Parents hear the level they just set, in the active skin's voice. */
+function previewVolumeNote(): void {
+  const player = ensureAudio();
+  if (!player) {
+    return;
+  }
+  playVolumePreview(player, presetForInstrument(activeSkin().instrument));
+}
+
+/** Install-guide variant; display-mode can only change across relaunches. */
+const INSTALL_VARIANT: InstallVariant = installVariant({
+  maxTouchPoints: navigator.maxTouchPoints,
+  standalone:
+    window.matchMedia('(display-mode: standalone)').matches ||
+    // Safari-only property, absent from lib.dom.
+    (navigator as { standalone?: boolean }).standalone === true,
+  userAgent: navigator.userAgent,
+});
 
 /** Lazily-created DOM field for the parent-set name (child screens never see it). */
 let nameInput: HTMLInputElement | null = null;
@@ -323,6 +395,16 @@ function packLandingPage(packId: string): number {
     app.save.completedLevels,
     pages.map((page) => page.length),
   );
+}
+
+/** Board view for a pack: ordered ids + the pure single-screen layout. */
+function boardView(packId: string) {
+  const pack = PACKS.find((candidate) => candidate.id === packId);
+  if (!pack) {
+    return null;
+  }
+  const ids = packLevelIds(pack);
+  return { ids, layout: stickerBoardLayout(space.width, space.height, ids) };
 }
 
 function commit(next: AppState): void {
@@ -539,6 +621,25 @@ function startRun(
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),
   });
+  entrance = { timeline: createEntrance(session.snapshot().charPos), state: entranceStart() };
+}
+
+/** Tap reaction: the parked mascot giggles (one note + a sparkle burst) on
+ *  menu/pack. The character trigger is fire-and-forget; a cast without the
+ *  giggle input simply stays idle while the note and sparkles still play. */
+function tryGiggle(point: Point, nowMs: number, park: Point, scale: number): void {
+  const zone = mascotZone(park, scale);
+  if (!hitMascot(zone, point) || !canGiggle(nowMs, lastGiggle)) {
+    return;
+  }
+  lastGiggle = nowMs;
+  character?.fire('giggle');
+  meteredPlayer?.play(giggleNoteSpec(presetForInstrument(activeSkin().instrument)));
+  mascotSparkles = createConfetti(MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, {
+    x: zone.x,
+    y: zone.y,
+  });
+  mascotSparklesUntil = nowMs + GIGGLE_SPARKLES_MS;
 }
 
 const handlers: TraceHandlers = {
@@ -576,6 +677,8 @@ const handlers: TraceHandlers = {
       if (packId) {
         commit(applyAppEvent(app, { type: 'open-pack', packId }));
         pop();
+      } else {
+        tryGiggle(point, tapNow, MENU_PARK, MASCOT_SCALE_MENU);
       }
     } else if (screen.name === 'pack') {
       const page = packPageIndex(screen.packId);
@@ -614,6 +717,15 @@ const handlers: TraceHandlers = {
         } else {
           pop();
         }
+      } else {
+        tryGiggle(point, tapNow, PACK_PARK, MASCOT_SCALE_PACK);
+      }
+      if (pack && hitShelfBand(layout, pager, point)) {
+        const boardIds = packLevelIds(pack);
+        if (packStickers(app.save, boardIds).some(Boolean)) {
+          commit(applyAppEvent(app, { type: 'sticker-open', packId: screen.packId }));
+          pop();
+        }
       }
     } else if (screen.name === 'level' || screen.name === 'success') {
       if (!session) {
@@ -634,9 +746,13 @@ const handlers: TraceHandlers = {
             levelArtUrls = null;
             currentRun = null;
             pendingSkinSwap = false;
+            entrance = null;
           }
         }
         return;
+      }
+      if (entrance && !entrance.state.settled) {
+        entrance.state = settleEntrance(entrance.timeline, entrance.state);
       }
       session.pointerDown(point);
     } else if (screen.name === 'badge') {
@@ -652,6 +768,25 @@ const handlers: TraceHandlers = {
         enterPackLevel(next.packId, next.levelId);
       } else {
         pop();
+      }
+    } else if (screen.name === 'sticker-board') {
+      const view = boardView(screen.packId);
+      if (!view) {
+        return;
+      }
+      if (hitBoardHome(view.layout, point)) {
+        commit(applyAppEvent(app, { type: 'sticker-close' }));
+        pop();
+        return;
+      }
+      const stickerId = hitStickerCell(view.layout, point);
+      if (stickerId && app.save.completedLevels.includes(stickerId)) {
+        commit(applyAppEvent(app, { type: 'sticker-tap', levelId: stickerId }));
+        const player = ensureAudio();
+        if (player) {
+          const ladderIndex = view.ids.indexOf(stickerId);
+          playStickerNote(player, ladderIndex, presetForInstrument(activeSkin().instrument));
+        }
       }
     } else if (screen.name === 'parent') {
       if (screen.showName) {
@@ -673,8 +808,11 @@ const handlers: TraceHandlers = {
       }
       const action = hitParentZone(PARENT, point);
       if (action) {
+        parentPress = { action, atMs: performance.now() };
         commit(applyAppEvent(app, { type: 'parent-action', action }));
-        if (action !== 'done') {
+        if (action === 'volume-down' || action === 'volume-up') {
+          previewVolumeNote();
+        } else if (action !== 'done') {
           pop();
         }
       }
@@ -744,8 +882,8 @@ function resize(): void {
   positionNameInput();
 }
 
-// Two-finger hold in the menu corner opens the parent zone. Tracing ignores
-// non-primary pointers, so this raw listener tracks them separately.
+// One-finger hold in the menu corner opens the parent zone. This raw
+// listener tracks pointers that started inside the gate zone.
 trailCanvas.addEventListener('pointerdown', (event) => {
   const point = mapPointerToField(event.clientX, event.clientY, field, space);
   if (point && app.screen.name === 'menu' && inParentGate(MENU, point)) {
@@ -762,14 +900,27 @@ function frame(now: number): void {
   const dtMs = Math.min(now - lastTime, 50);
   lastTime = now;
   if (app.screen.name === 'menu') {
-    const step = stepParentGate(gateState, gatePointers.size >= 2, dtMs);
+    const step = stepParentGate(gateState, gatePointers.size >= 1, dtMs);
     gateState = step.state;
     if (step.opened) {
       gatePointers.clear();
+      const gate = MENU.parentGate;
+      gateBurst = stepConfetti(
+        createConfetti(14, 41, { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 }),
+        0.12,
+      );
+      gateBurstAgeMs = 0;
       commit(applyAppEvent(app, { type: 'parent-open' }));
     }
   } else if (gateState !== PARENT_GATE_START) {
     gateState = PARENT_GATE_START;
+  }
+  if (gateBurst.length > 0) {
+    gateBurstAgeMs += dtMs;
+    gateBurst = stepConfetti(gateBurst, dtMs / 1000);
+    if (gateBurstAgeMs > GATE_BURST_MS) {
+      gateBurst = [];
+    }
   }
   if ((app.screen.name === 'level' || app.screen.name === 'success') && session) {
     session.update(dtMs);
@@ -788,6 +939,21 @@ function frame(now: number): void {
         pendingSkinSwap = false;
         reloadLevelSkin();
       }
+    }
+  }
+  const moment = app.stickerMoment;
+  if (moment && moment !== lastMoment) {
+    lastMoment = moment;
+    momentStartedAt = now;
+  }
+  if (entrance && !entrance.state.settled) {
+    entrance.state = stepEntrance(entrance.timeline, entrance.state, dtMs);
+  }
+  if (mascotSparkles.length > 0) {
+    if (now >= mascotSparklesUntil) {
+      mascotSparkles = [];
+    } else {
+      mascotSparkles = stepConfetti(mascotSparkles, dtMs / 1000);
     }
   }
   syncIdleMascot();
@@ -815,7 +981,17 @@ function render(now: number): void {
         badge: app.save.badges.includes(pack.badgeId),
       });
     }
-    drawMenu(trailContext, MENU, MENU_FILLS, packArts, activeSkin().accent, app.save.name);
+    drawMenu(
+      trailContext,
+      now,
+      MENU,
+      MENU_FILLS,
+      packArts,
+      activeSkin().accent,
+      app.save.name,
+      holdProgress(gateState),
+      shouldShowParentHint(app.save),
+    );
   } else if (screen.name === 'pack') {
     const pack = PACKS.find((candidate) => candidate.id === screen.packId);
     const page = packPageIndex(screen.packId);
@@ -832,6 +1008,19 @@ function render(now: number): void {
         }
       }
       const pager = PACK_PAGERS.get(screen.packId) ?? null;
+      if (shouldPulseStickerShelf(app.save, screen.packId)) {
+        const firstSlot = layout.slots[0];
+        if (firstSlot) {
+          const bandTop = firstSlot.y - firstSlot.radius - 24;
+          trailContext.save();
+          trailContext.globalAlpha = 0.1 + 0.05 * Math.sin(now / 350);
+          trailContext.fillStyle = GOLD;
+          trailContext.beginPath();
+          trailContext.roundRect(24, bandTop, space.width - 48, space.height - bandTop - 24, 24);
+          trailContext.fill();
+          trailContext.restore();
+        }
+      }
       drawPack(
         trailContext,
         now,
@@ -845,6 +1034,44 @@ function render(now: number): void {
         activeSkin().accent,
         pager ? { page, spots: pager } : null,
       );
+    }
+  } else if (screen.name === 'sticker-board') {
+    const view = boardView(screen.packId);
+    if (view) {
+      const stickerImages = new Map<string, HTMLImageElement>();
+      for (const levelId of view.ids) {
+        const url = `/art/sticker/${levelId}.webp`;
+        preloadArt(url);
+        const image = artCache.get(url);
+        if (image) {
+          stickerImages.set(levelId, image);
+        }
+      }
+      const skin = activeSkin();
+      preloadArt(skin.backdrop);
+      drawStickerBoard(
+        trailContext,
+        view.layout,
+        packStickers(app.save, view.ids),
+        stickerImages,
+        artCache.get(skin.backdrop) ?? null,
+        skin.accent,
+        space,
+      );
+      const moment = app.stickerMoment;
+      if (moment) {
+        const cell = view.layout.cells.find((entry) => entry.levelId === moment.levelId);
+        const popFrame = stickerPopFrame(now - momentStartedAt);
+        if (cell && !popFrame.done) {
+          drawStickerPop(
+            trailContext,
+            cell,
+            stickerImages.get(moment.levelId) ?? null,
+            popFrame,
+            skin.accent,
+          );
+        }
+      }
     }
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
@@ -870,11 +1097,16 @@ function render(now: number): void {
       activeSkin(),
       artCache.get(activeSkin().face) ?? null,
       app.save.trophies,
+      parentPress,
+      INSTALL_VARIANT,
       space,
     );
     if (screen.showName) {
       drawNameOverlay(trailContext, currentNameOverlay(), space);
     }
+  }
+  if (screen.name === 'menu' || screen.name === 'pack') {
+    drawMascotSparkles(trailContext);
   }
   if (SKIN_BUTTON_SCREENS.has(screen.name)) {
     const skin = activeSkin();
@@ -887,11 +1119,18 @@ function render(now: number): void {
       skinPoofAt,
     );
   }
+  if (gateBurst.length > 0) {
+    drawParticles(trailContext, gateBurst);
+  }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
+    const charPos =
+      entrance && !entrance.state.settled
+        ? entrancePos(entrance.timeline, entrance.state)
+        : session.snapshot().charPos;
     // The wide field is short: keep the mascot at its portrait share of the height.
     const characterScale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
-    positionCharacter(session.snapshot().charPos, characterScale);
+    positionCharacter(charPos, characterScale);
   } else if (screen.name === 'menu') {
     positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
   } else if (screen.name === 'pack') {
@@ -901,11 +1140,24 @@ function render(now: number): void {
   }
 }
 
+/** Draws the giggle sparkles in field space (mirrors the level confetti). */
+function drawMascotSparkles(context: CanvasRenderingContext2D): void {
+  for (const particle of mascotSparkles) {
+    context.save();
+    context.translate(particle.x, particle.y);
+    context.rotate(particle.x * 0.05 + particle.y * 0.02);
+    context.fillStyle = particle.color;
+    context.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+    context.restore();
+  }
+}
+
 declare global {
   interface Window {
     __app?: {
       readonly field: () => Rect;
       readonly orientation: () => Orientation;
+      readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
       readonly screen: () => AppState['screen'];
       readonly strokes: () => readonly (readonly Point[])[];
@@ -969,7 +1221,22 @@ function screenTargets(): AppTarget[] {
       ...pagerTargets,
       { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
       { id: 'pack:home', x: layout.home.x, y: layout.home.y },
+      { id: 'pack:shelf', x: space.width / 2, y: space.height - 120 },
       skinTarget,
+    ];
+  }
+  if (screen.name === 'sticker-board') {
+    const view = boardView(screen.packId);
+    if (!view) {
+      return [];
+    }
+    return [
+      { id: 'board:home', x: view.layout.home.x, y: view.layout.home.y },
+      ...view.layout.cells.map((cell) => ({
+        id: `sticker:${cell.levelId}`,
+        x: cell.x,
+        y: cell.y,
+      })),
     ];
   }
   if (screen.name === 'level') {
@@ -1023,6 +1290,7 @@ function screenTargets(): AppTarget[] {
 window.__app = {
   field: () => ({ ...field }),
   orientation: () => orientation,
+  moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
   screen: () => app.screen,
   strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),

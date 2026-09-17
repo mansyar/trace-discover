@@ -88,6 +88,20 @@ export function playCheckpointChime(
   });
 }
 
+/** Sticker taps wrap after two octaves (C5..A6) so the big boards' late
+ *  stickers stay audible and gentle; picked by the owner's ear, 2026-09-17. */
+const STICKER_LADDER_STEPS = PENTATONIC_OFFSETS.length * 2;
+
+/** One board-sticker tap note: the same pentatonic ladder as the checkpoint
+ *  chimes, fixed per sticker index (level order) so sequential taps play runs. */
+export function playStickerNote(
+  player: TonePlayer,
+  stickerIndex: number,
+  preset: InstrumentPreset = MARIMBA_PRESET,
+): void {
+  playCheckpointChime(player, stickerIndex % STICKER_LADDER_STEPS, preset);
+}
+
 const COMPLETION_CHORD = [72, 76, 79]; // C5 E5 G5
 const SPARKLE_ARPEGGIO = [84, 86, 88, 91]; // C6 D6 E6 G6
 const ARPEGGIO_START = 0.2;
@@ -142,12 +156,35 @@ export function playCountedNotes(
   }
 }
 
+/** Single preview note so parents hear the new level (and their skin's voice). */
+export function playVolumePreview(
+  player: TonePlayer,
+  preset: InstrumentPreset = MARIMBA_PRESET,
+): void {
+  player.play(noteSpec(0, 0, preset));
+}
+
 function noteSpec(index: number, delay: number, preset: InstrumentPreset): ToneSpec {
   return {
     delay,
     duration: preset.duration,
     frequency: midiToFrequency(checkpointMidi(index)),
     gain: preset.gain,
+    type: preset.type,
+  };
+}
+
+/** Giggle pitch: G5, the fifth degree of the app's C-major pentatonic family. */
+export const GIGGLE_MIDI = 79;
+const GIGGLE_MAX_SECONDS = 0.6;
+
+/** One short, soft note in the active instrument's voice for mascot taps. */
+export function giggleNoteSpec(preset: InstrumentPreset = MARIMBA_PRESET): ToneSpec {
+  return {
+    delay: 0,
+    duration: Math.min(preset.duration, GIGGLE_MAX_SECONDS),
+    frequency: midiToFrequency(GIGGLE_MIDI),
+    gain: preset.gain * 0.8,
     type: preset.type,
   };
 }

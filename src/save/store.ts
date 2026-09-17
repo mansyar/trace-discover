@@ -19,6 +19,7 @@ export const MAX_NAME_LENGTH = 7;
 export interface ParentSettings {
   readonly easierTracing: boolean;
   readonly muted: boolean;
+  readonly parentHintSeen: boolean;
   readonly skin: string;
   readonly volume: number;
 }
@@ -29,6 +30,11 @@ export interface SaveData {
   /** Parent-set child name: uppercase A–Z, 2–MAX_NAME_LENGTH letters. Absent = no name. */
   readonly name?: string;
   readonly settings: ParentSettings;
+  /**
+   * One-time sticker-board intro flag: set on the first board open, absent =
+   * never seen. Preserved across progress resets.
+   */
+  readonly stickerIntroSeen?: boolean;
   readonly trophies: readonly string[];
   readonly version: 3;
 }
@@ -60,7 +66,13 @@ export function createDefaultSave(): SaveData {
   return {
     badges: [],
     completedLevels: [],
-    settings: { easierTracing: false, muted: false, skin: DEFAULT_SKIN, volume: 1 },
+    settings: {
+      easierTracing: false,
+      muted: false,
+      parentHintSeen: false,
+      skin: DEFAULT_SKIN,
+      volume: 1,
+    },
     trophies: [],
     version: SAVE_VERSION,
   };
@@ -106,6 +118,14 @@ export function setName(save: SaveData, raw: string): SaveData {
   return { ...save, name: name === '' ? undefined : name };
 }
 
+/** Records the one-time sticker-board intro as seen; idempotent. */
+export function markStickerIntroSeen(save: SaveData): SaveData {
+  if (save.stickerIntroSeen === true) {
+    return save;
+  }
+  return { ...save, stickerIntroSeen: true };
+}
+
 export function completeLevel(save: SaveData, levelId: string): SaveData {
   if (save.completedLevels.includes(levelId)) {
     return save;
@@ -147,6 +167,10 @@ function asSettings(value: unknown, fallback: ParentSettings): ParentSettings {
     return fallback;
   }
   const muted = 'muted' in value && typeof value.muted === 'boolean' ? value.muted : fallback.muted;
+  const parentHintSeen =
+    'parentHintSeen' in value && typeof value.parentHintSeen === 'boolean'
+      ? value.parentHintSeen
+      : fallback.parentHintSeen;
   const easierTracing =
     'easierTracing' in value && typeof value.easierTracing === 'boolean'
       ? value.easierTracing
@@ -156,7 +180,7 @@ function asSettings(value: unknown, fallback: ParentSettings): ParentSettings {
       ? value.skin
       : fallback.skin;
   const volume = 'volume' in value ? asVolume(value.volume, fallback.volume) : fallback.volume;
-  return { easierTracing, muted, skin, volume };
+  return { easierTracing, muted, parentHintSeen, skin, volume };
 }
 
 function asClearedList(value: unknown): string[] {
@@ -238,6 +262,7 @@ function sanitizeSave(parsed: unknown): SaveData {
   if (version === SAVE_VERSION) {
     const name =
       'name' in parsed && typeof parsed.name === 'string' ? sanitizeName(parsed.name) : '';
+    const stickerIntroSeen = 'stickerIntroSeen' in parsed && parsed.stickerIntroSeen === true;
     return {
       badges: 'badges' in parsed ? asStringArray(parsed.badges) : fallback.badges,
       completedLevels:
@@ -246,6 +271,7 @@ function sanitizeSave(parsed: unknown): SaveData {
           : fallback.completedLevels,
       ...(name === '' ? {} : { name }),
       settings,
+      ...(stickerIntroSeen ? { stickerIntroSeen: true } : {}),
       trophies: 'trophies' in parsed ? asStringArray(parsed.trophies) : fallback.trophies,
       version: SAVE_VERSION,
     };

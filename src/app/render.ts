@@ -7,11 +7,12 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { mulberry32 } from '../render/confetti';
+import { type ConfettiParticle, mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
 import type { BadgeLayout } from '../ui/badge';
+import type { InstallVariant } from '../ui/install';
 import {
   MENU_DOT_RADIUS,
   type MenuCard,
@@ -21,16 +22,28 @@ import {
   type SplashLayout,
 } from '../ui/menu';
 import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
-import type { NameOverlayLayout, ParentZoneLayout } from '../ui/parentZone';
+import { volumePips } from '../ui/parent';
+import type {
+  NameOverlayLayout,
+  ParentZoneAction,
+  ParentZoneLayout,
+  ZoneCard,
+} from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
+import type { StickerBoardLayout } from '../ui/stickerBoard';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
+import { POP_ART_SCALE, type StickerPopFrame, stickerPopPlacement } from './stickerPop';
 
 export const NAVY = '#2e4a63';
 export const GOLD = '#e8c15a';
 export const CREAM = '#f6e3b8';
 export const FIELD_FILL = '#edf5d9';
+
+/** One-time parent hint tooltip under the gate corner (copy owner-approved). */
+const PARENT_HINT = { gapAbove: 8, height: 58, margin: 20, width: 240 } as const;
+const PARENT_HINT_LINES = ['Hold here to open', 'Grown-ups'] as const;
 
 const PATH_STYLE: PathStyle = {
   ribbonWidth: 64,
@@ -337,13 +350,52 @@ function drawAccentTag(
   ctx.stroke();
 }
 
+/** Confetti/sparkle particles (tracing celebration and the gate burst share one look). */
+export function drawParticles(
+  ctx: CanvasRenderingContext2D,
+  particles: readonly ConfettiParticle[],
+): void {
+  for (const particle of particles) {
+    ctx.save();
+    ctx.translate(particle.x, particle.y);
+    ctx.rotate(particle.x * 0.05 + particle.y * 0.02);
+    ctx.fillStyle = particle.color;
+    ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+    ctx.restore();
+  }
+}
+
+/** Gold progress arc around the gate corner; fills 0 → 1 as the hold builds. */
+export function drawGateRing(ctx: CanvasRenderingContext2D, center: Point, progress: number): void {
+  const t = Math.min(1, Math.max(0, progress));
+  if (t <= 0) {
+    return;
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, 24, 0, Math.PI * 2);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = 'rgba(46, 74, 99, 0.18)';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, 24, -Math.PI / 2, -Math.PI / 2 + t * Math.PI * 2);
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = GOLD;
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawMenu(
   ctx: CanvasRenderingContext2D,
+  now: number,
   layout: MenuLayout,
   fills: readonly string[],
   packArts?: ReadonlyMap<string, PackMenuArt>,
   accent?: string,
   name?: string,
+  gateProgress = 0,
+  hintVisible = false,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -363,15 +415,48 @@ export function drawMenu(
       drawMenuIcon(ctx, index, card.x + card.width / 2, card.y + card.height / 2);
     }
   });
-  // Subtle grown-ups affordance: a quiet dot marking the two-finger hold
-  // corner. Single taps here do nothing, so it never tempts little fingers.
+  // Subtle grown-ups affordance: a quiet dot marking the hold corner; the
+  // gold ring fills while a grown-up holds. Single taps here do nothing, so
+  // it never tempts little fingers.
   const gate = layout.parentGate;
+  const gateCenter = { x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 };
+  // Gentle pulse while the one-time hint is up so parents notice the corner.
+  const dotRadius = hintVisible ? 10 * (1 + 0.22 * Math.sin(now / 250)) : 10;
   ctx.save();
   ctx.globalAlpha = 0.3;
   ctx.beginPath();
-  ctx.arc(gate.x + gate.width / 2, gate.y + gate.height / 2, 10, 0, Math.PI * 2);
+  ctx.arc(gateCenter.x, gateCenter.y, dotRadius, 0, Math.PI * 2);
   ctx.fillStyle = NAVY;
   ctx.fill();
+  ctx.restore();
+  drawGateRing(ctx, gateCenter, gateProgress);
+  if (hintVisible) {
+    drawParentHint(ctx, gate);
+  }
+}
+
+/** Small parent-facing tooltip under the gate corner (non-interactive, floats over cards). */
+function drawParentHint(
+  ctx: CanvasRenderingContext2D,
+  gate: { readonly x: number; readonly y: number; readonly width: number; readonly height: number },
+): void {
+  const x = FIELD_WIDTH - PARENT_HINT.margin - PARENT_HINT.width;
+  const y = gate.y + gate.height + PARENT_HINT.gapAbove;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, PARENT_HINT.width, PARENT_HINT.height, 16);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = '600 18px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  PARENT_HINT_LINES.forEach((line, index) => {
+    ctx.fillText(line, x + PARENT_HINT.width / 2, y + 20 + index * 22);
+  });
   ctx.restore();
 }
 
@@ -650,6 +735,95 @@ function drawPagerButton(
   ctx.restore();
 }
 
+/** Sticker board: skin backdrop, earned sticker art / ghosted slots, home corner. */
+export function drawStickerBoard(
+  ctx: CanvasRenderingContext2D,
+  layout: StickerBoardLayout,
+  stickers: readonly boolean[],
+  stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+  backdrop: HTMLImageElement | null = null,
+  accent?: string,
+  design: { readonly width: number; readonly height: number } = {
+    height: FIELD_HEIGHT,
+    width: FIELD_WIDTH,
+  },
+): void {
+  if (backdrop) {
+    drawBackdrop(ctx, backdrop, design);
+  } else if (accent) {
+    ctx.save();
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, design.width, design.height);
+    ctx.restore();
+  }
+  layout.cells.forEach((cell, index) => {
+    const earned = stickers[index] === true;
+    const sticker = earned ? stickerImages.get(cell.levelId) : undefined;
+    if (sticker) {
+      drawGoalArt(ctx, sticker, cell.x, cell.y, cell.radius * POP_ART_SCALE);
+    } else {
+      drawSeal(ctx, cell.x, cell.y, cell.radius, earned);
+    }
+  });
+  ctx.beginPath();
+  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
+/** Pop overlay for a tapped board sticker: the cell's sticker springs up
+ *  (scaled with squash-and-stretch) with a radial sparkle burst. */
+export function drawStickerPop(
+  ctx: CanvasRenderingContext2D,
+  cell: { readonly radius: number; readonly x: number; readonly y: number },
+  image: HTMLImageElement | null,
+  frame: StickerPopFrame,
+  tint: string = GOLD,
+): void {
+  const placement = stickerPopPlacement(cell, frame, FIELD_WIDTH, FIELD_HEIGHT);
+  if (frame.sparkle > 0) {
+    const count = 10;
+    ctx.globalAlpha = frame.sparkle;
+    for (let index = 0; index < count; index += 1) {
+      const angle = (index / count) * Math.PI * 2;
+      const distance = cell.radius * 0.9 + 90 * frame.sparkle;
+      ctx.beginPath();
+      ctx.arc(
+        placement.x + Math.cos(angle) * distance,
+        placement.y + Math.sin(angle) * distance * 0.8,
+        5 + 6 * frame.sparkle,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fillStyle = index % 2 === 0 ? GOLD : tint;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  const width = cell.radius * POP_ART_SCALE * placement.scaleX;
+  const height = cell.radius * POP_ART_SCALE * placement.scaleY;
+  if (image) {
+    ctx.drawImage(image, placement.x - width / 2, placement.y - height / 2, width, height);
+    return;
+  }
+  ctx.save();
+  ctx.translate(placement.x, placement.y);
+  ctx.scale(placement.scaleX, placement.scaleY);
+  ctx.beginPath();
+  drawStar(ctx, 0, 0, cell.radius * 0.62);
+  ctx.fillStyle = GOLD;
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.restore();
+}
+
 /** Drawn stand-in while a skin's backdrop art has not shipped yet. */
 function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent: string): void {
   const gradient = ctx.createLinearGradient(0, 0, 0, FIELD_HEIGHT);
@@ -775,14 +949,7 @@ export function drawLevel(
       drawSeal(ctx, STICKER_SLOT.x, STICKER_SLOT.y, 26, true);
     }
   }
-  for (const particle of snap.confetti) {
-    ctx.save();
-    ctx.translate(particle.x, particle.y);
-    ctx.rotate(particle.x * 0.05 + particle.y * 0.02);
-    ctx.fillStyle = particle.color;
-    ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
-    ctx.restore();
-  }
+  drawParticles(ctx, snap.confetti);
 }
 
 export function drawSuccess(
@@ -829,6 +996,9 @@ export function drawBadge(
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
+/** Duration of the pressed-control pop, in ms. */
+const PRESS_PULSE_MS = 240;
+
 function drawZoneButton(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -837,9 +1007,11 @@ function drawZoneButton(
   active: boolean,
   glyph: string,
   label: string,
+  pressT = 0,
 ): void {
+  const pop = 1 + 0.08 * Math.sin(Math.PI * Math.max(0, Math.min(1, pressT)));
   ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.arc(x, y, radius * pop, 0, Math.PI * 2);
   ctx.fillStyle = active ? GOLD : '#ffffff';
   ctx.fill();
   ctx.lineWidth = 6;
@@ -850,8 +1022,116 @@ function drawZoneButton(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(glyph, x, y + 2);
-  ctx.font = '22px system-ui, sans-serif';
-  ctx.fillText(label, x, y + radius + 24);
+  if (label) {
+    ctx.font = '22px system-ui, sans-serif';
+    ctx.fillText(label, x, y + radius + 24);
+  }
+}
+
+/** State of the pressed-control pop (set by the shell on each parent tap). */
+export interface ParentPress {
+  readonly action: ParentZoneAction;
+  readonly atMs: number;
+}
+
+/** Rounded section panel + its label (parent copy lives on the parent screen). */
+function drawZoneCard(ctx: CanvasRenderingContext2D, card: ZoneCard): void {
+  ctx.beginPath();
+  ctx.roundRect(card.rect.x, card.rect.y, card.rect.width, card.rect.height, 18);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = '20px system-ui, sans-serif';
+  const mini = card.mini;
+  ctx.textAlign = mini ? 'center' : 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(
+    card.label,
+    mini ? card.rect.x + card.rect.width / 2 : card.rect.x + 20,
+    card.rect.y + 22,
+  );
+}
+
+const PIP_RADIUS = 6;
+const PIP_GAP = 18;
+
+/** Five pips track the volume level; muted dims the filled pips. */
+function drawVolumePips(
+  ctx: CanvasRenderingContext2D,
+  rightX: number,
+  centerY: number,
+  volume: number,
+  muted: boolean,
+): void {
+  const filled = volumePips(volume);
+  for (let index = 0; index < 5; index += 1) {
+    ctx.beginPath();
+    ctx.arc(rightX - (4 - index) * PIP_GAP, centerY, PIP_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle =
+      index < filled ? (muted ? 'rgba(46, 74, 99, 0.28)' : GOLD) : 'rgba(46, 74, 99, 0.15)';
+    ctx.fill();
+  }
+}
+
+/** Copy per install variant; the panel shows only the steps that apply. */
+const INSTALL_LINES: Readonly<Record<InstallVariant, readonly string[]>> = {
+  android: [
+    'Add to Home Screen',
+    '',
+    'Menu ⋮ >',
+    '“Add to Home screen”.',
+    '',
+    'Then play offline!',
+  ],
+  generic: [
+    'Add to Home Screen',
+    '',
+    'Android: menu ⋮ >',
+    '“Add to Home screen”.',
+    '',
+    'iPad: Share □↑ >',
+    '“Add to Home Screen”.',
+    '',
+    'Then play offline!',
+  ],
+  installed: ['All set!', '', 'You are playing the', 'installed app.', '', 'It works offline.'],
+  ios: [
+    'Add to Home Screen',
+    '',
+    'Tap Share □↑ >',
+    '“Add to Home Screen”.',
+    '',
+    'Then play offline!',
+  ],
+};
+
+function drawInstallPanel(
+  ctx: CanvasRenderingContext2D,
+  variant: InstallVariant,
+  design: { readonly width: number; readonly height: number },
+): void {
+  const wide = design.width > design.height;
+  const panelTop = wide ? 40 : 120;
+  const panelHeight = wide ? design.height - 80 : 620;
+  const lineHeight = wide ? 36 : 52;
+  const startY = wide ? panelTop + 40 : 190;
+  ctx.beginPath();
+  ctx.roundRect(40, panelTop, design.width - 80, panelHeight, 18);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = wide ? '22px system-ui, sans-serif' : '26px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const [index, line] of INSTALL_LINES[variant].entries()) {
+    ctx.fillText(line, design.width / 2, startY + index * lineHeight);
+  }
 }
 
 export function drawParent(
@@ -864,20 +1144,37 @@ export function drawParent(
   skin: SkinDef,
   skinFace: HTMLImageElement | null,
   trophies: readonly string[],
+  pressed: ParentPress | null = null,
+  installVariant: InstallVariant = 'generic',
   design: { readonly width: number; readonly height: number } = {
     height: FIELD_HEIGHT,
     width: FIELD_WIDTH,
   },
 ): void {
   const wide = design.width > design.height;
+  const pressT = (action: ParentZoneAction): number => {
+    if (!pressed || pressed.action !== action) {
+      return 0;
+    }
+    return 1 - Math.min(1, Math.max(0, (now - pressed.atMs) / PRESS_PULSE_MS));
+  };
   ctx.fillStyle = NAVY;
   ctx.font = '30px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('Grown-ups', design.width / 2, 70);
-  if (!wide) {
-    ctx.font = '24px system-ui, sans-serif';
-    ctx.fillText('Sound', design.width / 2, 175);
+  for (const card of layout.cards) {
+    drawZoneCard(ctx, card);
+  }
+  const soundCard = layout.cards.find((card) => card.id === 'sound');
+  if (soundCard) {
+    drawVolumePips(
+      ctx,
+      soundCard.rect.x + soundCard.rect.width - 20,
+      soundCard.rect.y + 22,
+      settings.volume,
+      settings.muted,
+    );
   }
   drawZoneButton(
     ctx,
@@ -886,7 +1183,8 @@ export function drawParent(
     layout.volumeDown.radius,
     false,
     '−',
-    'quieter',
+    '',
+    pressT('volume-down'),
   );
   drawZoneButton(
     ctx,
@@ -895,7 +1193,8 @@ export function drawParent(
     layout.mute.radius,
     settings.muted,
     settings.muted ? '✕' : '♪',
-    'mute',
+    '',
+    pressT('mute'),
   );
   drawZoneButton(
     ctx,
@@ -904,15 +1203,9 @@ export function drawParent(
     layout.volumeUp.radius,
     false,
     '+',
-    'louder',
+    '',
+    pressT('volume-up'),
   );
-  if (!wide) {
-    ctx.font = '24px system-ui, sans-serif';
-    ctx.fillStyle = NAVY;
-    ctx.textAlign = 'left';
-    ctx.fillText('Tracing', 40, 325);
-    ctx.textAlign = 'center';
-  }
   drawZoneButton(
     ctx,
     layout.easier.x,
@@ -921,6 +1214,7 @@ export function drawParent(
     settings.easierTracing,
     '★',
     settings.easierTracing ? 'easier: on' : 'easier: off',
+    pressT('easier'),
   );
   const skinButton = layout.skin;
   drawSkinButton(
@@ -937,36 +1231,47 @@ export function drawParent(
   ctx.textBaseline = 'middle';
   ctx.fillText('skin', skinButton.x, skinButton.y + skinButton.radius + 24);
   const nameButton = layout.name;
-  drawZoneButton(ctx, nameButton.x, nameButton.y, nameButton.radius, false, '✎', 'name');
-  ctx.font = '24px system-ui, sans-serif';
-  const trophyAnchor = layout.trophies[1] ?? layout.trophies[0];
-  if (trophyAnchor) {
-    ctx.fillText('Trophies', trophyAnchor.x, trophyAnchor.y - 40);
-  }
-  layout.trophies.forEach((slot, index) => {
-    ctx.beginPath();
-    if (index < trophies.length) {
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-      drawStar(ctx, slot.x, slot.y, slot.radius - 8);
-      ctx.fillStyle = GOLD;
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = NAVY;
-      ctx.stroke();
-    } else {
-      ctx.setLineDash([8, 6]);
-      ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(46, 74, 99, 0.35)';
-      ctx.stroke();
-      ctx.setLineDash([]);
+  drawZoneButton(
+    ctx,
+    nameButton.x,
+    nameButton.y,
+    nameButton.radius,
+    false,
+    '✎',
+    'name',
+    pressT('name'),
+  );
+  if (!confirmReset || wide) {
+    ctx.font = '24px system-ui, sans-serif';
+    const trophyAnchor = layout.trophies[1] ?? layout.trophies[0];
+    if (trophyAnchor) {
+      ctx.fillText('Trophies', trophyAnchor.x, wide ? trophyAnchor.y - 40 : 672);
     }
-  });
+    layout.trophies.forEach((slot, index) => {
+      ctx.beginPath();
+      if (index < trophies.length) {
+        ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = NAVY;
+        ctx.stroke();
+        drawStar(ctx, slot.x, slot.y, slot.radius - 8);
+        ctx.fillStyle = GOLD;
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = NAVY;
+        ctx.stroke();
+      } else {
+        ctx.setLineDash([8, 6]);
+        ctx.arc(slot.x, slot.y, slot.radius, 0, Math.PI * 2);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(46, 74, 99, 0.35)';
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+  }
   drawZoneButton(
     ctx,
     layout.reset.x,
@@ -975,6 +1280,7 @@ export function drawParent(
     confirmReset,
     '↺',
     confirmReset ? 'tap again!' : 'restart',
+    pressT('reset'),
   );
   drawZoneButton(
     ctx,
@@ -984,44 +1290,35 @@ export function drawParent(
     showInstall,
     '⤓',
     'install',
+    pressT('install'),
   );
-  drawZoneButton(ctx, layout.done.x, layout.done.y, layout.done.radius, false, '✓', 'done');
+  drawZoneButton(
+    ctx,
+    layout.done.x,
+    layout.done.y,
+    layout.done.radius,
+    false,
+    '✓',
+    'done',
+    pressT('done'),
+  );
   if (confirmReset) {
-    const bannerY = wide ? 10 : design.height - 220;
+    const bannerY = wide ? 10 : 648;
+    const bannerHeight = wide ? 90 : 64;
+    ctx.beginPath();
+    ctx.roundRect(40, bannerY, design.width - 80, bannerHeight, 16);
     ctx.fillStyle = 'rgba(46, 74, 99, 0.85)';
-    ctx.fillRect(40, bannerY, design.width - 80, 90);
+    ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = '24px system-ui, sans-serif';
-    ctx.fillText('Erase all stickers? Tap restart again.', design.width / 2, bannerY + 46);
+    ctx.font = wide ? '24px system-ui, sans-serif' : '22px system-ui, sans-serif';
+    ctx.fillText(
+      'Erase all stickers? Tap restart again.',
+      design.width / 2,
+      bannerY + (wide ? 46 : 32),
+    );
   }
   if (showInstall) {
-    const panelTop = wide ? 40 : 120;
-    const panelHeight = wide ? design.height - 80 : 620;
-    const lineHeight = wide ? 36 : 52;
-    const startY = wide ? panelTop + 40 : 190;
-    ctx.beginPath();
-    ctx.rect(40, panelTop, design.width - 80, panelHeight);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
-    ctx.fill();
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = NAVY;
-    ctx.stroke();
-    ctx.fillStyle = NAVY;
-    ctx.font = wide ? '22px system-ui, sans-serif' : '26px system-ui, sans-serif';
-    const lines = [
-      'Add to Home Screen',
-      '',
-      'Android: menu ⋮ >',
-      '“Add to Home screen”.',
-      '',
-      'iPad: Share □↑ >',
-      '“Add to Home Screen”.',
-      '',
-      'Then play offline!',
-    ];
-    lines.forEach((line, index) => {
-      ctx.fillText(line, design.width / 2, startY + index * lineHeight);
-    });
+    drawInstallPanel(ctx, installVariant, design);
   }
 }
 
