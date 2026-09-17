@@ -71,13 +71,13 @@ conflicts, resolved by preserving both behaviors.
 
 ## Phase 3: Cast upgrades — five workspaces
 
-- [ ] Task 1: Dino upgrade (`dev/characters/dino4`)
-  - [ ] Author giggle reaction (short, on-brand), signature flourish (fits the
+- [x] Task 1: Dino upgrade (`dev/characters/dino4`) (03a6f14)
+  - [x] Author giggle reaction (short, on-brand), signature flourish (fits the
         ~2 s celebrate stage), idle beat (subtle); rebuild `dino.riv`;
         ≤ ~500 KB check
-  - [ ] Screenshot set (idle beat / giggle / flourish) → owner confirmation;
+  - [x] Screenshot set (idle beat / giggle / flourish) → owner confirmation;
         tune in-task
-  - [ ] Commit + git note
+  - [x] Commit + git note
 - [ ] Task 2: Star upgrade (`dev/characters/star`, + blinkpatch)
   - [ ] Compose star blink overlay art; add the blinkpatch technique matching
         the other four casts
