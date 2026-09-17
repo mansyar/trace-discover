@@ -71,12 +71,12 @@ two pages), ear approval of the note ladder, and the device sign-off.
         burst, settle ≤ ~1.5s; rapid re-tap restarts; one note at a time
   - [x] Screenshots (mid-pop frames)
   - [x] Commit + git note
-- [ ] Task 3: Shell wiring (`src/main.ts`)
-  - [ ] Shelf band tap opens the board (control corners keep precedence);
+- [x] Task 3: Shell wiring (`src/main.ts`) (ceed9e5)
+  - [x] Shelf band tap opens the board (control corners keep precedence);
         board pointer handling (cells → moment + note); shelf pulse while the
         intro is unseen; `targets()` gains shelf band + board targets
-  - [ ] Screenshots (pulse state, board open, pop)
-  - [ ] Commit + git note
+  - [x] Screenshots (pulse state, board open, pop)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Pentatonic ladder audio
