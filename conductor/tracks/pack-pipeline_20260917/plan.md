@@ -30,7 +30,7 @@ no push/PR/release; no new runtime dependency.
       name aligned to `bonusUnlocks`; final-threshold rule recorded in spec FR1
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Strict shared parser (`src/packs/json.ts`) [checkpoint: ]
+## Phase 2: Strict shared parser (`src/packs/json.ts`) [checkpoint: e6d6525]
 
 - [x] Task 1: Raw-JSON shape validation (TDD) (ac5be34)
   - [x] Red: unknown key rejected (e.g. `goals` for `goal`); invalid `stroke` value
@@ -46,7 +46,7 @@ no push/PR/release; no new runtime dependency.
         throw clear load-time error on problems
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (e6d6525)
 
 ## Phase 3: Pre-writing port — byte-level parity [checkpoint: ]
 
