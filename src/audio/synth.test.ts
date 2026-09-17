@@ -324,4 +324,28 @@ describe('sticker board ladder', () => {
     expect(spec.duration).toBe(MARIMBA_PRESET.duration);
     expect(spec.gain).toBe(MARIMBA_PRESET.gain);
   });
+
+  it('repeats the two-octave ladder after ten stickers', () => {
+    const wrapLow = recordingPlayer();
+    playStickerNote(wrapLow, 10);
+    const first = recordingPlayer();
+    playStickerNote(first, 0);
+    expect(wrapLow.played[0]?.frequency).toBe(first.played[0]?.frequency);
+    const wrapMid = recordingPlayer();
+    playStickerNote(wrapMid, 14);
+    const mid = recordingPlayer();
+    playStickerNote(mid, 4);
+    expect(wrapMid.played[0]?.frequency).toBe(mid.played[0]?.frequency);
+  });
+
+  it('keeps every letters-board sticker inside the two-octave band', () => {
+    for (let index = 0; index < 29; index += 1) {
+      const player = recordingPlayer();
+      playStickerNote(player, index);
+      expect(player.played[0]?.frequency).toBeCloseTo(
+        midiToFrequency(checkpointMidi(index % 10)),
+        6,
+      );
+    }
+  });
 });

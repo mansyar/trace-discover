@@ -88,6 +88,10 @@ export function playCheckpointChime(
   });
 }
 
+/** Sticker taps wrap after two octaves (C5..A6) so the big boards' late
+ *  stickers stay audible and gentle; picked by the owner's ear, 2026-09-17. */
+const STICKER_LADDER_STEPS = PENTATONIC_OFFSETS.length * 2;
+
 /** One board-sticker tap note: the same pentatonic ladder as the checkpoint
  *  chimes, fixed per sticker index (level order) so sequential taps play runs. */
 export function playStickerNote(
@@ -95,7 +99,7 @@ export function playStickerNote(
   stickerIndex: number,
   preset: InstrumentPreset = MARIMBA_PRESET,
 ): void {
-  playCheckpointChime(player, stickerIndex, preset);
+  playCheckpointChime(player, stickerIndex % STICKER_LADDER_STEPS, preset);
 }
 
 const COMPLETION_CHORD = [72, 76, 79]; // C5 E5 G5
