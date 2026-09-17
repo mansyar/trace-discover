@@ -13,10 +13,10 @@
   - [x] `conductor/tech-stack.md`: dated note — port target: all static packs declarative (`numbers.json`, `abc.json`; file name = pack id; Name stays runtime-composed; ports are parity-guarded)
   - [x] `conductor/product.md`: dated note — every static pack is pipeline work; My Name stays composed by design
   - [x] Commit + git note
-- [ ] Task 2: Freeze pre-port parity fixtures
-  - [ ] One-off capture (temporary dev-time script) dumping current TypeScript exports into `src/packs/fixtures/numbers-parity.json` + `letters-parity.json`; capture source commit (`086f8c8`) recorded
-  - [ ] Verify contents: 10 numeral levels; 26 + 3 letter levels with derived goal/goalArt; pack identities + unlocks; spot-diff vs source
-  - [ ] Delete the capture script; commit fixtures + git note (provenance: what was frozen, from where, why)
+- [x] Task 2: Freeze pre-port parity fixtures [1f7b866]
+  - [x] One-off capture (temporary dev-time script) dumping current TypeScript exports into `src/packs/fixtures/numbers-parity.json` + `letters-parity.json`; capture source commit (`086f8c8`) recorded
+  - [x] Verify contents: 10 numeral levels; 26 + 3 letter levels with derived goal/goalArt; pack identities + unlocks; spot-diff vs source
+  - [x] Delete the capture script; commit fixtures + git note (provenance: what was frozen, from where, why)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Numbers port — byte-level parity (TDD)
