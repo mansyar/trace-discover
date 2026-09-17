@@ -66,11 +66,11 @@ two pages), ear approval of the note ladder, and the device sign-off.
         modules; no new assets
   - [x] Screenshot evidence (harness, seeded save; visually confirmed)
   - [x] Commit + git note
-- [~] Task 2: Pop moment + sparkle animation
-  - [ ] rAF spring pop to ~400 units (squash & stretch, overshoot), sparkle
+- [x] Task 2: Pop moment + sparkle animation (077315d)
+  - [x] rAF spring pop to ~400 units (squash & stretch, overshoot), sparkle
         burst, settle ≤ ~1.5s; rapid re-tap restarts; one note at a time
-  - [ ] Screenshots (mid-pop frames)
-  - [ ] Commit + git note
+  - [x] Screenshots (mid-pop frames)
+  - [x] Commit + git note
 - [ ] Task 3: Shell wiring (`src/main.ts`)
   - [ ] Shelf band tap opens the board (control corners keep precedence);
         board pointer handling (cells → moment + note); shelf pulse while the
