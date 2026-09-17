@@ -401,6 +401,169 @@ describe('numeral reward plan', () => {
   });
 });
 
+const TWO_STROKE: LevelDef = {
+  goal: { x: 300, y: 400 },
+  goalArt: '/art/goal/reflow.webp',
+  id: 'reflow-two',
+  stroke: 'line',
+  strokes: [
+    [
+      { x: 100, y: 200 },
+      { x: 300, y: 200 },
+    ],
+    [
+      { x: 100, y: 400 },
+      { x: 300, y: 400 },
+    ],
+  ],
+};
+
+/** Same shape scaled by `factor` — stands in for a re-laid design space. */
+function scaledLevel(source: LevelDef, factor: number): LevelDef {
+  return {
+    ...source,
+    goal: { x: source.goal.x * factor, y: source.goal.y * factor },
+    strokes: source.strokes.map((stroke) =>
+      stroke.map((p) => ({ x: p.x * factor, y: p.y * factor })),
+    ),
+  };
+}
+
+function strokePath(source: LevelDef, index: number): readonly Point[] {
+  const path = levelToPath(source)[index];
+  if (!path) {
+    throw new Error(`Stroke ${index} of ${source.id} is missing.`);
+  }
+  return path;
+}
+
+function walkStroke(
+  session: ReturnType<typeof createSession>,
+  path: readonly Point[],
+  from: number,
+  to: number,
+): void {
+  for (let i = from; i < to; i += 2) {
+    session.pointerMove(point(path, i));
+    session.update(16);
+    session.update(16);
+  }
+}
+
+describe('session reflow', () => {
+  it('keeps the stroke index and proportional frontier across a reflow', () => {
+    const f = fakes();
+    const session = createSession(TWO_STROKE, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const first = strokePath(TWO_STROKE, 0);
+    const second = strokePath(TWO_STROKE, 1);
+    session.pointerDown(point(first, 0));
+    walkStroke(session, first, 1, first.length);
+    walkStroke(session, second, 1, Math.floor(second.length / 4));
+    const before = session.snapshot();
+    expect(before.multiState.strokeIndex).toBe(1);
+    expect(before.multiState.frontier).toBeGreaterThan(0);
+
+    session.reflow(scaledLevel(TWO_STROKE, 0.5), 0.5);
+    const after = session.snapshot();
+    expect(after.multiState.strokeIndex).toBe(1);
+    expect(after.multiState.frontier).toBeCloseTo(before.multiState.frontier * 0.5, 6);
+    expect(after.multiState.tracing).toBe(false);
+    expect(after.checkState).toEqual(before.checkState);
+  });
+
+  it('cancels an in-flight stroke on reflow and can still be finished', () => {
+    const f = fakes();
+    const session = createSession(TWO_STROKE, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const first = strokePath(TWO_STROKE, 0);
+    session.pointerDown(point(first, 0));
+    walkStroke(session, first, 1, Math.floor(first.length / 2));
+    expect(session.snapshot().multiState.tracing).toBe(true);
+
+    const half = scaledLevel(TWO_STROKE, 0.5);
+    session.reflow(half, 0.5);
+    const after = session.snapshot();
+    expect(after.multiState.tracing).toBe(false);
+    expect(after.multiState.frontier).toBeGreaterThan(0);
+    session.pointerUp();
+
+    const halfFirst = strokePath(half, 0);
+    const halfSecond = strokePath(half, 1);
+    const resumeIndex = Math.min(
+      Math.max(1, Math.round(after.multiState.frontier / 8)),
+      halfFirst.length - 1,
+    );
+    session.pointerDown(point(halfFirst, resumeIndex));
+    walkStroke(session, halfFirst, resumeIndex + 1, halfFirst.length);
+    walkStroke(session, halfSecond, 1, halfSecond.length);
+    for (let u = 0; u < 400 && !session.success; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+  });
+
+  it('leaves a finished level untouched', () => {
+    const f = fakes();
+    const session = createSession(TWO_STROKE, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const first = strokePath(TWO_STROKE, 0);
+    const second = strokePath(TWO_STROKE, 1);
+    session.pointerDown(point(first, 0));
+    walkStroke(session, first, 1, first.length);
+    walkStroke(session, second, 1, second.length);
+    for (let u = 0; u < 400 && !session.success; u += 1) {
+      session.update(16);
+    }
+    expect(session.success).toBe(true);
+    const before = session.snapshot();
+
+    session.reflow(scaledLevel(TWO_STROKE, 2), 2);
+    const after = session.snapshot();
+    expect(after.multi.total).toBeCloseTo(before.multi.total, 9);
+    expect(after.multiState).toEqual(before.multiState);
+  });
+
+  it('stays stable across repeated reflows', () => {
+    const f = fakes();
+    const session = createSession(TWO_STROKE, {
+      character: f.character,
+      onEvent: (event) => void f.events.push(event),
+      player: f.player,
+      seed: 7,
+      settings: () => ({ easierTracing: false }),
+    });
+    const second = strokePath(TWO_STROKE, 1);
+    const first = strokePath(TWO_STROKE, 0);
+    session.pointerDown(point(first, 0));
+    walkStroke(session, first, 1, first.length);
+    walkStroke(session, second, 1, Math.floor(second.length / 4));
+    const before = session.snapshot().multiState.frontier;
+
+    for (let round = 0; round < 3; round += 1) {
+      session.reflow(scaledLevel(TWO_STROKE, 0.5), 0.5);
+      session.reflow(TWO_STROKE, 2);
+    }
+    expect(session.snapshot().multiState.frontier).toBeCloseTo(before, 3);
+    expect(session.snapshot().multiState.tracing).toBe(false);
+  });
+});
+
 describe('skin instrument audio', () => {
   it('plays chimes and completion through the skin instrument preset', () => {
     const f = fakes();

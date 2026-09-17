@@ -3,7 +3,7 @@ import { LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
 import { LETTER_LEVELS } from './letters';
 import type { LevelDef } from './level';
 import { PRE_LEVELS } from './pre';
-import { levelForOrientation } from './wide';
+import { levelForOrientation, projectionScale } from './wide';
 
 const MARGIN = 24;
 
@@ -128,6 +128,33 @@ describe('levelForOrientation', () => {
     expect(wide).not.toBe(level);
     expect(wide.goal).toEqual(level.goal);
     expect(wide.strokes).toEqual([]);
+    expect(projectionScale(level, 'landscape')).toBe(1);
+  });
+
+  it('reports the scale its landscape projection would apply', () => {
+    const oversize: LevelDef = {
+      goal: { x: 1900, y: 950 },
+      goalArt: '/art/goal/test.webp',
+      id: 'scale-test',
+      stroke: 'line',
+      strokes: [
+        [
+          { x: 100, y: 100 },
+          { x: 1000, y: 500 },
+          { x: 1900, y: 100 },
+        ],
+      ],
+    };
+    expect(projectionScale(oversize, 'portrait')).toBe(1);
+    expect(projectionScale(oversize, 'landscape')).toBeCloseTo(
+      (LANDSCAPE_FIELD_WIDTH - 2 * MARGIN) / 1800,
+      9,
+    );
+    const letter = LETTER_LEVELS[0];
+    expect(letter).toBeDefined();
+    if (letter) {
+      expect(projectionScale(letter, 'landscape')).toBe(1);
+    }
   });
 
   it('does not mutate the authored level', () => {

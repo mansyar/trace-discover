@@ -42,7 +42,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
-import { levelForOrientation } from './packs/wide';
+import { levelForOrientation, projectionScale } from './packs/wide';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
@@ -207,7 +207,13 @@ let detachInput = (): void => {};
 let lastTime = performance.now();
 let lastSkinTap: number | null = null;
 let skinPoofAt: number | null = null;
-let currentRun: { level: LevelDef; packId: string; levelId: string } | null = null;
+let currentRun: {
+  level: LevelDef;
+  runLevel: LevelDef;
+  scale: number;
+  packId: string;
+  levelId: string;
+} | null = null;
 let pendingSkinSwap = false;
 let idleCharFor: string | null = null;
 
@@ -460,7 +466,6 @@ function enterPackLevel(packId: string, levelId: string): void {
   if (!pack || !level) {
     return;
   }
-  const runLevel = levelForOrientation(level, orientation);
   const player = ensureAudio();
   if (!player) {
     return;
@@ -474,7 +479,7 @@ function enterPackLevel(packId: string, levelId: string): void {
   const seed = 7 + (index >= 0 ? index : pack.levels.length) * 13;
   const presentation = levelPresentation(skin, level);
   startRun(
-    runLevel,
+    level,
     presentation,
     presentation.character,
     seed,
@@ -496,8 +501,15 @@ function startRun(
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
+  const runLevel = levelForOrientation(level, orientation);
   levelArtUrls = art;
-  currentRun = { level, packId, levelId };
+  currentRun = {
+    level,
+    runLevel,
+    scale: projectionScale(level, orientation),
+    packId,
+    levelId,
+  };
   if (art.backdrop) {
     preloadArt(art.backdrop);
   }
@@ -506,7 +518,7 @@ function startRun(
     preloadArt(art.sticker);
   }
   ensureCharacter(characterName, true);
-  session = createSession(level, {
+  session = createSession(runLevel, {
     character: {
       fire: (trigger) => character?.fire(trigger) ?? false,
     },
@@ -678,6 +690,22 @@ const handlers: TraceHandlers = {
   },
 };
 
+/** Re-lays the running level into the new design space, keeping progress. */
+function reflowRun(): void {
+  if (!session || !currentRun) {
+    return;
+  }
+  const snapshot = session.snapshot();
+  if (session.success || snapshot.completionStarted) {
+    return;
+  }
+  const nextScale = projectionScale(currentRun.level, orientation);
+  const runLevel = levelForOrientation(currentRun.level, orientation);
+  session.reflow(runLevel, nextScale / currentRun.scale);
+  currentRun.runLevel = runLevel;
+  currentRun.scale = nextScale;
+}
+
 function resize(): void {
   const dpr = window.devicePixelRatio || 1;
   const size = computeBackingSize(window.innerWidth, window.innerHeight, dpr);
@@ -687,6 +715,7 @@ function resize(): void {
   if (next !== orientation) {
     orientation = next;
     rebuildViews();
+    reflowRun();
   }
   field = fitRect(window.innerWidth, window.innerHeight, space.width, space.height);
   detachInput();

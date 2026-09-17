@@ -103,12 +103,14 @@ export interface LevelSession {
   pointerDown(point: Point): void;
   pointerMove(point: Point): void;
   pointerUp(): void;
+  /** Rebuilds the trail for a re-laid level, scaling the frontier proportionally. */
+  reflow(level: LevelDef, frontierRatio: number): void;
   snapshot(): SessionSnapshot;
   update(dtMs: number): void;
 }
 
 export function createSession(level: LevelDef, deps: SessionDeps): LevelSession {
-  const paths = levelToPath(level);
+  let paths = levelToPath(level);
   if (paths.length === 0) {
     throw new Error(`Level ${level.id} has no strokes.`);
   }
@@ -120,7 +122,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   let multiState: MultiTrailState = MULTI_TRAIL_START;
   let assistState: AssistState = ASSIST_START;
   let checkState: CheckpointState = CHECKPOINT_START;
-  const checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
+  let checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
   let completion: CompletionState = COMPLETION_START;
   let completionStarted = false;
   let confetti: ConfettiParticle[] = [];
@@ -274,6 +276,23 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
     pointerUp: () => {
       pointer = null;
       multiState = endMultiStroke(multiState);
+    },
+    reflow: (nextLevel, frontierRatio) => {
+      if (success || completionStarted) {
+        return;
+      }
+      paths = levelToPath(nextLevel);
+      multi = createMultiTrail(paths, {
+        tolerance: baseTolerance * toleranceScaleNow,
+        maxAdvanceSpeed: MAX_ADVANCE_SPEED,
+      });
+      checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
+      multiState = {
+        frontier: multiState.frontier * frontierRatio,
+        strokeIndex: multiState.strokeIndex,
+        tracing: false,
+      };
+      pointer = null;
     },
     snapshot: () => {
       const idleMs = assistState.idleMs;

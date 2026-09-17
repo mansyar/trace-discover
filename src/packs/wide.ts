@@ -8,12 +8,14 @@ import type { LevelDef } from './level';
 
 const MARGIN = 24;
 
-/** Projects a level for the active design space; portrait is the authored space. */
-export function levelForOrientation(level: LevelDef, orientation: Orientation): LevelDef {
-  if (orientation === 'portrait') {
-    return level;
-  }
+interface Bounds {
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly minX: number;
+  readonly minY: number;
+}
 
+function boundsOf(level: LevelDef): Bounds | null {
   let minX = Number.POSITIVE_INFINITY;
   let maxX = Number.NEGATIVE_INFINITY;
   let minY = Number.POSITIVE_INFINITY;
@@ -26,19 +28,42 @@ export function levelForOrientation(level: LevelDef, orientation: Orientation): 
       maxY = Math.max(maxY, point.y);
     }
   }
-  if (!Number.isFinite(minX)) {
-    return { ...level, goal: { ...level.goal } };
-  }
+  return Number.isFinite(minX) ? { maxX, maxY, minX, minY } : null;
+}
 
-  const width = Math.max(maxX - minX, 1);
-  const height = Math.max(maxY - minY, 1);
-  const scale = Math.min(
+function landscapeScale(bounds: Bounds): number {
+  const width = Math.max(bounds.maxX - bounds.minX, 1);
+  const height = Math.max(bounds.maxY - bounds.minY, 1);
+  return Math.min(
     1,
     (LANDSCAPE_FIELD_WIDTH - MARGIN * 2) / width,
     (LANDSCAPE_FIELD_HEIGHT - MARGIN * 2) / height,
   );
-  const centerX = (minX + maxX) / 2;
-  const centerY = (minY + maxY) / 2;
+}
+
+/** Uniform scale the landscape projection applies to a level (1 in portrait). */
+export function projectionScale(level: LevelDef, orientation: Orientation): number {
+  if (orientation === 'portrait') {
+    return 1;
+  }
+  const bounds = boundsOf(level);
+  return bounds ? landscapeScale(bounds) : 1;
+}
+
+/** Projects a level for the active design space; portrait is the authored space. */
+export function levelForOrientation(level: LevelDef, orientation: Orientation): LevelDef {
+  if (orientation === 'portrait') {
+    return level;
+  }
+
+  const bounds = boundsOf(level);
+  if (!bounds) {
+    return { ...level, goal: { ...level.goal } };
+  }
+
+  const scale = landscapeScale(bounds);
+  const centerX = (bounds.minX + bounds.maxX) / 2;
+  const centerY = (bounds.minY + bounds.maxY) / 2;
   const mapPoint = (point: Point): Point => ({
     x: LANDSCAPE_FIELD_WIDTH / 2 + (point.x - centerX) * scale,
     y: LANDSCAPE_FIELD_HEIGHT / 2 + (point.y - centerY) * scale,
