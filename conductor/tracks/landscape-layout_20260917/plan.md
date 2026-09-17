@@ -41,14 +41,14 @@ no new deps/assets.
         orientation change; render/input read current views
   - [x] Verify coverage
   - [x] Commit + git note
-- [~] Task 4: Layout rebuilds — pack grids, pagers, sticker shelves (TDD)
-  - [ ] Red: per-pack landscape configurations (letters/numbers/pre/name)
+- [x] Task 4: Layout rebuilds — pack grids, pagers, sticker shelves (TDD) (5365bf4)
+  - [x] Red: per-pack landscape configurations (letters/numbers/pre/name)
         in-bounds; page counts; shelf slots
-  - [ ] Green: landscape `PACK_GRID` configs; layouts/pagers/minis recompute;
+  - [x] Green: landscape `PACK_GRID` configs; layouts/pagers/minis recompute;
         screenshot spot-check
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 5: Reflow plumbing sweep — resize → field/backing store/input/
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [~] Task 5: Reflow plumbing sweep — resize → field/backing store/input/
       character/name-input; rotate smoke on dev server (splash/menu/pack)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
