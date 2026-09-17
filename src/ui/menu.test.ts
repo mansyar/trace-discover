@@ -222,6 +222,11 @@ describe('menuLayout (landscape)', () => {
     expect(gate.y).toBe(0);
     expect(gate.width).toBeGreaterThanOrEqual(90);
   });
+  it('returns no cards while the catalog is empty', () => {
+    const empty = menuLayout(860, 430, []);
+    expect(empty.cards).toEqual([]);
+    expect(empty.parentGate.x + empty.parentGate.width).toBe(860);
+  });
 });
 
 describe('menuParkPosition', () => {

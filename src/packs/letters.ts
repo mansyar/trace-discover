@@ -4,7 +4,7 @@
 // Phase 2): coordinates follow the formation table in the track's
 // content.md — keep the two in sync.
 import type { Point, StrokePattern } from '../engine/types';
-import type { Orientation } from '../field';
+import { LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH, type Orientation } from '../field';
 import type { LevelDef } from './level';
 import { createPackEntry, type PackEntry } from './pack';
 import { composeWordRow, WIDE_WORD_BOX, type WordGlyph } from './word';
@@ -302,7 +302,10 @@ export function bonusRunLevel(level: LevelDef, orientation: Orientation): LevelD
   }
   const glyphs = [...word].map(letterGlyph);
   const { strokes } = composeWordRow(glyphs, WIDE_WORD_BOX, BONUS_GAP);
-  const goal = strokes[strokes.length - 1]?.at(-1) ?? { x: 430, y: 215 };
+  const goal = strokes[strokes.length - 1]?.at(-1) ?? {
+    x: LANDSCAPE_FIELD_WIDTH / 2,
+    y: LANDSCAPE_FIELD_HEIGHT / 2,
+  };
   return { ...level, goal, strokes };
 }
 

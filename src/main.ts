@@ -43,7 +43,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
-import { levelForOrientation, pathGeometryLength, projectionScale } from './packs/wide';
+import { levelForOrientation, pathGeometryLength } from './packs/wide';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
@@ -214,7 +214,6 @@ let skinPoofAt: number | null = null;
 let currentRun: {
   level: LevelDef;
   runLevel: LevelDef;
-  scale: number;
   packId: string;
   levelId: string;
 } | null = null;
@@ -510,7 +509,6 @@ function startRun(
   currentRun = {
     level,
     runLevel,
-    scale: projectionScale(level, orientation),
     packId,
     levelId,
   };
@@ -724,7 +722,6 @@ function reflowRun(): void {
   currentRun = {
     level: authored,
     runLevel,
-    scale: projectionScale(authored, orientation),
     packId: run.packId,
     levelId: run.levelId,
   };
