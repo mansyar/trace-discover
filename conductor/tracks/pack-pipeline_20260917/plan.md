@@ -21,11 +21,11 @@ no push/PR/release; no new runtime dependency.
         CLI, harness; `resolveJsonModule` addition)
   - [x] `product.md`: dated note — content authoring becomes pipeline work, not code
   - [x] Commit + git note
-- [ ] Task 2: Pack JSON schema documentation
-  - [ ] `src/packs/data/README.md`: field-by-field schema + fully worked level example
-  - [ ] Document authoring rules (430×860 field space, margin 24, ≥2 control points,
+- [x] Task 2: Pack JSON schema documentation (7693a94)
+  - [x] `src/packs/data/README.md`: field-by-field schema + fully worked level example
+  - [x] Document authoring rules (430×860 field space, margin 24, ≥2 control points,
         duplicate-point rule, `goalArt` bundle-path rule, unlock parity)
-  - [ ] Commit + git note
+  - [x] Commit + git note
 - [ ] Task: Schema + parser contract agreed with spec FR1/FR2 (self-check)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
