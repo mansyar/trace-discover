@@ -873,9 +873,10 @@ function render(now: number): void {
       activeSkin(),
       artCache.get(activeSkin().face) ?? null,
       app.save.trophies,
+      space,
     );
     if (screen.showName) {
-      drawNameOverlay(trailContext, currentNameOverlay());
+      drawNameOverlay(trailContext, currentNameOverlay(), space);
     }
   }
   if (SKIN_BUTTON_SCREENS.has(screen.name)) {

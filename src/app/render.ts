@@ -864,14 +864,21 @@ export function drawParent(
   skin: SkinDef,
   skinFace: HTMLImageElement | null,
   trophies: readonly string[],
+  design: { readonly width: number; readonly height: number } = {
+    height: FIELD_HEIGHT,
+    width: FIELD_WIDTH,
+  },
 ): void {
+  const wide = design.width > design.height;
   ctx.fillStyle = NAVY;
   ctx.font = '30px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Grown-ups', FIELD_WIDTH / 2, 70);
-  ctx.font = '24px system-ui, sans-serif';
-  ctx.fillText('Sound', FIELD_WIDTH / 2, 175);
+  ctx.fillText('Grown-ups', design.width / 2, 70);
+  if (!wide) {
+    ctx.font = '24px system-ui, sans-serif';
+    ctx.fillText('Sound', design.width / 2, 175);
+  }
   drawZoneButton(
     ctx,
     layout.volumeDown.x,
@@ -899,11 +906,13 @@ export function drawParent(
     '+',
     'louder',
   );
-  ctx.font = '24px system-ui, sans-serif';
-  ctx.fillStyle = NAVY;
-  ctx.textAlign = 'left';
-  ctx.fillText('Tracing', 40, 325);
-  ctx.textAlign = 'center';
+  if (!wide) {
+    ctx.font = '24px system-ui, sans-serif';
+    ctx.fillStyle = NAVY;
+    ctx.textAlign = 'left';
+    ctx.fillText('Tracing', 40, 325);
+    ctx.textAlign = 'center';
+  }
   drawZoneButton(
     ctx,
     layout.easier.x,
@@ -930,7 +939,10 @@ export function drawParent(
   const nameButton = layout.name;
   drawZoneButton(ctx, nameButton.x, nameButton.y, nameButton.radius, false, '✎', 'name');
   ctx.font = '24px system-ui, sans-serif';
-  ctx.fillText('Trophies', FIELD_WIDTH / 2, 648);
+  const trophyAnchor = layout.trophies[1] ?? layout.trophies[0];
+  if (trophyAnchor) {
+    ctx.fillText('Trophies', trophyAnchor.x, trophyAnchor.y - 40);
+  }
   layout.trophies.forEach((slot, index) => {
     ctx.beginPath();
     if (index < trophies.length) {
@@ -975,22 +987,27 @@ export function drawParent(
   );
   drawZoneButton(ctx, layout.done.x, layout.done.y, layout.done.radius, false, '✓', 'done');
   if (confirmReset) {
+    const bannerY = wide ? 10 : design.height - 220;
     ctx.fillStyle = 'rgba(46, 74, 99, 0.85)';
-    ctx.fillRect(40, 640, FIELD_WIDTH - 80, 90);
+    ctx.fillRect(40, bannerY, design.width - 80, 90);
     ctx.fillStyle = '#ffffff';
     ctx.font = '24px system-ui, sans-serif';
-    ctx.fillText('Erase all stickers? Tap restart again.', FIELD_WIDTH / 2, 686);
+    ctx.fillText('Erase all stickers? Tap restart again.', design.width / 2, bannerY + 46);
   }
   if (showInstall) {
+    const panelTop = wide ? 40 : 120;
+    const panelHeight = wide ? design.height - 80 : 620;
+    const lineHeight = wide ? 36 : 52;
+    const startY = wide ? panelTop + 40 : 190;
     ctx.beginPath();
-    ctx.rect(40, 120, FIELD_WIDTH - 80, 620);
+    ctx.rect(40, panelTop, design.width - 80, panelHeight);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
     ctx.fill();
     ctx.lineWidth = 6;
     ctx.strokeStyle = NAVY;
     ctx.stroke();
     ctx.fillStyle = NAVY;
-    ctx.font = '26px system-ui, sans-serif';
+    ctx.font = wide ? '22px system-ui, sans-serif' : '26px system-ui, sans-serif';
     const lines = [
       'Add to Home Screen',
       '',
@@ -1003,7 +1020,7 @@ export function drawParent(
       'Then play offline!',
     ];
     lines.forEach((line, index) => {
-      ctx.fillText(line, FIELD_WIDTH / 2, 190 + index * 52);
+      ctx.fillText(line, design.width / 2, startY + index * lineHeight);
     });
   }
 }
@@ -1013,10 +1030,17 @@ export function drawParent(
  * input mounts over it), hint copy, and Save / Clear / Cancel targets.
  * Parent copy only - the child never reaches this screen.
  */
-export function drawNameOverlay(ctx: CanvasRenderingContext2D, layout: NameOverlayLayout): void {
+export function drawNameOverlay(
+  ctx: CanvasRenderingContext2D,
+  layout: NameOverlayLayout,
+  design: { readonly width: number; readonly height: number } = {
+    height: FIELD_HEIGHT,
+    width: FIELD_WIDTH,
+  },
+): void {
   ctx.save();
   ctx.fillStyle = 'rgba(46, 74, 99, 0.45)';
-  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  ctx.fillRect(0, 0, design.width, design.height);
   const { panel, field } = layout;
   ctx.beginPath();
   ctx.rect(panel.x, panel.y, panel.width, panel.height);
@@ -1029,7 +1053,7 @@ export function drawNameOverlay(ctx: CanvasRenderingContext2D, layout: NameOverl
   ctx.font = '26px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText("Child's name", FIELD_WIDTH / 2, panel.y + 36);
+  ctx.fillText("Child's name", design.width / 2, panel.y + 36);
   ctx.beginPath();
   ctx.rect(field.x, field.y, field.width, field.height);
   ctx.setLineDash([8, 6]);
@@ -1039,7 +1063,7 @@ export function drawNameOverlay(ctx: CanvasRenderingContext2D, layout: NameOverl
   ctx.setLineDash([]);
   ctx.fillStyle = NAVY;
   ctx.font = '22px system-ui, sans-serif';
-  ctx.fillText('2-7 letters, A-Z', FIELD_WIDTH / 2, field.y + field.height + 34);
+  ctx.fillText('2-7 letters, A-Z', design.width / 2, field.y + field.height + 34);
   drawZoneButton(ctx, layout.save.x, layout.save.y, layout.save.radius, false, '✓', 'save');
   if (layout.clear) {
     drawZoneButton(ctx, layout.clear.x, layout.clear.y, layout.clear.radius, false, '⌫', 'clear');

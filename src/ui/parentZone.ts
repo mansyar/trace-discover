@@ -52,8 +52,32 @@ function button(action: ParentZoneAction, x: number, y: number, radius: number):
   return { action, radius, x, y };
 }
 
+/** Wide field: two control rows with the trophies between install and done. */
+function wideZone(fieldWidth: number): ParentZoneLayout {
+  const centerX = fieldWidth / 2;
+  return {
+    volumeDown: button('volume-down', centerX - 260, 150, SMALL_RADIUS),
+    mute: button('mute', centerX - 140, 150, SMALL_RADIUS),
+    volumeUp: button('volume-up', centerX - 20, 150, SMALL_RADIUS),
+    name: button('name', centerX + 130, 150, SMALL_RADIUS),
+    easier: button('easier', centerX + 250, 150, SMALL_RADIUS),
+    skin: button('skin', centerX + 370, 150, SMALL_RADIUS),
+    reset: button('reset', centerX - 260, 310, SMALL_RADIUS),
+    install: button('install', centerX - 140, 310, SMALL_RADIUS),
+    done: button('done', centerX + 370, 310, BIG_RADIUS),
+    trophies: [
+      { radius: TROPHY_RADIUS, x: centerX + 10, y: 310 },
+      { radius: TROPHY_RADIUS, x: centerX + 80, y: 310 },
+      { radius: TROPHY_RADIUS, x: centerX + 150, y: 310 },
+    ],
+  };
+}
+
 /** Nine big targets in rows plus the display-only trophy row. */
 export function parentZoneLayout(fieldWidth: number, fieldHeight: number): ParentZoneLayout {
+  if (fieldWidth > fieldHeight) {
+    return wideZone(fieldWidth);
+  }
   const centerX = fieldWidth / 2;
   return {
     volumeDown: button('volume-down', centerX - 130, 250, SMALL_RADIUS),
