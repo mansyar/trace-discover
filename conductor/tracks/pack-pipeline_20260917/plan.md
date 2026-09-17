@@ -38,14 +38,14 @@ no push/PR/release; no new runtime dependency.
   - [x] Green: hand-rolled shape checks that narrow `unknown` → typed raw shapes
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: Geometry + pack-rule integration (TDD)
-  - [ ] Red: `parsePackJson` reuses `validateLevel` (margin, finite, duplicates,
+- [x] Task 2: Geometry + pack-rule integration (TDD) (d305c9e)
+  - [x] Red: `parsePackJson` reuses `validateLevel` (margin, finite, duplicates,
         min points) and `createPackEntry` (bonus/unlock parity); `goalArt` must be a
         `/art/goal/` bundle path with no traversal; error lists are per-level labeled
-  - [ ] Green: compose `parsePackJson(raw): PackEntry` from the shared validators;
+  - [x] Green: compose `parsePackJson(raw): PackEntry` from the shared validators;
         throw clear load-time error on problems
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Pre-writing port — byte-level parity [checkpoint: ]
