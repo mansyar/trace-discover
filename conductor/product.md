@@ -24,7 +24,7 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 *2026-09-17 — My Name (track `my-name_20260916`) implemented on branch `track/my-name`, awaiting the merge/release decision: a personalized mini-pack where the parent sets the child's name once (2–7 uppercase letters, behind the 2-finger gate) and the trace level is composed at runtime from the shipped letter glyphs — her own sticker + badge; the name stays on-device (never shipped or networked). QA evidence: full gate probe on the production build, hostile stored-name fixtures, offline cold start + perf spot-check unchanged; device pass on Android + iPad kept the 7-letter cap and the thinning floors (≥5-letter gate satisfied); the toddler traced their name unaided.*
 
-*2026-09-17 — Parent zone improvements (track `parent-zone_20260917`, in progress on branch `track/parent-zone`): the parent gate becomes a one-finger press-and-hold with visible progress (replacing the two-finger hold, awkward one-handed on a phone) plus a one-time parent hint for discoverability; the zone gains sound level pips with preview notes and auto-unmute, a platform-aware install guide, section cards, and reactive feedback on every control.*
+*2026-09-17 — Parent zone improvements (track `parent-zone_20260917`, completed — device pass kept the 2.5s one-finger hold): the parent gate becomes a one-finger press-and-hold with visible progress (replacing the two-finger hold, awkward one-handed on a phone) plus a one-time parent hint for discoverability; the zone gains sound level pips with preview notes and auto-unmute, a platform-aware install guide, section cards, and reactive feedback on every control.*
 
 ## Target Audience
 

@@ -142,10 +142,10 @@ one-finger hold fails device tuning.
       2.0–3.0s (STOP + owner fallback decision if one-finger fails)
       (owner pass 2026-09-17: gate opens one-handed on both devices, 2.5s kept;
       ring + hint clear; preview notes + install panels good)
-- [~] Task 4: Acceptance session (owner): sign-offs; docs finalize (final hold
-      value, dev/README QA table, dated notes)
-  - [ ] Commit + git note
-- [ ] Task 5: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
+- [x] Task 4: Acceptance session (owner): sign-offs; docs finalize (final hold
+      value, dev/README QA table, dated notes) (owner accepted 2026-09-17)
+  - [x] Commit + git note
+- [~] Task 5: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
       dist record; review summary
   - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
