@@ -37,7 +37,7 @@ import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
 import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
-import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
+import { FIELD_HEIGHT, FIELD_WIDTH, fieldSizeFor, type Orientation, orientationFor } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
 import { appPacks } from './packs/catalog';
 import { type LevelDef, levelToPath } from './packs/level';
@@ -180,6 +180,7 @@ rebuildPackViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
+let orientation: Orientation = 'portrait';
 let gateState: ParentGateState = PARENT_GATE_START;
 const gatePointers = new Set<number>();
 let detachInput = (): void => {};
@@ -660,7 +661,9 @@ function resize(): void {
   const size = computeBackingSize(window.innerWidth, window.innerHeight, dpr);
   trailCanvas.width = size.width;
   trailCanvas.height = size.height;
-  field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
+  orientation = orientationFor(window.innerWidth, window.innerHeight);
+  const space = fieldSizeFor(orientation);
+  field = fitRect(window.innerWidth, window.innerHeight, space.width, space.height);
   detachInput();
   detachInput = attachTraceInput(trailCanvas, field, handlers);
   positionNameInput();
@@ -824,6 +827,7 @@ declare global {
   interface Window {
     __app?: {
       readonly field: () => Rect;
+      readonly orientation: () => Orientation;
       readonly path: () => readonly Point[];
       readonly screen: () => AppState['screen'];
       readonly strokes: () => readonly (readonly Point[])[];
@@ -940,6 +944,7 @@ function screenTargets(): AppTarget[] {
 
 window.__app = {
   field: () => ({ ...field }),
+  orientation: () => orientation,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
   screen: () => app.screen,
   strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),
