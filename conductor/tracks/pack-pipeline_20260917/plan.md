@@ -110,3 +110,7 @@ no push/PR/release; no new runtime dependency.
   - [x] Harness screenshots of pre levels 1 / 7 / 12 + one bonus (evidence in `dev/qa/out/`)
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (2b358da)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (65dd198)
