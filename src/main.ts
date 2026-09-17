@@ -5,9 +5,6 @@
 // (one finger, started in the menu corner).
 import './style.css';
 
-// TEMP QA NEGATIVE CONTROL - REMOVED AFTER EVIDENCE CAPTURE
-throw new Error('qa-smoke negative control: forced boot failure');
-
 import {
   type AppState,
   applyAppEvent,
