@@ -102,14 +102,15 @@ two pages), ear approval of the note ladder, and the device sign-off.
 
 ## Phase 5: QA evidence + tooling
 
-- [ ] Task 1: `dev/screens.ts` preview `?screen=board` (seeded) + new
+- [x] Task 1: `dev/screens.ts` preview `?screen=board` (seeded) + new
       `dev/qa/qa-sticker-play.mjs` (pulse → shelf tap → board → sticker tap →
       moment state + note asserted → home → reload → pulse gone → fresh-save
-      inert → letters fit → screenshots)
-  - [ ] Commit + git note
-- [ ] Task 2: Probe audit — shelf-region touches in `qa-name`, `qa-pre-pack`,
-      `qa-menu-pack`; update for the new hit area
-  - [ ] Commit + git note
+      inert → letters fit → screenshots) (83db811)
+  - [x] Commit + git note
+- [x] Task 2: Probe audit — shelf-region touches in `qa-name`, `qa-pre-pack`,
+      `qa-menu-pack`; update for the new hit area (b195176)
+  - [x] Audit clean: all three probes green on the new code; band inert for
+        legacy taps; QA_BASE added to pre-pack/menu-pack
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6: Device tuning, acceptance, docs finalize
