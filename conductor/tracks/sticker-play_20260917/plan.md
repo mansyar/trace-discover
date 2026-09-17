@@ -84,7 +84,7 @@ two pages), ear approval of the note ladder, and the device sign-off.
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Pentatonic ladder audio
+## Phase 4: Pentatonic ladder audio [checkpoint: 964823f]
 
 - [x] Task 1: Note mapping + playback (TDD) (437759b)
   - [x] Red: sticker index → scale degree (C D E G A) with rising octave
