@@ -4,7 +4,9 @@
 // its level (sticker lights), finishing a pack earns its badge,
 // double-tapping the badge resets progress, and the sticker-board preview
 // runs the production renderer. ?screen=menu|pack|success|parent|board picks
-// the starting screen for headless screenshots.
+// the starting screen for headless screenshots. The menu follows the viewport
+// orientation; ?menuCards=2..6 pads/truncates the menu for the capacity
+// matrix and ?menuName=AIRA seeds a preview name so the My Name card shows.
 import '../style.css';
 import {
   drawGateRing,
@@ -24,9 +26,9 @@ import {
   stepEntrance,
 } from '../character/entrance';
 import type { Point } from '../engine/types';
-import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { FIELD_HEIGHT, FIELD_WIDTH, fieldSizeFor, orientationFor } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
-import { allPacks } from '../packs/catalog';
+import { allPacks, appPacks } from '../packs/catalog';
 import { levelToPath } from '../packs/level';
 import { NUMBERS_PACK, NUMERAL_LEVELS } from '../packs/numbers';
 import { shouldAwardPackBadge } from '../packs/progress';
@@ -43,7 +45,14 @@ import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
 import { SKINS, type SkinDef, skinById } from '../skins/skins';
 import { MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, mascotZone } from '../ui/mascot';
-import { hitMenuCard, inParentGate, menuLayout } from '../ui/menu';
+import {
+  hitMenuCard,
+  inParentGate,
+  MENU_DOT_RADIUS,
+  menuCardArtMaxHeight,
+  menuDotPositions,
+  menuLayout,
+} from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
 import { parentZoneLayout } from '../ui/parentZone';
 import { hitBoardHome, hitStickerCell, stickerBoardLayout } from '../ui/stickerBoard';
@@ -81,12 +90,23 @@ const context = require2dContext(canvas);
 const lines: string[] = [];
 
 let screen: PreviewScreen = 'menu';
-const wanted = new URLSearchParams(window.location.search).get('screen');
+const params = new URLSearchParams(window.location.search);
+const wanted = params.get('screen');
 if (wanted === 'success' || wanted === 'pack' || wanted === 'parent' || wanted === 'board') {
   screen = wanted;
 }
+/** `?menuCards=2..6` pads/truncates the menu to N cards for the capacity matrix. */
+const menuCardsParam = Number.parseInt(params.get('menuCards') ?? '', 10);
+const menuCards = menuCardsParam >= 2 && menuCardsParam <= 6 ? menuCardsParam : null;
+/** `?menuName=AIRA` seeds a preview name so the My Name card joins the menu. */
+const menuName = params.get('menuName');
 let save: SaveData = loadSave(localStorage);
+if (menuName !== null && menuName.trim() !== '') {
+  save = { ...save, name: menuName };
+}
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
+let fieldWidth = FIELD_WIDTH;
+let fieldHeight = FIELD_HEIGHT;
 let detachInput: () => void = () => {};
 let lastBadgeTap = 0;
 let pop: { levelId: string; startedAt: number } | null = null;
@@ -150,26 +170,26 @@ function drawDashedCircle(x: number, y: number, radius: number): void {
   context.setLineDash([]);
 }
 
-function drawMenuIcon(index: number, x: number, y: number): void {
+function drawMenuIcon(index: number, x: number, y: number, radius: number): void {
   context.fillStyle = '#ffffff';
   context.strokeStyle = NAVY;
-  context.lineWidth = 5;
+  context.lineWidth = Math.max(3, radius / 6);
   if (index === 0) {
     context.beginPath();
-    context.arc(x, y, 26, 0, Math.PI * 2);
+    context.arc(x, y, radius, 0, Math.PI * 2);
     context.fill();
     context.stroke();
   } else if (index === 1) {
     context.beginPath();
-    context.moveTo(x, y - 28);
-    context.lineTo(x + 28, y + 22);
-    context.lineTo(x - 28, y + 22);
+    context.moveTo(x, y - radius);
+    context.lineTo(x + radius, y + radius * 0.8);
+    context.lineTo(x - radius, y + radius * 0.8);
     context.closePath();
     context.fill();
     context.stroke();
   } else {
-    context.fillRect(x - 25, y - 25, 50, 50);
-    context.strokeRect(x - 25, y - 25, 50, 50);
+    context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    context.strokeRect(x - radius, y - radius, radius * 2, radius * 2);
   }
 }
 
@@ -205,11 +225,63 @@ function drawSuccessIcon(action: SuccessAction, x: number, y: number): void {
   }
 }
 
+/** The 29-dot letters strip is the worst case; synthetic capacity cards reuse it. */
+const SYNTHETIC_DOT_TOTAL = 29;
+
+/** Menu ids: real packs (name included when seeded), padded/truncated to `?menuCards=`. */
+function menuPackIds(): readonly string[] {
+  if (menuCards === null) {
+    return PACK_IDS;
+  }
+  const orientation = fieldWidth > fieldHeight ? 'landscape' : 'portrait';
+  const ids = appPacks(save, orientation)
+    .map((pack) => pack.id)
+    .slice(0, menuCards);
+  while (ids.length < menuCards) {
+    ids.push(`card-${ids.length}`);
+  }
+  return ids;
+}
+
+function menuDotTotal(packId: string): number {
+  const pack = allPacks().find((entry) => entry.id === packId);
+  if (pack !== undefined) {
+    return pack.levels.length + pack.bonuses.length;
+  }
+  return packId === 'name' ? 1 : SYNTHETIC_DOT_TOTAL;
+}
+
+function drawMenuDot(x: number, y: number): void {
+  context.beginPath();
+  context.arc(x, y, MENU_DOT_RADIUS, 0, Math.PI * 2);
+  context.fillStyle = '#ffffff';
+  context.fill();
+  context.lineWidth = 3;
+  context.strokeStyle = NAVY;
+  context.stroke();
+}
+
 function drawMenu(): void {
-  const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, PACK_IDS);
+  const layout = menuLayout(fieldWidth, fieldHeight, menuPackIds());
   layout.cards.forEach((card, index) => {
     drawCard(card.x, card.y, card.width, card.height, MENU_FILLS[index] ?? '#ffffff');
-    drawMenuIcon(index, card.x + card.width / 2, card.y + card.height / 2);
+    const dots = menuDotTotal(card.packId);
+    const artHeight = menuCardArtMaxHeight(card, dots);
+    // Dashed art reserve + the dot strip, so the capacity matrix shows both.
+    context.setLineDash([8, 6]);
+    context.lineWidth = 3;
+    context.strokeStyle = '#7f8c8d';
+    context.strokeRect(card.x + 22, card.y + 14, card.width - 44, artHeight);
+    context.setLineDash([]);
+    drawMenuIcon(
+      index,
+      card.x + card.width / 2,
+      card.y + 14 + artHeight / 2,
+      Math.max(8, Math.min(26, artHeight * 0.35)),
+    );
+    for (const dot of menuDotPositions(dots, card)) {
+      drawMenuDot(dot.x, dot.y);
+    }
   });
   context.setLineDash([10, 8]);
   context.lineWidth = 4;
@@ -231,7 +303,7 @@ function drawMenu(): void {
 }
 
 function drawPackPreview(): void {
-  const layout = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
+  const layout = packLayout(fieldWidth, fieldHeight, NUMERALS);
   const stickers = packStickers(save, NUMERALS);
   if (save.badges.includes('numbers-badge')) {
     drawCircle(layout.badge.x, layout.badge.y, layout.badge.radius, GOLD);
@@ -316,7 +388,7 @@ function drawNumeralMini(
 }
 
 function boardPreview() {
-  return stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
+  return stickerBoardLayout(fieldWidth, fieldHeight, NUMERALS);
 }
 
 /** Sticker art for the board preview, mirroring the shell's /art/sticker path. */
@@ -334,8 +406,8 @@ function drawBoardPreview(): void {
 
 function drawSuccess(): void {
   context.fillStyle = 'rgba(246, 227, 184, 0.55)';
-  context.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
-  const layout = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
+  context.fillRect(0, 0, fieldWidth, fieldHeight);
+  const layout = successLayout(fieldWidth, fieldHeight);
   for (const button of layout.buttons) {
     drawCircle(button.x, button.y, button.radius, '#ffffff');
     drawSuccessIcon(button.action, button.x, button.y);
@@ -354,7 +426,7 @@ function drawParentPreview(): void {
   drawParent(
     context,
     performance.now(),
-    parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT),
+    parentZoneLayout(fieldWidth, fieldHeight),
     save.settings,
     false,
     false,
@@ -443,10 +515,10 @@ function render(now: number = performance.now()): void {
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.fillStyle = CREAM;
   context.fillRect(0, 0, canvas.width, canvas.height);
-  const scale = (field.width * dpr) / FIELD_WIDTH;
+  const scale = (field.width * dpr) / fieldWidth;
   context.setTransform(scale, 0, 0, scale, field.x * dpr, field.y * dpr);
   context.fillStyle = FIELD_FILL;
-  context.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  context.fillRect(0, 0, fieldWidth, fieldHeight);
   if (screen === 'menu') {
     drawMenu();
   } else if (screen === 'pack') {
@@ -584,7 +656,7 @@ function hitTuningButton(point: Point): (typeof TUNING_BUTTONS)[number]['id'] | 
 }
 
 function tapPack(point: Point): void {
-  const layout = packLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
+  const layout = packLayout(fieldWidth, fieldHeight, NUMERALS);
   if (
     Math.hypot(point.x - layout.badge.x, point.y - layout.badge.y) <= layout.badge.radius &&
     save.badges.includes(NUMBERS_PACK.badgeId)
@@ -661,7 +733,7 @@ function onTap(point: Point): void {
     return;
   }
   if (screen === 'menu') {
-    const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, PACK_IDS);
+    const layout = menuLayout(fieldWidth, fieldHeight, menuPackIds());
     if (inParentGate(layout, point)) {
       log('parent gate tapped (2-finger hold opens it in the shell)');
     } else {
@@ -676,7 +748,7 @@ function onTap(point: Point): void {
   } else if (screen === 'board') {
     tapBoard(point);
   } else {
-    const action = hitSuccessButton(successLayout(FIELD_WIDTH, FIELD_HEIGHT), point);
+    const action = hitSuccessButton(successLayout(fieldWidth, fieldHeight), point);
     if (action === 'home') {
       screen = 'menu';
       log('success: home');
@@ -702,12 +774,15 @@ function resize(): void {
   const size = computeBackingSize(window.innerWidth, window.innerHeight, window.devicePixelRatio);
   canvas.width = size.width;
   canvas.height = size.height;
-  field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
+  const design = fieldSizeFor(orientationFor(window.innerWidth, window.innerHeight));
+  fieldWidth = design.width;
+  fieldHeight = design.height;
+  field = fitRect(window.innerWidth, window.innerHeight, fieldWidth, fieldHeight);
   detachInput();
   detachInput = attachTraceInput(
     canvas,
     field,
-    { width: FIELD_WIDTH, height: FIELD_HEIGHT },
+    { width: fieldWidth, height: fieldHeight },
     handlers,
   );
   render();
@@ -715,4 +790,6 @@ function resize(): void {
 
 window.addEventListener('resize', resize);
 resize();
-log('screens ready — tap cards; top-left triangle switches screen; G/E/S tune the mascot');
+log(
+  'screens ready — tap cards; top-left triangle switches screen; G/E/S tune the mascot; menu: ?menuCards=2..6&menuName=AIRA',
+);

@@ -11,7 +11,7 @@ purpose.
 | --- | --- |
 | `tools/` | $0 asset pipeline — Workers AI generation, cutout/optimize/composite, batch composers |
 | `qa/` | Headless-Edge (playwright-core) verification scripts + probes; outputs in `qa/out/` (git-ignored) |
-| `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery) · `tune.html` (feel tuning) · `pack.html` (pack JSON preview: `?pack=pre&level=pre-7`) — served by the Vite dev server |
+| `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery; menu capacity matrix via `?menuCards=2..6&menuName=AIRA`) · `tune.html` (feel tuning) · `pack.html` (pack JSON preview: `?pack=pre&level=pre-7`) — served by the Vite dev server |
 | `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion` · `teddy`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
@@ -79,6 +79,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
 | `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
 | `qa-pack-preview.mjs` | Pack preview harness smoke over every JSON pack: spot-checks first/middle/last level + first bonus per pack (or `--all` for every level), checkpoint counts, default-url fallback (pack-pipeline_20260917; all packs since pack-pipeline-2_20260917) | dev `:5199` | canonical |
+| `qa-menu-capacity.mjs` | Menu capacity matrix shots: 3–6 cards × portrait/landscape + the My Name card case (`menu-capacity_20260917`) | dev `:5199` | canonical |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
@@ -91,7 +92,7 @@ Start the right server first, then run the script (most accept a URL argument).
 reference · **utility** = reusable helper · **stale** = superseded, candidates
 for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 2026-09-16); `qa-parent-zone` added in `parent-zone_20260917` (2026-09-17);
-`qa-pack-preview` added in `pack-pipeline_20260917` (2026-09-17) and extended to every JSON pack in `pack-pipeline-2_20260917` (2026-09-17).*
+`qa-pack-preview` added in `pack-pipeline_20260917` (2026-09-17) and extended to every JSON pack in `pack-pipeline-2_20260917` (2026-09-17); `qa-menu-capacity` added in `menu-capacity_20260917` (2026-09-17).*
 
 > First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
 > cold Vite optimize right after the dev server starts — warm the server (load
@@ -112,6 +113,19 @@ JSON edits without an app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl]
 [--all]` spot-checks the first/middle/last level plus first bonus of every
 pack — `--all` sweeps every level of every JSON pack (54: 15 pre + 10 numbers
 + 29 letters) — and writes shots to `dev/qa/out/`.
+
+## Screens harness (`harness/screens.html`)
+
+Screen-gallery preview (`?screen=menu|pack|success|parent|board`). The menu
+follows the viewport orientation (portrait 430×860 / landscape 860×430, same
+letterboxing as the shell) and takes two dev-only params: `?menuCards=2..6`
+renders exactly N cards — real packs first (My Name included when `?menuName=`
+seeds one), padded with synthetic cards that show the 29-dot worst case — and
+`?menuName=AIRA` seeds a preview name without touching storage. Each menu card
+draws its dashed art reserve + the real dot strip, so the capacity matrix
+shows art/dot behaviour at every count. `node dev/qa/qa-menu-capacity.mjs`
+shoots the 3–6 × orientation matrix plus the name-card case into
+`dev/qa/out/menu-capacity/`.
 
 ## Art-source policy
 
