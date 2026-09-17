@@ -158,6 +158,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         save: updateSettings(state.save, {
+          muted: false,
           volume: changeVolume(state.save.settings.volume, -0.1),
         }),
       };
@@ -165,6 +166,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         save: updateSettings(state.save, {
+          muted: false,
           volume: changeVolume(state.save.settings.volume, 0.1),
         }),
       };
@@ -192,7 +194,9 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         pendingBadge: null,
-        save: setName(createDefaultSave(), state.save.name ?? ''),
+        save: updateSettings(setName(createDefaultSave(), state.save.name ?? ''), {
+          parentHintSeen: state.save.settings.parentHintSeen,
+        }),
         screen: { ...parent, confirmReset: false },
       };
     case 'install':
@@ -230,6 +234,7 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
     case 'parent-open':
       return {
         ...state,
+        save: updateSettings(state.save, { parentHintSeen: true }),
         screen: { name: 'parent', confirmReset: false, showInstall: false, showName: false },
       };
     case 'parent-action':
@@ -261,4 +266,9 @@ export function applyAppEvent(state: AppState, event: AppEvent): AppState {
       return { ...state, screen: { ...state.screen, showName: false } };
     }
   }
+}
+
+/** One-time menu hint: shown until the gate has been opened successfully once. */
+export function shouldShowParentHint(save: SaveData): boolean {
+  return !save.settings.parentHintSeen;
 }
