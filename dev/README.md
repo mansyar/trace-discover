@@ -78,7 +78,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-sticker-play.mjs` | Sticker play: first-open pulse → board → tap notes (oscillator-frequency captured) → reload/fresh-save semantics → 29-slot letters fit | dev `:5199` | canonical |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
 | `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
-| `qa-pack-preview.mjs` | Pack preview harness smoke + spot-check shots: pre levels 1/7/12 + bonus 1, checkpoint counts, default-url fallback (pack-pipeline_20260917) | dev `:5199` | canonical |
+| `qa-pack-preview.mjs` | Pack preview harness smoke over every JSON pack: spot-checks first/middle/last level + first bonus per pack (or `--all` for every level), checkpoint counts, default-url fallback (pack-pipeline_20260917; all packs since pack-pipeline-2_20260917) | dev `:5199` | canonical |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
@@ -91,7 +91,7 @@ Start the right server first, then run the script (most accept a URL argument).
 reference · **utility** = reusable helper · **stale** = superseded, candidates
 for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 2026-09-16); `qa-parent-zone` added in `parent-zone_20260917` (2026-09-17);
-`qa-pack-preview` added in `pack-pipeline_20260917` (2026-09-17).*
+`qa-pack-preview` added in `pack-pipeline_20260917` (2026-09-17) and extended to every JSON pack in `pack-pipeline-2_20260917` (2026-09-17).*
 
 > First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
 > cold Vite optimize right after the dev server starts — warm the server (load
@@ -106,10 +106,12 @@ server. It renders the level exactly as authored — field gutters at the 24 pt
 margin, each stroke as its own color over the engine-resampled path, numbered
 control points, the start star, the goal flag, and the six
 equal-arc-length checkpoint circles. `?pack=` defaults to the first pack
-(currently `pre`), `?level=` to its first level; click the canvas to read field
-coordinates from the browser console. Reloading picks up JSON edits without an
-app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl] [--all]` sweeps every
-level (15/15 pre + bonuses) and writes spot-check shots to `dev/qa/out/`.
+alphabetically (currently `abc`), `?level=` to its first level; click the
+canvas to read field coordinates from the browser console. Reloading picks up
+JSON edits without an app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl]
+[--all]` spot-checks the first/middle/last level plus first bonus of every
+pack — `--all` sweeps every level of every JSON pack (54: 15 pre + 10 numbers
++ 29 letters) — and writes shots to `dev/qa/out/`.
 
 ## Art-source policy
 

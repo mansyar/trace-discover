@@ -232,7 +232,7 @@ function render(): void {
   context.restore();
 
   if (log) {
-    const bonus = model.pack.bonuses.some((candidate) => candidate.id === model.levelId);
+    const bonus = (model.pack.bonuses ?? []).some((candidate) => candidate.id === model.levelId);
     log.textContent = [
       `pack ${model.pack.id}${bonus ? ' (bonus)' : ''} · level ${model.levelId}`,
       `strokes ${model.strokes.length} · checkpoints ${model.checkpointPoints.length} · margin ${MARGIN}`,
