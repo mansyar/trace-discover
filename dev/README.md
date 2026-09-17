@@ -16,7 +16,9 @@ purpose.
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
 `package.json` carries the `playwright-core` dependency for the QA scripts —
-run `pnpm install` inside `dev/` once.
+run `pnpm install` inside `dev/` once. The `dev/pnpm-lock.yaml` lockfile is
+tracked (since `ci-qa-hardening_20260917`) so CI installs it with
+`--frozen-lockfile`; regenerate it with `pnpm install` when dependencies change.
 
 > `.cf_token` (untracked Workers AI token, needed by `tools/gen.mjs` /
 > `gen2.mjs`) lives at `dev/.cf_token`. If you had one at `spike/.cf_token`,
