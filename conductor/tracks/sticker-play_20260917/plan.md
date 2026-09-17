@@ -36,7 +36,7 @@ two pages), ear approval of the note ladder, and the device sign-off.
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Board logic — layout, hit tests, state machine (pure)
+## Phase 2: Board logic — layout, hit tests, state machine (pure) [checkpoint: 54ad7ed]
 
 - [x] Task 1: Board layout module (TDD) (be090ca)
   - [x] Red: per-pack grid fits 430×860 field bounds (pre 15 / nums 10 /
@@ -60,7 +60,7 @@ two pages), ear approval of the note ladder, and the device sign-off.
 
 ## Phase 3: Rendering + shell wiring — board, pop moment, shelf pulse
 
-- [ ] Task 1: Board rendering
+- [~] Task 1: Board rendering
   - [ ] Draw board: skin backdrop, filled sticker art (earned) / ghosted
         slots, home button in pack style; reuse existing art + particle
         modules; no new assets
