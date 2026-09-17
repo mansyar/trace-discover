@@ -459,6 +459,10 @@ describe('packLayout (landscape)', () => {
       expect(slot.x - slot.radius).toBeGreaterThanOrEqual(110); // clear of home
       expect(slot.x + slot.radius).toBeLessThanOrEqual(740); // clear of the mascot band
     }
+    // cards clear the shelf circles so stickers never touch the grid
+    for (const card of current.cards) {
+      expect(card.y + card.height).toBeLessThanOrEqual(slotFirst.y - slotFirst.radius);
+    }
     // the slot row is centred in the band between home and mascot
     expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(425, 5);
   });
@@ -485,6 +489,9 @@ describe('packLayout (landscape)', () => {
       expect(slot.y).toBe(slotFirst.y);
       expect(slot.x - slot.radius).toBeGreaterThanOrEqual(110);
       expect(slot.x + slot.radius).toBeLessThanOrEqual(740);
+    }
+    for (const card of current.cards) {
+      expect(card.y + card.height).toBeLessThanOrEqual(slotFirst.y - slotFirst.radius);
     }
     expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(425, 5);
   });

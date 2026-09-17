@@ -79,6 +79,8 @@ export interface SessionDeps {
   /** Deterministic confetti seed (varies per level for QA replay). */
   readonly seed: number;
   readonly settings: () => SessionSettings;
+  /** Mascot park overrides for the wide field; defaults to the portrait parks. */
+  readonly parks?: { readonly trace: Point; readonly success: Point };
 }
 
 export interface SessionSnapshot {
@@ -114,6 +116,8 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   if (paths.length === 0) {
     throw new Error(`Level ${level.id} has no strokes.`);
   }
+  const tracePark = deps.parks?.trace ?? TRACE_PARK;
+  const successPark = deps.parks?.success ?? SUCCESS_PARK;
   const baseTolerance = FIELD_WIDTH * TOLERANCE_FRACTION;
   let multi = createMultiTrail(paths, {
     tolerance: baseTolerance,
@@ -126,7 +130,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   let completion: CompletionState = COMPLETION_START;
   let completionStarted = false;
   let confetti: ConfettiParticle[] = [];
-  let charPos: Point = { ...TRACE_PARK };
+  let charPos: Point = { ...tracePark };
   let pointer: Point | null = null;
   let success = false;
   let widenReported = false;
@@ -146,8 +150,8 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   const glideToPark = (dtMs: number): void => {
     const blend = 1 - Math.exp((-dtMs / 1000) * 5);
     charPos = {
-      x: charPos.x + (SUCCESS_PARK.x - charPos.x) * blend,
-      y: charPos.y + (SUCCESS_PARK.y - charPos.y) * blend,
+      x: charPos.x + (successPark.x - charPos.x) * blend,
+      y: charPos.y + (successPark.y - charPos.y) * blend,
     };
   };
 

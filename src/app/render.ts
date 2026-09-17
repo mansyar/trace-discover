@@ -178,12 +178,16 @@ export interface LevelArt {
 
 export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null, sticker: null };
 
-/** Paints the backdrop cover-cropped over the whole field. */
-function drawBackdrop(ctx: CanvasRenderingContext2D, image: HTMLImageElement): void {
-  const scale = Math.max(FIELD_WIDTH / image.naturalWidth, FIELD_HEIGHT / image.naturalHeight);
+/** Paints the backdrop cover-cropped over the whole design space. */
+function drawBackdrop(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  design: { readonly width: number; readonly height: number },
+): void {
+  const scale = Math.max(design.width / image.naturalWidth, design.height / image.naturalHeight);
   const width = image.naturalWidth * scale;
   const height = image.naturalHeight * scale;
-  ctx.drawImage(image, (FIELD_WIDTH - width) / 2, (FIELD_HEIGHT - height) / 2, width, height);
+  ctx.drawImage(image, (design.width - width) / 2, (design.height - height) / 2, width, height);
 }
 
 /** Paints a goal vignette centered on the point at the given pixel size. */
@@ -678,9 +682,13 @@ export function drawLevel(
   snap: SessionSnapshot,
   art: LevelArt = NO_LEVEL_ART,
   skin?: SkinDef,
+  design: { readonly width: number; readonly height: number } = {
+    height: FIELD_HEIGHT,
+    width: FIELD_WIDTH,
+  },
 ): void {
   if (art.backdrop) {
-    drawBackdrop(ctx, art.backdrop);
+    drawBackdrop(ctx, art.backdrop, design);
   } else if (skin) {
     drawDuskPlaceholder(ctx, now, skin.accent);
   }
@@ -777,9 +785,16 @@ export function drawLevel(
   }
 }
 
-export function drawSuccess(ctx: CanvasRenderingContext2D, layout: SuccessLayout): void {
+export function drawSuccess(
+  ctx: CanvasRenderingContext2D,
+  layout: SuccessLayout,
+  design: { readonly width: number; readonly height: number } = {
+    height: FIELD_HEIGHT,
+    width: FIELD_WIDTH,
+  },
+): void {
   ctx.fillStyle = 'rgba(246, 227, 184, 0.55)';
-  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  ctx.fillRect(0, 0, design.width, design.height);
   for (const button of layout.buttons) {
     ctx.beginPath();
     ctx.arc(button.x, button.y, button.radius, 0, Math.PI * 2);

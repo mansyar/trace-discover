@@ -77,6 +77,9 @@ import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
+/** Wide-field mascot parks: tracing keeps the dino low and centred; success parks it beside the buttons. */
+const TRACE_PARK_WIDE: Point = { x: 430, y: 310 };
+const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
 const CHARACTER_OFFSET_Y = 0.38;
 
 const trailCanvas = requireCanvas(document);
@@ -106,8 +109,8 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
     slotsPerRow: 7,
   },
   name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
-  numbers: { landscape: { cardSize: 96, columns: 5, slotsPerRow: 10 } },
-  pre: { columns: 3, landscape: { cardSize: 96, columns: 6, slotsPerRow: 12 }, slotsPerRow: 6 },
+  numbers: { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } },
+  pre: { columns: 3, landscape: { cardSize: 90, columns: 6, slotsPerRow: 12 }, slotsPerRow: 6 },
 };
 
 let PACKS: readonly PackEntry[] = [];
@@ -530,6 +533,10 @@ function startRun(
         commit(applyAppEvent(app, { type: 'level-complete', packId, levelId }));
       }
     },
+    parks:
+      orientation === 'landscape'
+        ? { success: SUCCESS_PARK_WIDE, trace: TRACE_PARK_WIDE }
+        : undefined,
     player,
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),
@@ -844,15 +851,15 @@ function render(now: number): void {
     }
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
-    drawLevel(trailContext, now, snap, currentLevelArt(), activeSkin());
+    drawLevel(trailContext, now, snap, currentLevelArt(), activeSkin(), space);
     if (session.success) {
-      drawSuccess(trailContext, SUCCESS);
+      drawSuccess(trailContext, SUCCESS, space);
     }
   } else if (screen.name === 'success' && session) {
     // Level completed but the session already handed off (e.g. after a
     // settings round-trip): keep the frozen tableau behind the buttons.
-    drawLevel(trailContext, now, session.snapshot(), currentLevelArt(), activeSkin());
-    drawSuccess(trailContext, SUCCESS);
+    drawLevel(trailContext, now, session.snapshot(), currentLevelArt(), activeSkin(), space);
+    drawSuccess(trailContext, SUCCESS, space);
   } else if (screen.name === 'badge') {
     drawBadge(trailContext, now, BADGE, packBadgeArt(screen.packId));
   } else if (screen.name === 'parent') {
@@ -884,7 +891,9 @@ function render(now: number): void {
   }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
-    positionCharacter(session.snapshot().charPos, CHARACTER_SCALE);
+    // The wide field is short: keep the mascot at its portrait share of the height.
+    const characterScale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+    positionCharacter(session.snapshot().charPos, characterScale);
   } else if (screen.name === 'menu') {
     positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
   } else if (screen.name === 'pack') {

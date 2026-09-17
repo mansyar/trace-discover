@@ -450,6 +450,37 @@ function walkStroke(
   }
 }
 
+describe('session parks', () => {
+  it('honours scripted parks for the wide field', () => {
+    const f = fakes();
+    const session = createSession(level(0), {
+      character: f.character,
+      onEvent: (event) => {
+        f.events.push(event);
+      },
+      player: f.player,
+      parks: { success: { x: 805, y: 250 }, trace: { x: 430, y: 310 } },
+      seed: 3,
+      settings: () => ({ easierTracing: false }),
+    });
+    expect(session.snapshot().charPos).toEqual({ x: 430, y: 310 });
+  });
+
+  it('defaults to the portrait parks', () => {
+    const f = fakes();
+    const session = createSession(level(0), {
+      character: f.character,
+      onEvent: (event) => {
+        f.events.push(event);
+      },
+      player: f.player,
+      seed: 3,
+      settings: () => ({ easierTracing: false }),
+    });
+    expect(session.snapshot().charPos).toEqual({ x: 215, y: 650 });
+  });
+});
+
 describe('session reflow', () => {
   it('keeps the stroke index and proportional frontier across a reflow', () => {
     const f = fakes();
