@@ -277,7 +277,7 @@ describe('parsePackJson pack-rule errors', () => {
 
   it('requires the final threshold to equal the main level count', () => {
     expect(() => parsePackJson({ ...PACK, bonuses: [CIRCLE], bonusUnlocks: [7] })).toThrow(
-      /final bonus unlock \(7\) must equal the level count \(1\)/,
+      /bonusUnlocks entry 0 must be an integer within 1\.\.1/,
     );
   });
 
@@ -336,7 +336,10 @@ describe('collectPackProblems', () => {
   it('reports traversal, unlock, and rule problems together', () => {
     const problems = collectPackProblems({
       ...PACK,
-      levels: [{ ...LEVEL, goalArt: '/art/goal/../x.webp' }],
+      levels: [
+        { ...LEVEL, goalArt: '/art/goal/../x.webp' },
+        { ...LEVEL, id: 'pre-2' },
+      ],
       bonuses: [
         {
           ...LEVEL,
@@ -351,11 +354,11 @@ describe('collectPackProblems', () => {
           ],
         },
       ],
-      bonusUnlocks: [7],
+      bonusUnlocks: [1],
     });
     expect(problems).toEqual([
       "pack level 0 ('pre-1'): goalArt must not traverse outside /art/goal/",
-      'pack: final bonus unlock (7) must equal the level count (1)',
+      'pack: final bonus unlock (1) must equal the level count (2)',
     ]);
   });
 
@@ -363,6 +366,15 @@ describe('collectPackProblems', () => {
     expect(collectPackProblems({ ...PACK, bonusUnlocks: [Number.NaN] })).toEqual([
       'bonusUnlocks entry 0 must be a finite number',
     ]);
+  });
+
+  it('rejects unlock thresholds that are not integers within the level count', () => {
+    expect(collectPackProblems({ ...PACK, bonusUnlocks: [0.5] })).toContain(
+      'pack: bonusUnlocks entry 0 must be an integer within 1..1',
+    );
+    expect(collectPackProblems({ ...PACK, bonusUnlocks: [99] })).toContain(
+      'pack: bonusUnlocks entry 0 must be an integer within 1..1',
+    );
   });
 
   it('rejects goalArt paths outside the /art/goal/ prefix', () => {

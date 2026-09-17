@@ -29,7 +29,8 @@ const STROKE_PATTERNS: readonly StrokePattern[] = ['line', 'wave', 'arc', 'zigza
 
 const PACK_KEYS = ['badgeId', 'bonusUnlocks', 'bonuses', 'id', 'levels', 'menuFill'] as const;
 const LEVEL_KEYS = ['goal', 'goalArt', 'id', 'stroke', 'strokes'] as const;
-const GOAL_ART_PREFIX = '/art/goal/';
+/** The only bundle path levels may reference art from (shared with `json.ts`). */
+export const GOAL_ART_PREFIX = '/art/goal/';
 
 /** Accepts only plain objects — arrays and null do not count. */
 function isRecord(value: unknown): value is Record<string, unknown> {

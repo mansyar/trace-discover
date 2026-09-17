@@ -2,26 +2,32 @@
 // `PackEntry`. Shape checks live in `parser.ts`; geometry (validateLevel) and
 // pack rules (createPackEntry) are composed here, and every problem is labeled
 // with its level index and id so load-time failures are actionable.
-// `collectPackProblems` is the non-throwing twin used by the authoring CLI.
+// `collectPackProblems` is the non-throwing twin used by the authoring CLI;
+// both flow through one inspector, so author-time and load-time validation are
+// the same code and the pack is parsed exactly once per call site.
 import { validateLevel } from './level';
 import type { PackEntry } from './pack';
 import { createPackEntry, type PackSpec } from './pack';
-import { parseRawPack, type RawLevel, type RawPack } from './parser';
+import { GOAL_ART_PREFIX, parseRawPack, type RawLevel, type RawPack } from './parser';
 
-/** The only bundle path levels may reference art from. */
-const GOAL_ART_PREFIX = '/art/goal/';
+interface Inspection {
+  /** Every problem found; empty means `pack` is present and valid. */
+  readonly problems: readonly string[];
+  /** The shape-checked pack, when shape validation passed. */
+  readonly pack: RawPack | undefined;
+}
 
 /**
  * Parses raw pack JSON into a validated pack. Throws when the collector finds
  * any problem — shape errors from `parser.ts`, geometry errors from
- * `validateLevel`, rule errors from `createPackEntry` and the unlock rule.
+ * `validateLevel`, rule errors from `createPackEntry` and the unlock rules.
  */
 export function parsePackJson(raw: unknown): PackEntry {
-  const problems = collectPackProblems(raw);
-  if (problems.length > 0) {
+  const { problems, pack } = inspectPack(raw);
+  if (problems.length > 0 || pack === undefined) {
     throw new Error(`pack ${jsonId(raw)} is invalid:\n- ${problems.join('\n- ')}`);
   }
-  return createPackEntry(buildSpec(parseRawPack(raw)));
+  return createPackEntry(buildSpec(pack));
 }
 
 /** Best-effort pack id for error headers: the raw `id` when it is a string. */
@@ -40,19 +46,25 @@ function jsonId(raw: unknown): string {
  * for pack-level problems, `pack level <i> ('<id>'): ...` for level geometry and
  * art paths (bonuses are labeled as levels of the `bonuses` list). Empty for
  * valid packs. Used by `parsePackJson` (throws with the list) and the
- * authoring CLI, so author-time and load-time validation are the same code.
+ * authoring CLI.
  */
 export function collectPackProblems(raw: unknown): string[] {
+  return [...inspectPack(raw).problems];
+}
+
+/** Shape-checks once, then gathers geometry, unlock, and pack-rule problems. */
+function inspectPack(raw: unknown): Inspection {
   let pack: RawPack;
   try {
     pack = parseRawPack(raw, 'pack');
   } catch (error) {
-    return [messageOf(error)];
+    return { problems: [messageOf(error)], pack: undefined };
   }
 
   const problems = [
-    ...levelProblems(pack.levels, `pack level`),
-    ...levelProblems(pack.bonuses, `pack bonus level`),
+    ...levelProblems(pack.levels, 'pack level'),
+    ...levelProblems(pack.bonuses, 'pack bonus level'),
+    ...unlockProblems(pack),
   ];
 
   const lastUnlock = pack.bonusUnlocks[pack.bonusUnlocks.length - 1];
@@ -62,14 +74,25 @@ export function collectPackProblems(raw: unknown): string[] {
     );
   }
 
-  const spec = buildSpec(pack);
   try {
-    createPackEntry(spec);
+    createPackEntry(buildSpec(pack));
   } catch (error) {
     problems.push(`pack: ${messageOf(error)}`);
   }
 
-  return problems;
+  return { problems, pack };
+}
+
+/** Every unlock threshold must be an integer within `1..levelCount`. */
+function unlockProblems(pack: RawPack): string[] {
+  return pack.bonusUnlocks.flatMap((threshold, index) => {
+    if (!Number.isInteger(threshold) || threshold < 1 || threshold > pack.levels.length) {
+      return [
+        `pack: bonusUnlocks entry ${index} must be an integer within 1..${pack.levels.length}`,
+      ];
+    }
+    return [];
+  });
 }
 
 function levelProblems(levels: readonly RawLevel[], at: string): string[] {
