@@ -100,7 +100,7 @@ two pages), ear approval of the note ladder, and the device sign-off.
   - [x] Wrap implemented, tests added, commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5: QA evidence + tooling
+## Phase 5: QA evidence + tooling [checkpoint: b195176]
 
 - [x] Task 1: `dev/screens.ts` preview `?screen=board` (seeded) + new
       `dev/qa/qa-sticker-play.mjs` (pulse → shelf tap → board → sticker tap →
