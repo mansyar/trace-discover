@@ -47,12 +47,22 @@ import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
 import {
   createUnlockGate,
+  giggleNoteSpec,
   playStickerNote,
   playVolumePreview,
   presetForInstrument,
 } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
+import {
+  createEntrance,
+  type EntranceState,
+  type EntranceTimeline,
+  entrancePos,
+  entranceStart,
+  settleEntrance,
+  stepEntrance,
+} from './character/entrance';
 import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
@@ -69,6 +79,13 @@ import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
 import { type InstallVariant, installVariant } from './ui/install';
+import {
+  canGiggle,
+  hitMascot,
+  MASCOT_SPARKLE_COUNT,
+  MASCOT_SPARKLE_SEED,
+  mascotZone,
+} from './ui/mascot';
 import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
 import {
   hitPackCard,
@@ -191,6 +208,8 @@ const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
 const MENU_PARK: Point = { x: FIELD_WIDTH / 2, y: 735 };
 const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
+/** How long a giggle sparkle burst lives before frame() clears it. */
+const GIGGLE_SPARKLES_MS = 1200;
 /** Gate burst particles live ~0.7s after the parent gate opens. */
 const GATE_BURST_MS = 700;
 
@@ -216,6 +235,10 @@ let idleCharFor: string | null = null;
 // state machine) restarts the pop clock that the rAF spring reads.
 let lastMoment: AppState['stickerMoment'] = null;
 let momentStartedAt = 0;
+let lastGiggle: number | null = null;
+let mascotSparkles: ConfettiParticle[] = [];
+let mascotSparklesUntil = 0;
+let entrance: { timeline: EntranceTimeline; state: EntranceState } | null = null;
 let gateBurst: readonly ConfettiParticle[] = [];
 let gateBurstAgeMs = 0;
 let parentPress: ParentPress | null = null;
@@ -557,6 +580,25 @@ function startRun(
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),
   });
+  entrance = { timeline: createEntrance(session.snapshot().charPos), state: entranceStart() };
+}
+
+/** Tap reaction: the parked mascot giggles (one note + a sparkle burst) on
+ *  menu/pack. The character trigger is fire-and-forget; a cast without the
+ *  giggle input simply stays idle while the note and sparkles still play. */
+function tryGiggle(point: Point, nowMs: number, park: Point, scale: number): void {
+  const zone = mascotZone(park, scale);
+  if (!hitMascot(zone, point) || !canGiggle(nowMs, lastGiggle)) {
+    return;
+  }
+  lastGiggle = nowMs;
+  character?.fire('giggle');
+  meteredPlayer?.play(giggleNoteSpec(presetForInstrument(activeSkin().instrument)));
+  mascotSparkles = createConfetti(MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, {
+    x: zone.x,
+    y: zone.y,
+  });
+  mascotSparklesUntil = nowMs + GIGGLE_SPARKLES_MS;
 }
 
 const handlers: TraceHandlers = {
@@ -594,6 +636,8 @@ const handlers: TraceHandlers = {
       if (packId) {
         commit(applyAppEvent(app, { type: 'open-pack', packId }));
         pop();
+      } else {
+        tryGiggle(point, tapNow, MENU_PARK, MASCOT_SCALE_MENU);
       }
     } else if (screen.name === 'pack') {
       const page = packPageIndex(screen.packId);
@@ -632,6 +676,8 @@ const handlers: TraceHandlers = {
         } else {
           pop();
         }
+      } else {
+        tryGiggle(point, tapNow, PACK_PARK, MASCOT_SCALE_PACK);
       }
       if (pack && hitShelfBand(layout, pager, point)) {
         const boardIds = packLevelIds(pack);
@@ -659,9 +705,13 @@ const handlers: TraceHandlers = {
             levelArtUrls = null;
             currentRun = null;
             pendingSkinSwap = false;
+            entrance = null;
           }
         }
         return;
+      }
+      if (entrance && !entrance.state.settled) {
+        entrance.state = settleEntrance(entrance.timeline, entrance.state);
       }
       session.pointerDown(point);
     } else if (screen.name === 'badge') {
@@ -818,6 +868,16 @@ function frame(now: number): void {
     lastMoment = moment;
     momentStartedAt = now;
   }
+  if (entrance && !entrance.state.settled) {
+    entrance.state = stepEntrance(entrance.timeline, entrance.state, dtMs);
+  }
+  if (mascotSparkles.length > 0) {
+    if (now >= mascotSparklesUntil) {
+      mascotSparkles = [];
+    } else {
+      mascotSparkles = stepConfetti(mascotSparkles, dtMs / 1000);
+    }
+  }
   syncIdleMascot();
   render(now);
   requestAnimationFrame(frame);
@@ -965,6 +1025,9 @@ function render(now: number): void {
       drawNameOverlay(trailContext, currentNameOverlay());
     }
   }
+  if (screen.name === 'menu' || screen.name === 'pack') {
+    drawMascotSparkles(trailContext);
+  }
   if (SKIN_BUTTON_SCREENS.has(screen.name)) {
     const skin = activeSkin();
     drawSkinButton(
@@ -981,13 +1044,29 @@ function render(now: number): void {
   }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
-    positionCharacter(session.snapshot().charPos, CHARACTER_SCALE);
+    const charPos =
+      entrance && !entrance.state.settled
+        ? entrancePos(entrance.timeline, entrance.state)
+        : session.snapshot().charPos;
+    positionCharacter(charPos, CHARACTER_SCALE);
   } else if (screen.name === 'menu') {
     positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
   } else if (screen.name === 'pack') {
     positionCharacter(PACK_PARK, MASCOT_SCALE_PACK);
   } else if (charCanvas.style.display !== 'none') {
     charCanvas.style.display = 'none';
+  }
+}
+
+/** Draws the giggle sparkles in field space (mirrors the level confetti). */
+function drawMascotSparkles(context: CanvasRenderingContext2D): void {
+  for (const particle of mascotSparkles) {
+    context.save();
+    context.translate(particle.x, particle.y);
+    context.rotate(particle.x * 0.05 + particle.y * 0.02);
+    context.fillStyle = particle.color;
+    context.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+    context.restore();
   }
 }
 

@@ -174,6 +174,21 @@ function noteSpec(index: number, delay: number, preset: InstrumentPreset): ToneS
   };
 }
 
+/** Giggle pitch: G5, the fifth degree of the app's C-major pentatonic family. */
+export const GIGGLE_MIDI = 79;
+const GIGGLE_MAX_SECONDS = 0.6;
+
+/** One short, soft note in the active instrument's voice for mascot taps. */
+export function giggleNoteSpec(preset: InstrumentPreset = MARIMBA_PRESET): ToneSpec {
+  return {
+    delay: 0,
+    duration: Math.min(preset.duration, GIGGLE_MAX_SECONDS),
+    frequency: midiToFrequency(GIGGLE_MIDI),
+    gain: preset.gain * 0.8,
+    type: preset.type,
+  };
+}
+
 export interface UnlockGate {
   readonly unlocked: boolean;
   unlock(): void;

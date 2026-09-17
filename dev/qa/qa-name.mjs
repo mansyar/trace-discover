@@ -167,7 +167,7 @@ try {
   }
   const strokeCount = await page.evaluate(() => window.__app.strokes().length);
   console.log(`name-1 strokes: ${strokeCount}`);
-  await wait(600);
+  await wait(900); // level-start entrance hop (~750 ms) settles before the shot
   await shot('name-level.png');
   await trace();
   await wait(1800);
