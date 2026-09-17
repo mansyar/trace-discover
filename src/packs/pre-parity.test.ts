@@ -1,7 +1,7 @@
 // Byte-level parity: every control point, goal, pattern, and unlock in the
 // JSON-sourced Pre-writing pack must match the original hand-authored table
 // exactly. This is the port's hard constraint — gameplay must not change.
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { PRE_BONUS_LEVELS, PRE_LEVELS, PRE_PACK } from './pre';
 
 /** [stroke, goal.x, goal.y, [x, y][] per stroke] — transcribed from pre.ts. */
@@ -245,4 +245,29 @@ it('keeps the pack identity and unlock rule unchanged', () => {
   expect(PRE_PACK.bonusUnlocks).toEqual([4, 8, 12]);
   expect(PRE_PACK.bonuses).toBe(PRE_BONUS_LEVELS);
   expect(PRE_PACK.levels).toBe(PRE_LEVELS);
+});
+
+it('fails loudly with a labeled error when the pack JSON is malformed', async () => {
+  vi.resetModules();
+  vi.doMock('./data/pre.json', () => ({
+    default: {
+      badgeId: 'pre-badge',
+      bonusUnlocks: [4, 8, 12],
+      bonuses: [],
+      id: 'pre',
+      levels: [
+        {
+          goal: { x: 285, y: 430 },
+          goalArt: '/art/goal/pre-1.webp',
+          id: 'pre-1',
+          stroke: 'line',
+          strokes: [[{ x: 145, y: 430 }]],
+        },
+      ],
+      menuFill: '#8ecae6',
+    },
+  }));
+  await expect(import('./pre')).rejects.toThrow(/stroke 0 needs at least 2 control points/);
+  vi.doUnmock('./data/pre.json');
+  vi.resetModules();
 });
