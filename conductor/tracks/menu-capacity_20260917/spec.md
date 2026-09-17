@@ -14,7 +14,7 @@ Every static content pack is now validated JSON, so the next content track is au
 - **Capacity:** **6 cards** in both orientations — including the runtime My Name mini-pack (so 5 static packs + name). Design fields: portrait 430×860 / landscape 860×430.
 - **Dynamic fit, columns first:** portrait stays a full-width single-column stack through 4 cards, then reflows to a centered 2-column grid at 5–6 (row-major, last-row centering). Landscape keeps the single row / 2-column wrap rules, extending to a 3-column wrap when needed. Height/gap/side-margin shrink is a secondary lever, within floors.
 - **Fidelity:** card rects visually identical at 1–4 cards in both orientations (position/size and look); existing screenshot approvals stay valid.
-- **Floors:** the existing hard floor holds — every card ≥ 90px on both dims (test-locked), fully inside the field, never overlapping another card, the mascot park, or the parent-gate zone. Dot strips and card art stay clear of each other; dot radius/spacing may scale within legibility floors.
+- **Floors:** the existing hard floor holds — every card ≥ 90px on both dims (test-locked), fully inside the field, never overlapping another card (test-locked). Zone semantics match the shipped menu: the invisible parent-gate corner and the decorative mascot park may sit over a card exactly as at today's counts, with parent-gate input precedence and edge-inclusive hit parity preserved (fidelity lock). Dot strips and card art stay clear of each other; dot radius/spacing may scale within legibility floors.
 - **Beyond 6:** graceful degrade — the layout keeps fitting to floors without overflow/overlap; tests lock 2–6 crisp and 7+ degrade; docs flag paging as a future track if capacity is ever exceeded. No paging now.
 - **Evidence:** dev-only harness preview with synthetic card counts (2–6, both orientations) + screenshot matrix; layout unit tests extend the existing 90px / inside-field / no-overlap suite into a count × orientation matrix.
 - **No new art/assets**, no pack registration changes, no save/schema, no engine/assists, no pack-screen changes.
@@ -28,7 +28,7 @@ Every static content pack is now validated JSON, so the next content track is au
 
 ### FR2 — Zones & hit parity
 
-Park position and parent-gate zone are preserved (gate stays top-right, 100×100); cards never overlap them at 2–6; `hitMenuCard` returns exactly the rendered rects (edge-inclusive) at every count/orientation, so every card remains a ≥ 90px toddler target.
+Park position and parent-gate zone are preserved (gate stays top-right, 100×100); card/zone overlaps match the shipped menu exactly (fidelity-locked rects at today's counts — the gate corner or the decorative park may sit over a card as today, with parent-gate input precedence intact); `hitMenuCard` returns exactly the rendered rects (edge-inclusive) at every count/orientation, so every card remains a ≥ 90px toddler target.
 
 ### FR3 — Dots & art adapt to scaled footprints
 
@@ -44,7 +44,7 @@ A dev-only parameter renders the menu with N synthetic cards (2–6) in both ori
 
 ### FR6 — Capacity-lock tests
 
-Extend `src/ui/menu.test.ts`: matrix for counts 1–6 × both orientations (fit inside field, ≥ 90px both dims, no overlap including park/gate clearance, hit parity, dots/art sane); **fidelity lock** — current-count rects unchanged vs recorded expectations; beyond-capacity (7–8) asserts graceful fit-to-floors without overflow/overlap; a registered-static-pack-count guard documents the supported limit.
+Extend `src/ui/menu.test.ts`: matrix for counts 1–6 × both orientations (fit inside field, ≥ 90px both dims, no card/card overlap, shipped zone semantics at the fidelity-locked counts, hit parity, dots/art sane); **fidelity lock** — current-count rects unchanged vs recorded expectations; beyond-capacity (7–8) asserts graceful fit-to-floors without overflow/overlap; a registered-static-pack-count guard documents the supported limit.
 
 ### FR7 — QA & evidence
 
@@ -64,7 +64,7 @@ Harness screenshot matrix (3–6 cards × portrait/landscape, including the name
 
 ## Acceptance Criteria
 
-1. Six cards (including name) render cleanly in both orientations — screenshot matrix approved; no overflow, no overlap (cards/park/gate), art + dots legible.
+1. Six cards (including name) render cleanly in both orientations — screenshot matrix approved; no overflow; cards never overlap each other and rects match the locked geometry incl. shipped zone semantics (gate/park may sit over a card exactly as today); art + dots legible.
 2. Current counts (3 packs; 4 with name) visually identical to pre-track screenshots (fidelity lock test + visual spot check).
 3. Layout tests green for the 1–6 matrix, hit parity, and beyond-capacity degrade; registered-pack guard documented.
 4. Harness supports synthetic 2–6 card previews (both orientations), documented in `dev/README.md`.
