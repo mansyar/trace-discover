@@ -704,7 +704,12 @@ function resize(): void {
   canvas.height = size.height;
   field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
   detachInput();
-  detachInput = attachTraceInput(canvas, field, handlers);
+  detachInput = attachTraceInput(
+    canvas,
+    field,
+    { width: FIELD_WIDTH, height: FIELD_HEIGHT },
+    handlers,
+  );
   render();
 }
 

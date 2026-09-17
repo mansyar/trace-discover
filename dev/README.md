@@ -77,7 +77,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-menu-dots.mjs` | Menu dot-wrap check with a seeded 5/26 save | dev `:5199` | one-off |
 | `qa-sticker-play.mjs` | Sticker play: first-open pulse → board → tap notes (oscillator-frequency captured) → reload/fresh-save semantics → 29-slot letters fit | dev `:5199` | canonical |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
-| `qa-viewport.mjs` | Viewport-matrix screenshots | dev | one-off |
+| `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |

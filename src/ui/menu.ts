@@ -1,6 +1,7 @@
 // Boot splash + main menu layout math (pure; canvas rendering defers to
-// shell wiring). Content pack cards stacked in a vertically centered block,
-// plus an invisible parent-gate corner zone for the 2-finger hold.
+// shell wiring). Pack cards run as a vertically centered stack in the
+// portrait field and as a centered row (or 2-column wrap) in the wide
+// landscape field; both keep the invisible parent-gate corner zone.
 import type { Point } from '../engine/types';
 
 export interface MenuCard {
@@ -32,17 +33,36 @@ export interface SplashLayout {
 const CARD_GAP = 30;
 const CARD_HEIGHT = 150;
 const GATE_SIZE = 100;
+const MIN_CARD_WIDTH = 200;
 const SIDE_MARGIN = 65;
+const MENU_PARK_BOTTOM_OFFSET_PORTRAIT = 125;
+const MENU_PARK_BOTTOM_OFFSET_LANDSCAPE = 130;
 
 export function menuLayout(
   fieldWidth: number,
   fieldHeight: number,
   packIds: readonly string[],
 ): MenuLayout {
+  const cards =
+    fieldWidth > fieldHeight
+      ? wideCards(fieldWidth, fieldHeight, packIds)
+      : tallCards(fieldWidth, fieldHeight, packIds);
+  return {
+    cards,
+    parentGate: { height: GATE_SIZE, width: GATE_SIZE, x: fieldWidth - GATE_SIZE, y: 0 },
+  };
+}
+
+/** Portrait: one full-width card per pack in a vertically centered stack. */
+function tallCards(
+  fieldWidth: number,
+  fieldHeight: number,
+  packIds: readonly string[],
+): readonly MenuCard[] {
   const cardWidth = fieldWidth - SIDE_MARGIN * 2;
   const blockHeight = packIds.length * CARD_HEIGHT + Math.max(0, packIds.length - 1) * CARD_GAP;
   const startY = (fieldHeight - blockHeight) / 2;
-  const cards = packIds.map(
+  return packIds.map(
     (packId, index): MenuCard => ({
       height: CARD_HEIGHT,
       packId,
@@ -51,10 +71,58 @@ export function menuLayout(
       y: startY + index * (CARD_HEIGHT + CARD_GAP),
     }),
   );
-  return {
-    cards,
-    parentGate: { height: GATE_SIZE, width: GATE_SIZE, x: fieldWidth - GATE_SIZE, y: 0 },
-  };
+}
+
+/** Landscape: a single centered row when cards stay toddler-wide, else a
+ *  centered 2-column wrap (row-major, last odd card centered). */
+function wideCards(
+  fieldWidth: number,
+  fieldHeight: number,
+  packIds: readonly string[],
+): readonly MenuCard[] {
+  const available = fieldWidth - SIDE_MARGIN * 2;
+  const count = packIds.length;
+  if (count === 0) {
+    return [];
+  }
+  const singleRowWidth = (available - (count - 1) * CARD_GAP) / count;
+  if (singleRowWidth >= MIN_CARD_WIDTH) {
+    const y = (fieldHeight - CARD_HEIGHT) / 2;
+    return packIds.map(
+      (packId, index): MenuCard => ({
+        height: CARD_HEIGHT,
+        packId,
+        width: singleRowWidth,
+        x: SIDE_MARGIN + index * (singleRowWidth + CARD_GAP),
+        y,
+      }),
+    );
+  }
+  const columns = 2;
+  const cardWidth = (available - (columns - 1) * CARD_GAP) / columns;
+  const rows = Math.ceil(count / columns);
+  const blockHeight = rows * CARD_HEIGHT + (rows - 1) * CARD_GAP;
+  const startY = (fieldHeight - blockHeight) / 2;
+  return packIds.map((packId, index): MenuCard => {
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const rowCount = Math.min(columns, count - row * columns);
+    const rowWidth = rowCount * cardWidth + (rowCount - 1) * CARD_GAP;
+    return {
+      height: CARD_HEIGHT,
+      packId,
+      width: cardWidth,
+      x: (fieldWidth - rowWidth) / 2 + column * (cardWidth + CARD_GAP),
+      y: startY + row * (CARD_HEIGHT + CARD_GAP),
+    };
+  });
+}
+
+/** Mascot park: bottom-center, with room below the card block in either field. */
+export function menuParkPosition(fieldWidth: number, fieldHeight: number): Point {
+  const bottomOffset =
+    fieldWidth > fieldHeight ? MENU_PARK_BOTTOM_OFFSET_LANDSCAPE : MENU_PARK_BOTTOM_OFFSET_PORTRAIT;
+  return { x: fieldWidth / 2, y: fieldHeight - bottomOffset };
 }
 
 export function hitMenuCard(layout: MenuLayout, point: Point): string | null {
@@ -97,7 +165,7 @@ export function menuDotPositions(total: number, card: MenuCard): readonly Point[
   if (total <= 0) {
     return [];
   }
-  const perRow = Math.min(total, DOT_MAX_PER_ROW);
+  const perRow = dotsPerRow(total, card);
   const rows = Math.ceil(total / perRow);
   const positions: Point[] = [];
   for (let index = 0; index < total; index += 1) {
@@ -110,4 +178,16 @@ export function menuDotPositions(total: number, card: MenuCard): readonly Point[
     positions.push({ x: startX + column * DOT_SPACING, y });
   }
   return positions;
+}
+
+/** Dots per row: capped, and never wider than the card leaves room for. */
+function dotsPerRow(total: number, card: MenuCard): number {
+  const fit = 1 + Math.floor((card.width - 2 * MENU_DOT_RADIUS - 16) / DOT_SPACING);
+  return Math.max(1, Math.min(total, DOT_MAX_PER_ROW, fit));
+}
+
+/** Max card-art height that keeps the dot strip below it clear (one row step per extra row). */
+export function menuCardArtMaxHeight(card: MenuCard, dotTotal: number): number {
+  const rows = Math.ceil(dotTotal / dotsPerRow(dotTotal, card));
+  return card.height - 58 - Math.max(0, rows - 2) * DOT_ROW_STEP;
 }

@@ -5,12 +5,13 @@
 // untouched, and long-name visuals thin proportionally with toddler-visible
 // floors.
 import type { Point } from '../engine/types';
-import { FIELD_WIDTH } from '../field';
+import { FIELD_WIDTH, type Orientation } from '../field';
 import type { PathStyle } from '../render/renderPath';
 import { sanitizeName } from '../save/store';
-import { LETTER_LEVELS } from './letters';
+import { letterGlyph } from './letters';
 import type { LevelDef } from './level';
 import { createPackEntry, type PackEntry } from './pack';
+import { composeWordRow, WIDE_WORD_BOX } from './word';
 
 /** Menu/pack id of the runtime-composed name mini-pack. */
 export const NAME_PACK_ID = 'name';
@@ -18,64 +19,39 @@ export const NAME_PACK_ID = 'name';
 /** Design box the composed name is laid out in (field space). */
 export const NAME_BOX = { bottom: 660, left: 40, right: 390, top: 280 } as const;
 
+/** Wide row box the composed name fills in the landscape field. */
+export const NAME_BOX_LANDSCAPE = WIDE_WORD_BOX;
+
 const NAME_CENTER_Y = (NAME_BOX.top + NAME_BOX.bottom) / 2;
+const NAME_CENTER_Y_LANDSCAPE = (NAME_BOX_LANDSCAPE.top + NAME_BOX_LANDSCAPE.bottom) / 2;
 const LETTER_GAP = 30;
 
-interface Glyph {
-  readonly left: number;
-  readonly right: number;
-  readonly strokes: readonly (readonly Point[])[];
+function nameBoxFor(orientation: Orientation): typeof NAME_BOX | typeof NAME_BOX_LANDSCAPE {
+  return orientation === 'landscape' ? NAME_BOX_LANDSCAPE : NAME_BOX;
 }
 
-function letterGlyph(char: string): Glyph {
-  const level = LETTER_LEVELS.find((entry) => entry.id === `abc-${char.toLowerCase()}`);
-  if (level === undefined) {
-    throw new Error(`no letter glyph for "${char}"`);
-  }
-  let left = Number.POSITIVE_INFINITY;
-  let right = Number.NEGATIVE_INFINITY;
-  for (const stroke of level.strokes) {
-    for (const point of stroke) {
-      left = Math.min(left, point.x);
-      right = Math.max(right, point.x);
-    }
-  }
-  return { left, right, strokes: level.strokes };
-}
-
-function layoutName(name: string): { scale: number; strokes: Point[][] } {
+function layoutName(
+  name: string,
+  orientation: Orientation = 'portrait',
+): { scale: number; strokes: Point[][] } {
   const glyphs = [...name].map(letterGlyph);
-  const naturalWidth =
-    glyphs.reduce((sum, glyph) => sum + (glyph.right - glyph.left), 0) +
-    LETTER_GAP * (glyphs.length - 1);
-  const scale = Math.min(1, (NAME_BOX.right - NAME_BOX.left) / naturalWidth);
-
-  let cursor = FIELD_WIDTH / 2 - (naturalWidth * scale) / 2;
-  const strokes: Point[][] = [];
-  for (const glyph of glyphs) {
-    for (const stroke of glyph.strokes) {
-      strokes.push(
-        stroke.map((point) => ({
-          x: cursor + (point.x - glyph.left) * scale,
-          y: NAME_CENTER_Y + (point.y - NAME_CENTER_Y) * scale,
-        })),
-      );
-    }
-    cursor += (glyph.right - glyph.left + LETTER_GAP) * scale;
-  }
-  return { scale, strokes };
+  return composeWordRow(glyphs, nameBoxFor(orientation), LETTER_GAP);
 }
 
 /** Scale factor applied to the name glyphs (1 = full letter size). */
-export function nameGlyphScale(name: string): number {
-  return layoutName(name).scale;
+export function nameGlyphScale(name: string, orientation: Orientation = 'portrait'): number {
+  return layoutName(name, orientation).scale;
 }
 
 /** The playable "My Name" level: goal art reuses the final letter's vignette. */
-export function buildNameLevel(name: string): LevelDef {
-  const { strokes } = layoutName(name);
+export function buildNameLevel(name: string, orientation: Orientation = 'portrait'): LevelDef {
+  const { strokes } = layoutName(name, orientation);
   const lastChar = name.at(-1)?.toLowerCase() ?? 'a';
-  const goal = strokes.at(-1)?.at(-1) ?? { x: FIELD_WIDTH / 2, y: NAME_CENTER_Y };
+  const center =
+    orientation === 'landscape'
+      ? { x: (NAME_BOX_LANDSCAPE.left + NAME_BOX_LANDSCAPE.right) / 2, y: NAME_CENTER_Y_LANDSCAPE }
+      : { x: FIELD_WIDTH / 2, y: NAME_CENTER_Y };
+  const goal = strokes.at(-1)?.at(-1) ?? center;
   return {
     goal,
     goalArt: `/art/goal/abc-${lastChar}.webp`,
@@ -102,7 +78,10 @@ export function namePathStyle(scale: number, base: PathStyle): PathStyle {
 }
 
 /** The one-level "My Name" mini-pack for a saved name, else null. */
-export function namePackFor(name: string | undefined): PackEntry | null {
+export function namePackFor(
+  name: string | undefined,
+  orientation: Orientation = 'portrait',
+): PackEntry | null {
   const sanitized = name === undefined ? '' : sanitizeName(name);
   if (sanitized === '') {
     return null;
@@ -110,7 +89,7 @@ export function namePackFor(name: string | undefined): PackEntry | null {
   return createPackEntry({
     badgeId: 'name-badge',
     id: NAME_PACK_ID,
-    levels: [buildNameLevel(sanitized)],
+    levels: [buildNameLevel(sanitized, orientation)],
     menuFill: '#f6b45a',
   });
 }

@@ -21,17 +21,21 @@ const MARGIN = 24;
 const SEGMENT_SAMPLES = 24;
 const POINT_SPACING = 8;
 
-function outsideMargin(point: Point): boolean {
+function outsideMargin(point: Point, fieldWidth: number, fieldHeight: number): boolean {
   return (
     point.x < MARGIN ||
-    point.x > FIELD_WIDTH - MARGIN ||
+    point.x > fieldWidth - MARGIN ||
     point.y < MARGIN ||
-    point.y > FIELD_HEIGHT - MARGIN
+    point.y > fieldHeight - MARGIN
   );
 }
 
 /** Returns human-readable problems; an empty array means the level is well-formed. */
-export function validateLevel(level: LevelDef): string[] {
+export function validateLevel(
+  level: LevelDef,
+  fieldWidth: number = FIELD_WIDTH,
+  fieldHeight: number = FIELD_HEIGHT,
+): string[] {
   const problems: string[] = [];
   if (level.id === '') {
     problems.push('missing id');
@@ -50,7 +54,7 @@ export function validateLevel(level: LevelDef): string[] {
         problems.push(`stroke ${strokeIndex} non-finite control point at index ${index}`);
         return;
       }
-      if (outsideMargin(point)) {
+      if (outsideMargin(point, fieldWidth, fieldHeight)) {
         problems.push(`stroke ${strokeIndex} control point ${index} outside field margin`);
       }
       const previous = stroke[index - 1];
@@ -63,7 +67,7 @@ export function validateLevel(level: LevelDef): string[] {
   });
   if (!Number.isFinite(level.goal.x) || !Number.isFinite(level.goal.y)) {
     problems.push('non-finite goal');
-  } else if (outsideMargin(level.goal)) {
+  } else if (outsideMargin(level.goal, fieldWidth, fieldHeight)) {
     problems.push('goal outside field margin');
   }
   if (level.goalArt === '') {

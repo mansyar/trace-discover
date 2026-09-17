@@ -219,3 +219,82 @@ describe('parent zone', () => {
     expect(hitNameOverlay(without, { x: clear?.x ?? 0, y: clear?.y ?? 0 })).toBeNull();
   });
 });
+
+describe('parent zone (landscape)', () => {
+  const W = 860;
+  const H = 430;
+
+  it('places every target at toddler-proof size inside the wide field', () => {
+    const layout = parentZoneLayout(W, H);
+    const buttons = [
+      layout.volumeDown,
+      layout.volumeUp,
+      layout.mute,
+      layout.easier,
+      layout.name,
+      layout.skin,
+      layout.reset,
+      layout.install,
+      layout.done,
+    ];
+    expect(buttons).toHaveLength(9);
+    for (const button of buttons) {
+      expect(button.radius * 2).toBeGreaterThanOrEqual(90);
+      expect(button.x - button.radius).toBeGreaterThanOrEqual(0);
+      expect(button.x + button.radius).toBeLessThanOrEqual(W);
+      expect(button.y - button.radius).toBeGreaterThanOrEqual(0);
+      expect(button.y + button.radius).toBeLessThanOrEqual(H);
+    }
+  });
+
+  it('keeps the wide controls clear of each other and the trophy slots', () => {
+    const layout = parentZoneLayout(W, H);
+    const buttons = [
+      layout.volumeDown,
+      layout.volumeUp,
+      layout.mute,
+      layout.easier,
+      layout.name,
+      layout.skin,
+      layout.reset,
+      layout.install,
+      layout.done,
+    ];
+    for (let i = 0; i < buttons.length; i += 1) {
+      for (let j = i + 1; j < buttons.length; j += 1) {
+        const a = buttons[i];
+        const b = buttons[j];
+        if (!a || !b) {
+          continue;
+        }
+        expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(a.radius + b.radius);
+      }
+    }
+    for (const slot of layout.trophies) {
+      expect(hitParentZone(layout, { x: slot.x, y: slot.y })).toBeNull();
+    }
+  });
+
+  it('lays the name overlay and its buttons inside the wide field', () => {
+    const layout = nameOverlayLayout(W, H, true);
+    const { panel, field } = layout;
+    expect(panel.x).toBeGreaterThanOrEqual(0);
+    expect(panel.y).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width).toBeLessThanOrEqual(W);
+    expect(panel.y + panel.height).toBeLessThanOrEqual(H);
+    expect(field.x).toBeGreaterThan(panel.x);
+    expect(field.y).toBeGreaterThan(panel.y);
+    expect(field.x + field.width).toBeLessThanOrEqual(panel.x + panel.width);
+    expect(field.y + field.height).toBeLessThanOrEqual(panel.y + panel.height);
+    for (const button of [layout.cancel, layout.save, layout.clear]) {
+      if (!button) {
+        continue;
+      }
+      expect(button.radius * 2).toBeGreaterThanOrEqual(90);
+      expect(button.x - button.radius).toBeGreaterThanOrEqual(panel.x);
+      expect(button.x + button.radius).toBeLessThanOrEqual(panel.x + panel.width);
+      expect(button.y - button.radius).toBeGreaterThanOrEqual(panel.y);
+      expect(button.y + button.radius).toBeLessThanOrEqual(panel.y + panel.height);
+    }
+  });
+});

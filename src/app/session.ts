@@ -79,6 +79,8 @@ export interface SessionDeps {
   /** Deterministic confetti seed (varies per level for QA replay). */
   readonly seed: number;
   readonly settings: () => SessionSettings;
+  /** Mascot park overrides for the wide field; defaults to the portrait parks. */
+  readonly parks?: { readonly trace: Point; readonly success: Point };
 }
 
 export interface SessionSnapshot {
@@ -103,15 +105,19 @@ export interface LevelSession {
   pointerDown(point: Point): void;
   pointerMove(point: Point): void;
   pointerUp(): void;
+  /** Rebuilds the trail for a re-laid level, scaling the frontier proportionally. */
+  reflow(level: LevelDef, frontierRatio: number): void;
   snapshot(): SessionSnapshot;
   update(dtMs: number): void;
 }
 
 export function createSession(level: LevelDef, deps: SessionDeps): LevelSession {
-  const paths = levelToPath(level);
+  let paths = levelToPath(level);
   if (paths.length === 0) {
     throw new Error(`Level ${level.id} has no strokes.`);
   }
+  const tracePark = deps.parks?.trace ?? TRACE_PARK;
+  const successPark = deps.parks?.success ?? SUCCESS_PARK;
   const baseTolerance = FIELD_WIDTH * TOLERANCE_FRACTION;
   let multi = createMultiTrail(paths, {
     tolerance: baseTolerance,
@@ -120,11 +126,11 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   let multiState: MultiTrailState = MULTI_TRAIL_START;
   let assistState: AssistState = ASSIST_START;
   let checkState: CheckpointState = CHECKPOINT_START;
-  const checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
+  let checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
   let completion: CompletionState = COMPLETION_START;
   let completionStarted = false;
   let confetti: ConfettiParticle[] = [];
-  let charPos: Point = { ...TRACE_PARK };
+  let charPos: Point = { ...tracePark };
   let pointer: Point | null = null;
   let success = false;
   let widenReported = false;
@@ -144,8 +150,8 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   const glideToPark = (dtMs: number): void => {
     const blend = 1 - Math.exp((-dtMs / 1000) * 5);
     charPos = {
-      x: charPos.x + (SUCCESS_PARK.x - charPos.x) * blend,
-      y: charPos.y + (SUCCESS_PARK.y - charPos.y) * blend,
+      x: charPos.x + (successPark.x - charPos.x) * blend,
+      y: charPos.y + (successPark.y - charPos.y) * blend,
     };
   };
 
@@ -274,6 +280,23 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
     pointerUp: () => {
       pointer = null;
       multiState = endMultiStroke(multiState);
+    },
+    reflow: (nextLevel, frontierRatio) => {
+      if (success || completionStarted) {
+        return;
+      }
+      paths = levelToPath(nextLevel);
+      multi = createMultiTrail(paths, {
+        tolerance: baseTolerance * toleranceScaleNow,
+        maxAdvanceSpeed: MAX_ADVANCE_SPEED,
+      });
+      checkpoints = createMultiCheckpoints(multi, CHECKPOINT_COUNT);
+      multiState = {
+        frontier: multiState.frontier * frontierRatio,
+        strokeIndex: multiState.strokeIndex,
+        tracing: false,
+      };
+      pointer = null;
     },
     snapshot: () => {
       const idleMs = assistState.idleMs;

@@ -16,8 +16,6 @@ import {
 import { loadArtImage } from './app/art';
 import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
-  BADGE_HOME,
-  BADGE_SEAL,
   beginField,
   drawBadge,
   drawLevel,
@@ -65,19 +63,22 @@ import {
 } from './character/entrance';
 import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
-import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
+import { fieldSizeFor, type Orientation, orientationFor } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
 import { appPacks } from './packs/catalog';
+import { bonusRunLevel } from './packs/letters';
 import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
+import { levelForOrientation, pathGeometryLength } from './packs/wide';
 import { type ConfettiParticle, createConfetti, stepConfetti } from './render/confetti';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
+import { badgeLayout } from './ui/badge';
 import { type InstallVariant, installVariant } from './ui/install';
 import {
   canGiggle,
@@ -86,7 +87,7 @@ import {
   MASCOT_SPARKLE_SEED,
   mascotZone,
 } from './ui/mascot';
-import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
+import { hitMenuCard, inParentGate, menuLayout, menuParkPosition, splashLayout } from './ui/menu';
 import {
   hitPackCard,
   hitPackHome,
@@ -97,6 +98,7 @@ import {
   type PackPager,
   packLayout,
   packPagerLayout,
+  packParkPosition,
   packStickers,
   paginate,
 } from './ui/pack';
@@ -113,6 +115,9 @@ import { hitBoardHome, hitShelfBand, hitStickerCell, stickerBoardLayout } from '
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
+/** Wide-field mascot parks: tracing keeps the dino low and centred; success parks it beside the buttons. */
+const TRACE_PARK_WIDE: Point = { x: 430, y: 310 };
+const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
 const CHARACTER_OFFSET_Y = 0.38;
 
 const trailCanvas = requireCanvas(document);
@@ -128,29 +133,40 @@ function requireCharCanvas(doc: Document): HTMLCanvasElement {
 }
 
 // Pack views: the static packs plus the runtime name mini-pack while a name
-// is saved. Rebuilt whenever the saved name changes.
+// is saved. Rebuilt whenever the saved name changes or the field resizes.
 interface PackGridConfig extends PackLayoutOptions {
+  readonly landscape?: PackLayoutOptions;
   readonly pages?: readonly number[];
 }
 const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
-  abc: { cardSize: 90, columns: 4, pages: [12, 14], slotsPerRow: 7 },
+  abc: {
+    cardSize: 90,
+    columns: 4,
+    landscape: { cardSize: 90, columns: 7, slotsPerRow: 14 },
+    pages: [12, 14],
+    slotsPerRow: 7,
+  },
   name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
-  pre: { columns: 3, slotsPerRow: 6 },
+  numbers: { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } },
+  pre: { columns: 3, landscape: { cardSize: 90, columns: 6, slotsPerRow: 12 }, slotsPerRow: 6 },
 };
 
 let PACKS: readonly PackEntry[] = [];
-let MENU = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, []);
+let space = fieldSizeFor('portrait');
+let orientation: Orientation = 'portrait';
+let MENU = menuLayout(space.width, space.height, []);
 let MENU_FILLS: readonly string[] = [];
 let PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>();
 let PACK_LAYOUTS = new Map<string, readonly PackLayout[]>();
 let PACK_PAGERS = new Map<string, PackPager | null>();
 let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>();
 
-function rebuildPackViews(): void {
-  PACKS = appPacks(app.save);
+function rebuildViews(): void {
+  space = fieldSizeFor(orientation);
+  PACKS = appPacks(app.save, orientation);
   MENU = menuLayout(
-    FIELD_WIDTH,
-    FIELD_HEIGHT,
+    space.width,
+    space.height,
     PACKS.map((pack) => pack.id),
   );
   MENU_FILLS = PACKS.map((pack) => pack.menuFill);
@@ -166,9 +182,11 @@ function rebuildPackViews(): void {
       (pack) =>
         [
           pack.id,
-          (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
-            packLayout(FIELD_WIDTH, FIELD_HEIGHT, levelIds, PACK_GRID[pack.id]),
-          ),
+          (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) => {
+            const grid = PACK_GRID[pack.id];
+            const options = orientation === 'landscape' && grid?.landscape ? grid.landscape : grid;
+            return packLayout(space.width, space.height, levelIds, options);
+          }),
         ] as const,
     ),
   );
@@ -177,7 +195,7 @@ function rebuildPackViews(): void {
       const pageCount = PACK_LAYOUTS.get(pack.id)?.length ?? 0;
       return [
         pack.id,
-        pageCount > 1 ? packPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, pageCount) : null,
+        pageCount > 1 ? packPagerLayout(space.width, space.height, pageCount) : null,
       ] as const;
     }),
   );
@@ -190,10 +208,17 @@ function rebuildPackViews(): void {
         ] as const,
     ),
   );
+  SUCCESS = successLayout(space.width, space.height);
+  SPLASH = splashLayout(space.width, space.height);
+  PARENT = parentZoneLayout(space.width, space.height);
+  BADGE = badgeLayout(space.width, space.height);
+  MENU_PARK = menuParkPosition(space.width, space.height);
+  PACK_PARK = packParkPosition(space.width, space.height);
 }
-const SUCCESS = successLayout(FIELD_WIDTH, FIELD_HEIGHT);
-const SPLASH = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
-const PARENT = parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT);
+let SUCCESS = successLayout(space.width, space.height);
+let SPLASH = splashLayout(space.width, space.height);
+let PARENT = parentZoneLayout(space.width, space.height);
+let BADGE = badgeLayout(space.width, space.height);
 const SKIN_BUTTON = skinButtonLayout();
 /** Child screens that show the tap-to-cycle skin switch. */
 const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
@@ -203,11 +228,11 @@ const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
   'success',
   'badge',
 ]);
-/** Idle mascot parking + scale on menu/pack (pack fits between grid and shelf). */
+/** Idle mascot parking + scale on menu/pack (pack parks beside the grid in landscape). */
 const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
-const MENU_PARK: Point = { x: FIELD_WIDTH / 2, y: 735 };
-const PACK_PARK: Point = { x: FIELD_WIDTH / 2, y: 572 };
+let MENU_PARK: Point = menuParkPosition(space.width, space.height);
+let PACK_PARK: Point = packParkPosition(space.width, space.height);
 /** How long a giggle sparkle burst lives before frame() clears it. */
 const GIGGLE_SPARKLES_MS = 1200;
 /** Gate burst particles live ~0.7s after the parent gate opens. */
@@ -218,17 +243,22 @@ const GATE_BURST_MS = 700;
 const saveStorage = acquireSaveStorage();
 requestPersistence();
 let app: AppState = startApp(loadSave(saveStorage));
-rebuildPackViews();
+rebuildViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
-let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
+let field: Rect = fitRect(1, 1, space.width, space.height);
 let gateState: ParentGateState = PARENT_GATE_START;
 const gatePointers = new Set<number>();
 let detachInput = (): void => {};
 let lastTime = performance.now();
 let lastSkinTap: number | null = null;
 let skinPoofAt: number | null = null;
-let currentRun: { level: LevelDef; packId: string; levelId: string } | null = null;
+let currentRun: {
+  level: LevelDef;
+  runLevel: LevelDef;
+  packId: string;
+  levelId: string;
+} | null = null;
 let pendingSkinSwap = false;
 let idleCharFor: string | null = null;
 // Board pop bookkeeping: a fresh sticker moment (new object identity from the
@@ -291,7 +321,7 @@ const INSTALL_VARIANT: InstallVariant = installVariant({
 let nameInput: HTMLInputElement | null = null;
 
 function currentNameOverlay(): NameOverlayLayout {
-  return nameOverlayLayout(FIELD_WIDTH, FIELD_HEIGHT, app.save.name !== undefined);
+  return nameOverlayLayout(space.width, space.height, app.save.name !== undefined);
 }
 
 function ensureNameInput(): HTMLInputElement {
@@ -322,7 +352,7 @@ function positionNameInput(): void {
     return;
   }
   const overlay = currentNameOverlay();
-  const scale = field.width / FIELD_WIDTH;
+  const scale = field.width / space.width;
   nameInput.style.left = `${field.x + overlay.field.x * scale}px`;
   nameInput.style.top = `${field.y + overlay.field.y * scale}px`;
   nameInput.style.width = `${overlay.field.width * scale}px`;
@@ -374,7 +404,7 @@ function boardView(packId: string) {
     return null;
   }
   const ids = packLevelIds(pack);
-  return { ids, layout: stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, ids) };
+  return { ids, layout: stickerBoardLayout(space.width, space.height, ids) };
 }
 
 function commit(next: AppState): void {
@@ -382,7 +412,7 @@ function commit(next: AppState): void {
   const nameChanged = next.save.name !== app.save.name;
   app = next;
   if (nameChanged) {
-    rebuildPackViews();
+    rebuildViews();
   }
   const screen = app.screen;
   if (screen.name === 'pack' && (previous.name !== 'pack' || previous.packId !== screen.packId)) {
@@ -473,14 +503,15 @@ function ensureCharacter(name: string, forceReload = false): void {
 
 /** Places the mascot canvas: field-space park point + character scale. */
 function positionCharacter(park: Point, scale: number): void {
-  const charSize = field.width * scale;
+  // Relative to the short edge so mascots keep their portrait size in the wide field.
+  const charSize = Math.min(field.width, field.height) * scale;
   if (charCanvas.style.width !== `${charSize}px`) {
     charCanvas.style.width = `${charSize}px`;
     charCanvas.style.height = `${charSize}px`;
     character?.resize();
   }
-  const cssX = field.x + (park.x / FIELD_WIDTH) * field.width;
-  const cssY = field.y + (park.y / FIELD_HEIGHT) * field.height + charSize * CHARACTER_OFFSET_Y;
+  const cssX = field.x + (park.x / space.width) * field.width;
+  const cssY = field.y + (park.y / space.height) * field.height + charSize * CHARACTER_OFFSET_Y;
   charCanvas.style.transform = `translate(${cssX - charSize / 2}px, ${cssY - charSize / 2}px)`;
 }
 
@@ -555,8 +586,14 @@ function startRun(
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
+  const runLevel = bonusRunLevel(level, orientation) ?? levelForOrientation(level, orientation);
   levelArtUrls = art;
-  currentRun = { level, packId, levelId };
+  currentRun = {
+    level,
+    runLevel,
+    packId,
+    levelId,
+  };
   if (art.backdrop) {
     preloadArt(art.backdrop);
   }
@@ -565,7 +602,7 @@ function startRun(
     preloadArt(art.sticker);
   }
   ensureCharacter(characterName, true);
-  session = createSession(level, {
+  session = createSession(runLevel, {
     character: {
       fire: (trigger) => character?.fire(trigger) ?? false,
     },
@@ -576,6 +613,10 @@ function startRun(
         commit(applyAppEvent(app, { type: 'level-complete', packId, levelId }));
       }
     },
+    parks:
+      orientation === 'landscape'
+        ? { success: SUCCESS_PARK_WIDE, trace: TRACE_PARK_WIDE }
+        : undefined,
     player,
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),
@@ -715,8 +756,8 @@ const handlers: TraceHandlers = {
       }
       session.pointerDown(point);
     } else if (screen.name === 'badge') {
-      const homeDistance = Math.hypot(point.x - BADGE_HOME.x, point.y - BADGE_HOME.y);
-      if (homeDistance <= BADGE_HOME.radius) {
+      const homeDistance = Math.hypot(point.x - BADGE.home.x, point.y - BADGE.home.y);
+      if (homeDistance <= BADGE.home.radius) {
         commit(applyAppEvent(app, { type: 'badge-exit' }));
         pop();
         return;
@@ -793,21 +834,58 @@ const handlers: TraceHandlers = {
   },
 };
 
+/** Re-lays the running level into the new design space, keeping progress. */
+function reflowRun(): void {
+  if (!session || !currentRun) {
+    return;
+  }
+  const snapshot = session.snapshot();
+  if (session.success || snapshot.completionStarted) {
+    return;
+  }
+  const run = currentRun;
+  const pack = PACKS.find((candidate) => candidate.id === run.packId);
+  const authored = pack
+    ? [...pack.levels, ...pack.bonuses].find((level) => level.id === run.levelId)
+    : undefined;
+  if (!authored) {
+    return;
+  }
+  const runLevel =
+    bonusRunLevel(authored, orientation) ?? levelForOrientation(authored, orientation);
+  const span = pathGeometryLength(run.runLevel);
+  if (span > 0) {
+    session.reflow(runLevel, pathGeometryLength(runLevel) / span);
+  }
+  currentRun = {
+    level: authored,
+    runLevel,
+    packId: run.packId,
+    levelId: run.levelId,
+  };
+}
+
 function resize(): void {
   const dpr = window.devicePixelRatio || 1;
   const size = computeBackingSize(window.innerWidth, window.innerHeight, dpr);
   trailCanvas.width = size.width;
   trailCanvas.height = size.height;
-  field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
+  const next = orientationFor(window.innerWidth, window.innerHeight);
+  if (next !== orientation) {
+    orientation = next;
+    rebuildViews();
+    reflowRun();
+  }
+  field = fitRect(window.innerWidth, window.innerHeight, space.width, space.height);
   detachInput();
-  detachInput = attachTraceInput(trailCanvas, field, handlers);
+  detachInput = attachTraceInput(trailCanvas, field, space, handlers);
   positionNameInput();
 }
 
 // One-finger hold in the menu corner opens the parent zone. This raw
 // listener tracks pointers that started inside the gate zone.
 trailCanvas.addEventListener('pointerdown', (event) => {
-  const point = mapPointerToField(event.clientX, event.clientY, field);
+  const point = mapPointerToField(event.clientX, event.clientY, field, space);
   if (point && app.screen.name === 'menu' && inParentGate(MENU, point)) {
     gatePointers.add(event.pointerId);
   }
@@ -885,7 +963,7 @@ function frame(now: number): void {
 
 function render(now: number): void {
   const dpr = window.innerWidth > 0 ? trailCanvas.width / window.innerWidth : 1;
-  beginField(trailContext, trailCanvas.width, trailCanvas.height, field, dpr);
+  beginField(trailContext, trailCanvas.width, trailCanvas.height, field, space, dpr);
   const screen = app.screen;
   if (screen.name === 'splash') {
     drawSplash(trailContext, now, SPLASH);
@@ -938,7 +1016,7 @@ function render(now: number): void {
           trailContext.globalAlpha = 0.1 + 0.05 * Math.sin(now / 350);
           trailContext.fillStyle = GOLD;
           trailContext.beginPath();
-          trailContext.roundRect(24, bandTop, FIELD_WIDTH - 48, FIELD_HEIGHT - bandTop - 24, 24);
+          trailContext.roundRect(24, bandTop, space.width - 48, space.height - bandTop - 24, 24);
           trailContext.fill();
           trailContext.restore();
         }
@@ -978,6 +1056,7 @@ function render(now: number): void {
         stickerImages,
         artCache.get(skin.backdrop) ?? null,
         skin.accent,
+        space,
       );
       const moment = app.stickerMoment;
       if (moment) {
@@ -996,17 +1075,17 @@ function render(now: number): void {
     }
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
-    drawLevel(trailContext, now, snap, currentLevelArt(), activeSkin());
+    drawLevel(trailContext, now, snap, currentLevelArt(), activeSkin(), space);
     if (session.success) {
-      drawSuccess(trailContext, SUCCESS);
+      drawSuccess(trailContext, SUCCESS, space);
     }
   } else if (screen.name === 'success' && session) {
     // Level completed but the session already handed off (e.g. after a
     // settings round-trip): keep the frozen tableau behind the buttons.
-    drawLevel(trailContext, now, session.snapshot(), currentLevelArt(), activeSkin());
-    drawSuccess(trailContext, SUCCESS);
+    drawLevel(trailContext, now, session.snapshot(), currentLevelArt(), activeSkin(), space);
+    drawSuccess(trailContext, SUCCESS, space);
   } else if (screen.name === 'badge') {
-    drawBadge(trailContext, now, packBadgeArt(screen.packId));
+    drawBadge(trailContext, now, BADGE, packBadgeArt(screen.packId));
   } else if (screen.name === 'parent') {
     drawParent(
       trailContext,
@@ -1020,9 +1099,10 @@ function render(now: number): void {
       app.save.trophies,
       parentPress,
       INSTALL_VARIANT,
+      space,
     );
     if (screen.showName) {
-      drawNameOverlay(trailContext, currentNameOverlay());
+      drawNameOverlay(trailContext, currentNameOverlay(), space);
     }
   }
   if (screen.name === 'menu' || screen.name === 'pack') {
@@ -1048,7 +1128,9 @@ function render(now: number): void {
       entrance && !entrance.state.settled
         ? entrancePos(entrance.timeline, entrance.state)
         : session.snapshot().charPos;
-    positionCharacter(charPos, CHARACTER_SCALE);
+    // The wide field is short: keep the mascot at its portrait share of the height.
+    const characterScale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+    positionCharacter(charPos, characterScale);
   } else if (screen.name === 'menu') {
     positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
   } else if (screen.name === 'pack') {
@@ -1074,6 +1156,7 @@ declare global {
   interface Window {
     __app?: {
       readonly field: () => Rect;
+      readonly orientation: () => Orientation;
       readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
       readonly screen: () => AppState['screen'];
@@ -1138,7 +1221,7 @@ function screenTargets(): AppTarget[] {
       ...pagerTargets,
       { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
       { id: 'pack:home', x: layout.home.x, y: layout.home.y },
-      { id: 'pack:shelf', x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 120 },
+      { id: 'pack:shelf', x: space.width / 2, y: space.height - 120 },
       skinTarget,
     ];
   }
@@ -1171,8 +1254,8 @@ function screenTargets(): AppTarget[] {
   }
   if (screen.name === 'badge') {
     return [
-      { id: 'badge:seal', x: BADGE_SEAL.x, y: BADGE_SEAL.y },
-      { id: 'badge:home', x: BADGE_HOME.x, y: BADGE_HOME.y },
+      { id: 'badge:seal', x: BADGE.seal.x, y: BADGE.seal.y },
+      { id: 'badge:home', x: BADGE.home.x, y: BADGE.home.y },
       skinTarget,
     ];
   }
@@ -1206,6 +1289,7 @@ function screenTargets(): AppTarget[] {
 
 window.__app = {
   field: () => ({ ...field }),
+  orientation: () => orientation,
   moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
   screen: () => app.screen,
