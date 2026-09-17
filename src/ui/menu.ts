@@ -213,9 +213,16 @@ export function splashLayout(fieldWidth: number, fieldHeight: number): SplashLay
 
 export const MENU_DOT_RADIUS = 5.5;
 const DOT_SPACING = 22;
+/** Compact cards tighten the dot pitch to keep the strip short enough to leave art room. */
+const DOT_MIN_SPACING = 16;
 const DOT_MAX_PER_ROW = 13;
 const DOT_BOTTOM_OFFSET = 22;
 const DOT_ROW_STEP = 16;
+
+/** Dot pitch for a card: full spacing on toddler-wide cards, tightened on compact ones. */
+function dotSpacing(card: MenuCard): number {
+  return card.width < MIN_CARD_WIDTH ? DOT_MIN_SPACING : DOT_SPACING;
+}
 
 /** Progress-dot centers for a menu card, wrapped into centered rows (reading order, top row first). */
 export function menuDotPositions(total: number, card: MenuCard): readonly Point[] {
@@ -224,22 +231,23 @@ export function menuDotPositions(total: number, card: MenuCard): readonly Point[
   }
   const perRow = dotsPerRow(total, card);
   const rows = Math.ceil(total / perRow);
+  const spacing = dotSpacing(card);
   const positions: Point[] = [];
   for (let index = 0; index < total; index += 1) {
     const row = Math.floor(index / perRow);
     const column = index % perRow;
     const count = Math.min(perRow, total - row * perRow);
-    const rowWidth = (count - 1) * DOT_SPACING;
+    const rowWidth = (count - 1) * spacing;
     const startX = card.x + card.width / 2 - rowWidth / 2;
     const y = card.y + card.height - DOT_BOTTOM_OFFSET - (rows - 1 - row) * DOT_ROW_STEP;
-    positions.push({ x: startX + column * DOT_SPACING, y });
+    positions.push({ x: startX + column * spacing, y });
   }
   return positions;
 }
 
 /** Dots per row: capped, and never wider than the card leaves room for. */
 function dotsPerRow(total: number, card: MenuCard): number {
-  const fit = 1 + Math.floor((card.width - 2 * MENU_DOT_RADIUS - 16) / DOT_SPACING);
+  const fit = 1 + Math.floor((card.width - 2 * MENU_DOT_RADIUS - 16) / dotSpacing(card));
   return Math.max(1, Math.min(total, DOT_MAX_PER_ROW, fit));
 }
 

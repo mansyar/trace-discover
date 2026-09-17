@@ -5,6 +5,7 @@ import {
   hitMenuCard,
   inParentGate,
   MENU_CARD_CAPACITY,
+  MENU_DOT_RADIUS,
   type MenuCard,
   type MenuLayout,
   menuCardArtMaxHeight,
@@ -407,5 +408,85 @@ describe('menuLayout (beyond capacity degrades gracefully)', () => {
 describe('menu capacity guard', () => {
   it('holds registered packs plus the reserved My Name slot within the six-card capacity', () => {
     expect(allPacks().length + 1).toBeLessThanOrEqual(MENU_CARD_CAPACITY);
+  });
+});
+
+/** 29 = the letters pack's full strip (26 letters + 3 bonuses) — the worst case. */
+const LETTER_DOTS = 29;
+/** Legibility floors for any capacity card's dot strip. */
+const DOT_PITCH_FLOOR = 16;
+const DOT_PITCH_CEILING = 22;
+const DOT_STEP_FLOOR = 12;
+/** Art must keep real room above the strip at supported counts. */
+const MENU_ART_FLOOR = 40;
+
+/** Dots inside the card, pitch/step at legible floors, art clear of the top row. */
+function expectLegibleDotStrip(card: MenuCard, artFloor: number): void {
+  const dots = menuDotPositions(LETTER_DOTS, card);
+  expect(dots).toHaveLength(LETTER_DOTS);
+  for (const dot of dots) {
+    expect(dot.x).toBeGreaterThanOrEqual(card.x + MENU_DOT_RADIUS);
+    expect(dot.x).toBeLessThanOrEqual(card.x + card.width - MENU_DOT_RADIUS);
+    expect(dot.y).toBeGreaterThanOrEqual(card.y + MENU_DOT_RADIUS);
+    expect(dot.y).toBeLessThanOrEqual(card.y + card.height - MENU_DOT_RADIUS);
+  }
+
+  const rows = new Map<number, number[]>();
+  for (const dot of dots) {
+    const row = rows.get(dot.y) ?? [];
+    row.push(dot.x);
+    rows.set(dot.y, row);
+  }
+  for (const xs of rows.values()) {
+    xs.sort((a, b) => a - b);
+    for (let index = 1; index < xs.length; index += 1) {
+      const pitch = (xs[index] ?? 0) - (xs[index - 1] ?? 0);
+      expect(pitch).toBeGreaterThanOrEqual(DOT_PITCH_FLOOR);
+      expect(pitch).toBeLessThanOrEqual(DOT_PITCH_CEILING + 0.000001);
+    }
+  }
+  const rowYs = [...rows.keys()].sort((a, b) => a - b);
+  for (let index = 1; index < rowYs.length; index += 1) {
+    expect((rowYs[index] ?? 0) - (rowYs[index - 1] ?? 0)).toBeGreaterThanOrEqual(DOT_STEP_FLOOR);
+  }
+
+  // The art zone keeps a visible gap above the top dot row.
+  const artHeight = menuCardArtMaxHeight(card, LETTER_DOTS);
+  expect(artHeight).toBeGreaterThanOrEqual(artFloor);
+  expect(card.y + 14 + artHeight).toBeLessThanOrEqual((rowYs[0] ?? card.y) - 4);
+}
+
+describe('menu dot strips and card art at capacity (29-dot letters case)', () => {
+  it('keeps the dot radius at a legible floor', () => {
+    expect(MENU_DOT_RADIUS).toBeGreaterThanOrEqual(5);
+  });
+
+  for (const field of CAPACITY_FIELDS) {
+    describe(field.label, () => {
+      it.each([1, 2, 3, 4, 5, 6])(
+        'keeps a 29-dot strip legible with art room on every card at %i cards',
+        (count) => {
+          for (const card of menuLayout(field.width, field.height, capacityIds(count)).cards) {
+            expectLegibleDotStrip(card, MENU_ART_FLOOR);
+          }
+        },
+      );
+      it.each([7, 8, 9, 10])(
+        'degrades a 29-dot strip without overlap at %i cards (beyond capacity)',
+        (count) => {
+          for (const card of menuLayout(field.width, field.height, capacityIds(count)).cards) {
+            expectLegibleDotStrip(card, 0);
+          }
+        },
+      );
+    });
+  }
+
+  it('tightens the dot pitch on compact two-column cards so the strip stays short', () => {
+    const card = cardIn(menuLayout(FIELD_WIDTH, FIELD_HEIGHT, capacityIds(6)).cards, 0);
+    // Compact two-column cards, below the 200px toddler-wide minimum.
+    expect(card.width).toBeLessThan(200);
+    const rowCount = new Set(menuDotPositions(LETTER_DOTS, card).map((dot) => dot.y)).size;
+    expect(rowCount).toBeLessThanOrEqual(5);
   });
 });
