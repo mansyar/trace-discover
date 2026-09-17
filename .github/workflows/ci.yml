@@ -40,6 +40,9 @@ jobs:
       - name: Lint and typecheck (Biome + tsc)
         run: pnpm check
 
+      - name: Pack data validation (pack:check)
+        run: pnpm pack:check
+
       - name: Tests with coverage (Vitest)
         run: pnpm test --coverage
 
