@@ -98,18 +98,18 @@ one-finger hold fails device tuning.
 
 ## Phase 5: Sound controls — pips, preview, auto-unmute
 
-- [~] Task 1: Logic (TDD)
-  - [ ] Red: pips mapping (volume → 0–5); quieter/louder auto-unmutes; mute
+- [x] Task 1: Logic (TDD) (ce287ab)
+  - [x] Red: pips mapping (volume → 0–5); quieter/louder auto-unmutes; mute
         still toggles; preview note for the active instrument
-  - [ ] Green: `src/ui/parent.ts` + `src/app/app.ts` + audio preview helper
-        (reuse `synth.ts` presets)
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 2: Pips rendering + shell preview wiring
-  - [ ] Pips row in the Sound card; preview note at the new level on each +/-;
+  - [x] Green: `src/ui/parent.ts` (volumePips) + `src/app/app.ts` (step-to-unmute)
+        + `src/audio/synth.ts` (playVolumePreview reusing presets)
+  - [x] Verify coverage (parent.ts 100%; synth.ts 97.4%, app.ts 97.4%)
+  - [x] Commit + git note
+- [x] Task 2: Pips rendering + shell preview wiring (437965b)
+  - [x] Pips row in the Sound card; preview note at the new level on each +/-;
         muted state dimmed
-  - [ ] Screenshots (pips at min/mid/max + muted)
-  - [ ] Commit + git note
+  - [x] Screenshots (pips at min/mid/max + muted; pixel-verified 5/3/0 fills)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6: Install guide — platform-aware + installed detection
