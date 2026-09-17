@@ -14,7 +14,7 @@ they are never fetched at runtime (offline-first).
   "id": "pre",                     // pack id; also the level-id prefix (`pre-1`)
   "badgeId": "pre-badge",          // completion badge id (used by the save)
   "menuFill": "#a8d8b9",           // menu card fill color (CSS hex)
-  "unlockOn": [4, 8, 12],          // optional — bonus circle unlock rule (see below)
+  "bonusUnlocks": [4, 8, 12],      // optional — bonus circle unlock rule (see below)
   "levels": [ /* LevelDef[] */ ],  // ordered main levels (≥ 1)
   "bonuses": [ /* LevelDef[] */ ]  // optional bonus levels (may be omitted)
 }
@@ -39,7 +39,7 @@ Points are Catmull-Rom-smoothed and resampled by the engine at runtime, so a
 handful of well-placed control points is enough — you do not need to sample a
 curve densely.
 
-**Bonus circles** (`unlockOn` + `bonuses`):
+**Bonus circles** (`bonusUnlocks` + `bonuses`):
 - `bonusUnlocks` — one threshold per bonus: a bonus unlocks once that many main
   levels are cleared. The list length must equal `bonuses`. Omit both for packs
   without bonuses. The parser requires exactly one threshold per bonus, and the

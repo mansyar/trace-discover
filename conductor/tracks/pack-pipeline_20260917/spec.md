@@ -16,6 +16,8 @@ This is a Refactor track with a thin tooling (CLI) feature component.
 - A pack is one JSON file: `{ id, badgeId, menuFill, levels[], bonuses[], bonusUnlocks[] }`.
 - A level is one JSON object: `{ id, goal: {x, y}, goalArt, stroke, strokes: [[{x,y}, ...], ...] }`.
 - `stroke` is one of the `StrokePattern` values: `'line' | 'wave' | 'arc' | 'zigzag' | 'circle'`.
+- Unlock rule detail (refined during Phase 1 self-check): the final `bonusUnlocks`
+  threshold must equal the number of main levels (all bonuses unlock by pack completion).
 - The schema is documented with a fully worked example in `src/packs/data/README.md`.
 - Coordinates are authored in the 430×860 portrait field space (levels are
   orientation-agnostic; the runtime reflows as today).

@@ -26,7 +26,8 @@ no push/PR/release; no new runtime dependency.
   - [x] Document authoring rules (430×860 field space, margin 24, ≥2 control points,
         duplicate-point rule, `goalArt` bundle-path rule, unlock parity)
   - [x] Commit + git note
-- [ ] Task: Schema + parser contract agreed with spec FR1/FR2 (self-check)
+- [x] Task: Schema + parser contract agreed with spec FR1/FR2 (self-check) — field
+      name aligned to `bonusUnlocks`; final-threshold rule recorded in spec FR1
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Strict shared parser (`src/packs/json.ts`) [checkpoint: ]
