@@ -54,19 +54,22 @@ const CARD_GAP = 14;
 const CARD_SIZE = 96;
 const DEFAULT_COLUMNS = 2;
 const GRID_TOP = 128;
+const GRID_TOP_LANDSCAPE = 118;
+const GRID_CENTER_OFFSET_LANDSCAPE = 60;
 const HOME_MARGIN = 56;
 const HOME_RADIUS = 45;
 const SLOT_GAP = 16;
 const SLOT_RADIUS = 20;
 const SLOT_ROW_GAP = 4;
 const SLOT_TOP = 692;
+const SLOT_BOTTOM_OFFSET_LANDSCAPE = 96;
 const DEFAULT_SLOTS_PER_ROW = 5;
 const PAGER_RADIUS = 45;
 const PAGER_GAP = 10;
 const DOT_RADIUS = 10;
 const DOT_GAP = 34;
 const PACK_PARK_BOTTOM_OFFSET_PORTRAIT = 288;
-const PACK_PARK_BOTTOM_OFFSET_LANDSCAPE = 70;
+const PACK_PARK_RIGHT_OFFSET_LANDSCAPE = 55;
 
 export function packLayout(
   fieldWidth: number,
@@ -77,28 +80,33 @@ export function packLayout(
   const cardSize = options.cardSize ?? CARD_SIZE;
   const columns = options.columns ?? DEFAULT_COLUMNS;
   const slotsPerRow = options.slotsPerRow ?? DEFAULT_SLOTS_PER_ROW;
+  const landscape = fieldWidth > fieldHeight;
+  const gridTop = landscape ? GRID_TOP_LANDSCAPE : GRID_TOP;
+  const slotTop = landscape ? fieldHeight - SLOT_BOTTOM_OFFSET_LANDSCAPE : SLOT_TOP;
+  // Landscape shifts the grid left of centre, keeping the mascot band clear.
+  const centerX = landscape ? fieldWidth / 2 - GRID_CENTER_OFFSET_LANDSCAPE : fieldWidth / 2;
   const cards = levelIds.map((levelId, index): PackCard => {
     const row = Math.floor(index / columns);
     const column = index % columns;
     const rowCount = Math.min(columns, levelIds.length - row * columns);
     const rowWidth = rowCount * cardSize + (rowCount - 1) * CARD_GAP;
-    const rowStartX = (fieldWidth - rowWidth) / 2;
+    const rowStartX = centerX - rowWidth / 2;
     return {
       height: cardSize,
       levelId,
       width: cardSize,
       x: rowStartX + column * (cardSize + CARD_GAP),
-      y: GRID_TOP + row * (cardSize + CARD_GAP),
+      y: gridTop + row * (cardSize + CARD_GAP),
     };
   });
   const slotRowWidth = slotsPerRow * SLOT_RADIUS * 2 + (slotsPerRow - 1) * SLOT_GAP;
-  const slotStartX = (fieldWidth - slotRowWidth) / 2;
+  const slotStartX = centerX - slotRowWidth / 2;
   const slots = levelIds.map(
     (levelId, index): PackSlot => ({
       levelId,
       radius: SLOT_RADIUS,
       x: slotStartX + SLOT_RADIUS + (index % slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_GAP),
-      y: SLOT_TOP + Math.floor(index / slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_ROW_GAP),
+      y: slotTop + Math.floor(index / slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_ROW_GAP),
     }),
   );
   return {
@@ -222,9 +230,10 @@ function inSpot(spot: PackPagerSpot, point: Point): boolean {
   return Math.hypot(point.x - spot.x, point.y - spot.y) <= spot.radius;
 }
 
-/** Mascot park: between grid and shelf in portrait; bottom-center in the wide field. */
+/** Mascot park: between grid and shelf in portrait; beside the grid in the wide field. */
 export function packParkPosition(fieldWidth: number, fieldHeight: number): Point {
-  const bottomOffset =
-    fieldWidth > fieldHeight ? PACK_PARK_BOTTOM_OFFSET_LANDSCAPE : PACK_PARK_BOTTOM_OFFSET_PORTRAIT;
-  return { x: fieldWidth / 2, y: fieldHeight - bottomOffset };
+  if (fieldWidth > fieldHeight) {
+    return { x: fieldWidth - PACK_PARK_RIGHT_OFFSET_LANDSCAPE, y: fieldHeight / 2 };
+  }
+  return { x: fieldWidth / 2, y: fieldHeight - PACK_PARK_BOTTOM_OFFSET_PORTRAIT };
 }

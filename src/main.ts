@@ -92,16 +92,25 @@ function requireCharCanvas(doc: Document): HTMLCanvasElement {
 // Pack views: the static packs plus the runtime name mini-pack while a name
 // is saved. Rebuilt whenever the saved name changes or the field resizes.
 interface PackGridConfig extends PackLayoutOptions {
+  readonly landscape?: PackLayoutOptions;
   readonly pages?: readonly number[];
 }
 const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
-  abc: { cardSize: 90, columns: 4, pages: [12, 14], slotsPerRow: 7 },
+  abc: {
+    cardSize: 90,
+    columns: 4,
+    landscape: { cardSize: 90, columns: 7, slotsPerRow: 7 },
+    pages: [12, 14],
+    slotsPerRow: 7,
+  },
   name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
-  pre: { columns: 3, slotsPerRow: 6 },
+  numbers: { landscape: { cardSize: 96, columns: 5, slotsPerRow: 5 } },
+  pre: { columns: 3, landscape: { cardSize: 96, columns: 6, slotsPerRow: 6 }, slotsPerRow: 6 },
 };
 
 let PACKS: readonly PackEntry[] = [];
 let space = fieldSizeFor('portrait');
+let orientation: Orientation = 'portrait';
 let MENU = menuLayout(space.width, space.height, []);
 let MENU_FILLS: readonly string[] = [];
 let PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>();
@@ -130,9 +139,11 @@ function rebuildViews(): void {
       (pack) =>
         [
           pack.id,
-          (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) =>
-            packLayout(space.width, space.height, levelIds, PACK_GRID[pack.id]),
-          ),
+          (PACK_PAGE_IDS.get(pack.id) ?? []).map((levelIds) => {
+            const grid = PACK_GRID[pack.id];
+            const options = orientation === 'landscape' && grid?.landscape ? grid.landscape : grid;
+            return packLayout(space.width, space.height, levelIds, options);
+          }),
         ] as const,
     ),
   );
@@ -174,7 +185,7 @@ const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
   'success',
   'badge',
 ]);
-/** Idle mascot parking + scale on menu/pack (pack fits between grid and shelf). */
+/** Idle mascot parking + scale on menu/pack (pack parks beside the grid in landscape). */
 const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
 let MENU_PARK: Point = menuParkPosition(space.width, space.height);
@@ -189,7 +200,6 @@ rebuildViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
 let field: Rect = fitRect(1, 1, space.width, space.height);
-let orientation: Orientation = 'portrait';
 let gateState: ParentGateState = PARENT_GATE_START;
 const gatePointers = new Set<number>();
 let detachInput = (): void => {};

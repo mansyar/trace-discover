@@ -429,10 +429,58 @@ describe('packParkPosition', () => {
     expect(packParkPosition(FIELD_WIDTH, FIELD_HEIGHT)).toEqual({ x: 215, y: 572 });
   });
 
-  it('parks the mascot bottom-center inside the landscape field', () => {
+  it('parks the mascot in the right band beside the landscape grid', () => {
     const park = packParkPosition(860, 430);
-    expect(park.x).toBe(430);
-    expect(park.y).toBeGreaterThan(0);
-    expect(park.y).toBeLessThan(430);
+    expect(park).toEqual({ x: 805, y: 215 });
+  });
+});
+
+describe('packLayout (landscape)', () => {
+  const W = 860;
+  const H = 430;
+
+  it('runs the numbers grid in two rows with the shelf below', () => {
+    const current = packLayout(W, H, NUMERALS, { columns: 5, slotsPerRow: 5 });
+    const first = cardAt(current, 0);
+    const sixth = cardAt(current, 5);
+    expect(sixth.y - first.y).toBe(96 + 14);
+    for (const card of current.cards) {
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.y + card.height).toBeLessThanOrEqual(334); // above the shelf band
+    }
+    for (const slot of current.slots) {
+      expect(slot.y + slot.radius).toBeLessThanOrEqual(H);
+    }
+    const slotFirst = current.slots[0];
+    const slotLast = current.slots[4];
+    if (!slotFirst || !slotLast) {
+      throw new Error('missing landscape slots');
+    }
+    expect(slotFirst.y).toBe(334);
+    // the slot row shares the grid's center line
+    expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(
+      (first.x + first.width / 2 + (cardAt(current, 4).x + cardAt(current, 4).width / 2)) / 2,
+      5,
+    );
+  });
+
+  it('fits the densest letters page (14 cards, 7 columns) above the shelf and left of the mascot', () => {
+    const ids = Array.from({ length: 14 }, (_, index) => `abc-${index}`);
+    const current = packLayout(W, H, ids, { cardSize: 90, columns: 7, slotsPerRow: 7 });
+    const first = cardAt(current, 0);
+    const eighth = cardAt(current, 7);
+    expect(first.y).toBe(118);
+    expect(eighth.y - first.y).toBe(90 + 14);
+    for (const card of current.cards) {
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(749); // mascot band stays clear
+      expect(card.y + card.height).toBeLessThanOrEqual(334);
+    }
+    const firstSlotY = current.slots[0]?.y ?? 0;
+    const lastSlotRow = current.slots.filter((slot) => slot.y === firstSlotY + 44);
+    expect(lastSlotRow.length).toBe(7);
+    for (const slot of current.slots) {
+      expect(slot.y + slot.radius).toBeLessThanOrEqual(H);
+    }
   });
 });
