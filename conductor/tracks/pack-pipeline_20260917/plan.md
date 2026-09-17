@@ -14,7 +14,7 @@ docs + acceptance. Gameplay parity is a hard constraint: `PRE_PACK` exports and
 all existing tests stay untouched. All work stays local on `track/pack-pipeline`;
 no push/PR/release; no new runtime dependency.
 
-## Phase 1: Context & format foundation [checkpoint: ]
+## Phase 1: Context & format foundation [checkpoint: a49a2e3]
 
 - [x] Task 1: Context docs resync (76b4569)
   - [x] `tech-stack.md`: declarative pack format note (JSON schema, shared parser,
