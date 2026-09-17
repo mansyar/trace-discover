@@ -213,6 +213,23 @@ describe('gate hint', () => {
   });
 });
 
+describe('sound controls', () => {
+  it('unmutes when the volume steps', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
+    expect(app.save.settings.muted).toBe(true);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-up' });
+    expect(app.save.settings.muted).toBe(false);
+    expect(app.save.settings.volume).toBe(1);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
+    expect(app.save.settings.muted).toBe(true);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-down' });
+    expect(app.save.settings.muted).toBe(false);
+    expect(app.save.settings.volume).toBe(0.9);
+  });
+});
+
 describe('numbers pack navigation', () => {
   it('flows menu -> pack -> numeral -> success, saving the numeral sticker', () => {
     let app = applyAppEvent(setup(), { type: 'splash-tap' });

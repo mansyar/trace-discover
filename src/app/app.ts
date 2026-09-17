@@ -158,6 +158,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         save: updateSettings(state.save, {
+          muted: false,
           volume: changeVolume(state.save.settings.volume, -0.1),
         }),
       };
@@ -165,6 +166,7 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
       return {
         ...state,
         save: updateSettings(state.save, {
+          muted: false,
           volume: changeVolume(state.save.settings.volume, 0.1),
         }),
       };

@@ -45,3 +45,8 @@ export function changeVolume(current: number, delta: number): number {
   const stepped = Math.round((current + delta) * 10) / 10;
   return Math.min(1, Math.max(0, stepped));
 }
+
+/** Filled pips (0–5) for the Sound card; clamps hostile values. */
+export function volumePips(volume: number): number {
+  return Math.ceil(Math.min(1, Math.max(0, volume)) * 5);
+}

@@ -6,6 +6,7 @@ import {
   PARENT_HOLD_MS,
   stepParentGate,
   VOLUME_STEP,
+  volumePips,
 } from './parent';
 
 function hold(totalMs: number, stepMs: number): boolean {
@@ -93,5 +94,19 @@ describe('changeVolume', () => {
   it('clamps at silence and full volume', () => {
     expect(changeVolume(0.95, VOLUME_STEP)).toBe(1);
     expect(changeVolume(0.05, -VOLUME_STEP)).toBe(0);
+  });
+});
+
+describe('volumePips', () => {
+  it('maps volume to 0–5 pips', () => {
+    expect(volumePips(0)).toBe(0);
+    expect(volumePips(0.1)).toBe(1);
+    expect(volumePips(0.5)).toBe(3);
+    expect(volumePips(1)).toBe(5);
+  });
+
+  it('clamps hostile values', () => {
+    expect(volumePips(2)).toBe(5);
+    expect(volumePips(-1)).toBe(0);
   });
 });
