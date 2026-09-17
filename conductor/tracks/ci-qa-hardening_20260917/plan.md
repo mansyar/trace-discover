@@ -55,7 +55,7 @@
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Coverage enforcement
+## Phase 4 — Coverage enforcement [checkpoint: 8143243]
 
 *Goal: coverage is a gate that provably bites, calibrated to the measured baseline.*
 
@@ -67,7 +67,7 @@
   - [x] Commit + git note
 - [x] Task: CI evidence — push; PR run shows the gate enforced and green; recorded [f95910b]
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Acceptance sweep + owner handoff
 
