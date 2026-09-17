@@ -275,9 +275,17 @@ function boardPreview() {
   return stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
 }
 
+/** Sticker art for the board preview, mirroring the shell's /art/sticker path. */
+const stickerArt = new Map<string, HTMLImageElement>();
+for (const levelId of NUMERALS) {
+  const image = new Image();
+  image.src = `/art/sticker/${levelId}.webp`;
+  stickerArt.set(levelId, image);
+}
+
 /** The board preview runs the production renderer on the numerals pack. */
 function drawBoardPreview(): void {
-  drawStickerBoard(context, boardPreview(), packStickers(save, NUMERALS));
+  drawStickerBoard(context, boardPreview(), packStickers(save, NUMERALS), stickerArt);
 }
 
 function drawSuccess(): void {
@@ -326,7 +334,12 @@ function render(now: number = performance.now()): void {
     if (active !== null) {
       const cell = boardPreview().cells.find((entry) => entry.levelId === active.levelId);
       if (cell) {
-        drawStickerPop(context, cell, null, stickerPopFrame(now - active.startedAt));
+        drawStickerPop(
+          context,
+          cell,
+          stickerArt.get(active.levelId) ?? null,
+          stickerPopFrame(now - active.startedAt),
+        );
       }
     }
   }

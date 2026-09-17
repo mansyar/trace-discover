@@ -929,6 +929,7 @@ declare global {
   interface Window {
     __app?: {
       readonly field: () => Rect;
+      readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
       readonly screen: () => AppState['screen'];
       readonly strokes: () => readonly (readonly Point[])[];
@@ -1060,6 +1061,7 @@ function screenTargets(): AppTarget[] {
 
 window.__app = {
   field: () => ({ ...field }),
+  moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
   screen: () => app.screen,
   strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),
