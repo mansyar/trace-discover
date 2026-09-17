@@ -43,10 +43,10 @@
 - [x] Task 1: Dev harness synthetic counts (dev-only) [ee731bc]
   - [x] `src/dev/screens.ts` + `dev/harness/screens.html`: parameter(s) for N synthetic cards (2–6) + orientation (e.g., `?menuCards=N`); render the screenshot matrix 3–6 × portrait/landscape incl. the name-card case; review screenshots; `dev/README.md` harness notes
   - [x] Commit + git note
-- [~] Task 2: QA sweeps + evidence (fresh build)
-  - [ ] `pnpm build`; run `qa-screens`, `qa-landscape`, `qa-app` (spot); confirm no visual change at current counts + matrix reviewed; `pnpm budget` green; dist size + precache entries recorded vs master baseline (`fa84ee1`)
-  - [ ] Record exact commands + outcomes in the git note
-  - [ ] Commit + git note
+- [x] Task 2: QA sweeps + evidence (fresh build) [e9663df]
+  - [x] `pnpm build`; run `qa-screens`, `qa-landscape`, `qa-app` (spot); confirm no visual change at current counts + matrix reviewed; `pnpm budget` green; dist size + precache entries recorded vs master baseline (`fa84ee1`)
+  - [x] Record exact commands + outcomes in the git note
+  - [x] Commit + git note
 - [ ] Task 3: Docs finalize + acceptance checklist
   - [ ] `dev/README.md` final; tech-stack note final; spec acceptance criteria walked and recorded (incl. zero-text audit: no new UI text)
   - [ ] Commit + git note
