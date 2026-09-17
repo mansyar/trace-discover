@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import { hitMascot, type MascotZone, mascotZone } from './mascot';
+import { createConfetti } from '../render/confetti';
+import {
+  canGiggle,
+  hitMascot,
+  MASCOT_GIGGLE_COOLDOWN_MS,
+  MASCOT_SPARKLE_COUNT,
+  MASCOT_SPARKLE_SEED,
+  type MascotZone,
+  mascotZone,
+} from './mascot';
 import { menuLayout } from './menu';
 import { type PackLayoutOptions, packLayout, packPagerLayout } from './pack';
 import { skinButtonLayout } from './skinButton';
@@ -191,5 +200,39 @@ describe('mascot zone vs pack furniture', () => {
     for (const card of layout.cards.slice(8)) {
       expect(rectDistance(packZone(), card)).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('giggle cooldown', () => {
+  it('accepts the first tap and blocks re-entry inside the window', () => {
+    expect(canGiggle(1000, null)).toBe(true);
+    expect(canGiggle(1000 + MASCOT_GIGGLE_COOLDOWN_MS - 1, 1000)).toBe(false);
+  });
+
+  it('accepts again once the window passes', () => {
+    expect(canGiggle(1000 + MASCOT_GIGGLE_COOLDOWN_MS, 1000)).toBe(true);
+    expect(canGiggle(6000, 1000)).toBe(true);
+  });
+
+  it('sits between a poke and a stagger: no note stacking, no dead zone', () => {
+    expect(MASCOT_GIGGLE_COOLDOWN_MS).toBeGreaterThanOrEqual(400);
+    expect(MASCOT_GIGGLE_COOLDOWN_MS).toBeLessThanOrEqual(1000);
+  });
+});
+
+describe('giggle sparkle recipe', () => {
+  it('bursts a small deterministic spray upward from the mascot center', () => {
+    const zone = menuZone();
+    const origin = { x: zone.x, y: zone.y };
+    const burst = createConfetti(MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, origin);
+    expect(burst).toHaveLength(MASCOT_SPARKLE_COUNT);
+    expect(burst).toEqual(createConfetti(MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, origin));
+    for (const particle of burst) {
+      expect(particle.x).toBe(zone.x);
+      expect(particle.y).toBe(zone.y);
+      expect(particle.vy).toBeLessThan(0);
+    }
+    expect(MASCOT_SPARKLE_COUNT).toBeGreaterThanOrEqual(6);
+    expect(MASCOT_SPARKLE_COUNT).toBeLessThanOrEqual(16);
   });
 });

@@ -27,3 +27,15 @@ export function mascotZone(park: Point, scale: number): MascotZone {
 export function hitMascot(zone: MascotZone, point: Point): boolean {
   return Math.hypot(point.x - zone.x, point.y - zone.y) <= zone.radius;
 }
+
+/** Cooldown between giggle reactions so rapid pokes cannot stack notes. */
+export const MASCOT_GIGGLE_COOLDOWN_MS = 600;
+/** Sparkle particles per giggle burst. */
+export const MASCOT_SPARKLE_COUNT = 10;
+/** Fixed seed keeps the burst pattern consistent (and QA-reproducible). */
+export const MASCOT_SPARKLE_SEED = 99;
+
+/** Whether a tap may giggle: first tap always, then one per cooldown window. */
+export function canGiggle(nowMs: number, lastMs: number | null): boolean {
+  return lastMs === null || nowMs - lastMs >= MASCOT_GIGGLE_COOLDOWN_MS;
+}
