@@ -69,7 +69,7 @@ conflicts, resolved by preserving both behaviors.
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Cast upgrades — five workspaces
+## Phase 3: Cast upgrades — five workspaces [checkpoint: aee7dfc]
 
 - [x] Task 1: Dino upgrade (`dev/characters/dino4`) (03a6f14)
   - [x] Author giggle reaction (short, on-brand), signature flourish (fits the
