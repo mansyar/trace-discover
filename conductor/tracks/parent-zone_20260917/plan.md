@@ -137,10 +137,12 @@ one-finger hold fails device tuning.
 - [x] Task 2: Zero-text audit (hint = documented exception); hostile fixtures;
       `qa-offline` cold start unchanged; perf spot-check (c9c859d)
   - [x] Commit + git note
-- [~] Task 3: Device pass Android + iPad — one-handed gate feel, ring
+- [x] Task 3: Device pass Android + iPad — one-handed gate feel, ring
       visibility, hint clarity, preview notes, install panel; tune hold within
       2.0–3.0s (STOP + owner fallback decision if one-finger fails)
-- [ ] Task 4: Acceptance session (owner): sign-offs; docs finalize (final hold
+      (owner pass 2026-09-17: gate opens one-handed on both devices, 2.5s kept;
+      ring + hint clear; preview notes + install panels good)
+- [~] Task 4: Acceptance session (owner): sign-offs; docs finalize (final hold
       value, dev/README QA table, dated notes)
   - [ ] Commit + git note
 - [ ] Task 5: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
