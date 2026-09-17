@@ -21,6 +21,7 @@ import {
 import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
 import type { NameOverlayLayout, ParentZoneLayout } from '../ui/parentZone';
 import type { SkinButtonZone } from '../ui/skinButton';
+import type { StickerBoardLayout } from '../ui/stickerBoard';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
@@ -645,6 +646,43 @@ function drawPagerButton(
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   ctx.restore();
+}
+
+/** Sticker board: skin backdrop, earned sticker art / ghosted slots, home corner. */
+export function drawStickerBoard(
+  ctx: CanvasRenderingContext2D,
+  layout: StickerBoardLayout,
+  stickers: readonly boolean[],
+  stickerImages: ReadonlyMap<string, HTMLImageElement> = new Map(),
+  backdrop: HTMLImageElement | null = null,
+  accent?: string,
+): void {
+  if (backdrop) {
+    drawBackdrop(ctx, backdrop);
+  } else if (accent) {
+    ctx.save();
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+    ctx.restore();
+  }
+  layout.cells.forEach((cell, index) => {
+    const earned = stickers[index] === true;
+    const sticker = earned ? stickerImages.get(cell.levelId) : undefined;
+    if (sticker) {
+      drawGoalArt(ctx, sticker, cell.x, cell.y, cell.radius * 2.1);
+    } else {
+      drawSeal(ctx, cell.x, cell.y, cell.radius, earned);
+    }
+  });
+  ctx.beginPath();
+  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
 /** Drawn stand-in while a skin's backdrop art has not shipped yet. */

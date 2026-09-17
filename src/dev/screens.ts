@@ -1,10 +1,12 @@
-// Dev-only preview for the shell screens (menu / pack / success).
+// Dev-only preview for the shell screens (menu / pack / success / board).
 // Draws the real layout modules through the real pointer pipeline and
 // wires card taps to the real localStorage save: tapping a card completes
 // its level (sticker lights), finishing a pack earns its badge,
-// double-tapping the badge resets progress. ?screen=menu|pack|success picks
-// the starting screen for headless screenshots.
+// double-tapping the badge resets progress, and the sticker-board preview
+// runs the production renderer. ?screen=menu|pack|success|board picks the
+// starting screen for headless screenshots.
 import '../style.css';
+import { drawStickerBoard } from '../app/render';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
@@ -24,9 +26,10 @@ import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
 import { hitMenuCard, inParentGate, menuLayout } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
+import { hitBoardHome, hitStickerCell, stickerBoardLayout } from '../ui/stickerBoard';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
-type PreviewScreen = 'menu' | 'pack' | 'success';
+type PreviewScreen = 'menu' | 'pack' | 'success' | 'board';
 
 const PACK_IDS = allPacks().map((pack) => pack.id);
 const NUMERALS = NUMERAL_LEVELS.map((level) => level.id);
@@ -47,7 +50,7 @@ const lines: string[] = [];
 
 let screen: PreviewScreen = 'menu';
 const wanted = new URLSearchParams(window.location.search).get('screen');
-if (wanted === 'success' || wanted === 'pack') {
+if (wanted === 'success' || wanted === 'pack' || wanted === 'board') {
   screen = wanted;
 }
 let save: SaveData = loadSave(localStorage);
@@ -266,6 +269,15 @@ function drawNumeralMini(
   context.restore();
 }
 
+function boardPreview() {
+  return stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, NUMERALS);
+}
+
+/** The board preview runs the production renderer on the numerals pack. */
+function drawBoardPreview(): void {
+  drawStickerBoard(context, boardPreview(), packStickers(save, NUMERALS));
+}
+
 function drawSuccess(): void {
   context.fillStyle = 'rgba(246, 227, 184, 0.55)';
   context.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
@@ -304,8 +316,10 @@ function render(): void {
     drawMenu();
   } else if (screen === 'pack') {
     drawPackPreview();
-  } else {
+  } else if (screen === 'success') {
     drawSuccess();
+  } else {
+    drawBoardPreview();
   }
   drawCycle();
 }
@@ -315,6 +329,8 @@ function cycle(): void {
     screen = 'pack';
   } else if (screen === 'pack') {
     screen = 'success';
+  } else if (screen === 'success') {
+    screen = 'board';
   } else {
     screen = 'menu';
   }
@@ -350,6 +366,26 @@ function tapPack(point: Point): void {
   saveSave(localStorage, save);
 }
 
+function tapBoard(point: Point): void {
+  const layout = boardPreview();
+  if (hitBoardHome(layout, point)) {
+    screen = 'pack';
+    log('board: home');
+    return;
+  }
+  const levelId = hitStickerCell(layout, point);
+  if (levelId === null) {
+    return;
+  }
+  if (save.completedLevels.includes(levelId)) {
+    log(`sticker ${levelId} tapped`);
+    return;
+  }
+  save = completeLevel(save, levelId);
+  saveSave(localStorage, save);
+  log(`sticker ${levelId} earned`);
+}
+
 function onTap(point: Point): void {
   if (insideRect(point, CYCLE)) {
     cycle();
@@ -369,6 +405,8 @@ function onTap(point: Point): void {
     }
   } else if (screen === 'pack') {
     tapPack(point);
+  } else if (screen === 'board') {
+    tapBoard(point);
   } else {
     const action = hitSuccessButton(successLayout(FIELD_WIDTH, FIELD_HEIGHT), point);
     if (action === 'home') {
