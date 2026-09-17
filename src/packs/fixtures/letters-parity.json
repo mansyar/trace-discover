@@ -2,11 +2,7 @@
   "id": "abc",
   "badgeId": "abc-badge",
   "menuFill": "#90be6d",
-  "bonusUnlocks": [
-    9,
-    18,
-    26
-  ],
+  "bonusUnlocks": [9, 18, 26],
   "levels": [
     {
       "goal": {
