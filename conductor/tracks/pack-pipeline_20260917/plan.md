@@ -69,7 +69,7 @@ no push/PR/release; no new runtime dependency.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (257fe20)
 
-## Phase 4: Dev CLI validator [checkpoint: ]
+## Phase 4: Dev CLI validator [checkpoint: 0c9434c]
 
 - [x] Task 1: Problem-collector API (TDD) (dd74697)
   - [x] Red: `collectPackProblems` returns path-labeled problems for bad packs
@@ -86,7 +86,7 @@ no push/PR/release; no new runtime dependency.
         and names the offending file/level
   - [x] Wire `pack:check` into the CI workflow alongside existing checks
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (0c9434c)
 
 ## Phase 5: Visual authoring harness [checkpoint: ]
 
