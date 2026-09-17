@@ -112,7 +112,7 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (437965b)
 
-## Phase 6: Install guide — platform-aware + installed detection
+## Phase 6: Install guide — platform-aware + installed detection [checkpoint: d1eb56c]
 
 - [x] Task 1: Detection (TDD) (7fced61)
   - [x] Red: UA/display-mode inputs → variant (ios / android / generic /
@@ -125,11 +125,11 @@ one-finger hold fails device tuning.
         shell passes UA/matchMedia values
   - [x] Screenshots (each variant, incl. simulated installed)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (d1eb56c)
 
 ## Phase 7: QA evidence, device tuning, acceptance, docs finalize
 
-- [ ] Task 1: QA probe updates: single-pointer gate in `qa-name` /
+- [~] Task 1: QA probe updates: single-pointer gate in `qa-name` /
       `qa-pre-pack` / `qa-teddy-screens`; `dev/screens.ts` `?screen=parent`; new
       `qa-parent-zone.mjs` (hint → hold → open → flag → reload → hint gone →
       sound → install variants → restart confirm → screenshots)
