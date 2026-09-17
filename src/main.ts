@@ -42,6 +42,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
+import { levelForOrientation } from './packs/wide';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
@@ -459,6 +460,7 @@ function enterPackLevel(packId: string, levelId: string): void {
   if (!pack || !level) {
     return;
   }
+  const runLevel = levelForOrientation(level, orientation);
   const player = ensureAudio();
   if (!player) {
     return;
@@ -472,7 +474,7 @@ function enterPackLevel(packId: string, levelId: string): void {
   const seed = 7 + (index >= 0 ? index : pack.levels.length) * 13;
   const presentation = levelPresentation(skin, level);
   startRun(
-    level,
+    runLevel,
     presentation,
     presentation.character,
     seed,
