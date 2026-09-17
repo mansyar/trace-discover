@@ -21,7 +21,7 @@
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Canonical smoke script, proven locally
+## Phase 2 — Canonical smoke script, proven locally [checkpoint: a226c87]
 
 *Goal: `qa-smoke.mjs` is the trustworthy canonical smoke — ≥5 consecutive green runs, and proven red on a broken build.*
 
@@ -35,7 +35,7 @@
   - [x] Commit + git note
 - [x] Task: Runbook — `dev/README.md` gains the `qa-smoke` row (canonical) + usage note (two-terminal pattern) [a226c87]
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — CI wiring + recorded runs
 
