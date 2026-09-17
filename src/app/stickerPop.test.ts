@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { POP_DURATION_MS, POP_PEAK_SCALE, stickerPopFrame } from './stickerPop';
+import {
+  POP_ART_SCALE,
+  POP_DURATION_MS,
+  POP_FIELD_MARGIN,
+  POP_PEAK_SCALE,
+  stickerPopFrame,
+  stickerPopPlacement,
+} from './stickerPop';
 
 describe('stickerPopFrame', () => {
   it('starts at rest', () => {
@@ -60,5 +67,48 @@ describe('stickerPopFrame', () => {
 
   it('is deterministic', () => {
     expect(stickerPopFrame(321)).toEqual(stickerPopFrame(321));
+  });
+});
+
+describe('stickerPopPlacement', () => {
+  const FIELD = { height: 860, width: 430 };
+  const cell = { radius: 48, x: 215, y: 430 };
+
+  it('leaves a centered pop in place, lifted by the frame rise', () => {
+    const frame = stickerPopFrame(500);
+    const placement = stickerPopPlacement(cell, frame, FIELD.width, FIELD.height);
+    expect(placement.x).toBeCloseTo(cell.x, 5);
+    expect(placement.y).toBeCloseTo(cell.y - frame.rise, 5);
+  });
+
+  it('slides an edge-cell pop inward so the art stays on-field', () => {
+    const edge = { radius: 48, x: 50, y: 255 };
+    const placement = stickerPopPlacement(edge, stickerPopFrame(320), FIELD.width, FIELD.height);
+    const half = (edge.radius * POP_ART_SCALE * Math.max(placement.scaleX, placement.scaleY)) / 2;
+    expect(placement.x).toBeGreaterThanOrEqual(half - 1e-9);
+    expect(placement.x + half).toBeLessThanOrEqual(FIELD.width + 1e-9);
+    expect(placement.y).toBeGreaterThanOrEqual(half - 1e-9);
+    expect(placement.y + half).toBeLessThanOrEqual(FIELD.height + 1e-9);
+  });
+
+  it('caps the peak size to the field while staying a big bloom', () => {
+    let maxSize = 0;
+    for (let elapsed = 0; elapsed <= POP_DURATION_MS; elapsed += 20) {
+      const frame = stickerPopFrame(elapsed);
+      const placement = stickerPopPlacement(cell, frame, FIELD.width, FIELD.height);
+      maxSize = Math.max(
+        maxSize,
+        cell.radius * POP_ART_SCALE * Math.max(placement.scaleX, placement.scaleY),
+      );
+    }
+    expect(maxSize).toBeLessThanOrEqual(FIELD.width - POP_FIELD_MARGIN * 2 + 1e-9);
+    expect(maxSize).toBeGreaterThan(380);
+  });
+
+  it('passes frames through untouched while they fit', () => {
+    const frame = stickerPopFrame(60);
+    const placement = stickerPopPlacement(cell, frame, FIELD.width, FIELD.height);
+    expect(placement.scaleX).toBeCloseTo(frame.scaleX, 10);
+    expect(placement.scaleY).toBeCloseTo(frame.scaleY, 10);
   });
 });

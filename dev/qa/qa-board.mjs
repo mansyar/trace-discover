@@ -113,6 +113,43 @@ await page.screenshot({ path: path.join(OUT, 'app-board.png') });
 await clickTarget('sticker:num-0');
 await wait(250);
 await page.screenshot({ path: path.join(OUT, 'app-pop.png') });
+await wait(90);
+await page.screenshot({ path: path.join(OUT, 'app-pop-peak.png') });
+
+// Edge-cell pass: the pre-writing board's first sticker sits nearest the field
+// corner — its pop must stay fully on-field at the peak (no edge clipping).
+await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
+await page.evaluate(() => {
+  localStorage.setItem(
+    'trace-discover-save-v1',
+    JSON.stringify({
+      badges: [],
+      completedLevels: ['pre-1'],
+      settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+      trophies: [],
+      version: 3,
+    }),
+  );
+});
+await page.reload();
+await page.waitForFunction(() => window.__app?.screen().name === 'splash', null, {
+  timeout: 30000,
+});
+await clickTarget('splash');
+await page.waitForFunction(() => window.__app?.screen().name === 'menu', null, { timeout: 10000 });
+await wait(700);
+await clickTarget('pack:pre');
+await page.waitForFunction(() => window.__app?.screen().name === 'pack', null, { timeout: 10000 });
+await wait(700);
+await clickTarget('pack:shelf');
+await page.waitForFunction(() => window.__app?.screen().name === 'sticker-board', null, {
+  timeout: 10000,
+});
+await wait(400);
+await page.screenshot({ path: path.join(OUT, 'edge-board.png') });
+await clickTarget('sticker:pre-1');
+await wait(330);
+await page.screenshot({ path: path.join(OUT, 'edge-pop-peak.png') });
 
 console.log(`page errors: ${errors.length === 0 ? '(none)' : errors.join(' | ')}`);
 await browser.close();

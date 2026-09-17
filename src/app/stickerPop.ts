@@ -7,6 +7,10 @@
 export const POP_DURATION_MS = 1200;
 /** Peak scale over a 96-unit cell: ~400 field units. */
 export const POP_PEAK_SCALE = 4.2;
+/** Board art draw size per cell-radius unit (shared with the board renderer). */
+export const POP_ART_SCALE = 2.1;
+/** Field units of breathing room kept between the popped art and the field edge. */
+export const POP_FIELD_MARGIN = 12;
 
 export interface StickerPopFrame {
   readonly done: boolean;
@@ -33,6 +37,39 @@ export function stickerPopFrame(elapsedMs: number): StickerPopFrame {
     scaleY: scale * (1 + wobble),
     sparkle: t < 0.5 ? Math.sin((t / 0.5) * Math.PI) : 0,
   };
+}
+
+/** Placement for a pop frame that keeps the art fully on-field: the scales cap
+ *  to the field width and the center clamps inward, so pops near an edge bloom
+ *  toward open space instead of clipping at the field edge. */
+export interface StickerPopPlacement {
+  readonly scaleX: number;
+  readonly scaleY: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export function stickerPopPlacement(
+  cell: { readonly radius: number; readonly x: number; readonly y: number },
+  frame: StickerPopFrame,
+  fieldWidth: number,
+  fieldHeight: number,
+): StickerPopPlacement {
+  const base = cell.radius * POP_ART_SCALE;
+  const cap = (Math.min(fieldWidth, fieldHeight) - POP_FIELD_MARGIN * 2) / base;
+  const scaleX = Math.min(frame.scaleX, cap);
+  const scaleY = Math.min(frame.scaleY, cap);
+  const half = (base * Math.max(scaleX, scaleY)) / 2;
+  return {
+    scaleX,
+    scaleY,
+    x: clamp(cell.x, half, fieldWidth - half),
+    y: clamp(cell.y - frame.rise, half, fieldHeight - half),
+  };
+}
+
+function clamp(value: number, low: number, high: number): number {
+  return Math.max(low, Math.min(value, high));
 }
 
 function scaleAt(t: number): number {

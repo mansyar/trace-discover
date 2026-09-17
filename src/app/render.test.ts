@@ -26,7 +26,10 @@ function fakeContext(ops: string[]): CanvasRenderingContext2D {
     stroke: () => ops.push('stroke'),
     fillRect: (x: number, y: number, width: number, height: number) =>
       ops.push(`fillRect:${x},${y},${width},${height}`),
-    drawImage: (...args: unknown[]) => ops.push(`drawImage:${Number(args[3])},${Number(args[4])}`),
+    drawImage: (...args: unknown[]) =>
+      ops.push(
+        `drawImage:${Number(args[1])},${Number(args[2])},${Number(args[3])},${Number(args[4])}`,
+      ),
     setLineDash: (segments: number[]) => ops.push(`setLineDash:${segments.join(',')}`),
     save: () => ops.push('save'),
     restore: () => ops.push('restore'),
@@ -88,7 +91,20 @@ describe('drawStickerPop', () => {
     drawStickerPop(fakeContext(ops), cell, image, stickerPopFrame(300));
     expect(ops.filter((op) => op === 'arc')).toHaveLength(10);
     const drawn = ops.find((op) => op.startsWith('drawImage')) ?? '';
-    expect(Number(drawn.split(':')[1]?.split(',')[0])).toBeGreaterThan(cell.radius * 2.1);
+    const [, , width] = drawn.split(':')[1]?.split(',').map(Number) ?? [];
+    expect(width ?? 0).toBeGreaterThan(cell.radius * 2.1);
+  });
+
+  it('keeps an edge-cell pop fully on-field', () => {
+    const ops: string[] = [];
+    const edge = { radius: 48, x: 50, y: 255 };
+    drawStickerPop(fakeContext(ops), edge, image, stickerPopFrame(320));
+    const drawn = ops.find((op) => op.startsWith('drawImage')) ?? '';
+    const [x, y, width, height] = drawn.split(':')[1]?.split(',').map(Number) ?? [];
+    expect(x ?? -1).toBeGreaterThanOrEqual(0);
+    expect(y ?? -1).toBeGreaterThanOrEqual(0);
+    expect((x ?? 0) + (width ?? 0)).toBeLessThanOrEqual(FIELD_WIDTH);
+    expect((y ?? 0) + (height ?? 0)).toBeLessThanOrEqual(FIELD_HEIGHT);
   });
 
   it('falls back to the gold star when the sticker art is missing', () => {

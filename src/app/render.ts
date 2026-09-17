@@ -25,7 +25,7 @@ import type { StickerBoardLayout } from '../ui/stickerBoard';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
-import type { StickerPopFrame } from './stickerPop';
+import { POP_ART_SCALE, type StickerPopFrame, stickerPopPlacement } from './stickerPop';
 
 export const NAVY = '#2e4a63';
 export const GOLD = '#e8c15a';
@@ -671,7 +671,7 @@ export function drawStickerBoard(
     const earned = stickers[index] === true;
     const sticker = earned ? stickerImages.get(cell.levelId) : undefined;
     if (sticker) {
-      drawGoalArt(ctx, sticker, cell.x, cell.y, cell.radius * 2.1);
+      drawGoalArt(ctx, sticker, cell.x, cell.y, cell.radius * POP_ART_SCALE);
     } else {
       drawSeal(ctx, cell.x, cell.y, cell.radius, earned);
     }
@@ -695,6 +695,7 @@ export function drawStickerPop(
   frame: StickerPopFrame,
   tint: string = GOLD,
 ): void {
+  const placement = stickerPopPlacement(cell, frame, FIELD_WIDTH, FIELD_HEIGHT);
   if (frame.sparkle > 0) {
     const count = 10;
     ctx.globalAlpha = frame.sparkle;
@@ -703,8 +704,8 @@ export function drawStickerPop(
       const distance = cell.radius * 0.9 + 90 * frame.sparkle;
       ctx.beginPath();
       ctx.arc(
-        cell.x + Math.cos(angle) * distance,
-        cell.y - frame.rise + Math.sin(angle) * distance * 0.8,
+        placement.x + Math.cos(angle) * distance,
+        placement.y + Math.sin(angle) * distance * 0.8,
         5 + 6 * frame.sparkle,
         0,
         Math.PI * 2,
@@ -714,16 +715,15 @@ export function drawStickerPop(
     }
     ctx.globalAlpha = 1;
   }
-  const centerY = cell.y - frame.rise;
-  const width = cell.radius * 2.1 * frame.scaleX;
-  const height = cell.radius * 2.1 * frame.scaleY;
+  const width = cell.radius * POP_ART_SCALE * placement.scaleX;
+  const height = cell.radius * POP_ART_SCALE * placement.scaleY;
   if (image) {
-    ctx.drawImage(image, cell.x - width / 2, centerY - height / 2, width, height);
+    ctx.drawImage(image, placement.x - width / 2, placement.y - height / 2, width, height);
     return;
   }
   ctx.save();
-  ctx.translate(cell.x, centerY);
-  ctx.scale(frame.scaleX, frame.scaleY);
+  ctx.translate(placement.x, placement.y);
+  ctx.scale(placement.scaleX, placement.scaleY);
   ctx.beginPath();
   drawStar(ctx, 0, 0, cell.radius * 0.62);
   ctx.fillStyle = GOLD;
