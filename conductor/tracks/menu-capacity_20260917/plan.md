@@ -17,13 +17,13 @@
 ## Phase 2: Dynamic-fit layout math — count × orientation matrix (TDD)
 
 - [x] Task 1: Matrix tests red → dynamic-fit `menuLayout` green [1ceead5]
-  - [ ] Red: extend `src/ui/menu.test.ts` — 1–6 × portrait/landscape matrix (fit inside field, ≥ 90px dims, no card overlap, park/gate clearance, hit parity); fidelity lock — recorded rects for today's counts (3 packs; 4 with name) unchanged; confirm red at 5–6 against the current implementation (documents the overflow bug)
-  - [ ] Green: `src/ui/menu.ts` dynamic-fit — columns-first growth (portrait stack → centered 2-column grid; landscape row → 2-column → 3-column wrap), secondary shrink within floors, deterministic centering/last-row rules
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 2: Capacity guard
-  - [ ] Test: registered static packs ≤ supported limit (menu capacity minus the runtime name card) — documents the supported count for future content tracks
-  - [ ] Commit + git note
+  - [x] Red: extend `src/ui/menu.test.ts` — 1–6 × portrait/landscape matrix (fit inside field, ≥ 90px dims, no card overlap, park/gate clearance, hit parity); fidelity lock — recorded rects for today's counts (3 packs; 4 with name) unchanged; confirm red at 5–6 against the current implementation (documents the overflow bug)
+  - [x] Green: `src/ui/menu.ts` dynamic-fit — columns-first growth (portrait stack → centered 2-column grid; landscape row → 2-column → 3-column wrap), secondary shrink within floors, deterministic centering/last-row rules
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [x] Task 2: Capacity guard [9a30ac5]
+  - [x] Test: registered static packs ≤ supported limit (menu capacity minus the runtime name card) — documents the supported count for future content tracks
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Dots & art adaptation for grid-scaled cards (TDD)
