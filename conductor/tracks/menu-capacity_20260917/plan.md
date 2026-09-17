@@ -7,7 +7,7 @@
 
 **Delivery strategy:** docs of record first, then the pure layout math behind a count × orientation test matrix (the current 5-card overflow is the red case), then dots/art adaptation for grid-scaled cards, then the dev-only harness preview + QA screenshot matrix + docs/budget closeout. Fidelity is the hard constraint: 1–4 card rects stay visually identical; 2–6 fit at 90px+; 7+ degrades without overflow. All work stays local on `track/menu-capacity` — no push/PR/release. Any tech-stack deviation stops the line and updates `tech-stack.md` first (workflow rule 7).
 
-## Phase 1: Context docs resync (docs before implementation)
+## Phase 1: Context docs resync (docs before implementation) [checkpoint: db3a213]
 
 - [x] Task 1: Tech-stack dated note [db3a213]
   - [ ] `conductor/tech-stack.md`: dated note — menu dynamic-fit capacity: 6 cards incl. My Name, columns-first growth (portrait 2-column grid at 5–6; landscape up to 3-column wrap), floors (90px hard minimum, test-locked), graceful degrade beyond capacity, dev harness synthetic-count preview
