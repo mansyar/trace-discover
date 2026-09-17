@@ -65,5 +65,54 @@ await page.screenshot({ path: path.join(OUT, 'board-pop-tail.png') });
 const logText = await page.evaluate(() => document.getElementById('log')?.textContent ?? '');
 const lastLine = logText.trim().split('\n').pop() ?? '(none)';
 console.log(`log: ${lastLine}`);
+
+// Real-app pass: pulse on a stocked pack while the intro flag is unseen,
+// then shelf -> board -> sticker tap pop through the production shell.
+await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
+await page.evaluate(() => {
+  localStorage.setItem(
+    'trace-discover-save-v1',
+    JSON.stringify({
+      badges: [],
+      completedLevels: ['num-0'],
+      settings: { easierTracing: false, muted: false, skin: 'dino', volume: 1 },
+      trophies: [],
+      version: 3,
+    }),
+  );
+});
+await page.reload();
+await page.waitForFunction(() => window.__app?.screen().name === 'splash', null, {
+  timeout: 30000,
+});
+const clickTarget = async (id) => {
+  const spot = await page.evaluate((targetId) => {
+    const hit = window.__app?.targets().find((entry) => entry.id === targetId) ?? null;
+    const field = window.__app?.field() ?? null;
+    return hit && field ? { ...hit, field } : null;
+  }, id);
+  if (!spot) {
+    throw new Error(`missing target ${id}`);
+  }
+  const scale = spot.field.width / 430;
+  await page.mouse.click(spot.field.x + spot.x * scale, spot.field.y + spot.y * scale);
+};
+await clickTarget('splash');
+await page.waitForFunction(() => window.__app?.screen().name === 'menu', null, { timeout: 10000 });
+await wait(700);
+await clickTarget('pack:numbers');
+await page.waitForFunction(() => window.__app?.screen().name === 'pack', null, { timeout: 10000 });
+await wait(700);
+await page.screenshot({ path: path.join(OUT, 'app-pack-pulse.png') });
+await clickTarget('pack:shelf');
+await page.waitForFunction(() => window.__app?.screen().name === 'sticker-board', null, {
+  timeout: 10000,
+});
+await wait(400);
+await page.screenshot({ path: path.join(OUT, 'app-board.png') });
+await clickTarget('sticker:num-0');
+await wait(250);
+await page.screenshot({ path: path.join(OUT, 'app-pop.png') });
+
 console.log(`page errors: ${errors.length === 0 ? '(none)' : errors.join(' | ')}`);
 await browser.close();

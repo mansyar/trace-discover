@@ -126,8 +126,8 @@ export function hitBoardHome(layout: StickerBoardLayout, point: Point): boolean 
 
 /** Pack-screen shelf band: tapping the sticker shelf opens the board. The
  *  band starts just above the shelf's first row and keeps clear of the home
- *  and pager corner controls so they always win. */
-export function hitShelfBand(layout: PackLayout, pager: PackPager, point: Point): boolean {
+ *  and pager corner controls so they always win (no pager on one-page packs). */
+export function hitShelfBand(layout: PackLayout, pager: PackPager | null, point: Point): boolean {
   const firstSlot = layout.slots[0];
   if (firstSlot === undefined) {
     return false;
@@ -136,11 +136,10 @@ export function hitShelfBand(layout: PackLayout, pager: PackPager, point: Point)
   if (point.y < bandTop) {
     return false;
   }
-  return (
-    clearOfSpot(layout.home, point) &&
-    clearOfSpot(pager.next, point) &&
-    clearOfSpot(pager.prev, point)
-  );
+  if (pager !== null && (!clearOfSpot(pager.next, point) || !clearOfSpot(pager.prev, point))) {
+    return false;
+  }
+  return clearOfSpot(layout.home, point);
 }
 
 function clearOfSpot(spot: { x: number; y: number; radius: number }, point: Point): boolean {

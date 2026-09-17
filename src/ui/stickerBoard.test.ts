@@ -155,6 +155,7 @@ describe('hitShelfBand', () => {
     }
     expect(hitShelfBand(layout, pager, { x: firstSlot.x, y: firstSlot.y })).toBe(true);
     expect(hitShelfBand(layout, pager, { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 100 })).toBe(true);
+    expect(hitShelfBand(layout, null, { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 100 })).toBe(true);
   });
 
   it('misses above the shelf', () => {

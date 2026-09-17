@@ -5,7 +5,7 @@
 // parent-gate hold, which needs the non-primary pointers tracing ignores.
 import './style.css';
 
-import { type AppState, applyAppEvent, startApp } from './app/app';
+import { type AppState, applyAppEvent, shouldPulseStickerShelf, startApp } from './app/app';
 import { loadArtImage } from './app/art';
 import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
@@ -20,8 +20,11 @@ import {
   drawParent,
   drawSkinButton,
   drawSplash,
+  drawStickerBoard,
+  drawStickerPop,
   drawSuccess,
   endField,
+  GOLD,
   type LevelArt,
   NO_LEVEL_ART,
   type PackMenuArt,
@@ -29,6 +32,7 @@ import {
 import { hopPlanFor } from './app/runPlan';
 import { createSession, type LevelSession } from './app/session';
 import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
+import { stickerPopFrame } from './app/stickerPop';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
@@ -72,6 +76,7 @@ import {
   parentZoneLayout,
 } from './ui/parentZone';
 import { canCycleSkin, hitSkinButton, skinButtonLayout } from './ui/skinButton';
+import { hitBoardHome, hitShelfBand, hitStickerCell, stickerBoardLayout } from './ui/stickerBoard';
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
@@ -189,6 +194,10 @@ let skinPoofAt: number | null = null;
 let currentRun: { level: LevelDef; packId: string; levelId: string } | null = null;
 let pendingSkinSwap = false;
 let idleCharFor: string | null = null;
+// Board pop bookkeeping: a fresh sticker moment (new object identity from the
+// state machine) restarts the pop clock that the rAF spring reads.
+let lastMoment: AppState['stickerMoment'] = null;
+let momentStartedAt = 0;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -293,6 +302,21 @@ function packLandingPage(packId: string): number {
     app.save.completedLevels,
     pages.map((page) => page.length),
   );
+}
+
+/** Level ids of a pack in board order (levels first, then bonuses). */
+function packBoardIds(pack: PackEntry): readonly string[] {
+  return [...pack.levels, ...pack.bonuses].map((level) => level.id);
+}
+
+/** Board view for a pack: ordered ids + the pure single-screen layout. */
+function boardView(packId: string) {
+  const pack = PACKS.find((candidate) => candidate.id === packId);
+  if (!pack) {
+    return null;
+  }
+  const ids = packBoardIds(pack);
+  return { ids, layout: stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, ids) };
 }
 
 function commit(next: AppState): void {
@@ -574,6 +598,13 @@ const handlers: TraceHandlers = {
           pop();
         }
       }
+      if (pack && hitShelfBand(layout, pager, point)) {
+        const boardIds = packBoardIds(pack);
+        if (packStickers(app.save, boardIds).some(Boolean)) {
+          commit(applyAppEvent(app, { type: 'sticker-open', packId: screen.packId }));
+          pop();
+        }
+      }
     } else if (screen.name === 'level' || screen.name === 'success') {
       if (!session) {
         return;
@@ -610,6 +641,21 @@ const handlers: TraceHandlers = {
       if (next.name === 'level') {
         enterPackLevel(next.packId, next.levelId);
       } else {
+        pop();
+      }
+    } else if (screen.name === 'sticker-board') {
+      const view = boardView(screen.packId);
+      if (!view) {
+        return;
+      }
+      if (hitBoardHome(view.layout, point)) {
+        commit(applyAppEvent(app, { type: 'sticker-close' }));
+        pop();
+        return;
+      }
+      const stickerId = hitStickerCell(view.layout, point);
+      if (stickerId && app.save.completedLevels.includes(stickerId)) {
+        commit(applyAppEvent(app, { type: 'sticker-tap', levelId: stickerId }));
         pop();
       }
     } else if (screen.name === 'parent') {
@@ -712,6 +758,11 @@ function frame(now: number): void {
       }
     }
   }
+  const moment = app.stickerMoment;
+  if (moment && moment !== lastMoment) {
+    lastMoment = moment;
+    momentStartedAt = now;
+  }
   syncIdleMascot();
   render(now);
   requestAnimationFrame(frame);
@@ -754,6 +805,19 @@ function render(now: number): void {
         }
       }
       const pager = PACK_PAGERS.get(screen.packId) ?? null;
+      if (shouldPulseStickerShelf(app.save, screen.packId)) {
+        const firstSlot = layout.slots[0];
+        if (firstSlot) {
+          const bandTop = firstSlot.y - firstSlot.radius - 24;
+          trailContext.save();
+          trailContext.globalAlpha = 0.1 + 0.05 * Math.sin(now / 350);
+          trailContext.fillStyle = GOLD;
+          trailContext.beginPath();
+          trailContext.roundRect(24, bandTop, FIELD_WIDTH - 48, FIELD_HEIGHT - bandTop - 24, 24);
+          trailContext.fill();
+          trailContext.restore();
+        }
+      }
       drawPack(
         trailContext,
         now,
@@ -767,6 +831,43 @@ function render(now: number): void {
         activeSkin().accent,
         pager ? { page, spots: pager } : null,
       );
+    }
+  } else if (screen.name === 'sticker-board') {
+    const view = boardView(screen.packId);
+    if (view) {
+      const stickerImages = new Map<string, HTMLImageElement>();
+      for (const levelId of view.ids) {
+        const url = `/art/sticker/${levelId}.webp`;
+        preloadArt(url);
+        const image = artCache.get(url);
+        if (image) {
+          stickerImages.set(levelId, image);
+        }
+      }
+      const skin = activeSkin();
+      preloadArt(skin.backdrop);
+      drawStickerBoard(
+        trailContext,
+        view.layout,
+        packStickers(app.save, view.ids),
+        stickerImages,
+        artCache.get(skin.backdrop) ?? null,
+        skin.accent,
+      );
+      const moment = app.stickerMoment;
+      if (moment) {
+        const cell = view.layout.cells.find((entry) => entry.levelId === moment.levelId);
+        const popFrame = stickerPopFrame(now - momentStartedAt);
+        if (cell && !popFrame.done) {
+          drawStickerPop(
+            trailContext,
+            cell,
+            stickerImages.get(moment.levelId) ?? null,
+            popFrame,
+            skin.accent,
+          );
+        }
+      }
     }
   } else if (screen.name === 'level' && session) {
     const snap = session.snapshot();
@@ -887,7 +988,22 @@ function screenTargets(): AppTarget[] {
       ...pagerTargets,
       { id: 'pack:badge', x: layout.badge.x, y: layout.badge.y },
       { id: 'pack:home', x: layout.home.x, y: layout.home.y },
+      { id: 'pack:shelf', x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 120 },
       skinTarget,
+    ];
+  }
+  if (screen.name === 'sticker-board') {
+    const view = boardView(screen.packId);
+    if (!view) {
+      return [];
+    }
+    return [
+      { id: 'board:home', x: view.layout.home.x, y: view.layout.home.y },
+      ...view.layout.cells.map((cell) => ({
+        id: `sticker:${cell.levelId}`,
+        x: cell.x,
+        y: cell.y,
+      })),
     ];
   }
   if (screen.name === 'level') {
