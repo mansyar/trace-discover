@@ -99,7 +99,7 @@ no push/PR/release; no new runtime dependency.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (085d5da)
 
-## Phase 6: Acceptance — parity, QA, docs [checkpoint: ]
+## Phase 6: Acceptance — parity, QA, docs [checkpoint: 2b358da]
 
 - [x] Task 1: Docs + notes finalize (0c73099)
   - [x] `tech-stack.md` + `product.md` dated notes verified; `dev/README.md` complete
@@ -109,4 +109,4 @@ no push/PR/release; no new runtime dependency.
   - [x] Pre-pack QA flow unchanged (`dev/qa/qa-pre-pack.mjs` + `qa-app.mjs` spot run)
   - [x] Harness screenshots of pre levels 1 / 7 / 12 + one bonus (evidence in `dev/qa/out/`)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (2b358da)
