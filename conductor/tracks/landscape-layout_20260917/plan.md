@@ -100,20 +100,21 @@ no new deps/assets.
       evidence dev/qa/out/name-wide/)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Child shell screens in landscape (screenshot-approved)
+## Phase 4: Child shell screens in landscape (screenshot-approved) [checkpoint: b4704cc]
 
-- [ ] Task 1: Menu wide — card row/wrap, name-card minis, gate zone, mascot
-      park; screenshots → owner approval
-- [ ] Task 2: Pack screens wide — per-pack grids, pagers, sticker shelves,
-      badge seal, home; screenshots → owner approval
-- [ ] Task 3: Success + badge + splash wide — buttons, confetti, parks;
-      screenshots → owner approval
-- [ ] Commit + git note (per task)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task 1: Menu wide — card row/wrap, name-card minis, gate zone, mascot
+      park; screenshots → owner approval (acdb03b; owner-approved 2026-09-17)
+- [x] Task 2: Pack screens wide — per-pack grids, pagers, sticker shelves,
+      badge seal, home; screenshots → owner approval (b4704cc; owner-approved
+      2026-09-17)
+- [x] Task 3: Success + badge + splash wide — buttons, confetti, parks;
+      screenshots → owner approval (b4704cc; owner-approved 2026-09-17)
+- [x] Commit + git note (per task)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Parent surfaces in landscape
 
-- [ ] Task 1: Parent zone wide recompose — nine controls + trophies, target
+- [~] Task 1: Parent zone wide recompose — nine controls + trophies, target
       floors, aligned with the parent-zone track's design; screenshots → owner
       approval
 - [ ] Task 2: Name overlay + install panel wide — DOM input positioning,
