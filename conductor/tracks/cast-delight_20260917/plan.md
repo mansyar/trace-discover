@@ -95,7 +95,7 @@ conflicts, resolved by preserving both behaviors.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md) — full-set
       consistency review + per-cast sign-off
 
-## Phase 4: QA evidence, device tuning, acceptance, docs finalize
+## Phase 4: QA evidence, device tuning, acceptance, docs finalize [checkpoint: 5eb8efe]
 
 - [x] Task 1: QA probes (bbf17fc)
   - [x] New `qa-cast.mjs`: tap → giggle; entrance + settle; star blink;
