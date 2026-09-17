@@ -1,5 +1,5 @@
 # CI — runs on every PR to master, every push to master, and on demand.
-# Gates: Biome + tsc (`pnpm check`) -> Vitest with coverage (informational artifact) -> production build -> payload budget (`pnpm budget`) -> smoke (`dev/qa/qa-smoke.mjs` on the built app).
+# Gates: Biome + tsc (`pnpm check`) -> Vitest with coverage (enforced thresholds; artifact best-effort) -> production build -> payload budget (`pnpm budget`) -> smoke (`dev/qa/qa-smoke.mjs` on the built app).
 name: CI
 
 on:
