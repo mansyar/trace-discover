@@ -127,7 +127,7 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (d1eb56c)
 
-## Phase 7: QA evidence, device tuning, acceptance, docs finalize
+## Phase 7: QA evidence, device tuning, acceptance, docs finalize [checkpoint: 671b9e7]
 
 - [x] Task 1: QA probe updates: single-pointer gate in `qa-name` /
       `qa-pre-pack` / `qa-teddy-screens`; `dev/screens.ts` `?screen=parent`; new
@@ -150,4 +150,4 @@ one-finger hold fails device tuning.
       (check clean; 444/444 tests; coverage 98.48% stmts / 91.85% branch;
       budget PASS — 4,673,203 B / 138 precache entries)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (671b9e7)
