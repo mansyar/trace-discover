@@ -74,8 +74,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-letters-parity.mjs` | Four-skin smoke — boots + opens a letter per skin | dev `:5199` | one-off |
 | `qa-menu-dots.mjs` | Menu dot-wrap check with a seeded 5/26 save | dev `:5199` | one-off |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
-| `qa-viewport.mjs` | Viewport-matrix screenshots | dev | stale — superseded by `qa-landscape.mjs` |
-| `qa-landscape.mjs` | Portrait/landscape screen matrix, rotation reflow, target-size checks (landscape-layout_20260917) | dev | planned |
+| `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
