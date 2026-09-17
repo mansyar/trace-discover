@@ -89,13 +89,13 @@ no new deps/assets.
   - [ ] Green: orientation param; wide box; session wiring via Phase 2 reflow
   - [ ] Verify coverage
   - [ ] Commit + git note
-- [ ] Task 2: Bonus word recompose — ABC/MOM/ZOO (TDD)
-  - [ ] Red: full-size landscape rows, bounds, goal, stroke order/count
+- [x] Task 2: Bonus word recompose — ABC/MOM/ZOO (TDD) (46480af)
+  - [x] Red: full-size landscape rows, bounds, goal, stroke order/count
         preserved; portrait identity
-  - [ ] Green: landscape variants via the shared composer
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 3: Landscape name/word evidence — probe pass + screenshots (5+
+  - [x] Green: landscape variants via the shared composer
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [~] Task 3: Landscape name/word evidence — probe pass + screenshots (5+
       letter names at full size) → owner approval
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
