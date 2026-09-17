@@ -9,10 +9,10 @@
 
 ## Phase 1: Truth freeze — docs of record + parity fixtures
 
-- [ ] Task 1: Context docs resync (docs before implementation)
-  - [ ] `conductor/tech-stack.md`: dated note — port target: all static packs declarative (`numbers.json`, `abc.json`; file name = pack id; Name stays runtime-composed; ports are parity-guarded)
-  - [ ] `conductor/product.md`: dated note — every static pack is pipeline work; My Name stays composed by design
-  - [ ] Commit + git note
+- [x] Task 1: Context docs resync (docs before implementation) [66a82e2]
+  - [x] `conductor/tech-stack.md`: dated note — port target: all static packs declarative (`numbers.json`, `abc.json`; file name = pack id; Name stays runtime-composed; ports are parity-guarded)
+  - [x] `conductor/product.md`: dated note — every static pack is pipeline work; My Name stays composed by design
+  - [x] Commit + git note
 - [ ] Task 2: Freeze pre-port parity fixtures
   - [ ] One-off capture (temporary dev-time script) dumping current TypeScript exports into `src/packs/fixtures/numbers-parity.json` + `letters-parity.json`; capture source commit (`086f8c8`) recorded
   - [ ] Verify contents: 10 numeral levels; 26 + 3 letter levels with derived goal/goalArt; pack identities + unlocks; spot-diff vs source
