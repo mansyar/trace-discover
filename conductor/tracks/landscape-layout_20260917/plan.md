@@ -112,15 +112,16 @@ no new deps/assets.
 - [x] Commit + git note (per task)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5: Parent surfaces in landscape
+## Phase 5: Parent surfaces in landscape [checkpoint: c9ba749]
 
-- [~] Task 1: Parent zone wide recompose — nine controls + trophies, target
+- [x] Task 1: Parent zone wide recompose — nine controls + trophies, target
       floors, aligned with the parent-zone track's design; screenshots → owner
-      approval
-- [ ] Task 2: Name overlay + install panel wide — DOM input positioning,
-      keyboard safety, iOS no-zoom; screenshots → owner approval
-- [ ] Commit + git note (per task)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      approval (c9ba749; owner-approved 2026-09-17)
+- [x] Task 2: Name overlay + install panel wide — DOM input positioning,
+      keyboard safety, iOS no-zoom; screenshots → owner approval (c9ba749;
+      owner-approved 2026-09-17)
+- [x] Commit + git note (per task)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6: QA matrix, device pass, docs, acceptance
 
