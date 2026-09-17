@@ -28,6 +28,7 @@
 - **Paths:** code-drawn Canvas trail engine (Path2D, paint-fill, magnetism); level schema v2 — ordered multi-stroke levels (v1 single-stroke content unchanged, engine extended with per-stroke frontiers)
 - **Skins × packs:** content and presentation are orthogonal. `src/skins/` — five skins (dino, star, construction, animal, teddy), each carrying a character `.riv`, backdrop, accent, instrument preset, face icon; no levels. `src/packs/` — ordered packs (Pre-writing 12+3, circles unlocking at 4/8/12; Numbers 10; Letters 26 uppercase + 3 sequence bonuses, unlocking at 9/18/26); level ids `pre-1..12` / `pre-bonus-1..3` / `num-0..9` / `abc-a..z` / `abc-bonus-1..3`; the **name** mini-pack (`name-1`, composed at runtime from the letter glyphs) exists only while a parent-set name is saved; progress + rewards are pack-owned, the skin is cosmetic + persisted (`settings.skin`); replaces the fused `themes/` modules
 - **Character contract:** every skin's `.riv` exposes the same state machine — autoplay idle + `celebrate` trigger; hop placement stays canvas-transform based — making new skins drop-in via the asset pipeline
+- **Layout & orientation (track `landscape-layout_20260917`):** dual design spaces — portrait 430×860 (reference) + landscape 860×430, chosen by viewport aspect (width > height → landscape); every screen's layout math is dimension-parameterized and rebuilds on rotation (instant reflow; tracing progress preserved via stroke index + proportional position); word-class levels (name / `ABC`/`MOM`/`ZOO`) recompose as full-size rows for the wide box; single glyphs (letters/numbers/pre) fit-and-center; additive `window.__app.orientation()` probe hook
 
 ## Backend
 
@@ -57,7 +58,7 @@
 - **pnpm scripts:** `dev` / `build` / `preview` / `check` (Biome + tsc) / `budget` (dist size guard)
 - **Verification:** headless Edge (playwright-core) scripts (`dev/qa/`) + Rive CLI screenshot QA (`dev/characters/`); dev pages in `dev/harness/`
 - **LAN test server** for real devices (Android Chrome, iPad Safari)
-- **Targets:** Android Chrome phones + iPads (Safari PWA); DPR-aware canvas + letterbox layout
+- **Targets:** Android Chrome phones + iPads (Safari PWA); DPR-aware canvas + orientation-aware dual design spaces (portrait 430×860 / landscape 860×430)
 
 ## CI/CD
 
@@ -87,6 +88,8 @@
 
 *2026-09-17 — Re-anchored after merge (PR #7 integrated): the teddy fifth skin (`teddy.riv` 445,653 B + backdrop/face art) landed after the diet, so the budget ceilings were raised deliberately — **5.00 MB / 150 entries** from the fresh merged measurement (4,641,746 B / 136 entries) — and the teddy art was re-encoded to WebP to keep the shipped-raster policy intact.*
 *2026-09-17 — Updated (track `my-name_20260916`): My Name mini-pack — parent-set name (2–7 uppercase A–Z after sanitizing; additive top-level `name` save field, schema v3 unchanged) composed into a runtime trace level from the shipped letter-glyph geometry (`buildNameLevel`; path visuals thin proportionally for longer names, with a device-tuned length cap) and presented as a one-level pack (`name`, level `name-1`, badge `name-badge`) with a menu card + pack mini-paths drawn from geometry and two new pipeline assets (sticker + badge; WebP per the shipped-raster policy); name editing via a parent-zone overlay (first DOM input, behind the 2-finger gate). Device pass (Android + iPad) confirmed the 7-letter cap and the thinning floors (ribbon 22 / dot 5 / tip 10; ≥5-letter gate satisfied); QA probes `qa-name` (full journey on the production build) + `qa-name-hostile` (hostile stored names). Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
+
+*2026-09-17 — Updated (track `landscape-layout_20260917`): landscape play — dual design spaces (portrait 430×860 reference / landscape 860×430, chosen by viewport aspect); every screen's layout math becomes dimension-parameterized and rebuilds on rotation with instant reflow (mid-stroke progress preserved via stroke index + proportional position); word rows (My Name, `ABC`/`MOM`/`ZOO`) recompose at full letter size for the wide box; single glyphs (letters/numbers/pre) fit-and-center; no new dependencies, save schema v3 unchanged. Documented before implementation per `workflow.md` (Tech Stack is Deliberate).*
 
 ## Constraints
 
