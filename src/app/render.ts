@@ -11,6 +11,7 @@ import { mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
+import type { BadgeLayout } from '../ui/badge';
 import {
   MENU_DOT_RADIUS,
   type MenuCard,
@@ -45,10 +46,6 @@ const PATH_STYLE: PathStyle = {
 
 /** Sticker fly-in target (top-right of the level screen). */
 export const STICKER_SLOT: Point = { x: FIELD_WIDTH - 68, y: 84 };
-
-/** Home button on the badge screen (bottom-center). */
-export const BADGE_HOME = { x: FIELD_WIDTH / 2, y: FIELD_HEIGHT - 90, radius: 48 };
-export const BADGE_SEAL = { x: FIELD_WIDTH / 2, y: 380, radius: 110 };
 
 /** Top-left skin switch: face icon in a ring, poofing outward on cycle. */
 export function drawSkinButton(
@@ -796,22 +793,23 @@ export function drawSuccess(ctx: CanvasRenderingContext2D, layout: SuccessLayout
 export function drawBadge(
   ctx: CanvasRenderingContext2D,
   now: number,
+  layout: BadgeLayout,
   art: HTMLImageElement | null = null,
 ): void {
   const pulse = 1 + 0.08 * Math.sin(now / 280);
   if (art) {
-    drawGoalArt(ctx, art, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * 2.2 * pulse);
+    drawGoalArt(ctx, art, layout.seal.x, layout.seal.y, layout.seal.radius * 2.2 * pulse);
   } else {
-    drawSeal(ctx, BADGE_SEAL.x, BADGE_SEAL.y, BADGE_SEAL.radius * pulse, true);
+    drawSeal(ctx, layout.seal.x, layout.seal.y, layout.seal.radius * pulse, true);
   }
   ctx.beginPath();
-  ctx.arc(BADGE_HOME.x, BADGE_HOME.y, BADGE_HOME.radius, 0, Math.PI * 2);
+  ctx.arc(layout.home.x, layout.home.y, layout.home.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
   ctx.lineWidth = 6;
   ctx.strokeStyle = NAVY;
   ctx.stroke();
-  drawActionIcon(ctx, 'home', BADGE_HOME.x, BADGE_HOME.y);
+  drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
 }
 
 function drawZoneButton(

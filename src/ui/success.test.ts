@@ -65,3 +65,27 @@ describe('hitSuccessButton', () => {
     expect(hitSuccessButton(LAYOUT, { x: first.x, y: first.y + 200 })).toBeNull();
   });
 });
+
+describe('successLayout (landscape)', () => {
+  const LANDSCAPE = successLayout(860, 430);
+
+  it('keeps the bottom row inside the wide field', () => {
+    for (const button of LANDSCAPE.buttons) {
+      expect(button.x - button.radius).toBeGreaterThanOrEqual(0);
+      expect(button.x + button.radius).toBeLessThanOrEqual(860);
+      expect(button.y - button.radius).toBeGreaterThanOrEqual(0);
+      expect(button.y + button.radius).toBeLessThanOrEqual(430);
+    }
+  });
+
+  it('stays centered with toddler-sized targets', () => {
+    const [replay, next, home] = LANDSCAPE.buttons;
+    if (!replay || !next || !home) {
+      throw new Error('missing landscape buttons');
+    }
+    expect(next.x).toBe(430);
+    expect(next.y).toBe(310);
+    expect(replay.y).toBe(next.y);
+    expect(replay.radius * 2).toBeGreaterThanOrEqual(90);
+  });
+});

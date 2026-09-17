@@ -18,6 +18,12 @@ describe('skinButtonLayout', () => {
     expect(zone.x + zone.radius).toBeLessThanOrEqual(FIELD_WIDTH);
     expect(zone.y + zone.radius).toBeLessThanOrEqual(FIELD_HEIGHT);
   });
+
+  it('stays inside the wide landscape field too', () => {
+    const zone = skinButtonLayout();
+    expect(zone.x + zone.radius).toBeLessThanOrEqual(860);
+    expect(zone.y + zone.radius).toBeLessThanOrEqual(430);
+  });
 });
 
 describe('hitSkinButton', () => {

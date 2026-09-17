@@ -65,6 +65,8 @@ const PAGER_RADIUS = 45;
 const PAGER_GAP = 10;
 const DOT_RADIUS = 10;
 const DOT_GAP = 34;
+const PACK_PARK_BOTTOM_OFFSET_PORTRAIT = 288;
+const PACK_PARK_BOTTOM_OFFSET_LANDSCAPE = 70;
 
 export function packLayout(
   fieldWidth: number,
@@ -218,4 +220,11 @@ export function hitPackPager(pager: PackPager, point: Point, page: number): 'nex
 
 function inSpot(spot: PackPagerSpot, point: Point): boolean {
   return Math.hypot(point.x - spot.x, point.y - spot.y) <= spot.radius;
+}
+
+/** Mascot park: between grid and shelf in portrait; bottom-center in the wide field. */
+export function packParkPosition(fieldWidth: number, fieldHeight: number): Point {
+  const bottomOffset =
+    fieldWidth > fieldHeight ? PACK_PARK_BOTTOM_OFFSET_LANDSCAPE : PACK_PARK_BOTTOM_OFFSET_PORTRAIT;
+  return { x: fieldWidth / 2, y: fieldHeight - bottomOffset };
 }

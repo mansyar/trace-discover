@@ -6,6 +6,7 @@ import {
   type MenuLayout,
   menuDotPositions,
   menuLayout,
+  menuParkPosition,
   splashLayout,
 } from './menu';
 
@@ -149,5 +150,65 @@ describe('menuDotPositions', () => {
       card.x + card.width / 2,
       5,
     );
+  });
+});
+
+describe('menuLayout (landscape)', () => {
+  const LANDSCAPE_WIDTH = 860;
+  const LANDSCAPE_HEIGHT = 430;
+
+  it('lays three packs out in a single centered row', () => {
+    const current = menuLayout(LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT, THEMES);
+    const first = cardAt(current, 0);
+    const second = cardAt(current, 1);
+    const third = cardAt(current, 2);
+    expect(new Set(current.cards.map((card) => card.y)).size).toBe(1);
+    expect(first.width).toBeCloseTo((860 - 130 - 2 * 30) / 3, 5);
+    expect(second.x - (first.x + first.width)).toBeCloseTo(30, 5);
+    expect(third.x - (second.x + second.width)).toBeCloseTo(30, 5);
+    expect(first.y).toBeCloseTo((LANDSCAPE_HEIGHT - first.height) / 2, 5);
+  });
+
+  it('wraps four packs (name set) into a centered 2x2 block', () => {
+    const current = menuLayout(LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT, [...THEMES, 'name']);
+    const first = cardAt(current, 0);
+    const second = cardAt(current, 1);
+    const third = cardAt(current, 2);
+    expect(current.cards).toHaveLength(4);
+    expect(second.y).toBe(first.y);
+    expect(third.y).toBeGreaterThan(first.y);
+    expect(second.x).toBeGreaterThan(first.x);
+    expect(first.y).toBeCloseTo(LANDSCAPE_HEIGHT - (third.y + third.height), 5);
+  });
+
+  it('keeps every landscape card inside the field', () => {
+    for (const ids of [THEMES, [...THEMES, 'name']]) {
+      for (const card of menuLayout(LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT, ids).cards) {
+        expect(card.x).toBeGreaterThanOrEqual(0);
+        expect(card.y).toBeGreaterThanOrEqual(0);
+        expect(card.x + card.width).toBeLessThanOrEqual(LANDSCAPE_WIDTH);
+        expect(card.y + card.height).toBeLessThanOrEqual(LANDSCAPE_HEIGHT);
+      }
+    }
+  });
+
+  it('parks the parent gate in the top-right corner in landscape too', () => {
+    const gate = menuLayout(LANDSCAPE_WIDTH, LANDSCAPE_HEIGHT, THEMES).parentGate;
+    expect(gate.x + gate.width).toBe(LANDSCAPE_WIDTH);
+    expect(gate.y).toBe(0);
+    expect(gate.width).toBeGreaterThanOrEqual(90);
+  });
+});
+
+describe('menuParkPosition', () => {
+  it('parks the mascot near the bottom center in portrait (unchanged)', () => {
+    expect(menuParkPosition(FIELD_WIDTH, FIELD_HEIGHT)).toEqual({ x: 215, y: 735 });
+  });
+
+  it('parks the mascot bottom-center inside the landscape field', () => {
+    const park = menuParkPosition(860, 430);
+    expect(park.x).toBe(430);
+    expect(park.y).toBeGreaterThan(0);
+    expect(park.y).toBeLessThan(430);
   });
 });

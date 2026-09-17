@@ -16,6 +16,7 @@ import {
   type PackLayout,
   packLayout,
   packPagerLayout,
+  packParkPosition,
   packStickers,
   paginate,
 } from './pack';
@@ -420,5 +421,18 @@ describe('packLayout (name mini-pack configuration)', () => {
     const storage = createMemoryStorage();
     saveSave(storage, completeLevel(createDefaultSave(), 'name-1'));
     expect(packStickers(loadSave(storage), ['name-1'])).toEqual([true]);
+  });
+});
+
+describe('packParkPosition', () => {
+  it('parks the mascot between grid and shelf in portrait (unchanged)', () => {
+    expect(packParkPosition(FIELD_WIDTH, FIELD_HEIGHT)).toEqual({ x: 215, y: 572 });
+  });
+
+  it('parks the mascot bottom-center inside the landscape field', () => {
+    const park = packParkPosition(860, 430);
+    expect(park.x).toBe(430);
+    expect(park.y).toBeGreaterThan(0);
+    expect(park.y).toBeLessThan(430);
   });
 });
