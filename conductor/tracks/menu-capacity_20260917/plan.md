@@ -28,11 +28,11 @@
 
 ## Phase 3: Dots & art adaptation for grid-scaled cards (TDD)
 
-- [~] Task 1: Dot/art tests red → adaptation green
-  - [ ] Red: tests in `src/ui/menu.test.ts` — max-dot case (letters, 29) at 5–6 card footprints: dot rows wrap, radius/spacing hold legibility floors, every dot inside the card; `menuCardArtMaxHeight` stays ≥ floor and clear of the dot strip at every count
-  - [ ] Green: adapt `menuDotPositions` / `dotsPerRow` / `menuCardArtMaxHeight` (scale within floors; no negative or overlapping art)
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+- [x] Task 1: Dot/art tests red → adaptation green [1c25185]
+  - [x] Red: tests in `src/ui/menu.test.ts` — max-dot case (letters, 29) at 5–6 card footprints: dot rows wrap, radius/spacing hold legibility floors, every dot inside the card; `menuCardArtMaxHeight` stays ≥ floor and clear of the dot strip at every count
+  - [x] Green: adapt `menuDotPositions` / `dotsPerRow` / `menuCardArtMaxHeight` (scale within floors; no negative or overlapping art)
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: Consumer regression (no edits to existing tests)
   - [ ] `CI=true pnpm check && CI=true pnpm test` — every pre-existing test green unmodified (`main.ts` / `render.ts` / `screens.ts` consume layout output unchanged in shape)
   - [ ] Commit + git note (empty evidence commit permitted)
