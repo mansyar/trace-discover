@@ -75,3 +75,18 @@ export function levelForOrientation(level: LevelDef, orientation: Orientation): 
     strokes: level.strokes.map((stroke) => stroke.map(mapPoint)),
   };
 }
+
+/** Raw control-geometry length of a level: the sum of its stroke polylines. */
+export function pathGeometryLength(level: LevelDef): number {
+  let total = 0;
+  for (const stroke of level.strokes) {
+    for (let index = 1; index < stroke.length; index += 1) {
+      const a = stroke[index - 1];
+      const b = stroke[index];
+      if (a && b) {
+        total += Math.hypot(b.x - a.x, b.y - a.y);
+      }
+    }
+  }
+  return total;
+}

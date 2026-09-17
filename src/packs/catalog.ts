@@ -1,6 +1,7 @@
 // The pack catalog: the menu-ordered registry of content packs. Pre-writing
 // ships first, numbers second, letters third; the runtime-composed name
 // mini-pack appends while a name is saved.
+import type { Orientation } from '../field';
 import type { SaveData } from '../save/store';
 import { LETTERS_PACK } from './letters';
 import { namePackFor } from './name';
@@ -16,8 +17,11 @@ export function allPacks(): readonly PackEntry[] {
 }
 
 /** Static packs plus the runtime-composed name mini-pack while a name is saved. */
-export function appPacks(save: SaveData): readonly PackEntry[] {
-  const namePack = namePackFor(save.name);
+export function appPacks(
+  save: SaveData,
+  orientation: Orientation = 'portrait',
+): readonly PackEntry[] {
+  const namePack = namePackFor(save.name, orientation);
   if (!namePack) {
     return PACKS;
   }

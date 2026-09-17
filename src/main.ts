@@ -42,7 +42,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
-import { levelForOrientation, projectionScale } from './packs/wide';
+import { levelForOrientation, pathGeometryLength, projectionScale } from './packs/wide';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
@@ -121,7 +121,7 @@ let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])
 
 function rebuildViews(): void {
   space = fieldSizeFor(orientation);
-  PACKS = appPacks(app.save);
+  PACKS = appPacks(app.save, orientation);
   MENU = menuLayout(
     space.width,
     space.height,
@@ -699,11 +699,26 @@ function reflowRun(): void {
   if (session.success || snapshot.completionStarted) {
     return;
   }
-  const nextScale = projectionScale(currentRun.level, orientation);
-  const runLevel = levelForOrientation(currentRun.level, orientation);
-  session.reflow(runLevel, nextScale / currentRun.scale);
-  currentRun.runLevel = runLevel;
-  currentRun.scale = nextScale;
+  const run = currentRun;
+  const pack = PACKS.find((candidate) => candidate.id === run.packId);
+  const authored = pack
+    ? [...pack.levels, ...pack.bonuses].find((level) => level.id === run.levelId)
+    : undefined;
+  if (!authored) {
+    return;
+  }
+  const runLevel = levelForOrientation(authored, orientation);
+  const span = pathGeometryLength(run.runLevel);
+  if (span > 0) {
+    session.reflow(runLevel, pathGeometryLength(runLevel) / span);
+  }
+  currentRun = {
+    level: authored,
+    runLevel,
+    scale: projectionScale(authored, orientation),
+    packId: run.packId,
+    levelId: run.levelId,
+  };
 }
 
 function resize(): void {

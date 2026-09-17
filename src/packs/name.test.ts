@@ -3,10 +3,18 @@
 // the field, end its goal at the last traced point, and thin visuals for long
 // names without dropping below the toddler-visible floors.
 import { describe, expect, it } from 'vitest';
+import { LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
 import type { PathStyle } from '../render/renderPath';
 import { LETTER_LEVELS } from './letters';
 import { validateLevel } from './level';
-import { buildNameLevel, NAME_BOX, nameGlyphScale, namePackFor, namePathStyle } from './name';
+import {
+  buildNameLevel,
+  NAME_BOX,
+  NAME_BOX_LANDSCAPE,
+  nameGlyphScale,
+  namePackFor,
+  namePathStyle,
+} from './name';
 
 function letterById(char: string) {
   const level = LETTER_LEVELS.find((entry) => entry.id === `abc-${char.toLowerCase()}`);
@@ -134,5 +142,54 @@ describe('namePackFor', () => {
     expect(pack?.levels).toHaveLength(1);
     expect(pack?.levels[0]?.id).toBe('name-1');
     expect(pack?.levels[0]?.goalArt).toBe('/art/goal/abc-a.webp');
+  });
+});
+
+describe('landscape name', () => {
+  it('keeps five letters at full size in the wide box', () => {
+    expect(nameGlyphScale('ABCDE', 'landscape')).toBeGreaterThanOrEqual(0.95);
+  });
+
+  it('keeps seven letters readable and about twice the portrait scale', () => {
+    const wide = nameGlyphScale('ABCDEFG', 'landscape');
+    expect(wide).toBeGreaterThanOrEqual(0.7);
+    expect(wide).toBeGreaterThan(nameGlyphScale('ABCDEFG', 'portrait') * 2);
+  });
+
+  it('lays the composed name inside the wide box with a clean level', () => {
+    for (const name of ['AVA', 'ABCDEFG', 'zzz']) {
+      const level = buildNameLevel(name, 'landscape');
+      for (const stroke of level.strokes) {
+        for (const point of stroke) {
+          expect(point.x, name).toBeGreaterThanOrEqual(NAME_BOX_LANDSCAPE.left);
+          expect(point.x, name).toBeLessThanOrEqual(NAME_BOX_LANDSCAPE.right);
+          expect(point.y, name).toBeGreaterThanOrEqual(NAME_BOX_LANDSCAPE.top);
+          expect(point.y, name).toBeLessThanOrEqual(NAME_BOX_LANDSCAPE.bottom);
+        }
+      }
+      expect(validateLevel(level, LANDSCAPE_FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT), name).toEqual([]);
+    }
+  });
+
+  it('centers the wide row on the landscape field centre line', () => {
+    const level = buildNameLevel('AVA', 'landscape');
+    const xs = level.strokes.flat().map((point) => point.x);
+    const ys = level.strokes.flat().map((point) => point.y);
+    expect(Math.abs((Math.min(...xs) + Math.max(...xs)) / 2 - 430)).toBeLessThan(4);
+    expect(Math.abs((Math.min(...ys) + Math.max(...ys)) / 2 - 215)).toBeLessThan(4);
+  });
+
+  it('keeps the goal at the last traced point and the final letter art', () => {
+    const level = buildNameLevel('JO', 'landscape');
+    expect(level.goal).toEqual(level.strokes.at(-1)?.at(-1));
+    expect(level.goalArt).toBe('/art/goal/abc-o.webp');
+  });
+
+  it('builds the mini-pack with the wide level when the field is wide', () => {
+    const pack = namePackFor('aira', 'landscape');
+    const level = pack?.levels[0];
+    const xs = level?.strokes.flat().map((point) => point.x) ?? [0];
+    expect(level?.id).toBe('name-1');
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(400);
   });
 });

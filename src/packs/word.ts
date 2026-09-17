@@ -3,6 +3,9 @@
 // runtime "My Name" level and the wide-field word rows.
 import type { Point } from '../engine/types';
 
+/** Full-width row box for word-class levels in the landscape field (centre y 215). */
+export const WIDE_WORD_BOX = { bottom: 390, left: 40, right: 820, top: 40 } as const;
+
 /** One glyph: its stroke geometry plus the horizontal span used for layout. */
 export interface WordGlyph {
   readonly left: number;
@@ -37,6 +40,17 @@ export function composeWordRow(
   const scale = Math.min(cap, (box.right - box.left) / naturalWidth);
   const centerX = (box.left + box.right) / 2;
   const centerY = (box.top + box.bottom) / 2;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  for (const glyph of glyphs) {
+    for (const stroke of glyph.strokes) {
+      for (const point of stroke) {
+        minY = Math.min(minY, point.y);
+        maxY = Math.max(maxY, point.y);
+      }
+    }
+  }
+  const glyphMidY = Number.isFinite(minY) ? (minY + maxY) / 2 : centerY;
 
   let cursor = centerX - (naturalWidth * scale) / 2;
   const strokes: Point[][] = [];
@@ -45,7 +59,7 @@ export function composeWordRow(
       strokes.push(
         stroke.map((point) => ({
           x: cursor + (point.x - glyph.left) * scale,
-          y: centerY + (point.y - centerY) * scale,
+          y: centerY + (point.y - glyphMidY) * scale,
         })),
       );
     }
