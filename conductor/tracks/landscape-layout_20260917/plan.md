@@ -79,7 +79,7 @@ no new deps/assets.
       sanity check (owner-confirmed 2026-09-17; menu review fixes in acdb03b)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: My Name + word bonuses in landscape (headline)
+## Phase 3: My Name + word bonuses in landscape (headline) [checkpoint: 46480af]
 
 - [~] Task 1: `buildNameLevel(name, orientation)` + orientation-aware
       `NAME_BOX` (TDD)
@@ -95,8 +95,9 @@ no new deps/assets.
   - [x] Green: landscape variants via the shared composer
   - [x] Verify coverage
   - [x] Commit + git note
-- [~] Task 3: Landscape name/word evidence — probe pass + screenshots (5+
-      letter names at full size) → owner approval
+- [x] Task 3: Landscape name/word evidence — probe pass + screenshots (5+
+      letter names at full size) → owner approval (owner-approved 2026-09-17;
+      evidence dev/qa/out/name-wide/)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Child shell screens in landscape (screenshot-approved)
