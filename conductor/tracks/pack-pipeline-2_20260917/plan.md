@@ -21,14 +21,14 @@
 
 ## Phase 2: Numbers port — byte-level parity (TDD)
 
-- [~] Task 1: Numbers parity + loader contract, then thin loader (TDD)
-  - [ ] Red: `src/packs/numbers-parity.test.ts` — parity vs frozen fixture (ids, goals, goalArt, strokes, order); identity checks; loader contract via mocked malformed `./data/numbers.json` → labeled load error — confirm the contract test fails against the current inline `numbers.ts`
-  - [ ] Green: author `src/packs/data/numbers.json` (schema-identical to fixture); rewrite `numbers.ts` as a thin loader (Pre-writing pattern; `NUMERAL_LEVELS` / `NUMBERS_PACK` preserved); tests green
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 2: Full-suite regression (no edits to existing tests)
-  - [ ] `CI=true pnpm check && CI=true pnpm test` — every pre-existing test green unmodified
-  - [ ] Commit + git note (empty evidence commit permitted)
+- [x] Task 1: Numbers parity + loader contract, then thin loader (TDD) [77f97ef]
+  - [x] Red: `src/packs/numbers-parity.test.ts` — parity vs frozen fixture (ids, goals, goalArt, strokes, order); identity checks; loader contract via mocked malformed `./data/numbers.json` → labeled load error — confirm the contract test fails against the current inline `numbers.ts`
+  - [x] Green: author `src/packs/data/numbers.json` (schema-identical to fixture); rewrite `numbers.ts` as a thin loader (Pre-writing pattern; `NUMERAL_LEVELS` / `NUMBERS_PACK` preserved); tests green
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [x] Task 2: Full-suite regression (no edits to existing tests) [ed0506d]
+  - [x] `CI=true pnpm check && CI=true pnpm test` — every pre-existing test green unmodified
+  - [x] Commit + git note (empty evidence commit permitted)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Letters port — byte-level parity (TDD)
