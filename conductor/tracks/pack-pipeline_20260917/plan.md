@@ -77,13 +77,15 @@ no push/PR/release; no new runtime dependency.
   - [x] Green: export from the parser module; used by both runtime throw and CLI
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: `dev/tools/pack-validate.mjs` + `pnpm pack:check`
-  - [ ] Validates every `src/packs/data/*.json` via Node 24 native TS type-stripping;
-        prints per-file/per-level problems; exit non-zero on failure
-  - [ ] Red/Green: test — good pack exits 0; fixture with a bad level exits non-zero
+- [x] Task 2: `dev/tools/pack-validate.mjs` + `pnpm pack:check` (0c9434c)
+  - [x] Validates every `src/packs/data/*.json` via the repo's Vitest runner
+        (Node 24 native TS type-stripping cannot resolve extensionless imports —
+        deviation recorded in commit note); prints per-file/per-level problems;
+        exit non-zero on failure
+  - [x] Red/Green: test — good pack exits 0; fixture with a bad level exits non-zero
         and names the offending file/level
-  - [ ] Wire `pack:check` into the CI workflow alongside existing checks
-  - [ ] Commit + git note
+  - [x] Wire `pack:check` into the CI workflow alongside existing checks
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5: Visual authoring harness [checkpoint: ]
