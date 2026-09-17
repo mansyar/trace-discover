@@ -145,7 +145,9 @@ one-finger hold fails device tuning.
 - [x] Task 4: Acceptance session (owner): sign-offs; docs finalize (final hold
       value, dev/README QA table, dated notes) (owner accepted 2026-09-17)
   - [x] Commit + git note
-- [~] Task 5: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
+- [x] Task 5: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
       dist record; review summary
-  - [ ] Commit + git note
+      (check clean; 444/444 tests; coverage 98.48% stmts / 91.85% branch;
+      budget PASS — 4,673,203 B / 138 precache entries)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
