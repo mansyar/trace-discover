@@ -71,7 +71,7 @@ console.log(`back on page 1 (abc-a present: ${ids.includes('level:abc-a')})`);
 await tapTarget('level:abc-a');
 const level = await screenOf();
 console.log(`pack -> ${level.name} ${level.levelId ?? ''}`);
-await wait(600);
+await wait(900); // level-start entrance hop (~750 ms) settles before the shot
 await page.screenshot({ path: path.join(OUT, 'letters-pack-level-a.png') });
 const strokeCount = await page.evaluate(() => window.__app.strokes().length);
 console.log(`abc-a strokes: ${strokeCount}`);

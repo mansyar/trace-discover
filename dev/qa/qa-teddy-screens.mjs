@@ -71,7 +71,7 @@ await page.screenshot({ path: path.join(OUT, 'pack.png') });
 
 await tapTarget('level:pre-2');
 await page.waitForFunction(() => window.__app.path().length > 10, null, { timeout: 30000 });
-await wait(500);
+await wait(900); // level-start entrance hop (~750 ms) settles before the shot
 console.log(`pack -> ${JSON.stringify(await screenOf())}`);
 await page.screenshot({ path: path.join(OUT, 'level.png') });
 
