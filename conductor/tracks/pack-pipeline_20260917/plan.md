@@ -90,12 +90,13 @@ no push/PR/release; no new runtime dependency.
 
 ## Phase 5: Visual authoring harness [checkpoint: ]
 
-- [ ] Task 1: Dev pack preview (`dev/harness/`)
-  - [ ] Renders a chosen JSON pack's level with field coordinates, margin gutters,
+- [x] Task 1: Dev pack preview (`dev/harness/`) (085d5da)
+  - [x] Renders a chosen JSON pack's level with field coordinates, margin gutters,
         start/goal markers, and checkpoint circles
-  - [ ] `dev/README.md` runbook entry (how to open, URL params, what you see)
-  - [ ] Manual visual spot-check of all 15 pre levels at 430×860
-  - [ ] Commit + git note
+  - [x] `dev/README.md` runbook entry (how to open, URL params, what you see)
+  - [x] Manual visual spot-check of all 15 pre levels at 430×860
+        (`qa-pack-preview.mjs --all`: 15/15 OK, screenshots reviewed)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 6: Acceptance — parity, QA, docs [checkpoint: ]
