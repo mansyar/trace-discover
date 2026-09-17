@@ -41,13 +41,13 @@
 
 *Goal: every PR boots the real app on GitHub's Edge; the failure path (red step, best-effort artifact) is proven on a live run.*
 
-- [ ] Task: `ci.yml` wiring
-  - [ ] Add frozen dev-tooling install (`working-directory: dev`); extend `cache-dependency-path` with `dev/pnpm-lock.yaml`
-  - [ ] Add smoke step after `pnpm budget`: background `pnpm preview` + readiness loop + `node dev/qa/qa-smoke.mjs`
-  - [ ] Job timeout 15 → 20 min; failure-only artifact upload (`dev/qa/out/`, best-effort, `if-no-files-found: ignore`)
-  - [ ] Commit + git note
-- [ ] Task: Push + draft PR + failure-path control
-  - [ ] Push `track/ci-qa-hardening`; open draft PR → CI fires
+- [x] Task: `ci.yml` wiring [7853f66]
+  - [x] Add frozen dev-tooling install (`working-directory: dev`); extend `cache-dependency-path` with `dev/pnpm-lock.yaml`
+  - [x] Add smoke step after `pnpm budget`: background `pnpm preview` + readiness loop + `node dev/qa/qa-smoke.mjs`
+  - [x] Job timeout 15 → 20 min; failure-only artifact upload (`dev/qa/out/`, best-effort, `if-no-files-found: ignore`)
+  - [x] Commit + git note
+- [~] Task: Push + draft PR + failure-path control
+  - [~] Push `track/ci-qa-hardening`; open draft PR → CI fires
   - [ ] Temporary commit forcing smoke failure → confirm the run reddens at the smoke step only and the artifact step stays best-effort; record run URLs; revert
   - [ ] Commit + git note
 - [ ] Task: Green end-to-end CI evidence
