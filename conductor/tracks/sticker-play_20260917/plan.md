@@ -86,13 +86,13 @@ two pages), ear approval of the note ladder, and the device sign-off.
 
 ## Phase 4: Pentatonic ladder audio
 
-- [ ] Task 1: Note mapping + playback (TDD)
-  - [ ] Red: sticker index → scale degree (C D E G A) with rising octave
+- [x] Task 1: Note mapping + playback (TDD) (437759b)
+  - [x] Red: sticker index → scale degree (C D E G A) with rising octave
         cycle; stable per sticker; active skin's instrument; volume/mute
         respected
-  - [ ] Green: mapping helper + existing synth/player wiring
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Green: mapping helper + existing synth/player wiring
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: Ear tuning pass — final mapping recorded (owner listen approval
       gate)
   - [ ] Commit + git note (if adjusted)
