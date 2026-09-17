@@ -19,7 +19,7 @@ no new deps/assets.
 
 ## Phase 1: Orientation foundation — dual design spaces, reflow plumbing, layout rebuilds
 
-- [ ] Task 1: Context docs resync
+- [x] Task 1: Context docs resync (1ee465c)
   - [ ] product.md: landscape play + dated note (house style)
   - [ ] tech-stack.md: dual design spaces (430×860 / 860×430), orientation
         policy, composition layer
