@@ -104,10 +104,10 @@ conflicts, resolved by preserving both behaviors.
   - [x] Audit level-opening probes for entrance settle waits; update affected
         baselines
   - [x] Commit + git note
-- [~] Task 2: Zero-text audit; hostile-save fixtures regression; `qa-offline`
-      cold start; perf spot-check (boot/input baselines)
-  - [ ] Commit + git note
-- [ ] Task 3: Device pass Android + iPad — entrance feel, tap generosity,
+- [x] Task 2: Zero-text audit; hostile-save fixtures regression; `qa-offline`
+      cold start; perf spot-check (boot/input baselines) (107b0f3)
+  - [x] Commit + git note
+- [~] Task 3: Device pass Android + iPad - entrance feel, tap generosity,
       giggle responsiveness, flourish visibility; tune; STOP + owner fallback
       decision if a flourish fails device review
 - [ ] Task 4: Acceptance session (owner): per-cast sign-offs; docs finalize
