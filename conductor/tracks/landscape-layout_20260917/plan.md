@@ -140,3 +140,7 @@ no new deps/assets.
       final gates `pnpm check && pnpm test`; coverage; dist size record
       (486/486, coverage 97.8%, recorded 2026-09-17)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (3c2f6a0)
