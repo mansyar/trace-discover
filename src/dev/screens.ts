@@ -6,7 +6,8 @@
 // runs the production renderer. ?screen=menu|pack|success|board picks the
 // starting screen for headless screenshots.
 import '../style.css';
-import { drawStickerBoard } from '../app/render';
+import { drawStickerBoard, drawStickerPop } from '../app/render';
+import { stickerPopFrame } from '../app/stickerPop';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { attachTraceInput, type TraceHandlers } from '../input/pointer';
@@ -57,6 +58,7 @@ let save: SaveData = loadSave(localStorage);
 let field: Rect = fitRect(1, 1, FIELD_WIDTH, FIELD_HEIGHT);
 let detachInput: () => void = () => {};
 let lastBadgeTap = 0;
+let pop: { levelId: string; startedAt: number } | null = null;
 
 function log(message: string): void {
   lines.push(message);
@@ -303,7 +305,7 @@ function drawCycle(): void {
   context.fill();
 }
 
-function render(): void {
+function render(now: number = performance.now()): void {
   const dpr = canvas.width / window.innerWidth;
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.fillStyle = CREAM;
@@ -320,6 +322,13 @@ function render(): void {
     drawSuccess();
   } else {
     drawBoardPreview();
+    const active = pop;
+    if (active !== null) {
+      const cell = boardPreview().cells.find((entry) => entry.levelId === active.levelId);
+      if (cell) {
+        drawStickerPop(context, cell, null, stickerPopFrame(now - active.startedAt));
+      }
+    }
   }
   drawCycle();
 }
@@ -378,12 +387,28 @@ function tapBoard(point: Point): void {
     return;
   }
   if (save.completedLevels.includes(levelId)) {
+    pop = { levelId, startedAt: performance.now() };
+    requestAnimationFrame(popLoop);
     log(`sticker ${levelId} tapped`);
     return;
   }
   save = completeLevel(save, levelId);
   saveSave(localStorage, save);
   log(`sticker ${levelId} earned`);
+}
+
+function popLoop(): void {
+  if (pop === null) {
+    return;
+  }
+  const frame = stickerPopFrame(performance.now() - pop.startedAt);
+  render();
+  if (!frame.done) {
+    requestAnimationFrame(popLoop);
+  } else {
+    pop = null;
+    render();
+  }
 }
 
 function onTap(point: Point): void {

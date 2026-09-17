@@ -25,6 +25,7 @@ import type { StickerBoardLayout } from '../ui/stickerBoard';
 import type { SuccessLayout } from '../ui/success';
 import { menuFallbackStrokes } from './menuArt';
 import type { SessionSnapshot } from './session';
+import type { StickerPopFrame } from './stickerPop';
 
 export const NAVY = '#2e4a63';
 export const GOLD = '#e8c15a';
@@ -683,6 +684,54 @@ export function drawStickerBoard(
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   drawActionIcon(ctx, 'home', layout.home.x, layout.home.y);
+}
+
+/** Pop overlay for a tapped board sticker: the cell's sticker springs up
+ *  (scaled with squash-and-stretch) with a radial sparkle burst. */
+export function drawStickerPop(
+  ctx: CanvasRenderingContext2D,
+  cell: { readonly radius: number; readonly x: number; readonly y: number },
+  image: HTMLImageElement | null,
+  frame: StickerPopFrame,
+  tint: string = GOLD,
+): void {
+  if (frame.sparkle > 0) {
+    const count = 10;
+    ctx.globalAlpha = frame.sparkle;
+    for (let index = 0; index < count; index += 1) {
+      const angle = (index / count) * Math.PI * 2;
+      const distance = cell.radius * 0.9 + 90 * frame.sparkle;
+      ctx.beginPath();
+      ctx.arc(
+        cell.x + Math.cos(angle) * distance,
+        cell.y - frame.rise + Math.sin(angle) * distance * 0.8,
+        5 + 6 * frame.sparkle,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fillStyle = index % 2 === 0 ? GOLD : tint;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  const centerY = cell.y - frame.rise;
+  const width = cell.radius * 2.1 * frame.scaleX;
+  const height = cell.radius * 2.1 * frame.scaleY;
+  if (image) {
+    ctx.drawImage(image, cell.x - width / 2, centerY - height / 2, width, height);
+    return;
+  }
+  ctx.save();
+  ctx.translate(cell.x, centerY);
+  ctx.scale(frame.scaleX, frame.scaleY);
+  ctx.beginPath();
+  drawStar(ctx, 0, 0, cell.radius * 0.62);
+  ctx.fillStyle = GOLD;
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.restore();
 }
 
 /** Drawn stand-in while a skin's backdrop art has not shipped yet. */

@@ -55,6 +55,13 @@ await page.mouse.click(270, 440);
 await wait(300);
 await page.screenshot({ path: path.join(OUT, 'board-tap.png') });
 
+// Pop pass: tapping an earned sticker (num-0 at cell 160, 200) springs it up.
+await page.mouse.click(160, 220);
+await wait(280);
+await page.screenshot({ path: path.join(OUT, 'board-pop.png') });
+await wait(320);
+await page.screenshot({ path: path.join(OUT, 'board-pop-tail.png') });
+
 const logText = await page.evaluate(() => document.getElementById('log')?.textContent ?? '');
 const lastLine = logText.trim().split('\n').pop() ?? '(none)';
 console.log(`log: ${lastLine}`);
