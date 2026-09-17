@@ -97,14 +97,14 @@ conflicts, resolved by preserving both behaviors.
 
 ## Phase 4: QA evidence, device tuning, acceptance, docs finalize
 
-- [ ] Task 1: QA probes
-  - [ ] New `qa-cast.mjs`: tap → giggle; entrance + settle; star blink;
+- [x] Task 1: QA probes (bbf17fc)
+  - [x] New `qa-cast.mjs`: tap → giggle; entrance + settle; star blink;
         per-cast flourish; throttle; no-interference (cards / skin button /
         gate)
-  - [ ] Audit level-opening probes for entrance settle waits; update affected
+  - [x] Audit level-opening probes for entrance settle waits; update affected
         baselines
-  - [ ] Commit + git note
-- [ ] Task 2: Zero-text audit; hostile-save fixtures regression; `qa-offline`
+  - [x] Commit + git note
+- [~] Task 2: Zero-text audit; hostile-save fixtures regression; `qa-offline`
       cold start; perf spot-check (boot/input baselines)
   - [ ] Commit + git note
 - [ ] Task 3: Device pass Android + iPad — entrance feel, tap generosity,
