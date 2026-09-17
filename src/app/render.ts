@@ -16,6 +16,7 @@ import {
   MENU_DOT_RADIUS,
   type MenuCard,
   type MenuLayout,
+  menuCardArtMaxHeight,
   menuDotPositions,
   type SplashLayout,
 } from '../ui/menu';
@@ -380,7 +381,7 @@ function drawMenuPackCard(
   const centerX = card.x + card.width / 2;
   const image = art?.image;
   if (image) {
-    const maxHeight = card.height - 58;
+    const maxHeight = menuCardArtMaxHeight(card, art?.total ?? 0);
     const maxWidth = card.width - 44;
     const scale = Math.min(maxHeight / image.naturalHeight, maxWidth / image.naturalWidth);
     const width = image.naturalWidth * scale;
@@ -400,7 +401,7 @@ function drawMenuPackCard(
       drawMenuIcon(ctx, 0, centerX, card.y + card.height / 2);
     }
   }
-  if (!art || art.cleared <= 0) {
+  if (!art) {
     return;
   }
   const positions = menuDotPositions(art.total, card);

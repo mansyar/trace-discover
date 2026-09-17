@@ -36,7 +36,7 @@ const GATE_SIZE = 100;
 const MIN_CARD_WIDTH = 200;
 const SIDE_MARGIN = 65;
 const MENU_PARK_BOTTOM_OFFSET_PORTRAIT = 125;
-const MENU_PARK_BOTTOM_OFFSET_LANDSCAPE = 70;
+const MENU_PARK_BOTTOM_OFFSET_LANDSCAPE = 130;
 
 export function menuLayout(
   fieldWidth: number,
@@ -165,7 +165,7 @@ export function menuDotPositions(total: number, card: MenuCard): readonly Point[
   if (total <= 0) {
     return [];
   }
-  const perRow = Math.min(total, DOT_MAX_PER_ROW);
+  const perRow = dotsPerRow(total, card);
   const rows = Math.ceil(total / perRow);
   const positions: Point[] = [];
   for (let index = 0; index < total; index += 1) {
@@ -178,4 +178,16 @@ export function menuDotPositions(total: number, card: MenuCard): readonly Point[
     positions.push({ x: startX + column * DOT_SPACING, y });
   }
   return positions;
+}
+
+/** Dots per row: capped, and never wider than the card leaves room for. */
+function dotsPerRow(total: number, card: MenuCard): number {
+  const fit = 1 + Math.floor((card.width - 2 * MENU_DOT_RADIUS - 16) / DOT_SPACING);
+  return Math.max(1, Math.min(total, DOT_MAX_PER_ROW, fit));
+}
+
+/** Max card-art height that keeps the dot strip below it clear (one row step per extra row). */
+export function menuCardArtMaxHeight(card: MenuCard, dotTotal: number): number {
+  const rows = Math.ceil(dotTotal / dotsPerRow(dotTotal, card));
+  return card.height - 58 - Math.max(0, rows - 2) * DOT_ROW_STEP;
 }

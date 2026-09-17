@@ -4,6 +4,7 @@ import {
   hitMenuCard,
   inParentGate,
   type MenuLayout,
+  menuCardArtMaxHeight,
   menuDotPositions,
   menuLayout,
   menuParkPosition,
@@ -151,6 +152,29 @@ describe('menuDotPositions', () => {
       5,
     );
   });
+
+  it('wraps dots by the card width on landscape cards', () => {
+    const card = cardAt(menuLayout(860, 430, THEMES), 0);
+    const dots = menuDotPositions(26, card);
+    expect(dots).toHaveLength(26);
+    const rows = [dots.slice(0, 9), dots.slice(9, 18), dots.slice(18)];
+    for (const row of rows) {
+      expect(new Set(row.map((dot) => dot.y)).size).toBe(1);
+    }
+    expect(rows[0]?.[0]?.y ?? 0).toBeLessThan(rows[1]?.[0]?.y ?? 0);
+    expect(rows[2]).toHaveLength(8);
+    for (const dot of dots) {
+      expect(dot.x).toBeGreaterThanOrEqual(card.x + 8);
+      expect(dot.x).toBeLessThanOrEqual(card.x + card.width - 8);
+      expect(dot.y).toBeGreaterThanOrEqual(card.y + 8);
+      expect(dot.y).toBeLessThanOrEqual(card.y + card.height - 8);
+    }
+    for (const row of rows) {
+      const first = row[0];
+      const last = row[row.length - 1];
+      expect(((first?.x ?? 0) + (last?.x ?? 0)) / 2).toBeCloseTo(card.x + card.width / 2, 5);
+    }
+  });
 });
 
 describe('menuLayout (landscape)', () => {
@@ -205,10 +229,21 @@ describe('menuParkPosition', () => {
     expect(menuParkPosition(FIELD_WIDTH, FIELD_HEIGHT)).toEqual({ x: 215, y: 735 });
   });
 
-  it('parks the mascot bottom-center inside the landscape field', () => {
-    const park = menuParkPosition(860, 430);
-    expect(park.x).toBe(430);
-    expect(park.y).toBeGreaterThan(0);
-    expect(park.y).toBeLessThan(430);
+  it('parks the mascot clear of the bottom edge in landscape so the sprite fits', () => {
+    expect(menuParkPosition(860, 430)).toEqual({ x: 430, y: 300 });
+  });
+});
+
+describe('menuCardArtMaxHeight', () => {
+  it('keeps the current reserve for one- and two-row strips (portrait unchanged)', () => {
+    const portrait = cardAt(layout(), 0);
+    expect(menuCardArtMaxHeight(portrait, 12)).toBe(92);
+    expect(menuCardArtMaxHeight(portrait, 26)).toBe(92);
+  });
+
+  it('reserves an extra row on a wrapped landscape card', () => {
+    const landscape = cardAt(menuLayout(860, 430, THEMES), 0);
+    expect(menuCardArtMaxHeight(landscape, 26)).toBe(76);
+    expect(menuCardArtMaxHeight(landscape, 10)).toBe(92);
   });
 });
