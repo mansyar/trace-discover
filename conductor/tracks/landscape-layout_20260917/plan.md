@@ -123,18 +123,20 @@ no new deps/assets.
 - [x] Commit + git note (per task)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 6: QA matrix, device pass, docs, acceptance
+## Phase 6: QA matrix, device pass, docs, acceptance [checkpoint: 2e7eb88]
 
-- [ ] Task 1: `dev/qa/qa-landscape.mjs` canonical matrix — portrait baseline +
+- [x] Task 1: `dev/qa/qa-landscape.mjs` canonical matrix — portrait baseline +
       landscape per screen; rotate mid-trace/mid-menu with state + progress
-      assertions; target-size and field-aspect assertions; screenshots
-- [ ] Task 2: Supersede `qa-viewport.mjs` — fix the stale `success:home → pack`
-      assumption, fold checks into the new probe, update dev/README table
-- [ ] Task 3: Zero-text audit; offline cold start unchanged; perf spot-check;
-      `pnpm budget` record
-- [ ] Task 4: Device pass Android + iPad — portrait regression + landscape
+      assertions; target-size and field-aspect assertions; screenshots (2e7eb88)
+- [x] Task 2: Supersede `qa-viewport.mjs` — fix the stale `success:home → pack`
+      assumption, fold checks into the new probe, update dev/README table (2e7eb88)
+- [x] Task 3: Zero-text audit; offline cold start unchanged; perf spot-check;
+      `pnpm budget` record (4674512 B / 138 entries, PASS; all evidenced 2026-09-17)
+- [x] Task 4: Device pass Android + iPad — portrait regression + landscape
       acceptance; owner confirms a 5+ letter name traced unaided; tune
       caps/radii (STOP + owner decision if a target floor can't hold)
-- [ ] Task 5: Docs finalize (product.md dated note, tech-stack.md, dev/README);
+      (owner pass 2026-09-17)
+- [x] Task 5: Docs finalize (product.md dated note, tech-stack.md, dev/README);
       final gates `pnpm check && pnpm test`; coverage; dist size record
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+      (486/486, coverage 97.8%, recorded 2026-09-17)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
