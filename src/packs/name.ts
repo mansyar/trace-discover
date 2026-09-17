@@ -11,6 +11,7 @@ import { sanitizeName } from '../save/store';
 import { LETTER_LEVELS } from './letters';
 import type { LevelDef } from './level';
 import { createPackEntry, type PackEntry } from './pack';
+import { composeWordRow, type WordGlyph } from './word';
 
 /** Menu/pack id of the runtime-composed name mini-pack. */
 export const NAME_PACK_ID = 'name';
@@ -21,11 +22,7 @@ export const NAME_BOX = { bottom: 660, left: 40, right: 390, top: 280 } as const
 const NAME_CENTER_Y = (NAME_BOX.top + NAME_BOX.bottom) / 2;
 const LETTER_GAP = 30;
 
-interface Glyph {
-  readonly left: number;
-  readonly right: number;
-  readonly strokes: readonly (readonly Point[])[];
-}
+type Glyph = WordGlyph;
 
 function letterGlyph(char: string): Glyph {
   const level = LETTER_LEVELS.find((entry) => entry.id === `abc-${char.toLowerCase()}`);
@@ -45,25 +42,7 @@ function letterGlyph(char: string): Glyph {
 
 function layoutName(name: string): { scale: number; strokes: Point[][] } {
   const glyphs = [...name].map(letterGlyph);
-  const naturalWidth =
-    glyphs.reduce((sum, glyph) => sum + (glyph.right - glyph.left), 0) +
-    LETTER_GAP * (glyphs.length - 1);
-  const scale = Math.min(1, (NAME_BOX.right - NAME_BOX.left) / naturalWidth);
-
-  let cursor = FIELD_WIDTH / 2 - (naturalWidth * scale) / 2;
-  const strokes: Point[][] = [];
-  for (const glyph of glyphs) {
-    for (const stroke of glyph.strokes) {
-      strokes.push(
-        stroke.map((point) => ({
-          x: cursor + (point.x - glyph.left) * scale,
-          y: NAME_CENTER_Y + (point.y - NAME_CENTER_Y) * scale,
-        })),
-      );
-    }
-    cursor += (glyph.right - glyph.left + LETTER_GAP) * scale;
-  }
-  return { scale, strokes };
+  return composeWordRow(glyphs, NAME_BOX, LETTER_GAP);
 }
 
 /** Scale factor applied to the name glyphs (1 = full letter size). */
