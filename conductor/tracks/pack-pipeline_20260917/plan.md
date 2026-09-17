@@ -16,11 +16,11 @@ no push/PR/release; no new runtime dependency.
 
 ## Phase 1: Context & format foundation [checkpoint: ]
 
-- [ ] Task 1: Context docs resync
-  - [ ] `tech-stack.md`: declarative pack format note (JSON schema, shared parser,
+- [x] Task 1: Context docs resync (76b4569)
+  - [x] `tech-stack.md`: declarative pack format note (JSON schema, shared parser,
         CLI, harness; `resolveJsonModule` addition)
-  - [ ] `product.md`: dated note — content authoring becomes pipeline work, not code
-  - [ ] Commit + git note
+  - [x] `product.md`: dated note — content authoring becomes pipeline work, not code
+  - [x] Commit + git note
 - [ ] Task 2: Pack JSON schema documentation
   - [ ] `src/packs/data/README.md`: field-by-field schema + fully worked level example
   - [ ] Document authoring rules (430×860 field space, margin 24, ≥2 control points,
