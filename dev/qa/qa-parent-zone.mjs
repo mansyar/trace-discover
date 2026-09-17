@@ -227,5 +227,74 @@ for (const variant of VARIANTS) {
   await context.close();
 }
 
+// 4) Hostile settings boot: mistyped fields sanitize to defaults and the
+//    one-time hint still appears (parentHintSeen:"yes" is not a boolean).
+const hostileContext = await browser.newContext({ viewport: { width: 430, height: 900 } });
+await hostileContext.addInitScript(() => {
+  localStorage.setItem(
+    'trace-discover-save-v1',
+    JSON.stringify({
+      badges: [],
+      completedLevels: [],
+      settings: {
+        easierTracing: 1,
+        muted: 'no',
+        parentHintSeen: 'yes',
+        skin: 'unknown',
+        volume: 99,
+      },
+      trophies: [],
+      version: 3,
+    }),
+  );
+});
+const hostile = await hostileContext.newPage();
+const hostileErrors = [];
+hostile.on('pageerror', (e) => hostileErrors.push(String(e)));
+await hostile.goto(`${BASE}/index.html`, { waitUntil: 'load' });
+await hostile.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+await wait(700);
+
+const hostileTap = async (id) => {
+  const pt = await hostile.evaluate((targetId) => {
+    const hit = window.__app.targets().find((t) => t.id === targetId);
+    if (!hit) return null;
+    const f = window.__app.field();
+    return { x: f.x + (hit.x / 430) * f.width, y: f.y + (hit.y / 860) * f.height };
+  }, id);
+  if (!pt) throw new Error(`target missing: ${id}`);
+  await hostile.mouse.click(pt.x, pt.y);
+  await wait(450);
+};
+await hostileTap('splash');
+await hostile.screenshot({ path: path.join(OUT, 'hostile-menu.png') });
+const hostileGate = await hostile.evaluate(() => {
+  const f = window.__app.field();
+  const hit = window.__app.targets().find((t) => t.id === 'gate');
+  return { x: f.x + (hit.x / 430) * f.width, y: f.y + (hit.y / 860) * f.height };
+});
+await hostile.mouse.move(hostileGate.x, hostileGate.y);
+await hostile.mouse.down();
+await wait(3000);
+await hostile.mouse.up();
+await wait(300);
+const hostileScreen = await hostile.evaluate(() => window.__app.screen().name);
+if (hostileScreen !== 'parent') {
+  throw new Error(`ASSERT(hostile): expected parent screen, got ${hostileScreen}`);
+}
+const hostileSettings = await readSettings(hostile);
+if (
+  hostileSettings?.parentHintSeen !== true ||
+  hostileSettings?.volume !== 1 ||
+  hostileSettings?.muted !== false ||
+  hostileSettings?.skin !== 'dino'
+) {
+  throw new Error(`ASSERT(hostile): unsanitized settings ${JSON.stringify(hostileSettings)}`);
+}
+console.log(
+  `hostile boot: sanitized (hint true after open, volume 1, muted false, skin dino); out/hostile-menu.png; errors: ${hostileErrors.length === 0 ? 'none' : hostileErrors.join(' | ')}`,
+);
+await hostileContext.close();
+
 console.log(`live page errors: ${appErrors.length === 0 ? '(none)' : appErrors.join(' | ')}`);
 await browser.close();
