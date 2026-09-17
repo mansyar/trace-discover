@@ -88,7 +88,7 @@ no push/PR/release; no new runtime dependency.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (0c9434c)
 
-## Phase 5: Visual authoring harness [checkpoint: ]
+## Phase 5: Visual authoring harness [checkpoint: 085d5da]
 
 - [x] Task 1: Dev pack preview (`dev/harness/`) (085d5da)
   - [x] Renders a chosen JSON pack's level with field coordinates, margin gutters,
@@ -97,11 +97,11 @@ no push/PR/release; no new runtime dependency.
   - [x] Manual visual spot-check of all 15 pre levels at 430×860
         (`qa-pack-preview.mjs --all`: 15/15 OK, screenshots reviewed)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (085d5da)
 
 ## Phase 6: Acceptance — parity, QA, docs [checkpoint: ]
 
-- [ ] Task 1: Docs + notes finalize
+- [~] Task 1: Docs + notes finalize
   - [ ] `tech-stack.md` + `product.md` dated notes verified; `dev/README.md` complete
   - [ ] Commit + git note
 - [ ] Task 2: End-to-end acceptance evidence
