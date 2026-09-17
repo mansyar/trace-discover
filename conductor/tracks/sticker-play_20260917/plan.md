@@ -113,16 +113,21 @@ two pages), ear approval of the note ladder, and the device sign-off.
         legacy taps; QA_BASE added to pre-pack/menu-pack
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 6: Device tuning, acceptance, docs finalize
+## Phase 6: Device tuning, acceptance, docs finalize [checkpoint: c6217e0]
 
-- [ ] Task 1: Device pass Android + iPad — tap targets land, pop feel, ladder
+- [x] Task 1: Device pass Android + iPad — tap targets land, pop feel, ladder
       musical, letters-board fit; tune cell sizes + record values (STOP +
       owner fallback decision → two-page letters board if cells fail tuning)
-- [ ] Task 2: Acceptance session (owner): zero-text audit; hostile fixtures;
+  - [x] Owner pass (2026-09-17): clean on Android + iPad; no tuning — shipped
+        layout values stand (48-radius cells, letters densest fit); two-page
+        fallback not triggered
+- [x] Task 2: Acceptance session (owner): zero-text audit; hostile fixtures;
       `qa-offline` cold start unchanged; perf spot-check; sign-off; docs
       finalize (tuned values recorded, dev/README QA table row, dated notes)
-  - [ ] Commit + git note
-- [ ] Task 3: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
-      dist record; review summary
-  - [ ] Commit + git note
+      (c6217e0)
+  - [x] Commit + git note
+- [x] Task 3: Final gates `pnpm check && pnpm test` + coverage; `pnpm budget`;
+      dist record; review summary — all green (480 tests; budget 4,675,279 B /
+      138 entries); evidence in the Phase 6 verification report (on c6217e0)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
