@@ -88,6 +88,16 @@ export function playCheckpointChime(
   });
 }
 
+/** One board-sticker tap note: the same pentatonic ladder as the checkpoint
+ *  chimes, fixed per sticker index (level order) so sequential taps play runs. */
+export function playStickerNote(
+  player: TonePlayer,
+  stickerIndex: number,
+  preset: InstrumentPreset = MARIMBA_PRESET,
+): void {
+  playCheckpointChime(player, stickerIndex, preset);
+}
+
 const COMPLETION_CHORD = [72, 76, 79]; // C5 E5 G5
 const SPARKLE_ARPEGGIO = [84, 86, 88, 91]; // C6 D6 E6 G6
 const ARPEGGIO_START = 0.2;

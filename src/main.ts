@@ -36,7 +36,7 @@ import { stickerPopFrame } from './app/stickerPop';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
-import { createUnlockGate, presetForInstrument } from './audio/synth';
+import { createUnlockGate, playStickerNote, presetForInstrument } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
 import type { HopTimeline } from './character/hops';
@@ -656,7 +656,11 @@ const handlers: TraceHandlers = {
       const stickerId = hitStickerCell(view.layout, point);
       if (stickerId && app.save.completedLevels.includes(stickerId)) {
         commit(applyAppEvent(app, { type: 'sticker-tap', levelId: stickerId }));
-        pop();
+        const player = ensureAudio();
+        if (player) {
+          const ladderIndex = view.ids.indexOf(stickerId);
+          playStickerNote(player, ladderIndex, presetForInstrument(activeSkin().instrument));
+        }
       }
     } else if (screen.name === 'parent') {
       if (screen.showName) {
