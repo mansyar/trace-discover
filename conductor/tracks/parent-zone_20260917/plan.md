@@ -114,17 +114,17 @@ one-finger hold fails device tuning.
 
 ## Phase 6: Install guide — platform-aware + installed detection
 
-- [~] Task 1: Detection (TDD)
-  - [ ] Red: UA/display-mode inputs → variant (ios / android / generic /
+- [x] Task 1: Detection (TDD) (7fced61)
+  - [x] Red: UA/display-mode inputs → variant (ios / android / generic /
         installed); iOS `navigator.standalone`; ambiguous → generic
-  - [ ] Green: pure `src/ui/install.ts`
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 2: Panel rendering + shell wiring
-  - [ ] Variant-aware steps + "All set" installed copy in finished card style;
+  - [x] Green: pure `src/ui/install.ts` (iPadOS via Macintosh UA + touch)
+  - [x] Verify coverage (install.ts 100%)
+  - [x] Commit + git note
+- [x] Task 2: Panel rendering + shell wiring (d1eb56c)
+  - [x] Variant-aware steps + "All set" installed copy in finished card style;
         shell passes UA/matchMedia values
-  - [ ] Screenshots (each variant, incl. simulated installed)
-  - [ ] Commit + git note
+  - [x] Screenshots (each variant, incl. simulated installed)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 7: QA evidence, device tuning, acceptance, docs finalize
