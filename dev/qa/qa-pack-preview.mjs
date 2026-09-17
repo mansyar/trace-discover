@@ -36,6 +36,22 @@ const CASES = [
   { level: 'pre-bonus-1', shot: 'pack-preview-pre-bonus-1.png' },
 ];
 
+// --all sweeps every level of the pack for the full visual spot-check.
+if (process.argv.includes('--all')) {
+  for (let index = 1; index <= 12; index += 1) {
+    const level = `pre-${index}`;
+    if (!CASES.some((entry) => entry.level === level)) {
+      CASES.push({ level, shot: `pack-preview-${level}.png` });
+    }
+  }
+  for (let index = 1; index <= 3; index += 1) {
+    const level = `pre-bonus-${index}`;
+    if (!CASES.some((entry) => entry.level === level)) {
+      CASES.push({ level, shot: `pack-preview-${level}.png` });
+    }
+  }
+}
+
 for (const { level, shot } of CASES) {
   await page.goto(`${BASE}/dev/harness/pack.html?pack=pre&level=${level}`, { waitUntil: 'load' });
   try {
