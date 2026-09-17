@@ -158,7 +158,7 @@ function badgeTap(state: AppState, packId: string): AppState {
 }
 
 /** Every level id in the pack: main levels first, then bonus circles. */
-function packLevelIds(pack: PackEntry): readonly string[] {
+export function packLevelIds(pack: PackEntry): readonly string[] {
   return [...pack.levels, ...pack.bonuses].map((level) => level.id);
 }
 

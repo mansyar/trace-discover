@@ -5,7 +5,13 @@
 // parent-gate hold, which needs the non-primary pointers tracing ignores.
 import './style.css';
 
-import { type AppState, applyAppEvent, shouldPulseStickerShelf, startApp } from './app/app';
+import {
+  type AppState,
+  applyAppEvent,
+  packLevelIds,
+  shouldPulseStickerShelf,
+  startApp,
+} from './app/app';
 import { loadArtImage } from './app/art';
 import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
@@ -304,18 +310,13 @@ function packLandingPage(packId: string): number {
   );
 }
 
-/** Level ids of a pack in board order (levels first, then bonuses). */
-function packBoardIds(pack: PackEntry): readonly string[] {
-  return [...pack.levels, ...pack.bonuses].map((level) => level.id);
-}
-
 /** Board view for a pack: ordered ids + the pure single-screen layout. */
 function boardView(packId: string) {
   const pack = PACKS.find((candidate) => candidate.id === packId);
   if (!pack) {
     return null;
   }
-  const ids = packBoardIds(pack);
+  const ids = packLevelIds(pack);
   return { ids, layout: stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, ids) };
 }
 
@@ -599,7 +600,7 @@ const handlers: TraceHandlers = {
         }
       }
       if (pack && hitShelfBand(layout, pager, point)) {
-        const boardIds = packBoardIds(pack);
+        const boardIds = packLevelIds(pack);
         if (packStickers(app.save, boardIds).some(Boolean)) {
           commit(applyAppEvent(app, { type: 'sticker-open', packId: screen.packId }));
           pop();
