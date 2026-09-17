@@ -112,24 +112,31 @@ export function parseRawLevel(raw: unknown, at: string): RawLevel {
   };
 }
 
-function asLevels(value: unknown, what: string): readonly RawLevel[] {
+function asLevels(value: unknown, what: string, at: string): readonly RawLevel[] {
   if (!Array.isArray(value)) {
     throw new Error(`${what} must be an array`);
   }
-  return value.map((level, index) => parseRawLevel(level, `level ${index}`));
+  return value.map((level, index) => parseRawLevel(level, `${at} level ${index}`));
 }
 
 function asNumberList(value: unknown, what: string): readonly number[] {
   if (!Array.isArray(value)) {
     throw new Error(`${what} must be an array`);
   }
-  return value.map((entry, index) =>
-    asFiniteNumber(entry, `${what} entry ${index}`, 'bonusUnlocks'),
-  );
+  return value.map((entry, index) => {
+    if (typeof entry !== 'number' || !Number.isFinite(entry)) {
+      throw new Error(`${what} entry ${index} must be a finite number`);
+    }
+    return entry;
+  });
 }
 
-/** Shape-checks raw pack data against the documented schema. */
-export function parseRawPack(raw: unknown): RawPack {
+/**
+ * Shape-checks raw pack data against the documented schema. `at` prefixes
+ * nested level labels (default `level`, or `pack` for the collector's
+ * pack-scoped paths).
+ */
+export function parseRawPack(raw: unknown, at = 'level'): RawPack {
   if (!isRecord(raw)) {
     throw new Error('pack must be an object');
   }
@@ -140,9 +147,9 @@ export function parseRawPack(raw: unknown): RawPack {
   return {
     badgeId: asId(raw.badgeId, 'badgeId', 'pack'),
     bonusUnlocks: asNumberList(raw.bonusUnlocks ?? [], 'bonusUnlocks'),
-    bonuses: asLevels(raw.bonuses ?? [], 'bonuses'),
+    bonuses: asLevels(raw.bonuses ?? [], 'bonuses', at),
     id: asId(raw.id, 'pack id', 'pack'),
-    levels: asLevels(raw.levels, 'levels'),
+    levels: asLevels(raw.levels, 'levels', at),
     menuFill: asId(raw.menuFill, 'menuFill', 'pack'),
   };
 }

@@ -1,8 +1,9 @@
 // Pack JSON parser: shape + geometry validation for declarative pack data.
 // Shape checks reject unknown keys so authoring typos (e.g. `goals` for
 // `goal`) fail loudly instead of silently changing behavior.
+// `collectPackProblems` is the non-throwing twin used by the authoring CLI.
 import { describe, expect, it } from 'vitest';
-import { parsePackJson } from './json';
+import { collectPackProblems, parsePackJson } from './json';
 
 const LEVEL = {
   goal: { x: 285, y: 430 },
@@ -63,6 +64,7 @@ describe('parsePackJson shape errors', () => {
 
   it('rejects a level with an empty or missing id', () => {
     const { id: _id, ...withoutId } = LEVEL;
+    expect(() => parsePackJson({ ...PACK, levels: [withoutId] })).toThrow(/pack 'pre' is invalid/);
     expect(() => parsePackJson({ ...PACK, levels: [withoutId] })).toThrow(/level 0: missing id/);
     expect(() => parsePackJson({ ...PACK, levels: [{ ...LEVEL, id: '' }] })).toThrow(
       /level 0: missing id/,
@@ -263,9 +265,7 @@ describe('parsePackJson pack-rule errors', () => {
   };
 
   it('rejects a pack without levels', () => {
-    expect(() => parsePackJson({ ...PACK, levels: [] })).toThrow(
-      /pack 'pre': Pack pre needs at least one level/,
-    );
+    expect(() => parsePackJson({ ...PACK, levels: [] })).toThrow(/needs at least one level/);
   });
 
   it('requires one unlock threshold per bonus', () => {
@@ -298,5 +298,76 @@ describe('parsePackJson pack-rule errors', () => {
         levels: [{ ...LEVEL, goalArt: '/art/goal/../priv/secret.webp' }],
       }),
     ).toThrow(/must not traverse/);
+  });
+});
+
+describe('collectPackProblems', () => {
+  it('returns an empty list for a well-formed pack', () => {
+    expect(collectPackProblems(PACK)).toEqual([]);
+  });
+
+  it('reports shape problems as pack-level labels', () => {
+    expect(collectPackProblems(null)).toEqual(['pack must be an object']);
+    expect(collectPackProblems({ ...PACK, levels2: [] })).toEqual(["unknown pack key 'levels2'"]);
+    expect(collectPackProblems({ ...PACK, levels: [{ ...LEVEL, id: '' }] })).toEqual([
+      'pack level 0: missing id',
+    ]);
+  });
+
+  it('reports every geometry problem with its level index and id', () => {
+    const badStrokes = [
+      {
+        ...LEVEL,
+        strokes: [
+          [
+            { x: 10, y: 430 },
+            { x: 285, y: 430 },
+          ],
+        ],
+      },
+      { ...LEVEL, id: 'pre-2', strokes: [[{ x: 145, y: 430 }]] },
+    ];
+    expect(collectPackProblems({ ...PACK, levels: badStrokes })).toEqual([
+      "pack level 0 ('pre-1'): stroke 0 control point 0 outside field margin",
+      "pack level 1 ('pre-2'): stroke 0 needs at least 2 control points",
+    ]);
+  });
+
+  it('reports traversal, unlock, and rule problems together', () => {
+    const problems = collectPackProblems({
+      ...PACK,
+      levels: [{ ...LEVEL, goalArt: '/art/goal/../x.webp' }],
+      bonuses: [
+        {
+          ...LEVEL,
+          id: 'pre-bonus-1',
+          stroke: 'circle',
+          strokes: [
+            [
+              { x: 215, y: 430 },
+              { x: 285, y: 430 },
+              { x: 215, y: 430 },
+            ],
+          ],
+        },
+      ],
+      bonusUnlocks: [7],
+    });
+    expect(problems).toEqual([
+      "pack level 0 ('pre-1'): goalArt must not traverse outside /art/goal/",
+      'pack: final bonus unlock (7) must equal the level count (1)',
+    ]);
+  });
+
+  it('rejects non-finite bonus unlock values as pack problems', () => {
+    expect(collectPackProblems({ ...PACK, bonusUnlocks: [Number.NaN] })).toEqual([
+      'bonusUnlocks entry 0 must be a finite number',
+    ]);
+  });
+
+  it('rejects goalArt paths outside the /art/goal/ prefix', () => {
+    expect(
+      collectPackProblems({ ...PACK, levels: [{ ...LEVEL, goalArt: '/art/goal-is/1.webp' }] }),
+    ).toEqual(['pack level 0: goalArt must be a bundle path under /art/goal/']);
   });
 });
