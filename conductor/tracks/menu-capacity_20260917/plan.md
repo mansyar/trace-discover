@@ -38,7 +38,7 @@
   - [x] Commit + git note (empty evidence commit permitted)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Harness preview, QA matrix & closeout
+## Phase 4: Harness preview, QA matrix & closeout [checkpoint: 4c4728e]
 
 - [x] Task 1: Dev harness synthetic counts (dev-only) [ee731bc]
   - [x] `src/dev/screens.ts` + `dev/harness/screens.html`: parameter(s) for N synthetic cards (2–6) + orientation (e.g., `?menuCards=N`); render the screenshot matrix 3–6 × portrait/landscape incl. the name-card case; review screenshots; `dev/README.md` harness notes
