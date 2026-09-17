@@ -21,7 +21,7 @@
 
 ## Phase 2: Numbers port — byte-level parity (TDD)
 
-- [ ] Task 1: Numbers parity + loader contract, then thin loader (TDD)
+- [~] Task 1: Numbers parity + loader contract, then thin loader (TDD)
   - [ ] Red: `src/packs/numbers-parity.test.ts` — parity vs frozen fixture (ids, goals, goalArt, strokes, order); identity checks; loader contract via mocked malformed `./data/numbers.json` → labeled load error — confirm the contract test fails against the current inline `numbers.ts`
   - [ ] Green: author `src/packs/data/numbers.json` (schema-identical to fixture); rewrite `numbers.ts` as a thin loader (Pre-writing pattern; `NUMERAL_LEVELS` / `NUMBERS_PACK` preserved); tests green
   - [ ] Verify coverage
