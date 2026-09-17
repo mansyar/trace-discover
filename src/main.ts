@@ -35,6 +35,15 @@ import type { TonePlayer } from './audio/synth';
 import { createUnlockGate, giggleNoteSpec, presetForInstrument } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
+import {
+  createEntrance,
+  type EntranceState,
+  type EntranceTimeline,
+  entrancePos,
+  entranceStart,
+  settleEntrance,
+  stepEntrance,
+} from './character/entrance';
 import type { HopTimeline } from './character/hops';
 import type { Point } from './engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from './field';
@@ -202,6 +211,7 @@ let idleCharFor: string | null = null;
 let lastGiggle: number | null = null;
 let mascotSparkles: ConfettiParticle[] = [];
 let mascotSparklesUntil = 0;
+let entrance: { timeline: EntranceTimeline; state: EntranceState } | null = null;
 
 // Audio starts lazily on first touch (iOS requirement); volume and mute
 // read the live save so parent-zone changes apply instantly.
@@ -511,6 +521,7 @@ function startRun(
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),
   });
+  entrance = { timeline: createEntrance(session.snapshot().charPos), state: entranceStart() };
 }
 
 /** Tap reaction: the parked mascot giggles (one note + a sparkle burst) on
@@ -628,9 +639,13 @@ const handlers: TraceHandlers = {
             levelArtUrls = null;
             currentRun = null;
             pendingSkinSwap = false;
+            entrance = null;
           }
         }
         return;
+      }
+      if (entrance && !entrance.state.settled) {
+        entrance.state = settleEntrance(entrance.timeline, entrance.state);
       }
       session.pointerDown(point);
     } else if (screen.name === 'badge') {
@@ -747,6 +762,9 @@ function frame(now: number): void {
       }
     }
   }
+  if (entrance && !entrance.state.settled) {
+    entrance.state = stepEntrance(entrance.timeline, entrance.state, dtMs);
+  }
   if (mascotSparkles.length > 0) {
     if (now >= mascotSparklesUntil) {
       mascotSparkles = [];
@@ -855,7 +873,11 @@ function render(now: number): void {
   }
   endField(trailContext);
   if ((screen.name === 'level' || screen.name === 'success') && session) {
-    positionCharacter(session.snapshot().charPos, CHARACTER_SCALE);
+    const charPos =
+      entrance && !entrance.state.settled
+        ? entrancePos(entrance.timeline, entrance.state)
+        : session.snapshot().charPos;
+    positionCharacter(charPos, CHARACTER_SCALE);
   } else if (screen.name === 'menu') {
     positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
   } else if (screen.name === 'pack') {
