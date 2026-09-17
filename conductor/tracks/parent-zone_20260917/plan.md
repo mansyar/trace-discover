@@ -96,7 +96,7 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (97e2788)
 
-## Phase 5: Sound controls — pips, preview, auto-unmute
+## Phase 5: Sound controls — pips, preview, auto-unmute [checkpoint: 437965b]
 
 - [x] Task 1: Logic (TDD) (ce287ab)
   - [x] Red: pips mapping (volume → 0–5); quieter/louder auto-unmutes; mute
@@ -110,11 +110,11 @@ one-finger hold fails device tuning.
         muted state dimmed
   - [x] Screenshots (pips at min/mid/max + muted; pixel-verified 5/3/0 fills)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (437965b)
 
 ## Phase 6: Install guide — platform-aware + installed detection
 
-- [ ] Task 1: Detection (TDD)
+- [~] Task 1: Detection (TDD)
   - [ ] Red: UA/display-mode inputs → variant (ios / android / generic /
         installed); iOS `navigator.standalone`; ambiguous → generic
   - [ ] Green: pure `src/ui/install.ts`
