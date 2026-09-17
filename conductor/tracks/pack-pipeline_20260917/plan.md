@@ -50,19 +50,19 @@ no push/PR/release; no new runtime dependency.
 
 ## Phase 3: Pre-writing port — byte-level parity [checkpoint: ]
 
-- [ ] Task 1: `src/packs/data/pre.json` authored from current `pre.ts`
-  - [ ] All 12 levels + 3 bonus circles + badge/menuFill/unlocks, control points
+- [x] Task 1: `src/packs/data/pre.json` authored from current `pre.ts` (01b690e)
+  - [x] All 12 levels + 3 bonus circles + badge/menuFill/unlocks, control points
         and goals copied exactly
-  - [ ] `tsconfig.json`: `resolveJsonModule` enabled; `pnpm check` green
-  - [ ] Commit + git note
-- [ ] Task 2: `pre.ts` becomes a thin loader (TDD)
-  - [ ] Red: parity test — hardcoded coordinate table of the original 15 levels
+  - [x] `tsconfig.json`: `resolveJsonModule` enabled; `pnpm check` green
+  - [x] Commit + git note
+- [x] Task 2: `pre.ts` becomes a thin loader (TDD) (257fe20)
+  - [x] Red: parity test - hardcoded coordinate table of the original 15 levels
         compared against the JSON-sourced `PRE_PACK` (ids, stroke patterns, goals,
         control points, order, unlocks); malformed fixture throws a labeled error
-  - [ ] Green: rewrite `pre.ts` to import the JSON + `parsePackJson`; exports
+  - [x] Green: rewrite `pre.ts` to import the JSON + `parsePackJson`; exports
         `PRE_PACK` / `PRE_LEVELS` unchanged
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 3: Full-suite regression pass
   - [ ] `CI=true pnpm check && CI=true pnpm test` — all pre-existing tests green
     without modification
