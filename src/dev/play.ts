@@ -336,7 +336,12 @@ function resize(): void {
   trailCanvas.height = backing.height;
   field = fitRect(window.innerWidth, window.innerHeight, FIELD_WIDTH, FIELD_HEIGHT);
   detachInput();
-  detachInput = attachTraceInput(trailCanvas, field, handlers);
+  detachInput = attachTraceInput(
+    trailCanvas,
+    field,
+    { width: FIELD_WIDTH, height: FIELD_HEIGHT },
+    handlers,
+  );
   refreshQa();
 }
 

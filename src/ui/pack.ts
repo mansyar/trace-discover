@@ -59,10 +59,14 @@ const GRID_CENTER_OFFSET_LANDSCAPE = 60;
 const HOME_MARGIN = 56;
 const HOME_RADIUS = 45;
 const SLOT_GAP = 16;
+const SLOT_GAP_LANDSCAPE = 12;
 const SLOT_RADIUS = 20;
+const SLOT_RADIUS_LANDSCAPE = 16;
 const SLOT_ROW_GAP = 4;
 const SLOT_TOP = 692;
-const SLOT_BOTTOM_OFFSET_LANDSCAPE = 96;
+const SLOT_BOTTOM_OFFSET_LANDSCAPE = 94;
+const SLOT_BAND_LEFT_LANDSCAPE = 110;
+const SLOT_BAND_WIDTH_LANDSCAPE = 630;
 const DEFAULT_SLOTS_PER_ROW = 5;
 const PAGER_RADIUS = 45;
 const PAGER_GAP = 10;
@@ -99,14 +103,19 @@ export function packLayout(
       y: gridTop + row * (cardSize + CARD_GAP),
     };
   });
-  const slotRowWidth = slotsPerRow * SLOT_RADIUS * 2 + (slotsPerRow - 1) * SLOT_GAP;
-  const slotStartX = centerX - slotRowWidth / 2;
+  const slotRadius = landscape ? SLOT_RADIUS_LANDSCAPE : SLOT_RADIUS;
+  const slotGap = landscape ? SLOT_GAP_LANDSCAPE : SLOT_GAP;
+  const slotRowWidth = slotsPerRow * slotRadius * 2 + (slotsPerRow - 1) * slotGap;
+  // Landscape keeps the shelf in one row, centred between home and the mascot band.
+  const slotStartX = landscape
+    ? SLOT_BAND_LEFT_LANDSCAPE + (SLOT_BAND_WIDTH_LANDSCAPE - slotRowWidth) / 2
+    : centerX - slotRowWidth / 2;
   const slots = levelIds.map(
     (levelId, index): PackSlot => ({
       levelId,
-      radius: SLOT_RADIUS,
-      x: slotStartX + SLOT_RADIUS + (index % slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_GAP),
-      y: slotTop + Math.floor(index / slotsPerRow) * (SLOT_RADIUS * 2 + SLOT_ROW_GAP),
+      radius: slotRadius,
+      x: slotStartX + slotRadius + (index % slotsPerRow) * (slotRadius * 2 + slotGap),
+      y: slotTop + Math.floor(index / slotsPerRow) * (slotRadius * 2 + SLOT_ROW_GAP),
     }),
   );
   return {

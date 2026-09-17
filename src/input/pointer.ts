@@ -1,9 +1,13 @@
 import type { Point } from '../engine/types';
-import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import type { Rect } from '../shell/layout';
 
-/** Maps a viewport pointer position into play-field design coordinates, or `null` outside it. */
-export function mapPointerToField(clientX: number, clientY: number, field: Rect): Point | null {
+/** Maps a viewport pointer position into design coordinates, or `null` outside the field. */
+export function mapPointerToField(
+  clientX: number,
+  clientY: number,
+  field: Rect,
+  design: { readonly width: number; readonly height: number },
+): Point | null {
   if (
     clientX < field.x ||
     clientX > field.x + field.width ||
@@ -13,8 +17,8 @@ export function mapPointerToField(clientX: number, clientY: number, field: Rect)
     return null;
   }
   return {
-    x: ((clientX - field.x) / field.width) * FIELD_WIDTH,
-    y: ((clientY - field.y) / field.height) * FIELD_HEIGHT,
+    x: ((clientX - field.x) / field.width) * design.width,
+    y: ((clientY - field.y) / field.height) * design.height,
   };
 }
 
@@ -34,13 +38,14 @@ export interface TraceHandlers {
 export function attachTraceInput(
   target: HTMLElement,
   field: Rect,
+  design: { readonly width: number; readonly height: number },
   handlers: TraceHandlers,
 ): () => void {
   const route = (event: PointerEvent, handler: (point: Point) => void): void => {
     if (!isPrimaryPointer(event)) {
       return;
     }
-    const point = mapPointerToField(event.clientX, event.clientY, field);
+    const point = mapPointerToField(event.clientX, event.clientY, field, design);
     if (point) {
       handler(point);
     }

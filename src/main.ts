@@ -99,13 +99,13 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
   abc: {
     cardSize: 90,
     columns: 4,
-    landscape: { cardSize: 90, columns: 7, slotsPerRow: 7 },
+    landscape: { cardSize: 90, columns: 7, slotsPerRow: 14 },
     pages: [12, 14],
     slotsPerRow: 7,
   },
   name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
-  numbers: { landscape: { cardSize: 96, columns: 5, slotsPerRow: 5 } },
-  pre: { columns: 3, landscape: { cardSize: 96, columns: 6, slotsPerRow: 6 }, slotsPerRow: 6 },
+  numbers: { landscape: { cardSize: 96, columns: 5, slotsPerRow: 10 } },
+  pre: { columns: 3, landscape: { cardSize: 96, columns: 6, slotsPerRow: 12 }, slotsPerRow: 6 },
 };
 
 let PACKS: readonly PackEntry[] = [];
@@ -411,7 +411,8 @@ function ensureCharacter(name: string, forceReload = false): void {
 
 /** Places the mascot canvas: field-space park point + character scale. */
 function positionCharacter(park: Point, scale: number): void {
-  const charSize = field.width * scale;
+  // Relative to the short edge so mascots keep their portrait size in the wide field.
+  const charSize = Math.min(field.width, field.height) * scale;
   if (charCanvas.style.width !== `${charSize}px`) {
     charCanvas.style.width = `${charSize}px`;
     charCanvas.style.height = `${charSize}px`;
@@ -687,14 +688,14 @@ function resize(): void {
   }
   field = fitRect(window.innerWidth, window.innerHeight, space.width, space.height);
   detachInput();
-  detachInput = attachTraceInput(trailCanvas, field, handlers);
+  detachInput = attachTraceInput(trailCanvas, field, space, handlers);
   positionNameInput();
 }
 
 // Two-finger hold in the menu corner opens the parent zone. Tracing ignores
 // non-primary pointers, so this raw listener tracks them separately.
 trailCanvas.addEventListener('pointerdown', (event) => {
-  const point = mapPointerToField(event.clientX, event.clientY, field);
+  const point = mapPointerToField(event.clientX, event.clientY, field, space);
   if (point && app.screen.name === 'menu' && inParentGate(MENU, point)) {
     gatePointers.add(event.pointerId);
   }
@@ -744,7 +745,7 @@ function frame(now: number): void {
 
 function render(now: number): void {
   const dpr = window.innerWidth > 0 ? trailCanvas.width / window.innerWidth : 1;
-  beginField(trailContext, trailCanvas.width, trailCanvas.height, field, dpr);
+  beginField(trailContext, trailCanvas.width, trailCanvas.height, field, space, dpr);
   const screen = app.screen;
   if (screen.name === 'splash') {
     drawSplash(trailContext, now, SPLASH);

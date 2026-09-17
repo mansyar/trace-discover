@@ -126,19 +126,20 @@ export function beginField(
   canvasWidth: number,
   canvasHeight: number,
   field: { x: number; y: number; width: number },
+  design: { readonly width: number; readonly height: number },
   dpr: number,
 ): void {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = CREAM;
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  const scale = (field.width * dpr) / FIELD_WIDTH;
+  const scale = (field.width * dpr) / design.width;
   ctx.setTransform(scale, 0, 0, scale, field.x * dpr, field.y * dpr);
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  ctx.rect(0, 0, design.width, design.height);
   ctx.clip();
   ctx.fillStyle = FIELD_FILL;
-  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  ctx.fillRect(0, 0, design.width, design.height);
 }
 
 export function endField(ctx: CanvasRenderingContext2D): void {

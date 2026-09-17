@@ -439,34 +439,33 @@ describe('packLayout (landscape)', () => {
   const W = 860;
   const H = 430;
 
-  it('runs the numbers grid in two rows with the shelf below', () => {
-    const current = packLayout(W, H, NUMERALS, { columns: 5, slotsPerRow: 5 });
+  it('runs the numbers grid in two rows with a single shelf row below', () => {
+    const current = packLayout(W, H, NUMERALS, { columns: 5, slotsPerRow: 10 });
     const first = cardAt(current, 0);
     const sixth = cardAt(current, 5);
     expect(sixth.y - first.y).toBe(96 + 14);
     for (const card of current.cards) {
       expect(card.x).toBeGreaterThanOrEqual(0);
-      expect(card.y + card.height).toBeLessThanOrEqual(334); // above the shelf band
-    }
-    for (const slot of current.slots) {
-      expect(slot.y + slot.radius).toBeLessThanOrEqual(H);
+      expect(card.y + card.height).toBeLessThanOrEqual(336); // above the shelf row
     }
     const slotFirst = current.slots[0];
-    const slotLast = current.slots[4];
+    const slotLast = current.slots[9];
     if (!slotFirst || !slotLast) {
       throw new Error('missing landscape slots');
     }
-    expect(slotFirst.y).toBe(334);
-    // the slot row shares the grid's center line
-    expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(
-      (first.x + first.width / 2 + (cardAt(current, 4).x + cardAt(current, 4).width / 2)) / 2,
-      5,
-    );
+    for (const slot of current.slots) {
+      expect(slot.y).toBe(slotFirst.y); // one row
+      expect(slot.y + slot.radius).toBeLessThanOrEqual(H);
+      expect(slot.x - slot.radius).toBeGreaterThanOrEqual(110); // clear of home
+      expect(slot.x + slot.radius).toBeLessThanOrEqual(740); // clear of the mascot band
+    }
+    // the slot row is centred in the band between home and mascot
+    expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(425, 5);
   });
 
-  it('fits the densest letters page (14 cards, 7 columns) above the shelf and left of the mascot', () => {
+  it('fits the densest letters page (14 cards, 7 columns) above a single shelf row', () => {
     const ids = Array.from({ length: 14 }, (_, index) => `abc-${index}`);
-    const current = packLayout(W, H, ids, { cardSize: 90, columns: 7, slotsPerRow: 7 });
+    const current = packLayout(W, H, ids, { cardSize: 90, columns: 7, slotsPerRow: 14 });
     const first = cardAt(current, 0);
     const eighth = cardAt(current, 7);
     expect(first.y).toBe(118);
@@ -474,13 +473,19 @@ describe('packLayout (landscape)', () => {
     for (const card of current.cards) {
       expect(card.x).toBeGreaterThanOrEqual(0);
       expect(card.x + card.width).toBeLessThanOrEqual(749); // mascot band stays clear
-      expect(card.y + card.height).toBeLessThanOrEqual(334);
+      expect(card.y + card.height).toBeLessThanOrEqual(336);
     }
-    const firstSlotY = current.slots[0]?.y ?? 0;
-    const lastSlotRow = current.slots.filter((slot) => slot.y === firstSlotY + 44);
-    expect(lastSlotRow.length).toBe(7);
+    expect(current.slots.length).toBe(14);
+    const slotFirst = current.slots[0];
+    const slotLast = current.slots[13];
+    if (!slotFirst || !slotLast) {
+      throw new Error('missing landscape slots');
+    }
     for (const slot of current.slots) {
-      expect(slot.y + slot.radius).toBeLessThanOrEqual(H);
+      expect(slot.y).toBe(slotFirst.y);
+      expect(slot.x - slot.radius).toBeGreaterThanOrEqual(110);
+      expect(slot.x + slot.radius).toBeLessThanOrEqual(740);
     }
+    expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(425, 5);
   });
 });
