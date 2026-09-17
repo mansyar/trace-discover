@@ -19,6 +19,7 @@ import {
   type SplashLayout,
 } from '../ui/menu';
 import type { PackLayout, PackPager, PackPagerSpot } from '../ui/pack';
+import { volumePips } from '../ui/parent';
 import type {
   NameOverlayLayout,
   ParentZoneAction,
@@ -947,6 +948,27 @@ function drawZoneCard(ctx: CanvasRenderingContext2D, card: ZoneCard): void {
   );
 }
 
+const PIP_RADIUS = 6;
+const PIP_GAP = 18;
+
+/** Five pips track the volume level; muted dims the filled pips. */
+function drawVolumePips(
+  ctx: CanvasRenderingContext2D,
+  rightX: number,
+  centerY: number,
+  volume: number,
+  muted: boolean,
+): void {
+  const filled = volumePips(volume);
+  for (let index = 0; index < 5; index += 1) {
+    ctx.beginPath();
+    ctx.arc(rightX - (4 - index) * PIP_GAP, centerY, PIP_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle =
+      index < filled ? (muted ? 'rgba(46, 74, 99, 0.28)' : GOLD) : 'rgba(46, 74, 99, 0.15)';
+    ctx.fill();
+  }
+}
+
 export function drawParent(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -972,6 +994,16 @@ export function drawParent(
   ctx.fillText('Grown-ups', FIELD_WIDTH / 2, 70);
   for (const card of layout.cards) {
     drawZoneCard(ctx, card);
+  }
+  const soundCard = layout.cards.find((card) => card.id === 'sound');
+  if (soundCard) {
+    drawVolumePips(
+      ctx,
+      soundCard.rect.x + soundCard.rect.width - 20,
+      soundCard.rect.y + 22,
+      settings.volume,
+      settings.muted,
+    );
   }
   drawZoneButton(
     ctx,

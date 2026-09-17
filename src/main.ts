@@ -34,7 +34,7 @@ import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { withVolume } from './audio/meter';
 import { createTonePlayer } from './audio/player';
 import type { TonePlayer } from './audio/synth';
-import { createUnlockGate, presetForInstrument } from './audio/synth';
+import { createUnlockGate, playVolumePreview, presetForInstrument } from './audio/synth';
 import { canvasLiteFactory } from './character/adapter';
 import { type Character, loadCharacter } from './character/character';
 import type { HopTimeline } from './character/hops';
@@ -221,6 +221,15 @@ function ensureAudio(): TonePlayer | null {
 
 function pop(): void {
   meteredPlayer?.play({ delay: 0, duration: 0.15, frequency: 660, gain: 0.22, type: 'sine' });
+}
+
+/** Parents hear the level they just set, in the active skin's voice. */
+function previewVolumeNote(): void {
+  const player = ensureAudio();
+  if (!player) {
+    return;
+  }
+  playVolumePreview(player, presetForInstrument(activeSkin().instrument));
 }
 
 /** Lazily-created DOM field for the parent-set name (child screens never see it). */
@@ -642,7 +651,9 @@ const handlers: TraceHandlers = {
       if (action) {
         parentPress = { action, atMs: performance.now() };
         commit(applyAppEvent(app, { type: 'parent-action', action }));
-        if (action !== 'done') {
+        if (action === 'volume-down' || action === 'volume-up') {
+          previewVolumeNote();
+        } else if (action !== 'done') {
           pop();
         }
       }

@@ -61,6 +61,12 @@ const tapTarget = async (id) => {
   await wait(450);
 };
 
+const readSettings = (page) =>
+  page.evaluate(() => {
+    const raw = localStorage.getItem('trace-discover-save-v1');
+    return raw ? JSON.parse(raw).settings : null;
+  });
+
 await tapTarget('splash');
 await appPage.screenshot({ path: path.join(OUT, 'menu-hint.png') });
 await wait(400);
@@ -86,10 +92,36 @@ if (screenName !== 'parent') {
   throw new Error(`ASSERT: expected parent screen after the hold, got ${screenName}`);
 }
 
-// Zone finish evidence: default, muted, easier on, restart confirm, install.
+// Zone finish + sound evidence: default (full pips), half volume, zero
+// volume, muted with half volume, unmuted by a step, easier on, restart
+// confirm, install.
 await appPage.screenshot({ path: path.join(OUT, 'zone-default.png') });
+for (let tap = 0; tap < 5; tap += 1) {
+  await tapTarget('parent:volume-down');
+}
+await appPage.screenshot({ path: path.join(OUT, 'zone-sound-mid.png') });
+for (let tap = 0; tap < 5; tap += 1) {
+  await tapTarget('parent:volume-down');
+}
+await appPage.screenshot({ path: path.join(OUT, 'zone-sound-min.png') });
+for (let tap = 0; tap < 5; tap += 1) {
+  await tapTarget('parent:volume-up');
+}
 await tapTarget('parent:mute');
 await appPage.screenshot({ path: path.join(OUT, 'zone-muted.png') });
+await tapTarget('parent:volume-up');
+await appPage.screenshot({ path: path.join(OUT, 'zone-unmuted.png') });
+
+const settingsAfterSteps = await readSettings(appPage);
+if (settingsAfterSteps?.muted !== false) {
+  throw new Error(
+    `ASSERT: volume stepping should unmute, got ${JSON.stringify(settingsAfterSteps)}`,
+  );
+}
+if (Math.abs((settingsAfterSteps?.volume ?? 0) - 0.6) > 0.001) {
+  throw new Error(`ASSERT: expected volume 0.6 after steps, got ${settingsAfterSteps?.volume}`);
+}
+
 await tapTarget('parent:easier');
 await appPage.screenshot({ path: path.join(OUT, 'zone-easier.png') });
 await tapTarget('parent:reset');
@@ -97,7 +129,7 @@ await appPage.screenshot({ path: path.join(OUT, 'zone-confirm.png') });
 await tapTarget('parent:install');
 await appPage.screenshot({ path: path.join(OUT, 'zone-install.png') });
 console.log(
-  'zone shots: out/zone-default.png, zone-muted.png, zone-easier.png, zone-confirm.png, zone-install.png',
+  'zone shots: out/zone-default.png, zone-sound-mid.png, zone-sound-min.png, zone-muted.png, zone-unmuted.png, zone-easier.png, zone-confirm.png, zone-install.png',
 );
 
 // Hint lifecycle: the flag persisted on open, so a reloaded menu hides it.
