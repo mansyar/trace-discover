@@ -69,7 +69,7 @@
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 5 — Acceptance sweep + owner handoff
+## Phase 5 — Acceptance sweep + owner handoff [checkpoint: 623b737]
 
 *Goal: every acceptance criterion traced to evidence; PR ready for the owner.*
 
@@ -80,7 +80,7 @@
 - [x] Task: Final PR + handoff [623b737]
   - [x] Mark PR ready for review; summarize evidence; merge/release remain with the owner
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ### Acceptance evidence (AC1–7)
 
