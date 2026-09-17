@@ -28,6 +28,7 @@ export default defineConfig({
   ],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    // Dev-tooling suites (e.g. the pack validator) run alongside app tests.
+    include: ['src/**/*.test.ts', 'dev/tools/**/*.test.ts'],
   },
 });

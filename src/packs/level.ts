@@ -17,7 +17,8 @@ export interface LevelDef {
   readonly strokes: readonly (readonly Point[])[];
 }
 
-const MARGIN = 24;
+/** Field-edge keep-out band shared by the validator and authoring tools (px). */
+export const MARGIN = 24;
 const SEGMENT_SAMPLES = 24;
 const POINT_SPACING = 8;
 

@@ -11,7 +11,7 @@ purpose.
 | --- | --- |
 | `tools/` | $0 asset pipeline — Workers AI generation, cutout/optimize/composite, batch composers |
 | `qa/` | Headless-Edge (playwright-core) verification scripts + probes; outputs in `qa/out/` (git-ignored) |
-| `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery) · `tune.html` (feel tuning) — served by the Vite dev server |
+| `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery) · `tune.html` (feel tuning) · `pack.html` (pack JSON preview: `?pack=pre&level=pre-7`) — served by the Vite dev server |
 | `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion` · `teddy`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
@@ -78,6 +78,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-sticker-play.mjs` | Sticker play: first-open pulse → board → tap notes (oscillator-frequency captured) → reload/fresh-save semantics → 29-slot letters fit | dev `:5199` | canonical |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
 | `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
+| `qa-pack-preview.mjs` | Pack preview harness smoke + spot-check shots: pre levels 1/7/12 + bonus 1, checkpoint counts, default-url fallback (pack-pipeline_20260917) | dev `:5199` | canonical |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
@@ -89,11 +90,26 @@ Start the right server first, then run the script (most accept a URL argument).
 *Status legend: **canonical** = kept and referenced · **one-off** = kept for
 reference · **utility** = reusable helper · **stale** = superseded, candidates
 for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
-2026-09-16); `qa-parent-zone` added in `parent-zone_20260917` (2026-09-17).*
+2026-09-16); `qa-parent-zone` added in `parent-zone_20260917` (2026-09-17);
+`qa-pack-preview` added in `pack-pipeline_20260917` (2026-09-17).*
 
 > First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
 > cold Vite optimize right after the dev server starts — warm the server (load
 > `/dev/harness/play.html` once) or simply re-run; warm runs are green.
+
+## Pack preview harness (`harness/pack.html`)
+
+Visual authoring loop for declarative packs (`src/packs/data/*.json`, see
+`src/packs/data/README.md` for the format): open
+`http://localhost:5199/dev/harness/pack.html?pack=pre&level=pre-7` on the dev
+server. It renders the level exactly as authored — field gutters at the 24 pt
+margin, each stroke as its own color over the engine-resampled path, numbered
+control points, the start star, the goal flag, and the six
+equal-arc-length checkpoint circles. `?pack=` defaults to the first pack
+(currently `pre`), `?level=` to its first level; click the canvas to read field
+coordinates from the browser console. Reloading picks up JSON edits without an
+app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl] [--all]` sweeps every
+level (15/15 pre + bonuses) and writes spot-check shots to `dev/qa/out/`.
 
 ## Art-source policy
 
