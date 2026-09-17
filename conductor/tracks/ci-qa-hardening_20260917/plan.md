@@ -25,16 +25,16 @@
 
 *Goal: `qa-smoke.mjs` is the trustworthy canonical smoke — ≥5 consecutive green runs, and proven red on a broken build.*
 
-- [ ] Task: Write `dev/qa/qa-smoke.mjs`
-  - [ ] Adapt launch/tap/trace routine from `qa-app.mjs` / `qa-pre-pack.mjs`: splash → `pack:pre` → `level:pre-1` → trace → success; channel env-overridable (default `msedge`); base URL arg/env (default `http://localhost:4173`); page-error collection → non-zero exit
-  - [ ] Screenshots + findings log into `dev/qa/out/` (git-ignored); clean diagnostics; no retries
-  - [ ] Evidence: `pnpm build` + preview → ≥5 consecutive green runs recorded
-  - [ ] Commit + git note
-- [ ] Task: Negative control — sensitivity proof
-  - [ ] Temporary boot-failure patch (`src/main.ts`) → build → smoke red (screenshot + log captured) → revert → green; evidence recorded (empty evidence commit permitted)
-  - [ ] Commit + git note
-- [ ] Task: Runbook — `dev/README.md` gains the `qa-smoke` row (canonical) + usage note (two-terminal pattern)
-  - [ ] Commit + git note
+- [x] Task: Write `dev/qa/qa-smoke.mjs` [16c2ca9]
+  - [x] Adapt launch/tap/trace routine from `qa-app.mjs` / `qa-pre-pack.mjs`: splash → `pack:pre` → `level:pre-1` → trace → success; channel env-overridable (default `msedge`); base URL arg/env (default `http://localhost:4173`); page-error collection → non-zero exit
+  - [x] Screenshots + findings log into `dev/qa/out/` (git-ignored); clean diagnostics; no retries
+  - [x] Evidence: `pnpm build` + preview → ≥5 consecutive green runs recorded
+  - [x] Commit + git note
+- [x] Task: Negative control — sensitivity proof [2815a49]
+  - [x] Temporary boot-failure patch (`src/main.ts`) → build → smoke red (screenshot + log captured) → revert → green; evidence recorded (empty evidence commit permitted)
+  - [x] Commit + git note
+- [x] Task: Runbook — `dev/README.md` gains the `qa-smoke` row (canonical) + usage note (two-terminal pattern) [a226c87]
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — CI wiring + recorded runs
