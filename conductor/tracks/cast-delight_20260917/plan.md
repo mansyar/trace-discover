@@ -63,10 +63,10 @@ conflicts, resolved by preserving both behaviors.
         input untouched)
   - [x] Screenshot evidence (entrance frames + settled state); verify coverage;
         commit + git note
-- [ ] Task 4: Harness preview controls
-  - [ ] `dev/screens.ts`: fire giggle / replay entrance / settle controls for
+- [x] Task 4: Harness preview controls (1b5d757)
+  - [x] `dev/screens.ts`: fire giggle / replay entrance / settle controls for
         tuning (dev-only)
-  - [ ] Commit + git note
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Cast upgrades — five workspaces
