@@ -7,7 +7,7 @@
 
 **Delivery strategy:** freeze the pre-port truth first (committed fixtures captured from the current TypeScript), then port one pack at a time (Numbers → Letters) behind parity tests, then verify the (already generic) tooling, extend the preview sweep to all packs, and close with QA sweeps + docs + size deltas. Byte parity is the hard constraint — no geometry, id, goalArt, order, badge, menuFill, or unlock change; no consumer module is expected to change. All work stays local on `track/pack-pipeline-2` — no push/PR/release. Any tech-stack deviation stops the line and updates `tech-stack.md` first (workflow rule 7).
 
-## Phase 1: Truth freeze — docs of record + parity fixtures
+## Phase 1: Truth freeze — docs of record + parity fixtures [checkpoint: de9675e]
 
 - [x] Task 1: Context docs resync (docs before implementation) [66a82e2]
   - [x] `conductor/tech-stack.md`: dated note — port target: all static packs declarative (`numbers.json`, `abc.json`; file name = pack id; Name stays runtime-composed; ports are parity-guarded)
@@ -17,7 +17,7 @@
   - [x] One-off capture (temporary dev-time script) dumping current TypeScript exports into `src/packs/fixtures/numbers-parity.json` + `letters-parity.json`; capture source commit (`086f8c8`) recorded
   - [x] Verify contents: 10 numeral levels; 26 + 3 letter levels with derived goal/goalArt; pack identities + unlocks; spot-diff vs source
   - [x] Delete the capture script; commit fixtures + git note (provenance: what was frozen, from where, why)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Numbers port — byte-level parity (TDD)
 
