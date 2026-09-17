@@ -60,13 +60,13 @@ two pages), ear approval of the note ladder, and the device sign-off.
 
 ## Phase 3: Rendering + shell wiring — board, pop moment, shelf pulse
 
-- [~] Task 1: Board rendering
-  - [ ] Draw board: skin backdrop, filled sticker art (earned) / ghosted
+- [x] Task 1: Board rendering (368ed6c)
+  - [x] Draw board: skin backdrop, filled sticker art (earned) / ghosted
         slots, home button in pack style; reuse existing art + particle
         modules; no new assets
-  - [ ] Screenshot evidence (harness, seeded save; visually confirmed)
-  - [ ] Commit + git note
-- [ ] Task 2: Pop moment + sparkle animation
+  - [x] Screenshot evidence (harness, seeded save; visually confirmed)
+  - [x] Commit + git note
+- [~] Task 2: Pop moment + sparkle animation
   - [ ] rAF spring pop to ~400 units (squash & stretch, overshoot), sparkle
         burst, settle ≤ ~1.5s; rapid re-tap restarts; one note at a time
   - [ ] Screenshots (mid-pop frames)
