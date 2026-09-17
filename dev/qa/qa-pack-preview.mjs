@@ -9,7 +9,11 @@ import { fileURLToPath } from 'node:url';
 // spot-check screenshots for pre levels 1/7/12 and bonus 1.
 // Usage: node dev/qa/qa-pack-preview.mjs (dev server on :5199)
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const BASE = 'http://localhost:5199';
+// Usage: node dev/qa/qa-pack-preview.mjs [baseUrl] [--all]
+// The preview page lives in dev/harness/ — a Vite *dev* server must be running
+// (`pnpm exec vite --port 5199 --strictPort`); prod preview (`pnpm preview`)
+// does not serve dev/.
+const BASE = process.argv.find((arg) => arg.startsWith('http')) ?? 'http://localhost:5199';
 const OUT = path.join(HERE, 'out');
 fs.mkdirSync(OUT, { recursive: true });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));

@@ -108,7 +108,8 @@ control points, the start star, the goal flag, and the six
 equal-arc-length checkpoint circles. `?pack=` defaults to the first pack
 (currently `pre`), `?level=` to its first level; click the canvas to read field
 coordinates from the browser console. Reloading picks up JSON edits without an
-app rebuild.
+app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl] [--all]` sweeps every
+level (15/15 pre + bonuses) and writes spot-check shots to `dev/qa/out/`.
 
 ## Art-source policy
 
