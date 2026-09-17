@@ -83,7 +83,7 @@ Notes:
 2. **Cut out** — `node tools/cutout.mjs in.png out.png 600 [--box=x0,y0,x1,y1]`: flood-fills background from borders, drops stray components, removes the baked ground shadow, trims + pads + resizes to 600px. **Cut every frame of a character with the SAME `--box`** → pixel-aligned exports.
 3. **Scene** — one `scene.rml` per character project; copy `dev/characters/dino4/` as a template (image nodes + idle/celebrate + trigger + tap proxy).
 4. **Golden loop** — verify → inspect → build → screenshot → look.
-5. **Browser test** — `node dev/qa/browsertest.mjs` (playwright-core + headless Edge: load, host `.fire()`, real pointer tap, page errors).
+5. **Browser test** — per-character smoke against the harness: load `play.html?char=<name>` on the dev server, drive host `.fire()`, real pointer tap, assert zero page errors — copy `dev/qa/qa-teddy.mjs`; `dev/qa/qa-cast.mjs` is the canonical cast-level journey (preview build).
 
 ### Pixel-perfect pose swaps (the blink/flash lesson)
 - Whole-drawing swaps are ONLY for full pose changes (e.g. jump). Two AI generations of "the same" character differ in **100k+ pixels across the whole body** — swapping whole drawings for a small change (blink) makes the entire body flash.
@@ -122,7 +122,7 @@ Notes:
 | `composite.mjs` | `node tools/composite.mjs base.png overlay.png outFull.png outPatch.png --rect=x0,y0,x1,y1 --feather=12 --margin=24` | feathered patch composite + cropped patch export |
 | `gridshot.mjs` | `node tools/gridshot.mjs in.png out.png --rect=x0,y0,x1,y1 --scale=2 --step=25` | zoomed coordinate-grid measurement image |
 | `findeyes.mjs` | `node tools/findeyes.mjs sprite.png [--margin=28]` | eye-white cluster detection → patch rect + node coords |
-| `dev/qa/serve.mjs` | `node dev/qa/serve.mjs` | zero-dep static server on :8080 (LAN-testable) |
-| `dev/qa/browsertest.mjs` | `node dev/qa/browsertest.mjs` | headless Edge end-to-end check (load/fire/tap/errors) |
+| `pnpm serve` (root) | `pnpm serve` | Vite preview over LAN (:4173) for device testing |
+| `qa-teddy.mjs` | `node dev/qa/qa-teddy.mjs` | per-character smoke template (`play.html?char=teddy`): trace + celebrate + page errors |
 
 All tools need `npm i playwright-core` and a local Edge/Chromium install (Windows: `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`).
