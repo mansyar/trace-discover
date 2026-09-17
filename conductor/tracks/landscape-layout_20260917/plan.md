@@ -61,14 +61,14 @@ no new deps/assets.
         (fixture)
   - [x] Verify coverage
   - [x] Commit + git note
-- [~] Task 2: Level projection layer (TDD)
-  - [ ] Red: `levelForOrientation(level, orientation)` — portrait identity
+- [x] Task 2: Level projection layer (TDD) (fe07aa4)
+  - [x] Red: `levelForOrientation(level, orientation)` — portrait identity
         (deep equality with authored levels); landscape: single glyphs
         uniformly fit/center (scale ≤ 1.0, margins honored)
-  - [ ] Green: implement projection module; wire session/pack consumers
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 3: Session/trail reflow preserving progress (TDD)
+  - [x] Green: implement projection module; wire session/pack consumers
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [~] Task 3: Session/trail reflow preserving progress (TDD)
   - [ ] Red: mid-stroke rotation → stroke index + proportional position
         preserved; in-flight stroke cancels cleanly; success/tableau
         unaffected; repeated rotates stable
