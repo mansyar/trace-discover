@@ -76,9 +76,40 @@ describe('parsePackJson shape errors', () => {
     expect(() =>
       parsePackJson({
         ...PACK,
+        levels: [{ ...LEVEL, strokes: ['line'] }],
+      }),
+    ).toThrow(/level 0: stroke 0 must be an array of points/);
+    expect(() =>
+      parsePackJson({
+        ...PACK,
         levels: [{ ...LEVEL, strokes: [[{ x: 1, y: 2 }, 2]] }],
       }),
     ).toThrow(/level 0: stroke 0 point 1/);
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [{ ...LEVEL, strokes: [[1, { x: 1, y: 2 }]] }],
+      }),
+    ).toThrow(/level 0: stroke 0 point 0 must be an object/);
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [{ ...LEVEL, goal: 'finish' }],
+      }),
+    ).toThrow(/level 0: goal must be an object/);
+  });
+
+  it('rejects a level without goal art', () => {
+    const { goalArt: _art, ...withoutArt } = LEVEL;
+    expect(() => parsePackJson({ ...PACK, levels: [withoutArt] })).toThrow(
+      /level 0: goalArt must be a bundle path under \/art\/goal\//,
+    );
+    expect(() => parsePackJson({ ...PACK, levels: [{ ...LEVEL, goalArt: '' }] })).toThrow(
+      /level 0: goalArt must be a bundle path under \/art\/goal\//,
+    );
+    expect(() =>
+      parsePackJson({ ...PACK, levels: [{ ...LEVEL, goalArt: '/art/sticker/1.webp' }] }),
+    ).toThrow(/level 0: goalArt must be a bundle path under \/art\/goal\//);
   });
 
   it('rejects a non-array bonuses or bonusUnlocks list', () => {
