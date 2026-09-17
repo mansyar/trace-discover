@@ -47,13 +47,13 @@ conflicts, resolved by preserving both behaviors.
   - [x] Green: pure hit helper (e.g. `src/ui/mascot.ts`) + tests; shell passes
         the existing park point/scale used by `positionCharacter`
   - [x] Verify coverage; commit + git note
-- [ ] Task 2: Tap → giggle reaction (TDD + wiring)
-  - [ ] Red: re-fire cooldown (single note; animation restarts); instrument
+- [x] Task 2: Tap → giggle reaction (TDD + wiring) (3e60b47)
+  - [x] Red: re-fire cooldown (single note; animation restarts); instrument
         note selection from the active skin; sparkle burst trigger;
         `fire('giggle')` false-safe when a cast lacks the trigger
-  - [ ] Green: helpers + `main.ts` `handlers.onDown` wiring for menu/pack only
+  - [x] Green: helpers + `main.ts` `handlers.onDown` wiring for menu/pack only
         (existing hits keep precedence; nothing fires during levels)
-  - [ ] Screenshot evidence (tap → giggle frames via harness); verify coverage;
+  - [x] Screenshot evidence (tap → giggle frames via harness); verify coverage;
         commit + git note
 - [ ] Task 3: Level-start entrance (TDD + wiring)
   - [ ] Red: entrance timeline helper (eased hop-in from the near edge over
