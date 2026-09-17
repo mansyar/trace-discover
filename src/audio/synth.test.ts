@@ -5,6 +5,8 @@ import {
   countedNoteSpecs,
   createUnlockGate,
   envelopeGain,
+  GIGGLE_MIDI,
+  giggleNoteSpec,
   MARIMBA_PRESET,
   midiToFrequency,
   playCheckpointChime,
@@ -277,5 +279,35 @@ describe('instrument preset registry', () => {
     expect(spec.duration).toBe(woodblock.duration);
     expect(spec.gain).toBe(woodblock.gain);
     expect(spec.type).toBe(woodblock.type);
+  });
+});
+
+describe('giggleNoteSpec', () => {
+  it('plays one short note at the giggle pitch in the preset voice', () => {
+    const spec = giggleNoteSpec(MARIMBA_PRESET);
+    expect(spec.delay).toBe(0);
+    expect(spec.frequency).toBeCloseTo(midiToFrequency(GIGGLE_MIDI), 6);
+    expect(spec.type).toBe(MARIMBA_PRESET.type);
+    expect(spec.gain).toBeGreaterThan(0);
+    expect(spec.gain).toBeLessThan(MARIMBA_PRESET.gain);
+    expect(spec.duration).toBeLessThanOrEqual(0.6);
+  });
+
+  it('keeps every skin instrument timbre and softens the voice', () => {
+    for (const instrument of ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox'] as const) {
+      const preset = presetForInstrument(instrument);
+      const spec = giggleNoteSpec(preset);
+      expect(spec.type).toBe(preset.type);
+      expect(spec.duration).toBe(Math.min(preset.duration, 0.6));
+      expect(spec.gain).toBeCloseTo(preset.gain * 0.8, 6);
+      expect(spec.frequency).toBeCloseTo(midiToFrequency(GIGGLE_MIDI), 6);
+    }
+  });
+
+  it('sits inside the app pentatonic family', () => {
+    const offsets = [0, 2, 4, 7, 9];
+    expect(GIGGLE_MIDI).toBeGreaterThanOrEqual(72);
+    expect(GIGGLE_MIDI).toBeLessThanOrEqual(88);
+    expect(offsets).toContain((GIGGLE_MIDI - 72) % 12);
   });
 });

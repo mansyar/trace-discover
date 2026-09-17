@@ -4,7 +4,7 @@
 
 - **Name:** "Trace & Discover!" — child surfaces show the logo *as art* (star on a trace path), never as text
 - **Mascot:** the chibi triceratops — sticker style: thick navy outlines, pastel fills, soft gradients
-- **Guide character:** always the active skin's buddy (dino · star · construction · animal) — the star is the app-icon gold star come to life (navy outline, dot eyes, calm bob); joy comes from its celebrate hop and sparkles
+- **Guide character:** always the active skin's buddy (dino · star · construction · animal · teddy) — the star is the app-icon gold star come to life (navy outline, dot eyes, calm bob); joy comes from its entrance hop, tap giggle, and signature celebrate flourish
 - **Icon:** happy star finishing a dotted trace path on cream
 - **Personality:** cheerful & bouncy — the app behaves like a playmate, not a teacher
 
@@ -36,11 +36,12 @@
 - Lively, never startling: squash & stretch, hops, confetti — no flashing or jarring cuts
 - Motion is the reward: the completion choreography is the most animated moment in the app
 - Every animation returns to a calm resting state
+- The cast is present even at rest: it hops in at every level start (never blocking the first trace), giggles when tapped, celebrates as itself, and breathes/blinks when idle — subtle, seamless, never in the way
 
 ## Audio Principles
 
 - Sounds only — no voice, no words
 - Pentatonic (C D E G A): a chime per checkpoint; warm chord resolve + sparkle arpeggio on completion
 - Per-theme presets (marimba / kalimba / soft plucks) share one musical language
-- Soft UI pops; nothing loud or sudden; audio unlocks on first touch (iOS)
+- Soft UI pops (a single soft instrument note per tap giggle, throttled so notes never stack); nothing loud or sudden; audio unlocks on first touch (iOS)
 - No ambient loops required — silence is fine

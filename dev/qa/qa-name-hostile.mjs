@@ -7,7 +7,7 @@ import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const BASE = 'http://localhost:5199';
+const BASE = process.argv[2] ?? 'http://localhost:4173';
 const KEY = 'trace-discover-save-v1';
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'out');
 mkdirSync(OUT, { recursive: true });

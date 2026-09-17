@@ -46,7 +46,7 @@ Start the right server first, then run the script (most accept a URL argument).
 
 | Server | Command | Typical consumers |
 | --- | --- | --- |
-| Production preview `:4173` | `pnpm preview` (LAN: `pnpm serve`) | `qa-app`, `qa-name`, `qa-pack-app`, `qa-offline`, `qa-perf` |
+| Production preview `:4173` | `pnpm preview` (LAN: `pnpm serve`) | `qa-app`, `qa-name`, `qa-pack-app`, `qa-offline`, `qa-perf`, `qa-cast` |
 | Dev server `:5199` | `pnpm exec vite --port 5199 --strictPort` | `qa-harness`, `qa-pre-pack`, `qa-menu-pack`, `qa-persistence`, `qa-pack-badge`, `qa-name-hostile`, `qa-name-art` |
 
 | Script | Purpose | Needs | Status |
@@ -69,8 +69,9 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-letters-rewards.mjs` | Letters reward chain: 25 cleared → z → badge → bonus | dev `:5199` | canonical |
 | `qa-letters-sweep.mjs` | Traces all 29 letters levels end-to-end in one chain | dev `:5199` | canonical |
 | `qa-name.mjs` | My Name journey: gate → name overlay → 4-card menu → trace → sticker/badge → reload persistence → clear | preview `:4173` | canonical |
-| `qa-name-hostile.mjs` | Hostile stored-name fixtures: boot + first-save sanitize rewrite | dev `:5199` | canonical |
+| `qa-name-hostile.mjs` | Hostile stored-name fixtures: boot + first-save sanitize rewrite | preview (URL arg) | canonical |
 | `qa-name-art.mjs` | Name reward art screenshots (menu/pack/level/success/badge) on a seeded `AVA` save | dev `:5199` | one-off |
+| `qa-cast.mjs` | Cast presence journey: mascot tap → giggle (+ throttle), entrance settle, star blink series, per-cast flourish shots, no-interference (cards / skin button / gate) | preview (URL arg) | canonical |
 | `qa-parent-zone.mjs` | Parent zone end-to-end: one-time hint → one-finger hold (ring + burst shots) → sound tour with storage asserts (auto-unmute, pips, volume) → zone cards → restart confirm → install variants (android/ios/generic/installed) → hostile-settings boot (folded in the former `qa-gate-ring` + `qa-install-variants` one-offs) | dev `:5199` | canonical |
 | `qa-letters-parity.mjs` | Four-skin smoke — boots + opens a letter per skin | dev `:5199` | one-off |
 | `qa-menu-dots.mjs` | Menu dot-wrap check with a seeded 5/26 save | dev `:5199` | one-off |

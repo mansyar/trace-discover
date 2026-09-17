@@ -103,7 +103,7 @@ await page.screenshot({ path: path.join(OUT, 'name-pack-fresh.png') });
 console.log(`menu -> ${(await screenOf()).name}`);
 
 await tapTarget('level:name-1');
-await wait(600);
+await wait(900); // level-start entrance hop (~750 ms) settles before the shot
 await page.screenshot({ path: path.join(OUT, 'name-level.png') });
 console.log(`pack -> ${(await screenOf()).name}`);
 
