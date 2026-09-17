@@ -20,20 +20,20 @@ no new deps/assets.
 ## Phase 1: Orientation foundation — dual design spaces, reflow plumbing, layout rebuilds
 
 - [x] Task 1: Context docs resync (1ee465c)
-  - [ ] product.md: landscape play + dated note (house style)
-  - [ ] tech-stack.md: dual design spaces (430×860 / 860×430), orientation
+  - [x] product.md: landscape play + dated note (house style)
+  - [x] tech-stack.md: dual design spaces (430×860 / 860×430), orientation
         policy, composition layer
-  - [ ] dev/README: QA table prep for the landscape probe
-  - [ ] Commit + git note
-- [ ] Task 2: Orientation policy + dual design spaces (TDD)
-  - [ ] Red: `orientationFor(viewport)` (width > height → landscape; square →
+  - [x] dev/README: QA table prep for the landscape probe
+  - [x] Commit + git note
+- [x] Task 2: Orientation policy + dual design spaces (TDD) (f34db07)
+  - [x] Red: `orientationFor(viewport)` (width > height → landscape; square →
         portrait); field math both aspects incl. portrait baseline fixture;
         `__app.orientation()` contract
-  - [ ] Green: design-space constants; `resize()` uses the active space; probe
+  - [x] Green: design-space constants; `resize()` uses the active space; probe
         hook
-  - [ ] Verify coverage on new logic
-  - [ ] Commit + git note
-- [ ] Task 3: Layout rebuilds — child surfaces (TDD)
+  - [x] Verify coverage on new logic
+  - [x] Commit + git note
+- [~] Task 3: Layout rebuilds — child surfaces (TDD)
   - [ ] Red: menu/splash/skin/success/badge layouts produce in-bounds landscape
         arrangements (centered card row/wrap, gate zone, parks); portrait
         outputs equal current snapshots
