@@ -31,7 +31,7 @@
   - [x] Commit + git note (empty evidence commit permitted)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Letters port — byte-level parity (TDD)
+## Phase 3: Letters port — byte-level parity (TDD) [checkpoint: 316095b]
 
 - [x] Task 1: Letters parity + loader contract, then thin loader (TDD) [9b4259e]
   - [x] Red: `src/packs/letters-parity.test.ts` — parity vs frozen fixture for all 29 levels incl. derived goal/goalArt; identity + `bonusUnlocks [9,18,26]`; loader contract via mocked malformed `./data/abc.json` → labeled load error — confirm the contract test fails against the current inline `letters.ts`
@@ -41,7 +41,7 @@
 - [x] Task 2: Regression + Name composition untouched [316095b]
   - [x] `CI=true pnpm check && CI=true pnpm test`; `name` tests green unmodified (glyph chain byte-identical)
   - [x] Commit + git note (empty evidence commit permitted)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Tooling, QA sweeps & acceptance
 
