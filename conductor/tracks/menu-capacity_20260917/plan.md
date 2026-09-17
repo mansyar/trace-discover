@@ -9,7 +9,7 @@
 
 ## Phase 1: Context docs resync (docs before implementation)
 
-- [ ] Task 1: Tech-stack dated note
+- [x] Task 1: Tech-stack dated note [db3a213]
   - [ ] `conductor/tech-stack.md`: dated note — menu dynamic-fit capacity: 6 cards incl. My Name, columns-first growth (portrait 2-column grid at 5–6; landscape up to 3-column wrap), floors (90px hard minimum, test-locked), graceful degrade beyond capacity, dev harness synthetic-count preview
   - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
