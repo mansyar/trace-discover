@@ -49,12 +49,12 @@
   - [x] `pnpm pack:check`: all three packs validated; labeled output recorded
   - [x] Extend `dev/qa/qa-pack-preview.mjs` (`--all`) to sweep every pack in `src/packs/data/` (numbers + abc); confirm harness default fallback after the glob grows; update `dev/README.md` runbook notes
   - [x] Commit + git note
-- [ ] Task 2: QA sweeps + evidence (fresh build)
+- [~] Task 2: QA sweeps + evidence (fresh build)
   - [ ] `pnpm build`; run `qa-app`, `qa-numerals`, `qa-pack-app`, `qa-letters-sweep`, `qa-name` (spot), `qa-offline` (spot) + extended preview sweep; review screenshots
   - [ ] Record exact commands + outcomes in the git note
   - [ ] Commit + git note
-- [ ] Task 3: Docs finalize + size/budget deltas
-  - [ ] `src/packs/data/README.md` + `dev/README.md` final; `tech-stack.md` / `product.md` notes finalized
-  - [ ] `pnpm budget` green; dist size + precache entries recorded vs pre-track master baseline
-  - [ ] Commit + git note
+- [x] Task 3: Docs finalize + size/budget deltas [6026825]
+  - [x] `src/packs/data/README.md` + `dev/README.md` final; `tech-stack.md` / `product.md` notes finalized
+  - [x] `pnpm budget` green; dist size + precache entries recorded vs pre-track master baseline
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
