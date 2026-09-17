@@ -26,7 +26,7 @@
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Dots & art adaptation for grid-scaled cards (TDD)
+## Phase 3: Dots & art adaptation for grid-scaled cards (TDD) [checkpoint: 183b5d2]
 
 - [x] Task 1: Dot/art tests red → adaptation green [1c25185]
   - [x] Red: tests in `src/ui/menu.test.ts` — max-dot case (letters, 29) at 5–6 card footprints: dot rows wrap, radius/spacing hold legibility floors, every dot inside the card; `menuCardArtMaxHeight` stays ≥ floor and clear of the dot strip at every count
