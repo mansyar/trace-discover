@@ -63,9 +63,7 @@ describe('parsePackJson shape errors', () => {
 
   it('rejects a level with an empty or missing id', () => {
     const { id: _id, ...withoutId } = LEVEL;
-    expect(() => parsePackJson({ ...PACK, levels: [withoutId] })).toThrow(
-      /level 0: missing id/,
-    );
+    expect(() => parsePackJson({ ...PACK, levels: [withoutId] })).toThrow(/level 0: missing id/);
     expect(() => parsePackJson({ ...PACK, levels: [{ ...LEVEL, id: '' }] })).toThrow(
       /level 0: missing id/,
     );
@@ -84,9 +82,7 @@ describe('parsePackJson shape errors', () => {
   });
 
   it('rejects a non-array bonuses or bonusUnlocks list', () => {
-    expect(() => parsePackJson({ ...PACK, bonuses: 'circle' })).toThrow(
-      /bonuses must be an array/,
-    );
+    expect(() => parsePackJson({ ...PACK, bonuses: 'circle' })).toThrow(/bonuses must be an array/);
     expect(() => parsePackJson({ ...PACK, bonusUnlocks: 4 })).toThrow(
       /bonusUnlocks must be an array/,
     );
@@ -243,9 +239,9 @@ describe('parsePackJson pack-rule errors', () => {
 
   it('requires one unlock threshold per bonus', () => {
     const SECOND = { ...CIRCLE, id: 'pre-bonus-2' };
-    expect(() =>
-      parsePackJson({ ...PACK, bonuses: [CIRCLE, SECOND], bonusUnlocks: [1] }),
-    ).toThrow(/one unlock threshold per bonus/);
+    expect(() => parsePackJson({ ...PACK, bonuses: [CIRCLE, SECOND], bonusUnlocks: [1] })).toThrow(
+      /one unlock threshold per bonus/,
+    );
   });
 
   it('requires the final threshold to equal the main level count', () => {

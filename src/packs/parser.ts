@@ -25,13 +25,7 @@ export interface RawLevel {
   readonly strokes: readonly (readonly Point[])[];
 }
 
-const STROKE_PATTERNS: readonly StrokePattern[] = [
-  'line',
-  'wave',
-  'arc',
-  'zigzag',
-  'circle',
-];
+const STROKE_PATTERNS: readonly StrokePattern[] = ['line', 'wave', 'arc', 'zigzag', 'circle'];
 
 const PACK_KEYS = ['badgeId', 'bonusUnlocks', 'bonuses', 'id', 'levels', 'menuFill'] as const;
 const LEVEL_KEYS = ['goal', 'goalArt', 'id', 'stroke', 'strokes'] as const;
@@ -106,11 +100,7 @@ export function parseRawLevel(raw: unknown, at: string): RawLevel {
     throw new Error(`${at}: invalid stroke '${String(stroke)}'`);
   }
   const goalArt = raw.goalArt;
-  if (
-    typeof goalArt !== 'string' ||
-    goalArt === '' ||
-    !goalArt.startsWith(GOAL_ART_PREFIX)
-  ) {
+  if (typeof goalArt !== 'string' || goalArt === '' || !goalArt.startsWith(GOAL_ART_PREFIX)) {
     throw new Error(`${at}: goalArt must be a bundle path under ${GOAL_ART_PREFIX}`);
   }
   return {
@@ -133,7 +123,9 @@ function asNumberList(value: unknown, what: string): readonly number[] {
   if (!Array.isArray(value)) {
     throw new Error(`${what} must be an array`);
   }
-  return value.map((entry, index) => asFiniteNumber(entry, `${what} entry ${index}`, 'bonusUnlocks'));
+  return value.map((entry, index) =>
+    asFiniteNumber(entry, `${what} entry ${index}`, 'bonusUnlocks'),
+  );
 }
 
 /** Shape-checks raw pack data against the documented schema. */

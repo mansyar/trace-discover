@@ -28,7 +28,7 @@ export function parsePackJson(raw: unknown): PackEntry {
     menuFill: pack.menuFill,
   };
   checkLevels(spec.levels, `pack '${pack.id}' level`);
-  checkLevels(spec.bonuses, `pack '${pack.id}' bonus level`);
+  checkLevels(spec.bonuses ?? [], `pack '${pack.id}' bonus level`);
   const lastUnlock = spec.bonusUnlocks?.[spec.bonusUnlocks.length - 1];
   if (lastUnlock !== undefined && lastUnlock !== spec.levels.length) {
     throw new Error(
