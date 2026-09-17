@@ -47,7 +47,7 @@
   - [x] `pnpm build`; run `qa-screens`, `qa-landscape`, `qa-app` (spot); confirm no visual change at current counts + matrix reviewed; `pnpm budget` green; dist size + precache entries recorded vs master baseline (`fa84ee1`)
   - [x] Record exact commands + outcomes in the git note
   - [x] Commit + git note
-- [ ] Task 3: Docs finalize + acceptance checklist
-  - [ ] `dev/README.md` final; tech-stack note final; spec acceptance criteria walked and recorded (incl. zero-text audit: no new UI text)
-  - [ ] Commit + git note
+- [x] Task 3: Docs finalize + acceptance checklist [4c4728e]
+  - [x] `dev/README.md` final; tech-stack note final; spec acceptance criteria walked and recorded (incl. zero-text audit: no new UI text)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
