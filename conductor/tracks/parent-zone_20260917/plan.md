@@ -134,10 +134,10 @@ one-finger hold fails device tuning.
       `qa-parent-zone.mjs` (hint → hold → open → flag → reload → hint gone →
       sound → install variants → restart confirm → screenshots) (d73684a)
   - [x] Commit + git note
-- [~] Task 2: Zero-text audit (hint = documented exception); hostile fixtures;
-      `qa-offline` cold start unchanged; perf spot-check
-  - [ ] Commit + git note
-- [ ] Task 3: Device pass Android + iPad — one-handed gate feel, ring
+- [x] Task 2: Zero-text audit (hint = documented exception); hostile fixtures;
+      `qa-offline` cold start unchanged; perf spot-check (c9c859d)
+  - [x] Commit + git note
+- [~] Task 3: Device pass Android + iPad — one-handed gate feel, ring
       visibility, hint clarity, preview notes, install panel; tune hold within
       2.0–3.0s (STOP + owner fallback decision if one-finger fails)
 - [ ] Task 4: Acceptance session (owner): sign-offs; docs finalize (final hold
