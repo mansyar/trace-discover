@@ -81,7 +81,7 @@ no new deps/assets.
 
 ## Phase 3: My Name + word bonuses in landscape (headline)
 
-- [ ] Task 1: `buildNameLevel(name, orientation)` + orientation-aware
+- [~] Task 1: `buildNameLevel(name, orientation)` + orientation-aware
       `NAME_BOX` (TDD)
   - [ ] Red: portrait identity vs current tests; landscape — 5-letter scale
         ≥ 0.95, 7-letter ≥ 0.7, bounds in the wide box, centering, goal = last
