@@ -9,10 +9,10 @@
 *Goal: the context docs describe the sixth skin before implementation; the stylized character master exists in the house art language and is approved by the owner — the hard gate before any build work.*
 
 - [x] Task: Context docs resync — before implementation per workflow.md [59f7fc6]
-  - [ ] `product.md`: sixth skin noted; out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
-  - [ ] `tech-stack.md`: skins list gains trex; instruments list gains the new preset; dated note
-  - [ ] `dev/README.md`: character workspace list gains trex
-- [ ] Task: Reference prep + stylization candidates — copy `dev/.cf_token` into this worktree (from the main worktree; untracked); `gen2.mjs` img2img from `dev/gen/ref-trex.jpeg`; tune strength/seed; candidates inspected; raw reference + raws stay untracked
+  - [x] `product.md`: sixth skin noted; out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
+  - [x] `tech-stack.md`: skins list gains trex; instruments list gains the new preset; dated note
+  - [x] `dev/README.md`: character workspace list gains trex
+- [ ] Task: Reference prep + stylization candidates — copy `dev/.cf_token` into this worktree (from the main worktree; untracked); `gen2.mjs` img2img from `dev/gen/ref-trex.jpeg`; tune strength/seed; candidates inspected; raw reference + raws stay untracked — BLOCKED 2026-09-17: Workers AI daily free allocation exhausted (HTTP 429 / code 4006; shared account token); prerequisites verified ready (`dev/.cf_token`, `dev/gen/ref-trex.jpeg`, rive 1.0.2); resume after the 00:00 UTC reset (10:00 +10:00)
 - [ ] Task: **Owner approval of the stylized master (hard gate)** — owner approves a candidate; canonical copy `dev/characters/trex/master.png`; downstream work unlocked; recorded
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
