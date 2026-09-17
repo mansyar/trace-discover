@@ -73,11 +73,11 @@
 
 *Goal: every acceptance criterion traced to evidence; PR ready for the owner.*
 
-- [ ] Task: Full local gates + docs final
-  - [ ] `CI=true pnpm check && CI=true pnpm test --coverage && pnpm pack:check && pnpm build && pnpm budget`; dist size/entries vs baseline recorded (expect unchanged)
-  - [ ] Docs consistency pass (`dev/README.md`, `tech-stack.md`); acceptance 1–7 evidence collected (runs, screenshots, greps, timings) into plan + git note
-  - [ ] Commit + git note
-- [ ] Task: Final PR + handoff
-  - [ ] Mark PR ready for review; summarize evidence; merge/release remain with the owner
+- [x] Task: Full local gates + docs final [fe37c29]
+  - [x] `CI=true pnpm check && CI=true pnpm test --coverage && pnpm pack:check && pnpm build && pnpm budget`; dist size/entries vs baseline recorded (expect unchanged)
+  - [x] Docs consistency pass (`dev/README.md`, `tech-stack.md`); acceptance 1–7 evidence collected (runs, screenshots, greps, timings) into plan + git note
+  - [x] Commit + git note
+- [~] Task: Final PR + handoff
+  - [~] Mark PR ready for review; summarize evidence; merge/release remain with the owner
   - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
