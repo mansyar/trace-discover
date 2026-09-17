@@ -16,7 +16,9 @@ purpose.
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
 `package.json` carries the `playwright-core` dependency for the QA scripts —
-run `pnpm install` inside `dev/` once.
+run `pnpm install` inside `dev/` once. The `dev/pnpm-lock.yaml` lockfile is
+tracked (since `ci-qa-hardening_20260917`) so CI installs it with
+`--frozen-lockfile`; regenerate it with `pnpm install` when dependencies change.
 
 > `.cf_token` (untracked Workers AI token, needed by `tools/gen.mjs` /
 > `gen2.mjs`) lives at `dev/.cf_token`. If you had one at `spike/.cf_token`,
@@ -84,14 +86,20 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
-| `qa-diag-pre3.mjs` · `qa-probe.mjs` | Retired debugging probes | — | stale |
-| `browsertest.mjs` · `serve.mjs` | Old spike-page driver + static server (its page no longer exists) | — | stale |
-
+| `qa-smoke.mjs` | Canonical smoke — boots the production build, traces `pre-1` to success with step assertions + a zero-page-error gate (runs in every CI verify job) | preview `:4173` | canonical |
 *Status legend: **canonical** = kept and referenced · **one-off** = kept for
-reference · **utility** = reusable helper · **stale** = superseded, candidates
-for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
-2026-09-16); `qa-parent-zone` added in `parent-zone_20260917` (2026-09-17);
-`qa-pack-preview` added in `pack-pipeline_20260917` (2026-09-17) and extended to every JSON pack in `pack-pipeline-2_20260917` (2026-09-17).*
+reference · **utility** = reusable helper. Statuses confirmed in
+`repo-organization_20260916` (Phases 2–4, 2026-09-16); `qa-parent-zone` added
+in `parent-zone_20260917` (2026-09-17); `qa-pack-preview` added in
+`pack-pipeline_20260917` (2026-09-17) and extended to every JSON pack in
+`pack-pipeline-2_20260917` (2026-09-17); the stale category is now empty — its
+four members (`qa-diag-pre3`, `qa-probe`, `browsertest`, `serve`) were removed
+in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
+(canonical, runs in CI).*
+
+> Smoke usage (two terminals): 1) `pnpm preview` (production build on `:4173`;
+> `pnpm serve` for LAN devices) — 2) `node dev/qa/qa-smoke.mjs`. CI runs the
+> same pair after `pnpm build`; artifacts land in `dev/qa/out/qa-smoke/`.
 
 > First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
 > cold Vite optimize right after the dev server starts — warm the server (load

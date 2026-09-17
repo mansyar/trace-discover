@@ -26,4 +26,3 @@ dev/gen/
 dev/art-src/*/raw/
 dev/ref/
 dev/package-lock.json
-dev/pnpm-lock.yaml
