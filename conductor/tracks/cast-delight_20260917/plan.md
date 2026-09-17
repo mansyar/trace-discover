@@ -55,13 +55,13 @@ conflicts, resolved by preserving both behaviors.
         (existing hits keep precedence; nothing fires during levels)
   - [x] Screenshot evidence (tap → giggle frames via harness); verify coverage;
         commit + git note
-- [ ] Task 3: Level-start entrance (TDD + wiring)
-  - [ ] Red: entrance timeline helper (eased hop-in from the near edge over
+- [x] Task 3: Level-start entrance (TDD + wiring) (033999f)
+  - [x] Red: entrance timeline helper (eased hop-in from the near edge over
         ~600–900 ms; `settle` semantics; early input settles immediately;
         always ends at rest)
-  - [ ] Green: helper + `startRun`/render wiring (level screen only; trace
+  - [x] Green: helper + `startRun`/render wiring (level screen only; trace
         input untouched)
-  - [ ] Screenshot evidence (entrance frames + settled state); verify coverage;
+  - [x] Screenshot evidence (entrance frames + settled state); verify coverage;
         commit + git note
 - [ ] Task 4: Harness preview controls
   - [ ] `dev/screens.ts`: fire giggle / replay entrance / settle controls for
