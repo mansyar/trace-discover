@@ -17,7 +17,7 @@ this track also re-lays); Phase 5 mirrors whichever design is canonical if not
 merged. All work stays local on `track/landscape-layout`; no push/PR/release;
 no new deps/assets.
 
-## Phase 1: Orientation foundation — dual design spaces, reflow plumbing, layout rebuilds
+## Phase 1: Orientation foundation — dual design spaces, reflow plumbing, layout rebuilds [checkpoint: 7f0677c]
 
 - [x] Task 1: Context docs resync (1ee465c)
   - [x] product.md: landscape play + dated note (house style)
