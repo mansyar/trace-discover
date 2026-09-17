@@ -51,3 +51,7 @@
   - [x] `dev/README.md` final; tech-stack note final; spec acceptance criteria walked and recorded (incl. zero-text audit: no new UI text)
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions abdd783
