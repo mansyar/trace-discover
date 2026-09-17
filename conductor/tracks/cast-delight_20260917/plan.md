@@ -107,13 +107,13 @@ conflicts, resolved by preserving both behaviors.
 - [x] Task 2: Zero-text audit; hostile-save fixtures regression; `qa-offline`
       cold start; perf spot-check (boot/input baselines) (107b0f3)
   - [x] Commit + git note
-- [~] Task 3: Device pass Android + iPad - entrance feel, tap generosity,
+- [x] Task 3: Device pass Android + iPad - entrance feel, tap generosity,
       giggle responsiveness, flourish visibility; tune; STOP + owner fallback
-      decision if a flourish fails device review
-- [ ] Task 4: Acceptance session (owner): per-cast sign-offs; docs finalize
-      (measured durations/sizes, dev/README QA table, dated notes)
-  - [ ] Commit + git note
-- [ ] Task 5: Final gates `CI=true pnpm check && CI=true pnpm test` + coverage;
+      decision if a flourish fails device review (owner-passed 2026-09-17)
+- [x] Task 4: Acceptance session (owner): per-cast sign-offs; docs finalize
+      (measured durations/sizes, dev/README QA table, dated notes) (5eb8efe)
+  - [x] Commit + git note
+- [x] Task 5: Final gates `CI=true pnpm check && CI=true pnpm test` + coverage;
       `pnpm budget`; dist + per-cast `.riv` sizes recorded
-  - [ ] Commit + git note
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
