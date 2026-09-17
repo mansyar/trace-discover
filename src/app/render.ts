@@ -11,6 +11,7 @@ import { type ConfettiParticle, mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
+import type { InstallVariant } from '../ui/install';
 import {
   MENU_DOT_RADIUS,
   type MenuCard,
@@ -969,6 +970,55 @@ function drawVolumePips(
   }
 }
 
+/** Copy per install variant; the panel shows only the steps that apply. */
+const INSTALL_LINES: Readonly<Record<InstallVariant, readonly string[]>> = {
+  android: [
+    'Add to Home Screen',
+    '',
+    'Menu ⋮ >',
+    '“Add to Home screen”.',
+    '',
+    'Then play offline!',
+  ],
+  generic: [
+    'Add to Home Screen',
+    '',
+    'Android: menu ⋮ >',
+    '“Add to Home screen”.',
+    '',
+    'iPad: Share □↑ >',
+    '“Add to Home Screen”.',
+    '',
+    'Then play offline!',
+  ],
+  installed: ['All set!', '', 'You are playing the', 'installed app.', '', 'It works offline.'],
+  ios: [
+    'Add to Home Screen',
+    '',
+    'Tap Share □↑ >',
+    '“Add to Home Screen”.',
+    '',
+    'Then play offline!',
+  ],
+};
+
+function drawInstallPanel(ctx: CanvasRenderingContext2D, variant: InstallVariant): void {
+  ctx.beginPath();
+  ctx.roundRect(40, 120, FIELD_WIDTH - 80, 620, 18);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+  ctx.fillStyle = NAVY;
+  ctx.font = '26px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const [index, line] of INSTALL_LINES[variant].entries()) {
+    ctx.fillText(line, FIELD_WIDTH / 2, 190 + index * 52);
+  }
+}
+
 export function drawParent(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -980,6 +1030,7 @@ export function drawParent(
   skinFace: HTMLImageElement | null,
   trophies: readonly string[],
   pressed: ParentPress | null = null,
+  installVariant: InstallVariant = 'generic',
 ): void {
   const pressT = (action: ParentZoneAction): number => {
     if (!pressed || pressed.action !== action) {
@@ -1138,29 +1189,7 @@ export function drawParent(
     ctx.fillText('Erase all stickers? Tap restart again.', FIELD_WIDTH / 2, 680);
   }
   if (showInstall) {
-    ctx.beginPath();
-    ctx.roundRect(40, 120, FIELD_WIDTH - 80, 620, 18);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
-    ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = NAVY;
-    ctx.stroke();
-    ctx.fillStyle = NAVY;
-    ctx.font = '26px system-ui, sans-serif';
-    const lines = [
-      'Add to Home Screen',
-      '',
-      'Android: menu ⋮ >',
-      '“Add to Home screen”.',
-      '',
-      'iPad: Share □↑ >',
-      '“Add to Home Screen”.',
-      '',
-      'Then play offline!',
-    ];
-    lines.forEach((line, index) => {
-      ctx.fillText(line, FIELD_WIDTH / 2, 190 + index * 52);
-    });
+    drawInstallPanel(ctx, installVariant);
   }
 }
 

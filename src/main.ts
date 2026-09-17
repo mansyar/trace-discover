@@ -52,6 +52,7 @@ import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
+import { type InstallVariant, installVariant } from './ui/install';
 import { hitMenuCard, inParentGate, menuLayout, splashLayout } from './ui/menu';
 import {
   hitPackCard,
@@ -231,6 +232,15 @@ function previewVolumeNote(): void {
   }
   playVolumePreview(player, presetForInstrument(activeSkin().instrument));
 }
+
+/** Install-guide variant; display-mode can only change across relaunches. */
+const INSTALL_VARIANT: InstallVariant = installVariant({
+  maxTouchPoints: navigator.maxTouchPoints ?? 0,
+  standalone:
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as { standalone?: boolean }).standalone === true,
+  userAgent: navigator.userAgent,
+});
 
 /** Lazily-created DOM field for the parent-set name (child screens never see it). */
 let nameInput: HTMLInputElement | null = null;
@@ -836,6 +846,7 @@ function render(now: number): void {
       artCache.get(activeSkin().face) ?? null,
       app.save.trophies,
       parentPress,
+      INSTALL_VARIANT,
     );
     if (screen.showName) {
       drawNameOverlay(trailContext, currentNameOverlay());
