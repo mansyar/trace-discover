@@ -1,0 +1,8 @@
+{
+  "id": "ci-qa-hardening_20260917",
+  "name": "CI/QA hardening — browser smoke, coverage gate, stale sweep",
+  "type": "Chore",
+  "status": "new",
+  "created": "2026-09-17",
+  "updated": "2026-09-17"
+}
