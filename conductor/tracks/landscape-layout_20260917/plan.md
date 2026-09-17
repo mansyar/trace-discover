@@ -52,7 +52,7 @@ no new deps/assets.
       character/name-input; rotate smoke on dev server (splash/menu/pack) (7f0677c)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Level composition + rotation reflow
+## Phase 2: Level composition + rotation reflow [checkpoint: acdb03b]
 
 - [x] Task 1: Word-row composer generalization (TDD) (2f23dcd)
   - [x] Red: `composeWordRow(glyphs, box, gap, cap)` — order, bounds, centering,
@@ -75,8 +75,8 @@ no new deps/assets.
   - [x] Green: session rebuild path integrated into the resize hook
   - [x] Verify coverage
   - [x] Commit + git note
-- [~] Task 4: Mid-trace rotation evidence (scratch probe + screenshots) → owner
-      sanity check
+- [x] Task 4: Mid-trace rotation evidence (scratch probe + screenshots) → owner
+      sanity check (owner-confirmed 2026-09-17; menu review fixes in acdb03b)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: My Name + word bonuses in landscape (headline)
