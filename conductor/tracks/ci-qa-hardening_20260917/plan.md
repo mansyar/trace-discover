@@ -65,8 +65,8 @@
   - [x] Commit + git note
 - [x] Task: Negative control — temporary threshold raise → coverage red → revert → green; recorded [7549bbf]
   - [x] Commit + git note
-- [~] Task: CI evidence — push; PR run shows the gate enforced and green; recorded
-  - [~] Commit + git note
+- [x] Task: CI evidence — push; PR run shows the gate enforced and green; recorded [f95910b]
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Acceptance sweep + owner handoff
