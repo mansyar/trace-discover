@@ -43,7 +43,7 @@
   - [x] Commit + git note (empty evidence commit permitted)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Tooling, QA sweeps & acceptance
+## Phase 4: Tooling, QA sweeps & acceptance [checkpoint: 6026825]
 
 - [x] Task 1: Tooling verification + preview sweep extension (dev-only) [8075e90]
   - [x] `pnpm pack:check`: all three packs validated; labeled output recorded
@@ -57,4 +57,4 @@
   - [x] `src/packs/data/README.md` + `dev/README.md` final; `tech-stack.md` / `product.md` notes finalized
   - [x] `pnpm budget` green; dist size + precache entries recorded vs pre-track master baseline
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
