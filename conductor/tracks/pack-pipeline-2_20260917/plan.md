@@ -45,10 +45,10 @@
 
 ## Phase 4: Tooling, QA sweeps & acceptance
 
-- [ ] Task 1: Tooling verification + preview sweep extension (dev-only)
-  - [ ] `pnpm pack:check`: all three packs validated; labeled output recorded
-  - [ ] Extend `dev/qa/qa-pack-preview.mjs` (`--all`) to sweep every pack in `src/packs/data/` (numbers + abc); confirm harness default fallback after the glob grows; update `dev/README.md` runbook notes
-  - [ ] Commit + git note
+- [x] Task 1: Tooling verification + preview sweep extension (dev-only) [8075e90]
+  - [x] `pnpm pack:check`: all three packs validated; labeled output recorded
+  - [x] Extend `dev/qa/qa-pack-preview.mjs` (`--all`) to sweep every pack in `src/packs/data/` (numbers + abc); confirm harness default fallback after the glob grows; update `dev/README.md` runbook notes
+  - [x] Commit + git note
 - [ ] Task 2: QA sweeps + evidence (fresh build)
   - [ ] `pnpm build`; run `qa-app`, `qa-numerals`, `qa-pack-app`, `qa-letters-sweep`, `qa-name` (spot), `qa-offline` (spot) + extended preview sweep; review screenshots
   - [ ] Record exact commands + outcomes in the git note
