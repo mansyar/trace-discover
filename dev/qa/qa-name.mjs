@@ -1,4 +1,4 @@
-// QA probe: My Name end-to-end gate — fresh 3-card menu -> two-finger parent
+// QA probe: My Name end-to-end gate — fresh 3-card menu -> one-finger parent
 // gate -> name overlay -> save -> 4-card menu -> mini-pack -> trace -> sticker
 // + badge -> reload persistence -> clear -> 3 cards. Screenshots under out/name.
 // Usage: `pnpm build && pnpm preview` (4173) then `node dev/qa/qa-name.mjs [url]`.
@@ -58,20 +58,18 @@ const holdGate = async () => {
     }
     const clientX = field.x + (gate.x / 430) * field.width;
     const clientY = field.y + (gate.y / 860) * field.height;
-    for (const pointerId of [11, 12]) {
-      canvas.dispatchEvent(
-        new PointerEvent('pointerdown', {
-          bubbles: true,
-          clientX,
-          clientY,
-          isPrimary: pointerId === 11,
-          pointerId,
-          pointerType: 'touch',
-        }),
-      );
-    }
+    canvas.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX,
+        clientY,
+        isPrimary: true,
+        pointerId: 11,
+        pointerType: 'touch',
+      }),
+    );
   });
-  await wait(3600);
+  await wait(3000);
 };
 
 const trace = async () => {

@@ -24,25 +24,27 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 *2026-09-17 — My Name (track `my-name_20260916`) implemented on branch `track/my-name`, awaiting the merge/release decision: a personalized mini-pack where the parent sets the child's name once (2–7 uppercase letters, behind the 2-finger gate) and the trace level is composed at runtime from the shipped letter glyphs — her own sticker + badge; the name stays on-device (never shipped or networked). QA evidence: full gate probe on the production build, hostile stored-name fixtures, offline cold start + perf spot-check unchanged; device pass on Android + iPad kept the 7-letter cap and the thinning floors (≥5-letter gate satisfied); the toddler traced their name unaided.*
 
-*2026-09-17 — Character presence pass (track `cast-delight_20260917`) on branch `track/cast-delight`, documented before implementation: every level opens with the active cast hopping in (short and non-blocking — early tracing settles it immediately); a tap on the resting mascot (menu + pack screens) fires a giggle — a short reaction, one instrument note, and sparkles, throttled so notes never stack; each cast celebrates finishing with its own signature flourish inside the unchanged ~2 s completion choreography; and idle casts gain a subtle recurring beat with blink parity for star. Child surfaces stay zero-text; no save, engine, or pack changes.*
+*2026-09-17 — Parent zone improvements (track `parent-zone_20260917`, completed — device pass kept the 2.5s one-finger hold): the parent gate becomes a one-finger press-and-hold with visible progress (replacing the two-finger hold, awkward one-handed on a phone) plus a one-time parent hint for discoverability; the zone gains sound level pips with preview notes and auto-unmute, a platform-aware install guide, section cards, and reactive feedback on every control.*
+
+*2026-09-17 — Character presence pass (track `cast-delight_20260917`, completed on branch `track/cast-delight` — device pass kept the 750 ms entrance hop and the 600 ms giggle throttle): every level opens with the active cast hopping in (short and non-blocking — early tracing settles it immediately); a tap on the resting mascot (menu + pack screens) fires a giggle — a short reaction, one instrument note, and sparkles, throttled so notes never stack; each cast celebrates finishing with its own signature flourish inside the unchanged ~2 s completion choreography; and idle casts gain a subtle recurring beat with blink parity for star. Child surfaces stay zero-text; no save, engine, or pack changes.*
 
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
-- **Secondary — parents/caregivers**: safe, offline, no ads/accounts; settings behind a 2-finger gate; easy home-screen install.
+- **Secondary — parents/caregivers**: safe, offline, no ads/accounts; settings behind a one-finger hold gate (with a one-time parent hint); easy home-screen install.
 
 ## Core Features
 
 - **Packs × skins architecture** — content and presentation are independent: the child picks *what to trace*; *who comes along* is a tap away
   - **Packs:** Pre-writing (12 levels re-ramped small → medium → large; circles unlock at 4/8/12) · Numbers (0–9, toy-piano counted reward) · Letters (uppercase A–Z in two pages, per-stroke counted reward; `ABC`/`MOM`/`ZOO` bonuses at 9/18/26)
   - **Skins:** 🦖 Dino · ⭐ Star · 🚜 Construction · 🦁 Animal Friends · 🐻 Teddy — character, backdrop, accent, instrument; switchable anytime via the top-left button; persisted
-- **My Name mini-pack** — the parent sets the child's name once (behind the 2-finger gate; 2–7 uppercase letters); the trace level is composed at runtime from the shipped letter glyphs — her own sticker and badge, fully on-device
+- **My Name mini-pack** — the parent sets the child's name once (behind the parent gate; 2–7 uppercase letters); the trace level is composed at runtime from the shipped letter glyphs — her own sticker and badge, fully on-device
 - Continuous trail-tip engine: forgiving start zone, capped speed (no skip-swipe), ~12% tolerance, paint-fill feedback
 - No-fail assists: lift keeps progress · star nudge at 2s · hand-hint at 4s · gentle auto-assist + parent toggle
 - Pentatonic audio per skin (marimba · bell · woodblock · kalimba · music box): chime per checkpoint, chord resolve + fanfare on completion
 - Reward loop: content-neutral sticker per level, badge per pack; legacy world badges shown as display-only trophies
 - Zero-text, content-first UI: pack cards → level cards + sticker slots → 3-icon success screen; idle mascot on menu + pack screens (tap → giggle with one note and sparkles)
-- Parent zone (2-finger hold): volume, easier tracing, skin setter, trophies, reset progress, install guide
+- Parent zone (hold-to-open gate): sound with level pips + preview, easier tracing, skin setter, trophies, reset progress, platform-aware install guide
 - PWA: installable, standalone, fully offline after first load
 
 ## Success Criteria

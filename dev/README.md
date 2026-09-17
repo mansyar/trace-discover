@@ -72,6 +72,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-name-hostile.mjs` | Hostile stored-name fixtures: boot + first-save sanitize rewrite | preview (URL arg) | canonical |
 | `qa-name-art.mjs` | Name reward art screenshots (menu/pack/level/success/badge) on a seeded `AVA` save | dev `:5199` | one-off |
 | `qa-cast.mjs` | Cast presence journey: mascot tap → giggle (+ throttle), entrance settle, star blink series, per-cast flourish shots, no-interference (cards / skin button / gate) | preview (URL arg) | canonical |
+| `qa-parent-zone.mjs` | Parent zone end-to-end: one-time hint → one-finger hold (ring + burst shots) → sound tour with storage asserts (auto-unmute, pips, volume) → zone cards → restart confirm → install variants (android/ios/generic/installed) → hostile-settings boot (folded in the former `qa-gate-ring` + `qa-install-variants` one-offs) | dev `:5199` | canonical |
 | `qa-letters-parity.mjs` | Four-skin smoke — boots + opens a letter per skin | dev `:5199` | one-off |
 | `qa-menu-dots.mjs` | Menu dot-wrap check with a seeded 5/26 save | dev `:5199` | one-off |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
@@ -87,7 +88,7 @@ Start the right server first, then run the script (most accept a URL argument).
 *Status legend: **canonical** = kept and referenced · **one-off** = kept for
 reference · **utility** = reusable helper · **stale** = superseded, candidates
 for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
-2026-09-16).*
+2026-09-16); `qa-parent-zone` added in `parent-zone_20260917` (2026-09-17).*
 
 > First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
 > cold Vite optimize right after the dev server starts — warm the server (load

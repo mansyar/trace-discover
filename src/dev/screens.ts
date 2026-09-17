@@ -1,10 +1,11 @@
-// Dev-only preview for the shell screens (menu / pack / success).
+// Dev-only preview for the shell screens (menu / pack / success / parent).
 // Draws the real layout modules through the real pointer pipeline and
 // wires card taps to the real localStorage save: tapping a card completes
 // its level (sticker lights), finishing a pack earns its badge,
-// double-tapping the badge resets progress. ?screen=menu|pack|success picks
-// the starting screen for headless screenshots.
+// double-tapping the badge resets progress. ?screen=menu|pack|success|parent
+// picks the starting screen for headless screenshots.
 import '../style.css';
+import { drawGateRing, drawParent, drawParticles } from '../app/render';
 import {
   createEntrance,
   type EntranceState,
@@ -32,12 +33,14 @@ import {
 } from '../save/store';
 import { require2dContext, requireCanvas } from '../shell/boot';
 import { computeBackingSize, fitRect, type Rect } from '../shell/layout';
+import { SKINS, type SkinDef, skinById } from '../skins/skins';
 import { MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, mascotZone } from '../ui/mascot';
 import { hitMenuCard, inParentGate, menuLayout } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
+import { parentZoneLayout } from '../ui/parentZone';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
-type PreviewScreen = 'menu' | 'pack' | 'success';
+type PreviewScreen = 'menu' | 'pack' | 'success' | 'parent';
 
 const PACK_IDS = allPacks().map((pack) => pack.id);
 const NUMERALS = NUMERAL_LEVELS.map((level) => level.id);
@@ -70,7 +73,7 @@ const lines: string[] = [];
 
 let screen: PreviewScreen = 'menu';
 const wanted = new URLSearchParams(window.location.search).get('screen');
-if (wanted === 'success' || wanted === 'pack') {
+if (wanted === 'success' || wanted === 'pack' || wanted === 'parent') {
   screen = wanted;
 }
 let save: SaveData = loadSave(localStorage);
@@ -208,6 +211,13 @@ function drawMenu(): void {
     layout.parentGate.height,
   );
   context.setLineDash([]);
+  // Static preview of the one-finger hold ring + open burst (Task 2 evidence).
+  const gateCenter = {
+    x: layout.parentGate.x + layout.parentGate.width / 2,
+    y: layout.parentGate.y + layout.parentGate.height / 2,
+  };
+  drawGateRing(context, gateCenter, 0.6);
+  drawParticles(context, stepConfetti(createConfetti(12, 7, gateCenter), 0.18));
 }
 
 function drawPackPreview(): void {
@@ -305,6 +315,28 @@ function drawSuccess(): void {
   }
 }
 
+function previewSkin(): SkinDef {
+  const skin = skinById(save.settings.skin) ?? SKINS[0];
+  if (!skin) {
+    throw new Error('The skin registry is empty.');
+  }
+  return skin;
+}
+
+function drawParentPreview(): void {
+  drawParent(
+    context,
+    performance.now(),
+    parentZoneLayout(FIELD_WIDTH, FIELD_HEIGHT),
+    save.settings,
+    false,
+    false,
+    previewSkin(),
+    null,
+    save.trophies,
+  );
+}
+
 function drawCycle(): void {
   context.fillStyle = GOLD;
   context.fillRect(CYCLE.x, CYCLE.y, CYCLE.width, CYCLE.height);
@@ -392,6 +424,8 @@ function render(): void {
     drawMenu();
   } else if (screen === 'pack') {
     drawPackPreview();
+  } else if (screen === 'parent') {
+    drawParentPreview();
   } else {
     drawSuccess();
   }
@@ -406,6 +440,8 @@ function cycle(): void {
     screen = 'pack';
   } else if (screen === 'pack') {
     screen = 'success';
+  } else if (screen === 'success') {
+    screen = 'parent';
   } else {
     screen = 'menu';
   }

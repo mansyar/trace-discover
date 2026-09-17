@@ -19,7 +19,7 @@
 1. **Zero failure states** — nothing can be lost, broken, or permanently stuck
 2. **Generous touch** — 90px+ targets, ~12% path tolerance, forgiving start zones
 3. **Instant feedback** — every touch responds in <100ms (paint-fill, pop, sparkle)
-4. **One visible choice at a time** on child screens; parents get the 2-finger gate
+4. **One visible choice at a time** on child screens; parents get the hold-to-open gate
 5. **The child always knows what to do** — pulsing start star, replaying hand hint, star nudges
 6. **Offline-first always** — no network, no spinners, no ads, no errors
 7. **Interruptions are safe** — closing mid-level loses nothing; progress persists locally

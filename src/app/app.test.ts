@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultSave } from '../save/store';
-import { type AppState, applyAppEvent, startApp } from './app';
+import { type AppState, applyAppEvent, shouldShowParentHint, startApp } from './app';
 
 function setup(): AppState {
   return startApp(createDefaultSave());
@@ -193,6 +193,40 @@ describe('app navigation', () => {
     expect(resetting.save.badges).toEqual([]);
     expect(resetting.save.completedLevels).toEqual([]);
     expect(resetting.save.trophies).toEqual([]);
+  });
+});
+
+describe('gate hint', () => {
+  it('marks the one-time hint as learned when the parent zone opens', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    expect(app.save.settings.parentHintSeen).toBe(false);
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(app.screen.name).toBe('parent');
+    expect(app.save.settings.parentHintSeen).toBe(true);
+  });
+
+  it('shows the hint until it is learned, then never again', () => {
+    expect(shouldShowParentHint(createDefaultSave())).toBe(true);
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    expect(shouldShowParentHint(app.save)).toBe(false);
+  });
+});
+
+describe('sound controls', () => {
+  it('unmutes when the volume steps', () => {
+    let app = applyAppEvent(setup(), { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
+    expect(app.save.settings.muted).toBe(true);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-up' });
+    expect(app.save.settings.muted).toBe(false);
+    expect(app.save.settings.volume).toBe(1);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'mute' });
+    expect(app.save.settings.muted).toBe(true);
+    app = applyAppEvent(app, { type: 'parent-action', action: 'volume-down' });
+    expect(app.save.settings.muted).toBe(false);
+    expect(app.save.settings.volume).toBe(0.9);
   });
 });
 
@@ -439,6 +473,22 @@ describe('name preservation', () => {
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     expect(app.save.completedLevels).toEqual([]);
     expect(app.save.name).toBe('AVA');
+  });
+
+  it('keeps the gate hint flag across a progress reset', () => {
+    const base = createDefaultSave();
+    const seeded = {
+      ...base,
+      completedLevels: ['pre-1'],
+      settings: { ...base.settings, parentHintSeen: true },
+    };
+    let app = startApp(seeded);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    app = applyAppEvent(app, { type: 'parent-open' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
+    expect(app.save.completedLevels).toEqual([]);
+    expect(app.save.settings.parentHintSeen).toBe(true);
   });
 });
 
