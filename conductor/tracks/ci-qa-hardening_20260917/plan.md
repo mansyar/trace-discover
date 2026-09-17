@@ -4,7 +4,7 @@
 
 **Delivery strategy:** foundation first (docs of record → deterministic dev installs → stale sweep), then the smoke script proven locally (≥5 green + sensitivity control), then CI wiring with the branch pushed and a draft PR so GitHub runs become the evidence trail (including a controlled red run for the failure path), then coverage thresholds calibrated from the measured baseline, then a full acceptance sweep and owner handoff. No `src/` app-code change; budget unaffected. Push + PR are part of this track (CI evidence requires them); merge and release remain owner decisions.
 
-## Phase 1 — Docs of record + deterministic dev workspace + stale sweep
+## Phase 1 — Docs of record + deterministic dev workspace + stale sweep [checkpoint: 9f3fb0d]
 
 *Goal: the context docs describe the CI/QA hardening before implementation; QA tooling installs deterministically; the four stale scripts are gone.*
 
@@ -19,7 +19,7 @@
   - [x] Delete `dev/qa/qa-diag-pre3.mjs`, `dev/qa/qa-probe.mjs`, `dev/qa/browsertest.mjs`, `dev/qa/serve.mjs`
   - [x] Repo-wide grep sweep: README rows removed; rive-cli skill refs found + fixed; archive mentions left frozen; sweep recorded
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Canonical smoke script, proven locally
 
