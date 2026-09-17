@@ -40,13 +40,13 @@ conflicts, resolved by preserving both behaviors.
 
 ## Phase 2: App-side delight core (TDD)
 
-- [ ] Task 1: Mascot hit region (TDD)
-  - [ ] Red: hit/slop cases around the parked mascot; per-screen park metadata;
+- [x] Task 1: Mascot hit region (TDD) (51a1b96)
+  - [x] Red: hit/slop cases around the parked mascot; per-screen park metadata;
         invariants — the region never overlaps the parent-gate corner or pack
         cards (phone + iPad field bounds)
-  - [ ] Green: pure hit helper (e.g. `src/ui/mascot.ts`) + tests; shell passes
+  - [x] Green: pure hit helper (e.g. `src/ui/mascot.ts`) + tests; shell passes
         the existing park point/scale used by `positionCharacter`
-  - [ ] Verify coverage; commit + git note
+  - [x] Verify coverage; commit + git note
 - [ ] Task 2: Tap → giggle reaction (TDD + wiring)
   - [ ] Red: re-fire cooldown (single note; animation restarts); instrument
         note selection from the active skin; sparkle burst trigger;
