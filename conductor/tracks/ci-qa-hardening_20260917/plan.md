@@ -50,9 +50,9 @@
   - [x] Push `track/ci-qa-hardening`; open draft PR → CI fires
   - [x] Temporary commit forcing smoke failure → confirm the run reddens at the smoke step only and the artifact step stays best-effort; record run URLs; revert
   - [x] Commit + git note
-- [~] Task: Green end-to-end CI evidence
-  - [~] Final state green; record run URL + step timings (smoke's added wall time vs 20 min budget)
-  - [ ] Commit + git note
+- [x] Task: Green end-to-end CI evidence [ccbbb53]
+  - [x] Final state green; record run URL + step timings (smoke's added wall time vs 20 min budget)
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Coverage enforcement
