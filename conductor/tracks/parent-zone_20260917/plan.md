@@ -77,7 +77,7 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (a3e2550)
 
-## Phase 4: Zone finish — section cards + reactive feedback
+## Phase 4: Zone finish — section cards + reactive feedback [checkpoint: 97e2788]
 
 - [~] Task 1: Layout regroup (TDD)
   - [ ] Red: layout holds all nine actions in labeled sections (Sound / Play /
@@ -94,11 +94,11 @@ one-finger hold fails device tuning.
   - [x] Commit + git note
 - [x] Task 3: Shell wiring for feedback (tap pulse timing; existing pop reused) (97e2788)
   - [x] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (97e2788)
 
 ## Phase 5: Sound controls — pips, preview, auto-unmute
 
-- [ ] Task 1: Logic (TDD)
+- [~] Task 1: Logic (TDD)
   - [ ] Red: pips mapping (volume → 0–5); quieter/louder auto-unmutes; mute
         still toggles; preview note for the active instrument
   - [ ] Green: `src/ui/parent.ts` + `src/app/app.ts` + audio preview helper
