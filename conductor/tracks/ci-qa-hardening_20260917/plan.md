@@ -15,10 +15,10 @@
   - [x] Remove the `dev/pnpm-lock.yaml` ignore (`.gitignore`); regenerate the lockfile with the repo's pnpm (12.4.1); verify `pnpm --dir dev install --frozen-lockfile` no-ops clean; commit the lockfile
   - [x] `dev/README.md`: deps paragraph updated (tracked lockfile; frozen installs)
   - [x] Commit + git note
-- [~] Task: Stale sweep
-  - [~] Delete `dev/qa/qa-diag-pre3.mjs`, `dev/qa/qa-probe.mjs`, `dev/qa/browsertest.mjs`, `dev/qa/serve.mjs`
-  - [ ] Repo-wide grep confirms no references remain beyond the README rows; remove those rows + the stale note; record the sweep
-  - [ ] Commit + git note
+- [x] Task: Stale sweep [9f3fb0d]
+  - [x] Delete `dev/qa/qa-diag-pre3.mjs`, `dev/qa/qa-probe.mjs`, `dev/qa/browsertest.mjs`, `dev/qa/serve.mjs`
+  - [x] Repo-wide grep sweep: README rows removed; rive-cli skill refs found + fixed; archive mentions left frozen; sweep recorded
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Canonical smoke script, proven locally
