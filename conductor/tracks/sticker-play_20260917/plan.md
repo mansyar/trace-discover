@@ -38,15 +38,15 @@ two pages), ear approval of the note ladder, and the device sign-off.
 
 ## Phase 2: Board logic — layout, hit tests, state machine (pure)
 
-- [ ] Task 1: Board layout module (TDD)
-  - [ ] Red: per-pack grid fits 430×860 field bounds (pre 15 / nums 10 /
+- [x] Task 1: Board layout module (TDD) (be090ca)
+  - [x] Red: per-pack grid fits 430×860 field bounds (pre 15 / nums 10 /
         letters 29 / name 1); cells ≈96 units where count allows, letters
         densest-fit (~74); earned/ghost states from save; hit tests (cell →
         levelId, home, miss); shelf band hit rect excludes home + pager
         corner zones
-  - [ ] Green: new pure `src/ui/stickerBoard.ts`
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Green: new pure `src/ui/stickerBoard.ts`
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: App state machine (TDD)
   - [ ] Red: `sticker-open` (pack exists && ≥1 sticker) → board screen;
         `sticker-close` → pack; `sticker-tap` only on earned stickers (drives
