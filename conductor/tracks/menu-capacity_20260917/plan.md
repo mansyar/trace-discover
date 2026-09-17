@@ -33,9 +33,9 @@
   - [x] Green: adapt `menuDotPositions` / `dotsPerRow` / `menuCardArtMaxHeight` (scale within floors; no negative or overlapping art)
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: Consumer regression (no edits to existing tests)
-  - [ ] `CI=true pnpm check && CI=true pnpm test` — every pre-existing test green unmodified (`main.ts` / `render.ts` / `screens.ts` consume layout output unchanged in shape)
-  - [ ] Commit + git note (empty evidence commit permitted)
+- [x] Task 2: Consumer regression (no edits to existing tests) [183b5d2]
+  - [x] `CI=true pnpm check && CI=true pnpm test` — every pre-existing test green unmodified (`main.ts` / `render.ts` / `screens.ts` consume layout output unchanged in shape)
+  - [x] Commit + git note (empty evidence commit permitted)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Harness preview, QA matrix & closeout
