@@ -38,6 +38,7 @@ import type { Point } from './engine/types';
 import { fieldSizeFor, type Orientation, orientationFor } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
 import { appPacks } from './packs/catalog';
+import { bonusRunLevel } from './packs/letters';
 import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
@@ -501,7 +502,7 @@ function startRun(
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
-  const runLevel = levelForOrientation(level, orientation);
+  const runLevel = bonusRunLevel(level, orientation) ?? levelForOrientation(level, orientation);
   levelArtUrls = art;
   currentRun = {
     level,
@@ -707,7 +708,8 @@ function reflowRun(): void {
   if (!authored) {
     return;
   }
-  const runLevel = levelForOrientation(authored, orientation);
+  const runLevel =
+    bonusRunLevel(authored, orientation) ?? levelForOrientation(authored, orientation);
   const span = pathGeometryLength(run.runLevel);
   if (span > 0) {
     session.reflow(runLevel, pathGeometryLength(runLevel) / span);

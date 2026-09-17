@@ -5,7 +5,13 @@ import { describe, expect, it } from 'vitest';
 import { nearestOnPath } from '../engine/path';
 import type { Point } from '../engine/types';
 import { FIELD_WIDTH } from '../field';
-import { LETTER_BONUS_LEVELS, LETTER_LEVELS, LETTERS_PACK, letterLevel } from './letters';
+import {
+  bonusRunLevel,
+  LETTER_BONUS_LEVELS,
+  LETTER_LEVELS,
+  LETTERS_PACK,
+  letterLevel,
+} from './letters';
 import type { LevelDef } from './level';
 import { levelToPath, validateLevel } from './level';
 import {
@@ -17,6 +23,7 @@ import {
   type ProgressSave,
   shouldAwardPackBadge,
 } from './progress';
+import { WIDE_WORD_BOX } from './word';
 
 const ALPHABET_IDS = 'abcdefghijklmnopqrstuvwxyz'.split('').map((letter) => `abc-${letter}`);
 
@@ -328,5 +335,54 @@ describe('letters progress', () => {
 describe('letterLevel guard', () => {
   it('rejects a glyph with no control points', () => {
     expect(() => letterLevel('abc-x', 'line', [])).toThrow('needs at least one control point');
+  });
+});
+
+describe('landscape bonus words', () => {
+  it('keeps portrait bonuses authored (identity)', () => {
+    for (const level of LETTER_BONUS_LEVELS) {
+      expect(bonusRunLevel(level, 'portrait')).toBe(level);
+    }
+  });
+
+  it('returns null for levels that are not sequence bonuses', () => {
+    expect(bonusRunLevel(byId('abc-a'), 'portrait')).toBeNull();
+    expect(bonusRunLevel(byId('abc-a'), 'landscape')).toBeNull();
+  });
+
+  it('recomposes the words as full-size rows in the wide box', () => {
+    for (const level of LETTER_BONUS_LEVELS) {
+      const wide = bonusRunLevel(level, 'landscape');
+      if (!wide) {
+        throw new Error(`missing wide ${level.id}`);
+      }
+      expect(wide.id).toBe(level.id);
+      expect(wide.goalArt).toBe(level.goalArt);
+      expect(wide.strokes).toHaveLength(level.strokes.length);
+      expect(validateLevel(wide, 860, 430)).toEqual([]);
+      for (const stroke of wide.strokes) {
+        for (const point of stroke) {
+          expect(point.x, level.id).toBeGreaterThanOrEqual(WIDE_WORD_BOX.left);
+          expect(point.x, level.id).toBeLessThanOrEqual(WIDE_WORD_BOX.right);
+          expect(point.y, level.id).toBeGreaterThanOrEqual(WIDE_WORD_BOX.top);
+          expect(point.y, level.id).toBeLessThanOrEqual(WIDE_WORD_BOX.bottom);
+        }
+      }
+      expect(wide.goal).toEqual(wide.strokes[wide.strokes.length - 1]?.at(-1));
+    }
+  });
+
+  it('draws the wide rows wider than the portrait slots', () => {
+    const span = (level: LevelDef): number => {
+      const xs = level.strokes.flat().map((point) => point.x);
+      return Math.max(...xs) - Math.min(...xs);
+    };
+    for (const level of LETTER_BONUS_LEVELS) {
+      const wide = bonusRunLevel(level, 'landscape');
+      if (!wide) {
+        throw new Error(`missing wide ${level.id}`);
+      }
+      expect(span(wide), level.id).toBeGreaterThan(span(level));
+    }
   });
 });

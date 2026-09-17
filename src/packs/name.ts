@@ -8,10 +8,10 @@ import type { Point } from '../engine/types';
 import { FIELD_WIDTH, type Orientation } from '../field';
 import type { PathStyle } from '../render/renderPath';
 import { sanitizeName } from '../save/store';
-import { LETTER_LEVELS } from './letters';
+import { letterGlyph } from './letters';
 import type { LevelDef } from './level';
 import { createPackEntry, type PackEntry } from './pack';
-import { composeWordRow, WIDE_WORD_BOX, type WordGlyph } from './word';
+import { composeWordRow, WIDE_WORD_BOX } from './word';
 
 /** Menu/pack id of the runtime-composed name mini-pack. */
 export const NAME_PACK_ID = 'name';
@@ -25,24 +25,6 @@ export const NAME_BOX_LANDSCAPE = WIDE_WORD_BOX;
 const NAME_CENTER_Y = (NAME_BOX.top + NAME_BOX.bottom) / 2;
 const NAME_CENTER_Y_LANDSCAPE = (NAME_BOX_LANDSCAPE.top + NAME_BOX_LANDSCAPE.bottom) / 2;
 const LETTER_GAP = 30;
-
-type Glyph = WordGlyph;
-
-function letterGlyph(char: string): Glyph {
-  const level = LETTER_LEVELS.find((entry) => entry.id === `abc-${char.toLowerCase()}`);
-  if (level === undefined) {
-    throw new Error(`no letter glyph for "${char}"`);
-  }
-  let left = Number.POSITIVE_INFINITY;
-  let right = Number.NEGATIVE_INFINITY;
-  for (const stroke of level.strokes) {
-    for (const point of stroke) {
-      left = Math.min(left, point.x);
-      right = Math.max(right, point.x);
-    }
-  }
-  return { left, right, strokes: level.strokes };
-}
 
 function nameBoxFor(orientation: Orientation): typeof NAME_BOX | typeof NAME_BOX_LANDSCAPE {
   return orientation === 'landscape' ? NAME_BOX_LANDSCAPE : NAME_BOX;

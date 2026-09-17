@@ -4,8 +4,10 @@
 // Phase 2): coordinates follow the formation table in the track's
 // content.md — keep the two in sync.
 import type { Point, StrokePattern } from '../engine/types';
+import type { Orientation } from '../field';
 import type { LevelDef } from './level';
 import { createPackEntry, type PackEntry } from './pack';
+import { composeWordRow, WIDE_WORD_BOX, type WordGlyph } from './word';
 
 /** Compact point helper for the geometry tables. */
 function p(x: number, y: number): Point {
@@ -258,6 +260,51 @@ export const LETTER_BONUS_LEVELS: readonly LevelDef[] = [
     ],
   ]),
 ];
+
+/** Word spelling per sequence bonus, used when recomposing wide rows. */
+const BONUS_WORDS: Readonly<Record<string, string>> = {
+  'abc-bonus-1': 'ABC',
+  'abc-bonus-2': 'MOM',
+  'abc-bonus-3': 'ZOO',
+};
+
+const BONUS_GAP = 30;
+
+/** Glyph lookup shared by the name composer and the wide bonus rows. */
+export function letterGlyph(char: string): WordGlyph {
+  const level = LETTER_LEVELS.find((entry) => entry.id === `abc-${char.toLowerCase()}`);
+  if (level === undefined) {
+    throw new Error(`no letter glyph for "${char}"`);
+  }
+  let left = Number.POSITIVE_INFINITY;
+  let right = Number.NEGATIVE_INFINITY;
+  for (const stroke of level.strokes) {
+    for (const point of stroke) {
+      left = Math.min(left, point.x);
+      right = Math.max(right, point.x);
+    }
+  }
+  return { left, right, strokes: level.strokes };
+}
+
+/**
+ * Run level for a sequence bonus: the portrait field keeps the authored slots;
+ * the wide field recomposes the word as a full-size row via the shared
+ * composer so ABC / MOM / ZOO fill the landscape box.
+ */
+export function bonusRunLevel(level: LevelDef, orientation: Orientation): LevelDef | null {
+  const word = BONUS_WORDS[level.id];
+  if (word === undefined) {
+    return null;
+  }
+  if (orientation === 'portrait') {
+    return level;
+  }
+  const glyphs = [...word].map(letterGlyph);
+  const { strokes } = composeWordRow(glyphs, WIDE_WORD_BOX, BONUS_GAP);
+  const goal = strokes[strokes.length - 1]?.at(-1) ?? { x: 430, y: 215 };
+  return { ...level, goal, strokes };
+}
 
 /** The letters pack: twenty-six uppercase letters plus three sequence bonuses. */
 export const LETTERS_PACK: PackEntry = createPackEntry({
