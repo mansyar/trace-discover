@@ -83,10 +83,10 @@ conflicts, resolved by preserving both behaviors.
         the other four casts
   - [x] Author giggle + flourish + idle beat; rebuild; size check
   - [x] Screenshots → owner confirmation; commit + git note
-- [~] Task 3: Excavator upgrade (`dev/characters/excavator`)
-  - [ ] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
-  - [ ] Screenshots → owner confirmation; commit + git note
-- [ ] Task 4: Lion upgrade (`dev/characters/lion`)
+- [x] Task 3: Excavator upgrade (`dev/characters/excavator`) (3f225d3)
+  - [x] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
+  - [x] Screenshots → owner confirmation; commit + git note
+- [~] Task 4: Lion upgrade (`dev/characters/lion`)
   - [ ] Giggle + flourish + idle beat authored; rebuilt; ≤ ~500 KB check
   - [ ] Screenshots → owner confirmation; commit + git note
 - [ ] Task 5: Teddy upgrade (`dev/characters/teddy`)
