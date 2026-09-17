@@ -91,3 +91,7 @@
 5. Failure path: red run `35217445306` uploaded `smoke-failure` diagnostics; artifact steps best-effort, never redden.
 6. Docs synced before implementation: tech-stack dated note + track in-progress (`43085cd`); README updates (`8287787`, `a226c87`).
 7. Full gates green: check → test --coverage (72.88 / 77.55 / 89.57 / 72.42; 634 tests) → pack:check → build (138 precache entries) → budget (4,730,213 B, unchanged); diff confined to 17 files across `.github/`, `dev/`, config and docs — zero `src/` changes.
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions [0c9d6f7]
