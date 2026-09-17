@@ -77,7 +77,17 @@
   - [x] `CI=true pnpm check && CI=true pnpm test --coverage && pnpm pack:check && pnpm build && pnpm budget`; dist size/entries vs baseline recorded (expect unchanged)
   - [x] Docs consistency pass (`dev/README.md`, `tech-stack.md`); acceptance 1–7 evidence collected (runs, screenshots, greps, timings) into plan + git note
   - [x] Commit + git note
-- [~] Task: Final PR + handoff
-  - [~] Mark PR ready for review; summarize evidence; merge/release remain with the owner
-  - [ ] Commit + git note
+- [x] Task: Final PR + handoff [623b737]
+  - [x] Mark PR ready for review; summarize evidence; merge/release remain with the owner
+  - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+
+### Acceptance evidence (AC1–7)
+
+1. Smoke green: 5 consecutive local runs (note on `16c2ca9`) + CI runs `35217120516`, `35217631922`, `35218778187`.
+2. Smoke negative control: local forced-boot-failure red then revert green (`2815a49`) + CI run `35217445306` red at the Smoke step only.
+3. Coverage gate: local red control at raised threshold 74 (`7549bbf`); enforced green in CI run `35218778187`.
+4. Stale sweep: four scripts removed (`5ab89ae`, refs fixed `9f3fb0d`); repo-wide grep shows only intentional mentions.
+5. Failure path: red run `35217445306` uploaded `smoke-failure` diagnostics; artifact steps best-effort, never redden.
+6. Docs synced before implementation: tech-stack dated note + track in-progress (`43085cd`); README updates (`8287787`, `a226c87`).
+7. Full gates green: check → test --coverage (72.88 / 77.55 / 89.57 / 72.42; 634 tests) → pack:check → build (138 precache entries) → budget (4,730,213 B, unchanged); diff confined to 17 files across `.github/`, `dev/`, config and docs — zero `src/` changes.
