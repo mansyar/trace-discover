@@ -86,6 +86,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
+| `qa-smoke.mjs` | Canonical smoke — boots the production build, traces `pre-1` to success with step assertions + a zero-page-error gate (runs in every CI verify job) | preview `:4173` | canonical |
 *Status legend: **canonical** = kept and referenced · **one-off** = kept for
 reference · **utility** = reusable helper. Statuses confirmed in
 `repo-organization_20260916` (Phases 2–4, 2026-09-16); `qa-parent-zone` added
@@ -93,7 +94,12 @@ in `parent-zone_20260917` (2026-09-17); `qa-pack-preview` added in
 `pack-pipeline_20260917` (2026-09-17) and extended to every JSON pack in
 `pack-pipeline-2_20260917` (2026-09-17); the stale category is now empty — its
 four members (`qa-diag-pre3`, `qa-probe`, `browsertest`, `serve`) were removed
-in `ci-qa-hardening_20260917` (2026-09-17).*
+in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
+(canonical, runs in CI).*
+
+> Smoke usage (two terminals): 1) `pnpm preview` (production build on `:4173`;
+> `pnpm serve` for LAN devices) — 2) `node dev/qa/qa-smoke.mjs`. CI runs the
+> same pair after `pnpm build`; artifacts land in `dev/qa/out/qa-smoke/`.
 
 > First-run note: `qa-harness.mjs` can exceed its 30 s `window.__qa` wait on a
 > cold Vite optimize right after the dev server starts — warm the server (load
