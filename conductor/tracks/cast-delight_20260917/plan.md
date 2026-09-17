@@ -38,7 +38,7 @@ conflicts, resolved by preserving both behaviors.
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: App-side delight core (TDD)
+## Phase 2: App-side delight core (TDD) [checkpoint: 1b5d757]
 
 - [x] Task 1: Mascot hit region (TDD) (51a1b96)
   - [x] Red: hit/slop cases around the parked mascot; per-screen park metadata;
