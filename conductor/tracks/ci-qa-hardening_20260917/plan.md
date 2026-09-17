@@ -11,12 +11,12 @@
 - [x] Task: Context docs resync — before implementation per workflow.md [43085cd]
   - [x] `conductor/tech-stack.md`: dated note — CI browser smoke (preinstalled Edge on `ubuntu-latest`, no browser downloads), enforced coverage thresholds (calibrated values), `dev/pnpm-lock.yaml` tracked for frozen installs
   - [x] Commit + git note
-- [~] Task: Deterministic dev QA deps
-  - [~] Remove the `dev/pnpm-lock.yaml` ignore (`.gitignore`); regenerate the lockfile with the repo's pnpm (12.4.1); verify `pnpm --dir dev install --frozen-lockfile` no-ops clean; commit the lockfile
-  - [ ] `dev/README.md`: deps paragraph updated (tracked lockfile; frozen installs)
-  - [ ] Commit + git note
-- [ ] Task: Stale sweep
-  - [ ] Delete `dev/qa/qa-diag-pre3.mjs`, `dev/qa/qa-probe.mjs`, `dev/qa/browsertest.mjs`, `dev/qa/serve.mjs`
+- [x] Task: Deterministic dev QA deps [8287787]
+  - [x] Remove the `dev/pnpm-lock.yaml` ignore (`.gitignore`); regenerate the lockfile with the repo's pnpm (12.4.1); verify `pnpm --dir dev install --frozen-lockfile` no-ops clean; commit the lockfile
+  - [x] `dev/README.md`: deps paragraph updated (tracked lockfile; frozen installs)
+  - [x] Commit + git note
+- [~] Task: Stale sweep
+  - [~] Delete `dev/qa/qa-diag-pre3.mjs`, `dev/qa/qa-probe.mjs`, `dev/qa/browsertest.mjs`, `dev/qa/serve.mjs`
   - [ ] Repo-wide grep confirms no references remain beyond the README rows; remove those rows + the stale note; record the sweep
   - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
