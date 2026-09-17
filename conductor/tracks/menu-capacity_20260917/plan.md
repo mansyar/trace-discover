@@ -40,10 +40,10 @@
 
 ## Phase 4: Harness preview, QA matrix & closeout
 
-- [ ] Task 1: Dev harness synthetic counts (dev-only)
-  - [ ] `src/dev/screens.ts` + `dev/harness/screens.html`: parameter(s) for N synthetic cards (2–6) + orientation (e.g., `?menuCards=N`); render the screenshot matrix 3–6 × portrait/landscape incl. the name-card case; review screenshots; `dev/README.md` harness notes
-  - [ ] Commit + git note
-- [ ] Task 2: QA sweeps + evidence (fresh build)
+- [x] Task 1: Dev harness synthetic counts (dev-only) [ee731bc]
+  - [x] `src/dev/screens.ts` + `dev/harness/screens.html`: parameter(s) for N synthetic cards (2–6) + orientation (e.g., `?menuCards=N`); render the screenshot matrix 3–6 × portrait/landscape incl. the name-card case; review screenshots; `dev/README.md` harness notes
+  - [x] Commit + git note
+- [~] Task 2: QA sweeps + evidence (fresh build)
   - [ ] `pnpm build`; run `qa-screens`, `qa-landscape`, `qa-app` (spot); confirm no visual change at current counts + matrix reviewed; `pnpm budget` green; dist size + precache entries recorded vs master baseline (`fa84ee1`)
   - [ ] Record exact commands + outcomes in the git note
   - [ ] Commit + git note
