@@ -49,6 +49,9 @@ const GAP_SHRINK_STEP = 2;
 const TALL_MAX_COLUMNS = 2;
 const WIDE_MAX_COLUMNS = 3;
 
+/** Cards the menu lays out at full size in either orientation (the reserved My Name slot included). */
+export const MENU_CARD_CAPACITY = 6;
+
 export function menuLayout(
   fieldWidth: number,
   fieldHeight: number,

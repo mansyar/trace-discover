@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
+import { allPacks } from '../packs/catalog';
 import {
   hitMenuCard,
   inParentGate,
+  MENU_CARD_CAPACITY,
   type MenuCard,
   type MenuLayout,
   menuCardArtMaxHeight,
@@ -400,4 +402,10 @@ describe('menuLayout (beyond capacity degrades gracefully)', () => {
       );
     });
   }
+});
+
+describe('menu capacity guard', () => {
+  it('holds registered packs plus the reserved My Name slot within the six-card capacity', () => {
+    expect(allPacks().length + 1).toBeLessThanOrEqual(MENU_CARD_CAPACITY);
+  });
 });
