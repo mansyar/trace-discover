@@ -108,3 +108,168 @@ describe('parsePackJson shape errors', () => {
     expect(pack.levels[0]?.strokes).toHaveLength(1);
   });
 });
+
+describe('parsePackJson geometry errors', () => {
+  it('rejects control points outside the field margin', () => {
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [
+          {
+            ...LEVEL,
+            strokes: [
+              [
+                { x: 10, y: 430 },
+                { x: 285, y: 430 },
+              ],
+            ],
+          },
+        ],
+      }),
+    ).toThrow(/stroke 0 control point 0 outside field margin/);
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [
+          {
+            ...LEVEL,
+            strokes: [
+              [
+                { x: 145, y: 850 },
+                { x: 285, y: 430 },
+              ],
+            ],
+          },
+        ],
+      }),
+    ).toThrow(/stroke 0 control point 0 outside field margin/);
+  });
+
+  it('rejects a goal outside the field margin', () => {
+    expect(() =>
+      parsePackJson({ ...PACK, levels: [{ ...LEVEL, goal: { x: 420, y: 430 } }] }),
+    ).toThrow(/level 0 \('pre-1'\): goal outside field margin/);
+  });
+
+  it('rejects non-finite control points', () => {
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [
+          {
+            ...LEVEL,
+            strokes: [
+              [
+                { x: Number.POSITIVE_INFINITY, y: 430 },
+                { x: 285, y: 430 },
+              ],
+            ],
+          },
+        ],
+      }),
+    ).toThrow(/stroke 0 point 0 x must be a finite number/);
+  });
+
+  it('rejects strokes with fewer than two control points', () => {
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [{ ...LEVEL, strokes: [[{ x: 145, y: 430 }]] }],
+      }),
+    ).toThrow(/stroke 0 needs at least 2 control points/);
+  });
+
+  it('rejects duplicate consecutive control points', () => {
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [
+          {
+            ...LEVEL,
+            strokes: [
+              [
+                { x: 215, y: 430 },
+                { x: 215, y: 430 },
+                { x: 285, y: 430 },
+              ],
+            ],
+          },
+        ],
+      }),
+    ).toThrow(/stroke 0 duplicate consecutive control point/);
+  });
+
+  it('labels problems for bonus levels as bonuses', () => {
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        bonuses: [
+          {
+            ...LEVEL,
+            id: 'pre-bonus-1',
+            strokes: [
+              [
+                { x: 10, y: 10 },
+                { x: 285, y: 430 },
+              ],
+            ],
+          },
+        ],
+        bonusUnlocks: [1],
+      }),
+    ).toThrow(/bonus level 0 \('pre-bonus-1'\): stroke 0 control point 0 outside field margin/);
+  });
+});
+
+describe('parsePackJson pack-rule errors', () => {
+  const CIRCLE = {
+    ...LEVEL,
+    id: 'pre-bonus-1',
+    stroke: 'circle',
+    strokes: [
+      [
+        { x: 215, y: 430 },
+        { x: 285, y: 430 },
+        { x: 215, y: 430 },
+      ],
+    ],
+  };
+
+  it('rejects a pack without levels', () => {
+    expect(() => parsePackJson({ ...PACK, levels: [] })).toThrow(
+      /pack 'pre': Pack pre needs at least one level/,
+    );
+  });
+
+  it('requires one unlock threshold per bonus', () => {
+    const SECOND = { ...CIRCLE, id: 'pre-bonus-2' };
+    expect(() =>
+      parsePackJson({ ...PACK, bonuses: [CIRCLE, SECOND], bonusUnlocks: [1] }),
+    ).toThrow(/one unlock threshold per bonus/);
+  });
+
+  it('requires the final threshold to equal the main level count', () => {
+    expect(() => parsePackJson({ ...PACK, bonuses: [CIRCLE], bonusUnlocks: [7] })).toThrow(
+      /final bonus unlock \(7\) must equal the level count \(1\)/,
+    );
+  });
+
+  it('accepts a pack whose bonuses unlock at its level count', () => {
+    const pack = parsePackJson({
+      ...PACK,
+      bonusUnlocks: [1],
+      bonuses: [CIRCLE],
+    });
+    expect(pack.bonuses).toHaveLength(1);
+    expect(pack.bonusUnlocks).toEqual([1]);
+  });
+
+  it('rejects goalArt paths that traverse outside /art/goal/', () => {
+    expect(() =>
+      parsePackJson({
+        ...PACK,
+        levels: [{ ...LEVEL, goalArt: '/art/goal/../priv/secret.webp' }],
+      }),
+    ).toThrow(/must not traverse/);
+  });
+});
