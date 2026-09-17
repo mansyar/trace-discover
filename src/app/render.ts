@@ -939,7 +939,7 @@ function drawZoneCard(ctx: CanvasRenderingContext2D, card: ZoneCard): void {
   ctx.stroke();
   ctx.fillStyle = NAVY;
   ctx.font = '20px system-ui, sans-serif';
-  const mini = card.rect.width < 160;
+  const mini = card.mini;
   ctx.textAlign = mini ? 'center' : 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(

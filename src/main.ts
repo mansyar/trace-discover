@@ -235,9 +235,10 @@ function previewVolumeNote(): void {
 
 /** Install-guide variant; display-mode can only change across relaunches. */
 const INSTALL_VARIANT: InstallVariant = installVariant({
-  maxTouchPoints: navigator.maxTouchPoints ?? 0,
+  maxTouchPoints: navigator.maxTouchPoints,
   standalone:
     window.matchMedia('(display-mode: standalone)').matches ||
+    // Safari-only property, absent from lib.dom.
     (navigator as { standalone?: boolean }).standalone === true,
   userAgent: navigator.userAgent,
 });

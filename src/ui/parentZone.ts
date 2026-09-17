@@ -37,6 +37,8 @@ export interface ZoneCard {
   readonly id: ZoneCardId;
   readonly label: string;
   readonly rect: OverlayRect;
+  /** Mini cards stack three across; labels center instead of aligning left. */
+  readonly mini: boolean;
 }
 
 export interface ParentZoneLayout {
@@ -76,8 +78,9 @@ function card(
   y: number,
   width: number,
   height: number,
+  mini: boolean,
 ): ZoneCard {
-  return { id, label, rect: { height, width, x, y } };
+  return { id, label, mini, rect: { height, width, x, y } };
 }
 
 /**
@@ -105,11 +108,19 @@ export function parentZoneLayout(fieldWidth: number, fieldHeight: number): Paren
     skin: button('skin', centerX + 110, controlY(skinNameY), SMALL_RADIUS),
     done: button('done', centerX, Math.min(770, fieldHeight - 90), BIG_RADIUS),
     cards: [
-      card('sound', 'Sound', CARD_MARGIN, soundY, fullWidth, ROW_CARD_HEIGHT),
-      card('skinName', 'Skin & Name', CARD_MARGIN, skinNameY, fullWidth, LABELED_CARD_HEIGHT),
-      card('play', 'Play', miniX(0), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT),
-      card('data', 'Data', miniX(1), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT),
-      card('help', 'Help', miniX(2), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT),
+      card('sound', 'Sound', CARD_MARGIN, soundY, fullWidth, ROW_CARD_HEIGHT, false),
+      card(
+        'skinName',
+        'Skin & Name',
+        CARD_MARGIN,
+        skinNameY,
+        fullWidth,
+        LABELED_CARD_HEIGHT,
+        false,
+      ),
+      card('play', 'Play', miniX(0), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT, true),
+      card('data', 'Data', miniX(1), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT, true),
+      card('help', 'Help', miniX(2), miniY, MINI_CARD_WIDTH, LABELED_CARD_HEIGHT, true),
     ],
     trophies: [
       { radius: TROPHY_RADIUS, x: centerX - TROPHY_SPACING, y: TROPHY_Y },

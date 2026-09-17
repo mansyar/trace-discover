@@ -75,6 +75,7 @@ describe('parent zone', () => {
       'Data',
       'Help',
     ]);
+    expect(layout.cards.map((card) => card.mini)).toEqual([false, false, true, true, true]);
     for (const card of layout.cards) {
       expect(card.rect.x).toBeGreaterThanOrEqual(0);
       expect(card.rect.x + card.rect.width).toBeLessThanOrEqual(FIELD_WIDTH);
