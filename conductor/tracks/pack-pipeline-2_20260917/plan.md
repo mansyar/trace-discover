@@ -38,9 +38,9 @@
   - [x] Green: author `src/packs/data/abc.json`; rewrite `letters.ts` as a thin loader (`LETTER_LEVELS`, `LETTER_BONUS_LEVELS`, `LETTERS_PACK` preserved; `letterLevel` / `letterGlyph` / `bonusRunLevel` keep behavior); tests green
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: Regression + Name composition untouched
-  - [ ] `CI=true pnpm check && CI=true pnpm test`; `name` tests green unmodified (glyph chain byte-identical)
-  - [ ] Commit + git note (empty evidence commit permitted)
+- [x] Task 2: Regression + Name composition untouched [316095b]
+  - [x] `CI=true pnpm check && CI=true pnpm test`; `name` tests green unmodified (glyph chain byte-identical)
+  - [x] Commit + git note (empty evidence commit permitted)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Tooling, QA sweeps & acceptance
