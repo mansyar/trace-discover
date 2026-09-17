@@ -1,7 +1,9 @@
 // Boot splash + main menu layout math (pure; canvas rendering defers to
-// shell wiring). Pack cards run as a vertically centered stack in the
-// portrait field and as a centered row (or 2-column wrap) in the wide
-// landscape field; both keep the invisible parent-gate corner zone.
+// shell wiring). Pack cards grow to fit: portrait keeps a full-width stack
+// through four cards, then a centered two-column grid; landscape keeps a
+// centered row or two-column wrap and grows to three columns. Height and gap
+// shrink only past the supported six-card capacity, within toddler floors.
+// Both orientations keep the invisible parent-gate corner zone.
 import type { Point } from '../engine/types';
 
 export interface MenuCard {
@@ -38,6 +40,15 @@ const SIDE_MARGIN = 65;
 const MENU_PARK_BOTTOM_OFFSET_PORTRAIT = 125;
 const MENU_PARK_BOTTOM_OFFSET_LANDSCAPE = 130;
 
+/** Shrink floors used only when a layout exceeds the supported capacity. */
+const MIN_CARD_HEIGHT = 90;
+const MIN_CARD_GAP = 16;
+const HEIGHT_SHRINK_STEP = 5;
+const GAP_SHRINK_STEP = 2;
+/** Widest grids each orientation grows to before any shrinking. */
+const TALL_MAX_COLUMNS = 2;
+const WIDE_MAX_COLUMNS = 3;
+
 export function menuLayout(
   fieldWidth: number,
   fieldHeight: number,
@@ -53,69 +64,112 @@ export function menuLayout(
   };
 }
 
-/** Portrait: one full-width card per pack in a vertically centered stack. */
+interface CardMetrics {
+  readonly gap: number;
+  readonly height: number;
+}
+
+const FULL_METRICS: CardMetrics = { gap: CARD_GAP, height: CARD_HEIGHT };
+const FLOOR_METRICS: CardMetrics = { gap: MIN_CARD_GAP, height: MIN_CARD_HEIGHT };
+
+function rowCountFor(columns: number, count: number): number {
+  return Math.ceil(count / columns);
+}
+
+/** Whether a grid of `columns` columns fits the field height at these metrics. */
+function fits(columns: number, count: number, fieldHeight: number, metrics: CardMetrics): boolean {
+  const rows = rowCountFor(columns, count);
+  return rows * metrics.height + (rows - 1) * metrics.gap <= fieldHeight;
+}
+
+/** Largest fitting shrink (tallest first, then widest gap); null when nothing fits to the floors. */
+function shrinkMetrics(columns: number, count: number, fieldHeight: number): CardMetrics | null {
+  for (let height = CARD_HEIGHT; height >= MIN_CARD_HEIGHT; height -= HEIGHT_SHRINK_STEP) {
+    for (let gap = CARD_GAP; gap >= MIN_CARD_GAP; gap -= GAP_SHRINK_STEP) {
+      const metrics: CardMetrics = { gap, height };
+      if (fits(columns, count, fieldHeight, metrics)) {
+        return metrics;
+      }
+    }
+  }
+  return null;
+}
+
+/** Row-major grid placement: the block centers vertically and each row centers. */
+function gridCards(
+  fieldWidth: number,
+  fieldHeight: number,
+  packIds: readonly string[],
+  columns: number,
+  cardWidth: number,
+  metrics: CardMetrics,
+): readonly MenuCard[] {
+  const count = packIds.length;
+  const rows = rowCountFor(columns, count);
+  const blockHeight = rows * metrics.height + (rows - 1) * metrics.gap;
+  const startY = (fieldHeight - blockHeight) / 2;
+  return packIds.map((packId, index): MenuCard => {
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const rowCards = Math.min(columns, count - row * columns);
+    const rowWidth = rowCards * cardWidth + (rowCards - 1) * metrics.gap;
+    return {
+      height: metrics.height,
+      packId,
+      width: cardWidth,
+      x: (fieldWidth - rowWidth) / 2 + column * (cardWidth + metrics.gap),
+      y: startY + row * (metrics.height + metrics.gap),
+    };
+  });
+}
+
+/** Portrait: a full-width stack through four cards; a two-column grid beyond. */
 function tallCards(
   fieldWidth: number,
   fieldHeight: number,
   packIds: readonly string[],
 ): readonly MenuCard[] {
-  const cardWidth = fieldWidth - SIDE_MARGIN * 2;
-  const blockHeight = packIds.length * CARD_HEIGHT + Math.max(0, packIds.length - 1) * CARD_GAP;
-  const startY = (fieldHeight - blockHeight) / 2;
-  return packIds.map(
-    (packId, index): MenuCard => ({
-      height: CARD_HEIGHT,
-      packId,
-      width: cardWidth,
-      x: SIDE_MARGIN,
-      y: startY + index * (CARD_HEIGHT + CARD_GAP),
-    }),
-  );
+  const count = packIds.length;
+  if (count === 0) {
+    return [];
+  }
+  if (fits(1, count, fieldHeight, FULL_METRICS)) {
+    const cardWidth = fieldWidth - SIDE_MARGIN * 2;
+    return gridCards(fieldWidth, fieldHeight, packIds, 1, cardWidth, FULL_METRICS);
+  }
+  const metrics = fits(TALL_MAX_COLUMNS, count, fieldHeight, FULL_METRICS)
+    ? FULL_METRICS
+    : (shrinkMetrics(TALL_MAX_COLUMNS, count, fieldHeight) ?? FLOOR_METRICS);
+  const cardWidth =
+    (fieldWidth - SIDE_MARGIN * 2 - (TALL_MAX_COLUMNS - 1) * metrics.gap) / TALL_MAX_COLUMNS;
+  return gridCards(fieldWidth, fieldHeight, packIds, TALL_MAX_COLUMNS, cardWidth, metrics);
 }
 
-/** Landscape: a single centered row when cards stay toddler-wide, else a
- *  centered 2-column wrap (row-major, last odd card centered). */
+/** Landscape: a centered row when cards stay toddler-wide, else a two- or
+ *  three-column wrap (row-major, last odd card centered). */
 function wideCards(
   fieldWidth: number,
   fieldHeight: number,
   packIds: readonly string[],
 ): readonly MenuCard[] {
-  const available = fieldWidth - SIDE_MARGIN * 2;
   const count = packIds.length;
   if (count === 0) {
     return [];
   }
+  const available = fieldWidth - SIDE_MARGIN * 2;
   const singleRowWidth = (available - (count - 1) * CARD_GAP) / count;
   if (singleRowWidth >= MIN_CARD_WIDTH) {
-    const y = (fieldHeight - CARD_HEIGHT) / 2;
-    return packIds.map(
-      (packId, index): MenuCard => ({
-        height: CARD_HEIGHT,
-        packId,
-        width: singleRowWidth,
-        x: SIDE_MARGIN + index * (singleRowWidth + CARD_GAP),
-        y,
-      }),
-    );
+    return gridCards(fieldWidth, fieldHeight, packIds, count, singleRowWidth, FULL_METRICS);
   }
-  const columns = 2;
-  const cardWidth = (available - (columns - 1) * CARD_GAP) / columns;
-  const rows = Math.ceil(count / columns);
-  const blockHeight = rows * CARD_HEIGHT + (rows - 1) * CARD_GAP;
-  const startY = (fieldHeight - blockHeight) / 2;
-  return packIds.map((packId, index): MenuCard => {
-    const row = Math.floor(index / columns);
-    const column = index % columns;
-    const rowCount = Math.min(columns, count - row * columns);
-    const rowWidth = rowCount * cardWidth + (rowCount - 1) * CARD_GAP;
-    return {
-      height: CARD_HEIGHT,
-      packId,
-      width: cardWidth,
-      x: (fieldWidth - rowWidth) / 2 + column * (cardWidth + CARD_GAP),
-      y: startY + row * (CARD_HEIGHT + CARD_GAP),
-    };
-  });
+  if (fits(2, count, fieldHeight, FULL_METRICS)) {
+    const cardWidth = (available - CARD_GAP) / 2;
+    return gridCards(fieldWidth, fieldHeight, packIds, 2, cardWidth, FULL_METRICS);
+  }
+  const metrics = fits(WIDE_MAX_COLUMNS, count, fieldHeight, FULL_METRICS)
+    ? FULL_METRICS
+    : (shrinkMetrics(WIDE_MAX_COLUMNS, count, fieldHeight) ?? FLOOR_METRICS);
+  const cardWidth = (available - (WIDE_MAX_COLUMNS - 1) * metrics.gap) / WIDE_MAX_COLUMNS;
+  return gridCards(fieldWidth, fieldHeight, packIds, WIDE_MAX_COLUMNS, cardWidth, metrics);
 }
 
 /** Mascot park: bottom-center, with room below the card block in either field. */

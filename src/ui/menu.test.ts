@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
 import {
   hitMenuCard,
   inParentGate,
+  type MenuCard,
   type MenuLayout,
   menuCardArtMaxHeight,
   menuDotPositions,
@@ -251,4 +252,152 @@ describe('menuCardArtMaxHeight', () => {
     expect(menuCardArtMaxHeight(landscape, 26)).toBe(76);
     expect(menuCardArtMaxHeight(landscape, 10)).toBe(92);
   });
+});
+
+/** Synthetic pack ids for capacity tests (1..N). */
+function capacityIds(count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `pack-${index}`);
+}
+
+function cardIn(cards: readonly MenuCard[], index: number): MenuCard {
+  const card = cards[index];
+  if (card === undefined) {
+    throw new Error(`missing card ${index}`);
+  }
+  return card;
+}
+
+const CAPACITY_FIELDS = [
+  { height: FIELD_HEIGHT, label: 'portrait', width: FIELD_WIDTH },
+  { height: LANDSCAPE_FIELD_HEIGHT, label: 'landscape', width: LANDSCAPE_FIELD_WIDTH },
+] as const;
+
+/** Shared invariants: inside the field, toddler-sized, separated, centers tappable. */
+function expectUsableLayout(field: (typeof CAPACITY_FIELDS)[number], count: number): void {
+  const layout = menuLayout(field.width, field.height, capacityIds(count));
+  const { cards } = layout;
+  expect(cards.map((card) => card.packId)).toEqual(capacityIds(count));
+  const seen: MenuCard[] = [];
+  for (const card of cards) {
+    expect(card.width).toBeGreaterThanOrEqual(90);
+    expect(card.height).toBeGreaterThanOrEqual(90);
+    expect(card.x).toBeGreaterThanOrEqual(0);
+    expect(card.y).toBeGreaterThanOrEqual(0);
+    expect(card.x + card.width).toBeLessThanOrEqual(field.width);
+    expect(card.y + card.height).toBeLessThanOrEqual(field.height);
+    for (const other of seen) {
+      const separated =
+        other.x + other.width <= card.x ||
+        card.x + card.width <= other.x ||
+        other.y + other.height <= card.y ||
+        card.y + card.height <= other.y;
+      expect(separated).toBe(true);
+    }
+    expect(hitMenuCard(layout, { x: card.x + card.width / 2, y: card.y + card.height / 2 })).toBe(
+      card.packId,
+    );
+    seen.push(card);
+  }
+}
+
+describe('menuLayout (capacity matrix, 1-6 cards)', () => {
+  for (const field of CAPACITY_FIELDS) {
+    describe(field.label, () => {
+      it.each([1, 2, 3, 4, 5, 6])(
+        'keeps %i cards inside the field, toddler-sized, separated, and tappable',
+        (count) => {
+          expectUsableLayout(field, count);
+        },
+      );
+    });
+  }
+
+  it('reflows five and six portrait cards into a centered two-column grid', () => {
+    const five = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, capacityIds(5)).cards;
+    const six = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, capacityIds(6)).cards;
+    const gridWidth = (FIELD_WIDTH - 130 - 30) / 2;
+    expect(cardIn(five, 0).width).toBeCloseTo(gridWidth, 5);
+    expect(cardIn(six, 0).width).toBeCloseTo(gridWidth, 5);
+    // Row-major: the first two cards share the top row in two distinct columns.
+    expect(cardIn(five, 1).y).toBeCloseTo(cardIn(five, 0).y, 5);
+    expect(cardIn(five, 1).x).toBeGreaterThan(cardIn(five, 0).x);
+    expect(cardIn(five, 2).y).toBeCloseTo(cardIn(five, 0).y + 180, 5);
+    // The odd fifth card centers alone in the third row.
+    expect(cardIn(five, 4).y).toBeGreaterThan(cardIn(five, 3).y);
+    expect(cardIn(five, 4).x + cardIn(five, 4).width / 2).toBeCloseTo(FIELD_WIDTH / 2, 5);
+    // Six fills three full rows.
+    expect(cardIn(six, 5).y).toBeCloseTo(cardIn(six, 4).y, 5);
+    expect(cardIn(six, 5).x).toBeGreaterThan(cardIn(six, 4).x);
+    // The grid stays clear of the parent-gate corner band.
+    expect(cardIn(five, 0).y).toBeGreaterThanOrEqual(100);
+    expect(cardIn(six, 0).y).toBeGreaterThanOrEqual(100);
+  });
+
+  it('wraps five and six landscape cards into a three-column grid', () => {
+    const five = menuLayout(860, 430, capacityIds(5)).cards;
+    const six = menuLayout(860, 430, capacityIds(6)).cards;
+    const gridWidth = (860 - 130 - 60) / 3;
+    expect(cardIn(five, 0).width).toBeCloseTo(gridWidth, 5);
+    expect(cardIn(six, 0).width).toBeCloseTo(gridWidth, 5);
+    // First three share the top row.
+    expect(cardIn(five, 1).y).toBeCloseTo(cardIn(five, 0).y, 5);
+    expect(cardIn(five, 2).y).toBeCloseTo(cardIn(five, 0).y, 5);
+    // The last pair centers on the second row.
+    expect(cardIn(five, 3).y).toBeGreaterThan(cardIn(five, 0).y);
+    expect(cardIn(five, 3).x + cardIn(five, 4).x + cardIn(five, 4).width).toBeCloseTo(260 + 600, 5);
+    // Six fills two full rows with aligned columns.
+    expect(cardIn(six, 3).y).toBeGreaterThan(cardIn(six, 0).y);
+    expect(cardIn(six, 3).x).toBeCloseTo(cardIn(six, 0).x, 5);
+    expect(cardIn(six, 5).x).toBeCloseTo(cardIn(six, 2).x, 5);
+  });
+});
+
+describe('menuLayout (fidelity lock at current counts)', () => {
+  it('keeps the portrait stack exactly as shipped for three packs', () => {
+    expect(menuLayout(FIELD_WIDTH, FIELD_HEIGHT, capacityIds(3)).cards).toEqual([
+      { height: 150, packId: 'pack-0', width: 300, x: 65, y: 175 },
+      { height: 150, packId: 'pack-1', width: 300, x: 65, y: 355 },
+      { height: 150, packId: 'pack-2', width: 300, x: 65, y: 535 },
+    ]);
+  });
+
+  it('keeps the portrait stack exactly as shipped with the name card', () => {
+    expect(menuLayout(FIELD_WIDTH, FIELD_HEIGHT, capacityIds(4)).cards).toEqual([
+      { height: 150, packId: 'pack-0', width: 300, x: 65, y: 85 },
+      { height: 150, packId: 'pack-1', width: 300, x: 65, y: 265 },
+      { height: 150, packId: 'pack-2', width: 300, x: 65, y: 445 },
+      { height: 150, packId: 'pack-3', width: 300, x: 65, y: 625 },
+    ]);
+  });
+
+  it('keeps the landscape row exactly as shipped for three packs', () => {
+    const cards = menuLayout(860, 430, capacityIds(3)).cards;
+    expect(cards.map((card) => card.y)).toEqual([140, 140, 140]);
+    expect(cardIn(cards, 0).width).toBeCloseTo(223.33333333333334, 5);
+    expect(cardIn(cards, 0).x).toBeCloseTo(65, 5);
+    expect(cardIn(cards, 1).x).toBeCloseTo(318.33333333333337, 5);
+    expect(cardIn(cards, 2).x).toBeCloseTo(571.6666666666667, 5);
+  });
+
+  it('keeps the landscape 2x2 wrap exactly as shipped with the name card', () => {
+    expect(menuLayout(860, 430, capacityIds(4)).cards).toEqual([
+      { height: 150, packId: 'pack-0', width: 350, x: 65, y: 50 },
+      { height: 150, packId: 'pack-1', width: 350, x: 445, y: 50 },
+      { height: 150, packId: 'pack-2', width: 350, x: 65, y: 230 },
+      { height: 150, packId: 'pack-3', width: 350, x: 445, y: 230 },
+    ]);
+  });
+});
+
+describe('menuLayout (beyond capacity degrades gracefully)', () => {
+  for (const field of CAPACITY_FIELDS) {
+    describe(field.label, () => {
+      it.each([7, 8, 9, 10])(
+        'keeps %i cards inside the field at floor-friendly sizes, separated, and tappable',
+        (count) => {
+          expectUsableLayout(field, count);
+        },
+      );
+    });
+  }
 });
