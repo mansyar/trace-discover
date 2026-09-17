@@ -48,7 +48,7 @@ no push/PR/release; no new runtime dependency.
   - [x] Commit + git note
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (e6d6525)
 
-## Phase 3: Pre-writing port — byte-level parity [checkpoint: ]
+## Phase 3: Pre-writing port — byte-level parity [checkpoint: 7637837]
 
 - [x] Task 1: `src/packs/data/pre.json` authored from current `pre.ts` (01b690e)
   - [x] All 12 levels + 3 bonus circles + badge/menuFill/unlocks, control points
@@ -63,11 +63,11 @@ no push/PR/release; no new runtime dependency.
         `PRE_PACK` / `PRE_LEVELS` unchanged
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 3: Full-suite regression pass
-  - [ ] `CI=true pnpm check && CI=true pnpm test` — all pre-existing tests green
+- [x] Task 3: Full-suite regression pass (257fe20)
+  - [x] `CI=true pnpm check && CI=true pnpm test` - all pre-existing tests green
     without modification
-  - [ ] Commit + git note
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Commit + git note
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) (257fe20)
 
 ## Phase 4: Dev CLI validator [checkpoint: ]
 
