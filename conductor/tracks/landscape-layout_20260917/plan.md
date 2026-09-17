@@ -68,14 +68,14 @@ no new deps/assets.
   - [x] Green: implement projection module; wire session/pack consumers
   - [x] Verify coverage
   - [x] Commit + git note
-- [~] Task 3: Session/trail reflow preserving progress (TDD)
-  - [ ] Red: mid-stroke rotation → stroke index + proportional position
+- [x] Task 3: Session/trail reflow preserving progress (TDD) (bee2d04)
+  - [x] Red: mid-stroke rotation → stroke index + proportional position
         preserved; in-flight stroke cancels cleanly; success/tableau
         unaffected; repeated rotates stable
-  - [ ] Green: session rebuild path integrated into the resize hook
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 4: Mid-trace rotation evidence (scratch probe + screenshots) → owner
+  - [x] Green: session rebuild path integrated into the resize hook
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [~] Task 4: Mid-trace rotation evidence (scratch probe + screenshots) → owner
       sanity check
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
