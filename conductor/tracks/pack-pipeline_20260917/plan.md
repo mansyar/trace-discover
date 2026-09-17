@@ -32,12 +32,12 @@ no push/PR/release; no new runtime dependency.
 
 ## Phase 2: Strict shared parser (`src/packs/json.ts`) [checkpoint: ]
 
-- [ ] Task 1: Raw-JSON shape validation (TDD)
-  - [ ] Red: unknown key rejected (e.g. `goals` for `goal`); invalid `stroke` value
+- [x] Task 1: Raw-JSON shape validation (TDD) (ac5be34)
+  - [x] Red: unknown key rejected (e.g. `goals` for `goal`); invalid `stroke` value
         rejected; missing/empty id rejected; non-object pack/level rejected
-  - [ ] Green: hand-rolled shape checks that narrow `unknown` → typed raw shapes
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Green: hand-rolled shape checks that narrow `unknown` → typed raw shapes
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: Geometry + pack-rule integration (TDD)
   - [ ] Red: `parsePackJson` reuses `validateLevel` (margin, finite, duplicates,
         min points) and `createPackEntry` (bonus/unlock parity); `goalArt` must be a
