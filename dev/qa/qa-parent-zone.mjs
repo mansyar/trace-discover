@@ -3,11 +3,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// One-off gate + parent-zone evidence (parent-zone Phases 2-4):
-// 1) screens harness: static ring (0.6) + burst preview on the menu mock;
-// 2) live app: hold the gate 1.6s (ring mid-fill) then complete the 2.5s
-//    hold and shoot the opened parent zone with its burst + zone states.
-// Usage: dev server on :5199, then `node dev/qa/qa-gate-ring.mjs`.
+// QA probe: parent zone end-to-end (parent-zone Phases 2-7). Harness previews
+// (menu ring + static parent zone via ?screen=parent), then the live flow on a
+// fresh save: one-time hint -> 3s one-finger hold (ring mid-fill, burst) ->
+// sound pips / preview / auto-unmute (asserted from storage) -> section-card
+// states (mute, easier, restart confirm, install) -> hint gone after reload.
+// Then install variants (android UA, iphone UA, installed standalone).
+// Reveals everything run against the dev server on :5199.
+// Usage: dev server on :5199, then `node dev/qa/qa-parent-zone.mjs`.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://localhost:5199';
 const OUT = path.join(HERE, 'out');
@@ -24,22 +27,28 @@ try {
   });
 }
 
-// 1) Static preview on the screens harness.
-const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
-const errors = [];
-page.on('pageerror', (e) => errors.push(String(e)));
-await page.goto(`${BASE}/dev/harness/screens.html?screen=menu`, { waitUntil: 'load' });
-await page.waitForFunction(
-  () => document.getElementById('log')?.textContent.includes('screens ready'),
-  null,
-  { timeout: 30000 },
+// 1) Harness previews (static).
+const harness = await browser.newPage({ viewport: { width: 430, height: 900 } });
+const harnessErrors = [];
+harness.on('pageerror', (e) => harnessErrors.push(String(e)));
+const harnessShot = async (query, file) => {
+  await harness.goto(`${BASE}/dev/harness/screens.html?${query}`, { waitUntil: 'load' });
+  await harness.waitForFunction(
+    () => document.getElementById('log')?.textContent.includes('screens ready'),
+    null,
+    { timeout: 30000 },
+  );
+  await wait(400);
+  await harness.screenshot({ path: path.join(OUT, file) });
+};
+await harnessShot('screen=menu', 'menu-gate-ring.png');
+await harnessShot('screen=parent', 'parent-preview.png');
+console.log(
+  'harness shots: out/menu-gate-ring.png (static 0.6 ring + burst), out/parent-preview.png (?screen=parent)',
 );
-await wait(400);
-await page.screenshot({ path: path.join(OUT, 'menu-gate-ring.png') });
-console.log('harness shot: out/menu-gate-ring.png (static 0.6 ring + burst)');
-console.log(`harness page errors: ${errors.length === 0 ? '(none)' : errors.join(' | ')}`);
+console.log(`harness page errors: ${harnessErrors.length === 0 ? '(none)' : harnessErrors.join(' | ')}`);
 
-// 2) Live app hold.
+// 2) Live app: hint -> one-finger hold -> zone tour.
 const appPage = await browser.newPage({ viewport: { width: 430, height: 900 } });
 const appErrors = [];
 appPage.on('pageerror', (e) => appErrors.push(String(e)));
@@ -86,7 +95,7 @@ const screenName = await appPage.evaluate(() => window.__app.screen().name);
 await appPage.screenshot({ path: path.join(OUT, 'live-gate-open.png') });
 await appPage.mouse.up();
 
-console.log(`live shots: out/live-gate-midhold.png (1.6s ~ ring 64%), out/live-gate-open.png`);
+console.log('live shots: out/live-gate-midhold.png (1.6s ~ ring 64%), out/live-gate-open.png');
 console.log(`screen after 3.0s hold: ${screenName}`);
 if (screenName !== 'parent') {
   throw new Error(`ASSERT: expected parent screen after the hold, got ${screenName}`);
@@ -94,7 +103,7 @@ if (screenName !== 'parent') {
 
 // Zone finish + sound evidence: default (full pips), half volume, zero
 // volume, muted with half volume, unmuted by a step, easier on, restart
-// confirm, install.
+// confirm, install (generic panel on this desktop UA).
 await appPage.screenshot({ path: path.join(OUT, 'zone-default.png') });
 for (let tap = 0; tap < 5; tap += 1) {
   await tapTarget('parent:volume-down');
@@ -146,7 +155,77 @@ await appPage.waitForFunction(() => window.__app && window.__app.screen, null, {
 await wait(600);
 await tapTarget('splash');
 await appPage.screenshot({ path: path.join(OUT, 'menu-hint-gone.png') });
-console.log('hint shots: out/menu-hint.png + out/menu-hint-pulse.png (dot pulse) -> out/menu-hint-gone.png (after open + reload)');
-console.log(`live page errors: ${appErrors.length === 0 ? '(none)' : appErrors.join(' | ')}`);
+console.log(
+  'hint shots: out/menu-hint.png + out/menu-hint-pulse.png (dot pulse) -> out/menu-hint-gone.png (after open + reload)',
+);
 
+// 3) Install variants: android UA + iphone UA + simulated installed
+// (the generic panel is covered by zone-install.png above).
+const ANDROID_UA =
+  'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+const IPHONE_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+
+const VARIANTS = [
+  { file: 'install-android.png', label: 'android', userAgent: ANDROID_UA },
+  { file: 'install-ios.png', label: 'ios', userAgent: IPHONE_UA },
+  { file: 'install-installed.png', label: 'installed', standalone: true, userAgent: undefined },
+];
+
+for (const variant of VARIANTS) {
+  const context = await browser.newContext({
+    userAgent: variant.userAgent,
+    viewport: { width: 430, height: 900 },
+  });
+  if (variant.standalone) {
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'standalone', { get: () => true });
+    });
+  }
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/index.html`, { waitUntil: 'load' });
+  await page.evaluate(() => localStorage.removeItem('trace-discover-save-v1'));
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => window.__app && window.__app.screen, null, { timeout: 30000 });
+  await wait(700);
+
+  const tap = async (targetId) => {
+    const pt = await page.evaluate((id) => {
+      const hit = window.__app.targets().find((t) => t.id === id);
+      if (!hit) return null;
+      const f = window.__app.field();
+      return { x: f.x + (hit.x / 430) * f.width, y: f.y + (hit.y / 860) * f.height };
+    }, targetId);
+    if (!pt) throw new Error(`target missing: ${targetId}`);
+    await page.mouse.click(pt.x, pt.y);
+    await wait(450);
+  };
+
+  await tap('splash');
+  const g = await page.evaluate(() => {
+    const f = window.__app.field();
+    const hit = window.__app.targets().find((t) => t.id === 'gate');
+    return { x: f.x + (hit.x / 430) * f.width, y: f.y + (hit.y / 860) * f.height };
+  });
+  await page.mouse.move(g.x, g.y);
+  await page.mouse.down();
+  await wait(3000);
+  await page.mouse.up();
+  await wait(300);
+
+  const name = await page.evaluate(() => window.__app.screen().name);
+  if (name !== 'parent') {
+    throw new Error(`ASSERT(${variant.label}): expected parent screen, got ${name}`);
+  }
+  await tap('parent:install');
+  await page.screenshot({ path: path.join(OUT, variant.file) });
+  console.log(
+    `${variant.label}: out/${variant.file} (errors: ${errors.length === 0 ? 'none' : errors.join(' | ')})`,
+  );
+  await context.close();
+}
+
+console.log(`live page errors: ${appErrors.length === 0 ? '(none)' : appErrors.join(' | ')}`);
 await browser.close();
