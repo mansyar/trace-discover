@@ -5,12 +5,6 @@
 // (one finger, started in the menu corner).
 import './style.css';
 
-// TEMP QA NEGATIVE CONTROL v2 - REMOVED AFTER EVIDENCE CAPTURE (lint-safe:
-// the IIFE keeps the rest of the module reachable so `pnpm check` stays green)
-(() => {
-  throw new Error('qa-smoke negative control: forced boot failure');
-})();
-
 import {
   type AppState,
   applyAppEvent,
