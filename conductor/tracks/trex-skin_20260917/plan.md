@@ -12,15 +12,15 @@
   - [x] `product.md`: sixth skin noted; out-of-scope line re-scoped (further skins remain pipeline work per the drop-in contract); dated note
   - [x] `tech-stack.md`: skins list gains trex; instruments list gains the new preset; dated note
   - [x] `dev/README.md`: character workspace list gains trex
-- [ ] Task: Reference prep + stylization candidates — copy `dev/.cf_token` into this worktree (from the main worktree; untracked); `gen2.mjs` img2img from `dev/gen/ref-trex.jpeg`; tune strength/seed; candidates inspected; raw reference + raws stay untracked — BLOCKED 2026-09-17: Workers AI daily free allocation exhausted (HTTP 429 / code 4006; shared account token); prerequisites verified ready (`dev/.cf_token`, `dev/gen/ref-trex.jpeg`, rive 1.0.2); resume after the 00:00 UTC reset (10:00 +10:00)
-- [ ] Task: **Owner approval of the stylized master (hard gate)** — owner approves a candidate; canonical copy `dev/characters/trex/master.png`; downstream work unlocked; recorded
+- [x] Task: Reference prep + stylization candidates — copy `dev/.cf_token` into this worktree (from the main worktree; untracked); `gen2.mjs` img2img from `dev/gen/ref-trex.jpeg`; tune strength/seed; candidates inspected; raw reference + raws stay untracked — BLOCKED 2026-09-17: Workers AI daily free allocation exhausted (HTTP 429 / code 4006; shared account token); prerequisites verified ready (`dev/.cf_token`, `dev/gen/ref-trex.jpeg`, rive 1.0.2); resume after the 00:00 UTC reset (10:00 +10:00) — 3 candidates 2026-09-18 (`dev/gen/trex-cand-a..c.png`, strengths 0.6/0.75/0.9, seed 7); all viewed (a: shaded gradients; b: flat + clean; c: blush + cyan artifact)
+- [x] Task: **Owner approval of the stylized master (hard gate)** — owner approved candidate B (`dev/gen/trex-cand-b.png`, strength 0.75, seed 7) 2026-09-18; canonical copy `dev/characters/trex/master.png`; downstream work unlocked
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Character build: cutout → poses → Rive → verification
 
 *Goal: `public/rive/trex.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
-- [ ] Task: Pose sources from the approved master — base + celebrate (stomp/roar-jump proposal) + same-pose blink at low strength; regenerated sources get their own measurements — never inherit placements
+- [~] Task: Pose sources from the approved master — base + celebrate (stomp/roar-jump proposal) + same-pose blink at low strength; regenerated sources get their own measurements — never inherit placements
 - [ ] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking
 - [ ] Task: Rive project `dev/characters/trex/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG; size ≤ ~500 KB
 - [ ] Task: Blink patch calibration — `composite.mjs` feathered patch; `gridshot.mjs` measurements; node placement recomputed from the crop rect; seam-free confirmation
