@@ -31,13 +31,13 @@
 
 *Goal: trex is a selectable, persisted skin with its new voice — code green, suite green.*
 
-- [ ] Task: Skins registry + six-skin cycle (TDD)
+- [x] Task: Skins registry + six-skin cycle (TDD) [0443aca] — trex entry (`#d9a066` accent, `squeak` voice, `/art/bg/trex.webp` + `/art/face/trex.webp`); red→green (10 failing tests across skins/app/store); art landed early so the artRefs invariant stays green
   - [ ] Tests: trex carries id/character/backdrop/accent/instrument/face; unique ids; cycle dino→star→construction→animal→teddy→trex (wrap); unknown-id fallback intact; `settings.skin` round-trips trex — red → green; `app.test.ts` cycle walk extended to six taps
   - [ ] Implement `src/skins/skins.ts` (extend existing tests to six)
-- [ ] Task: Sixth instrument preset (TDD)
+- [x] Task: Sixth instrument preset (TDD) [bfa18be] — `squeak` = triangle, 0.35 s, gain 0.48 (provisional — confirmed by ear at the art review); registry + giggle-timbre tests extended
   - [ ] Tests: `InstrumentId` includes the new id; preset = approved waveform/duration/gain; chimes + completion resolve through it; counted toy-piano notes unchanged; volume/mute respected — red → green
   - [ ] Implement `src/audio/synth.ts` — preset values confirmed by ear at the Phase 4 art review
-- [ ] Task: Wiring sweep — `.riv` src resolution (`public/rive/trex.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include trex; QA/harness enumerations updated where they list skins; `faces.mjs` row added
+- [x] Task: Wiring sweep — `.riv` src resolution (`public/rive/trex.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include trex; QA/harness enumerations updated where they list skins; `faces.mjs` row added [b4ee347] — faces.mjs trex row (box 75,0→375,300 on the 490 cut); qa-cast trex giggle + flourish cases; README row; refs resolve through `SKINS`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Remaining art: backdrop + face icon
