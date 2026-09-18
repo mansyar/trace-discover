@@ -6,10 +6,21 @@
 import { describe, expect, it } from 'vitest';
 import { nearestOnPath } from '../engine/path';
 import type { Point } from '../engine/types';
-import { FIELD_WIDTH } from '../field';
+import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
+import { awardBadge, completeLevel, createDefaultSave } from '../save/store';
+import { packLayout, packStickers } from '../ui/pack';
+import { stickerBoardLayout } from '../ui/stickerBoard';
 import { collectPackProblems, parsePackJson } from './json';
 import type { LevelDef } from './level';
 import { levelToPath, validateLevel } from './level';
+import {
+  bonusUnlocked,
+  completedCount,
+  firstUnlockedBonusId,
+  isPackComplete,
+  nextPackLevelId,
+  shouldAwardPackBadge,
+} from './progress';
 import { SHAPE_LEVELS, SHAPES_PACK } from './shapes';
 
 const ORDERED_IDS = [
@@ -40,6 +51,9 @@ function lastPoint(level: LevelDef): Point {
   }
   return point;
 }
+
+/** Landscape pack-grid options main.ts configures for shapes (mirrors numbers). */
+const SHAPES_LANDSCAPE = { cardSize: 90, columns: 5, slotsPerRow: 10 };
 
 describe('shapes pack', () => {
   it('lists the eight shapes in the locked order', () => {
@@ -216,5 +230,73 @@ describe('malformed shapes content (labeled load-time error)', () => {
     expect(collectPackProblems(bad)).toEqual([
       "pack level 0 ('shape-1'): stroke 0 control point 0 outside field margin",
     ]);
+  });
+});
+
+describe('shapes generic surfaces (zero special-casing)', () => {
+  const shapeIds = SHAPE_LEVELS.map((level) => level.id);
+
+  it('lays the pack grid inside the field in both orientations', () => {
+    // Portrait uses the shared defaults; landscape mirrors numbers (main.ts PACK_GRID).
+    const portrait = packLayout(FIELD_WIDTH, FIELD_HEIGHT, shapeIds);
+    for (const card of portrait.cards) {
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.y).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(card.y + card.height).toBeLessThanOrEqual(FIELD_HEIGHT);
+    }
+    expect(new Set(portrait.cards.map((card) => card.y)).size).toBe(4);
+    const landscape = packLayout(
+      LANDSCAPE_FIELD_WIDTH,
+      LANDSCAPE_FIELD_HEIGHT,
+      shapeIds,
+      SHAPES_LANDSCAPE,
+    );
+    for (const card of landscape.cards) {
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.y).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(LANDSCAPE_FIELD_WIDTH);
+      expect(card.y + card.height).toBeLessThanOrEqual(LANDSCAPE_FIELD_HEIGHT);
+    }
+    expect(new Set(landscape.cards.map((card) => card.y)).size).toBe(2);
+  });
+
+  it('boards the eight shape stickers one cell each, in order', () => {
+    const board = stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, shapeIds);
+    expect(board.cells.map((cell) => cell.levelId)).toEqual(shapeIds);
+    for (const cell of board.cells) {
+      expect(cell.x).toBeGreaterThanOrEqual(0);
+      expect(cell.y).toBeGreaterThanOrEqual(0);
+      expect(cell.x).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(cell.y).toBeLessThanOrEqual(FIELD_HEIGHT);
+    }
+  });
+
+  it('round-trips progress, stickers, and badge through the save without schema change', () => {
+    let save = createDefaultSave();
+    for (const level of SHAPE_LEVELS) {
+      save = completeLevel(save, level.id);
+    }
+    expect(completedCount(save, SHAPES_PACK)).toBe(8);
+    expect(isPackComplete(save, SHAPES_PACK)).toBe(true);
+    expect(shouldAwardPackBadge(save, SHAPES_PACK)).toBe(true);
+    expect(packStickers(save, shapeIds).every((earned) => earned)).toBe(true);
+    save = awardBadge(save, SHAPES_PACK.badgeId);
+    const restored = JSON.parse(JSON.stringify(save)) as typeof save;
+    expect(shouldAwardPackBadge(restored, SHAPES_PACK)).toBe(false);
+    expect(restored.badges).toContain('shapes-badge');
+    // Bonus machinery stays inert for a bonusless pack.
+    expect(SHAPES_PACK.bonuses).toEqual([]);
+    expect(bonusUnlocked(save, SHAPES_PACK, 0)).toBe(false);
+    expect(firstUnlockedBonusId(save, SHAPES_PACK)).toBeNull();
+  });
+
+  it('starts from a clean reset with no shapes residue', () => {
+    const save = createDefaultSave();
+    expect(completedCount(save, SHAPES_PACK)).toBe(0);
+    expect(isPackComplete(save, SHAPES_PACK)).toBe(false);
+    expect(shouldAwardPackBadge(save, SHAPES_PACK)).toBe(false);
+    expect(save.badges).not.toContain('shapes-badge');
+    expect(nextPackLevelId(save, SHAPES_PACK, 'shape-1')).toBe('shape-2');
   });
 });
