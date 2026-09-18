@@ -3,13 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { nextSkinId, SKINS, skinById } from './skins';
 
 describe('skins registry', () => {
-  it('defines the five skins in cycle order', () => {
+  it('defines the six skins in cycle order', () => {
     expect(SKINS.map((skin) => skin.id)).toEqual([
       'dino',
       'star',
       'construction',
       'animal',
       'teddy',
+      'trex',
     ]);
   });
 
@@ -20,7 +21,9 @@ describe('skins registry', () => {
       expect(skin.backdrop).toMatch(/^\/art\/bg\/.+\.webp$/);
       expect(skin.accent).toMatch(/^#[0-9a-f]{6}$/);
       expect(skin.face).toMatch(/^\/art\/face\/.+\.webp$/);
-      expect(['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox']).toContain(skin.instrument);
+      expect(['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox', 'squeak']).toContain(
+        skin.instrument,
+      );
     }
   });
 
@@ -35,6 +38,7 @@ describe('skins registry', () => {
     expect(skinById('construction')?.character).toBe('excavator');
     expect(skinById('animal')?.character).toBe('lion');
     expect(skinById('teddy')?.character).toBe('teddy');
+    expect(skinById('trex')?.character).toBe('trex');
   });
 
   it('maps each skin to its instrument', () => {
@@ -43,6 +47,7 @@ describe('skins registry', () => {
     expect(skinById('construction')?.instrument).toBe('woodblock');
     expect(skinById('animal')?.instrument).toBe('kalimba');
     expect(skinById('teddy')?.instrument).toBe('musicbox');
+    expect(skinById('trex')?.instrument).toBe('squeak');
   });
 
   it('points every skin at its backdrop (star included; art lands later)', () => {
@@ -59,6 +64,14 @@ describe('skins registry', () => {
     expect(teddy?.accent).toBe('#e07a5f');
   });
 
+  it('registers trex with its plush-toy presentation', () => {
+    const trex = skinById('trex');
+    expect(trex?.character).toBe('trex');
+    expect(trex?.backdrop).toBe('/art/bg/trex.webp');
+    expect(trex?.face).toBe('/art/face/trex.webp');
+    expect(trex?.accent).toBe('#d9a066');
+  });
+
   it('looks a skin up by id', () => {
     expect(skinById('star')?.accent).toBe('#f3c969');
     expect(skinById('nope')).toBeUndefined();
@@ -66,12 +79,13 @@ describe('skins registry', () => {
 });
 
 describe('nextSkinId', () => {
-  it('cycles dino -> star -> construction -> animal -> teddy -> dino', () => {
+  it('cycles dino -> star -> construction -> animal -> teddy -> trex -> dino', () => {
     expect(nextSkinId('dino')).toBe('star');
     expect(nextSkinId('star')).toBe('construction');
     expect(nextSkinId('construction')).toBe('animal');
     expect(nextSkinId('animal')).toBe('teddy');
-    expect(nextSkinId('teddy')).toBe('dino');
+    expect(nextSkinId('teddy')).toBe('trex');
+    expect(nextSkinId('trex')).toBe('dino');
   });
 
   it('falls back to the first skin for an unknown id', () => {

@@ -455,7 +455,10 @@ describe('skin cycling', () => {
     expect(fourth.save.settings.skin).toBe('teddy');
 
     const fifth = applyAppEvent(fourth, { type: 'skin-cycle' });
-    expect(fifth.save.settings.skin).toBe('dino');
+    expect(fifth.save.settings.skin).toBe('trex');
+
+    const sixth = applyAppEvent(fifth, { type: 'skin-cycle' });
+    expect(sixth.save.settings.skin).toBe('dino');
   });
 
   it('leaves the current screen untouched', () => {

@@ -12,7 +12,7 @@ purpose.
 | `tools/` | $0 asset pipeline — Workers AI generation, cutout/optimize/composite, batch composers |
 | `qa/` | Headless-Edge (playwright-core) verification scripts + probes; outputs in `qa/out/` (git-ignored) |
 | `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery; menu capacity matrix via `?menuCards=2..6&menuName=AIRA`) · `tune.html` (feel tuning) · `pack.html` (pack JSON preview: `?pack=pre&level=pre-7`) — served by the Vite dev server |
-| `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion` · `teddy`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
+| `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion` · `teddy` · `trex`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
 `package.json` carries the `playwright-core` dependency for the QA scripts —
@@ -85,10 +85,11 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
+| `qa-trex.mjs` | Trex character smoke — `play.html?char=trex`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
+| `qa-trex-screens.mjs` | Trex real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5299`) | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
 | `qa-smoke.mjs` | Canonical smoke — boots the production build, traces `pre-1` to success with step assertions + a zero-page-error gate (runs in every CI verify job) | preview `:4173` | canonical |
-*Status legend: **canonical** = kept and referenced · **one-off** = kept for
 *Status legend: **canonical** = kept and referenced · **one-off** = kept for
 reference · **utility** = reusable helper. Statuses confirmed in
 `repo-organization_20260916` (Phases 2–4, 2026-09-16); `qa-parent-zone` added
@@ -157,9 +158,10 @@ shoots the 3–6 × orientation matrix plus the name-card case into
 ## Payload budget
 
 `pnpm budget` (`tools/dist-budget.mjs`) checks the built `dist/` against the
-payload ceilings — **5.00 MB total / 150 precache entries**, re-anchored from
-the post-diet build (4,161,522 B / 133 entries) to the merged build that
-includes the fifth skin (2026-09-17, PR #7 teddy: 4,641,746 B / 136 entries;
+payload ceilings — **5.60 MB total / 150 precache entries**, re-anchored from
+the post-diet build (4,161,522 B / 133 entries) through the fifth- and
+sixth-skin builds (2026-09-17 teddy: 4,641,746 B / 136; 2026-09-18 trex:
+5,224,739 B / 141 entries;
 history + rationale live in the tool). Run it after `pnpm build`; CI runs it
 after the build step too. A re-introduced lossless art batch trips it
 instantly — raise the ceilings only deliberately, with fresh measurements

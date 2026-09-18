@@ -24,7 +24,7 @@ export interface InstrumentPreset {
 }
 
 /** Named instrument voice ids; skins map their instrument to these. */
-export type InstrumentId = 'marimba' | 'bell' | 'woodblock' | 'kalimba' | 'musicbox';
+export type InstrumentId = 'marimba' | 'bell' | 'woodblock' | 'kalimba' | 'musicbox' | 'squeak';
 
 /** Warm marimba-ish voice shared by the three worlds. */
 export const MARIMBA_PRESET: InstrumentPreset = { duration: 0.8, gain: 0.5, type: 'triangle' };
@@ -38,6 +38,8 @@ export const PRESETS: Readonly<Record<InstrumentId, InstrumentPreset>> = {
   woodblock: { duration: 0.25, gain: 0.55, type: 'triangle' },
   kalimba: { duration: 0.9, gain: 0.42, type: 'sine' },
   musicbox: { duration: 1.5, gain: 0.3, type: 'sine' },
+  // Plush-toy squeaker: short and bright, a touch under marimba in loudness.
+  squeak: { duration: 0.35, gain: 0.48, type: 'triangle' },
 };
 
 /** Voice for a skin's instrument id. */
