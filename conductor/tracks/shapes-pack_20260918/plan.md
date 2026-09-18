@@ -47,18 +47,23 @@
 
 ## Phase 3 — Reward art batch (goal art, stickers, card, badge)
 
-- [ ] Task: Author the asset pipeline batch
-  - [ ] Generate → cutout → WebP per level: 8 goal art + 8 stickers (object-per-shape mapping from spec; pipeline emitters default WebP)
-  - [ ] Pack card art + `shapes-badge` badge art
-  - [ ] Owner screenshot approval gate per asset (teddy precedent) — record approvals in the plan
-- [ ] Task: Wire art into content + registry (TDD where code)
-  - [ ] Red: extend art-reference tests (`artRefs.test.ts` pattern) asserting every shape level's goalArt/sticker path exists as a shipped asset; card/badge references resolve
-  - [ ] Update `shapes.json` goalArt references; confirm GREEN
-- [ ] Task: Budget re-measure
-  - [ ] `pnpm build` + `pnpm budget`; record dist/precache deltas vs the pre-track baseline in the plan
-  - [ ] If the 5.00 MB ceiling is exceeded: raise ceilings deliberately with measured evidence (documented in tech-stack note), never silently
-- [ ] Task: Commit + checkpoint
-  - [ ] Commit (`feat(packs): shapes reward art batch`), attach git note
+- [x] Task: Author the asset pipeline batch
+  - [x] Generate → cutout → WebP per level: 8 goal art + 8 stickers (object-per-shape mapping from spec; pipeline emitters default WebP)
+  - [x] Pack card art + `shapes-badge` badge art
+  - [x] Owner screenshot approval gate per asset (teddy precedent) — record approvals in the plan
+    - **Approved by owner 2026-09-18** — all 18 assets (8 goal + 8 sticker + badge + card) approved from the contact sheet `dev/qa/out/shapes-contact.png`; pipeline scripts tracked at `dev/tools/gen-shapes.mjs` (resumable Workers AI batch) + `dev/tools/shapes-compose.mjs`; intermediates in `dev/art-src/shapes/{raw,clean,out}` (raws git-ignored, clean + out tracked like abc).
+- [x] Task: Wire art into content + registry (TDD where code)
+  - [x] Red: extend art-reference tests (`artRefs.test.ts` pattern) asserting every shape level's goalArt/sticker path exists as a shipped asset; card/badge references resolve
+    - Already satisfied by the generic `artRefs.test.ts` invariant (it resolves every pack's goalArt/sticker/card/badge URLs since Phase 1 registration — placeholders shipped at the final URLs, so Phase 3 swaps bytes at identical URLs; no test extension needed and the suite never went red).
+  - [x] Update `shapes.json` goalArt references; confirm GREEN
+    - No reference changes needed — goalArt paths are byte-identical to the placeholder URLs (`/art/goal/shape-N.webp`); full suite green (708/708).
+- [x] Task: Budget re-measure
+  - [x] `pnpm build` + `pnpm budget`; record dist/precache deltas vs the pre-track baseline in the plan
+    - Baseline (pre-track): 4.7 MB / 138 entries. After batch: **4,913,865 B / 156 entries** (art +243 KB: goal 806,870 · sticker 448,248 · pack 173,104 B).
+  - [x] If the 5.00 MB ceiling is exceeded: raise ceilings deliberately with measured evidence (documented in tech-stack note), never silently
+    - Entry ceiling tripped (156 > 150): raised **150 → 170** in `dev/tools/dist-budget.mjs` with the measured history comment (size ceiling kept at 5.00 MB; 86 KB headroom). Budget now PASS (156/170); tech-stack note due in Phase 4 docs resync.
+- [x] Task: Commit + checkpoint
+  - [x] Commit (`feat(packs): shapes reward art batch`), attach git note
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4 — Generic surfaces, QA sweeps, docs, closeout
