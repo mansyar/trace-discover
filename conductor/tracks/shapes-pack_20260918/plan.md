@@ -9,21 +9,21 @@
 
 ## Phase 1 — Shapes pack content + registration
 
-- [ ] Task: Write failing tests for the shapes pack loader (Red)
-  - [ ] Test: `src/packs/shapes.test.ts` — `SHAPES_PACK` identity (`id: "shapes"`, `badgeId: "shapes-badge"`, `menuFill: "#b8a9e8"`, no bonuses), 8 levels `shape-1`…`shape-8` in the locked order (circle, square, triangle, oval, diamond, heart, star, plus), stroke-count expectations (star 2, plus 2, others 1), valid geometry (per parser rules), labeled load-time error on a malformed fixture
-  - [ ] Run `CI=true pnpm test -- src/packs/shapes.test.ts` and confirm RED
-- [ ] Task: Implement the pack (Green)
-  - [ ] Author `src/packs/data/shapes.json` (geometry in the 430×860 field space per `src/packs/data/README.md`; goalArt paths follow the letters convention)
-  - [ ] Create `src/packs/shapes.ts` as a thin loader over `parsePackJson` (Numbers pattern), preserving the tested exports
-  - [ ] Run the full pack suite; confirm GREEN
-- [ ] Task: Register the pack + menu card position (TDD)
-  - [ ] Red: failing tests asserting `shapes` sits between `abc` and the runtime `name` in menu order (with and without a saved name) and renders a card with the pack's art/menuFill
-  - [ ] Green: catalog registration + menu card wiring (no other menu changes)
-- [ ] Task: Validate content via tooling
-  - [ ] `pnpm pack:check` passes over the 4-pack directory (incl. `shapes.json`)
-  - [ ] Dev preview renders `?pack=shapes` (all 8 levels) at 430×860 with correct markers; screenshots reviewed
-- [ ] Task: Commit + checkpoint
-  - [ ] Commit code (`feat(packs): add shapes pack as validated JSON`), attach git note with task summary
+- [x] Task: Write failing tests for the shapes pack loader (Red)
+  - [x] Test: `src/packs/shapes.test.ts` — `SHAPES_PACK` identity (`id: "shapes"`, `badgeId: "shapes-badge"`, `menuFill: "#b8a9e8"`, no bonuses), 8 levels `shape-1`…`shape-8` in the locked order (circle, square, triangle, oval, diamond, heart, star, plus), stroke-count expectations (star 2, plus 2, others 1), valid geometry (per parser rules), labeled load-time error on a malformed fixture
+  - [x] Run `CI=true pnpm test -- src/packs/shapes.test.ts` and confirm RED
+- [x] Task: Implement the pack (Green)
+  - [x] Author `src/packs/data/shapes.json` (geometry in the 430×860 field space per `src/packs/data/README.md`; goalArt paths follow the letters convention)
+  - [x] Create `src/packs/shapes.ts` as a thin loader over `parsePackJson` (Numbers pattern), preserving the tested exports
+  - [x] Run the full pack suite; confirm GREEN
+- [x] Task: Register the pack + menu card position (TDD)
+  - [x] Red: failing tests asserting `shapes` sits between `abc` and the runtime `name` in menu order (with and without a saved name) and renders a card with the pack's art/menuFill
+  - [x] Green: catalog registration + menu card wiring (no other menu changes)
+- [x] Task: Validate content via tooling
+  - [x] `pnpm pack:check` passes over the 4-pack directory (incl. `shapes.json`)
+  - [x] Dev preview renders `?pack=shapes` (all 8 levels) at 430×860 with correct markers; screenshots reviewed
+- [x] Task: Commit + checkpoint
+  - [x] Commit code (`feat(packs): add shapes pack as validated JSON`), attach git note with task summary
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Menu overflow paging
