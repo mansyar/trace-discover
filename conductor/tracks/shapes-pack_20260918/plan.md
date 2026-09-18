@@ -90,6 +90,7 @@
   - [x] Shapes journey traced unaided; menu/pager visual check both orientations; sticker board tap; sound check *(owner pass on LAN production preview, approved 2026-09-18)*
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `dd1aa59`, user-approved)*
 
-## Review Fixes
+## Phase: Review Fixes
 
-*(appended by `conductor-review` when a review identifies corrections)*
+- [x] Task: Apply review suggestions *(`5c6e2cd`)*
+  - [x] `src/main.ts`: derive `MENU_FILLS` from `MENU.cards` instead of slicing by a duplicated `MENU_CARD_CAPACITY` bound (review Low finding; also drops the now-unused import)
