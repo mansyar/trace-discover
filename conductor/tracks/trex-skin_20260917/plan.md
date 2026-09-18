@@ -20,7 +20,7 @@
 
 *Goal: `public/rive/trex.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
-- [~] Task: Pose sources from the approved master — base + celebrate (stomp/roar-jump proposal) + same-pose blink at low strength; regenerated sources get their own measurements — never inherit placements
+- [x] Task: Pose sources from the approved master — base (= approved master) + celebrate + same-pose blink; first attempt (0.55/0.28) rendered photoreal — rejected; style-forward retry: celebrate v2a (0.75/seed 11) + blink v2a (0.45/seed 7) selected, both viewed 2026-09-18 (`dev/gen/trex-celebrate-v2a.png`, `dev/gen/trex-blink-v2a.png`); sources keep their own measurements — never inherit placements
 - [ ] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking
 - [ ] Task: Rive project `dev/characters/trex/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG; size ≤ ~500 KB
 - [ ] Task: Blink patch calibration — `composite.mjs` feathered patch; `gridshot.mjs` measurements; node placement recomputed from the crop rect; seam-free confirmation
