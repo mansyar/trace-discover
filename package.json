@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "budget": "node dev/tools/dist-budget.mjs",
+    "pack:check": "node dev/tools/pack-validate.mjs",
     "preview": "vite preview",
     "serve": "vite preview --host",
     "check": "biome check . && tsc --noEmit",
