@@ -26,7 +26,7 @@
   - [x] Commit code (`feat(packs): add shapes pack as validated JSON`), attach git note with task summary
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Menu overflow paging
+## Phase 2 — Menu overflow paging `[checkpoint: a05c99f]`
 
 - [x] Task: Write failing tests for the pager (Red)
   - [x] Test: counts ≤ 6 render exactly as today — fidelity-locked rects (existing suite untouched and green)
