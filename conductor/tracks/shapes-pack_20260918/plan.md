@@ -45,7 +45,7 @@
   - [x] Commit (`feat(ui): menu overflow paging beyond the six-card capacity`), attach git note
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Reward art batch (goal art, stickers, card, badge)
+## Phase 3 — Reward art batch (goal art, stickers, card, badge) `[checkpoint: b9f8456]`
 
 - [x] Task: Author the asset pipeline batch
   - [x] Generate → cutout → WebP per level: 8 goal art + 8 stickers (object-per-shape mapping from spec; pipeline emitters default WebP)
