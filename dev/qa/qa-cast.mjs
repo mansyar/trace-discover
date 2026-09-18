@@ -188,8 +188,8 @@ try {
   if (!saved.completedLevels.includes('pre-1')) fail('pre-1 not recorded after trace');
   console.log('menu/pack giggle + throttle + entrance + dino flourish OK');
 
-  // --- Case C: per-skin giggle reactions (all five skins, menu tap).
-  for (const skin of ['star', 'excavator', 'lion', 'teddy']) {
+  // --- Case C: per-skin giggle reactions (all skins, menu tap).
+  for (const skin of ['star', 'excavator', 'lion', 'teddy', 'trex']) {
     await seedSave([], skin);
     await fieldTap(215, 787);
     await wait(160);
@@ -229,6 +229,19 @@ try {
   await shot('cast-flourish-teddy-2.png');
   await page.waitForFunction(() => window.__app.success(), null, { timeout: 15000 });
   console.log('teddy flourish OK');
+
+  // --- Trex flourish (arms-up jump): seeded trex, trace pre-1 once more.
+  await seedSave([], 'trex');
+  await tapTarget('pack:pre');
+  await tapTarget('level:pre-1');
+  await wait(900);
+  await traceLevel();
+  await wait(1900);
+  await shot('cast-flourish-trex-1.png');
+  await wait(450);
+  await shot('cast-flourish-trex-2.png');
+  await page.waitForFunction(() => window.__app.success(), null, { timeout: 15000 });
+  console.log('trex flourish OK');
 
   console.log(`page errors: ${pageErrors.length === 0 ? '(none)' : pageErrors.join(' | ')}`);
 } finally {

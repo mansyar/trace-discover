@@ -153,6 +153,10 @@ describe('loadSave', () => {
       [SAVE_KEY]: '{"version":3,"settings":{"skin":"teddy"}}',
     });
     expect(loadSave(teddy).settings.skin).toBe('teddy');
+    const trex = createMemoryStorage({
+      [SAVE_KEY]: '{"version":3,"settings":{"skin":"trex"}}',
+    });
+    expect(loadSave(trex).settings.skin).toBe('trex');
     const invalid = createMemoryStorage({
       [SAVE_KEY]: '{"version":3,"settings":{"skin":"unicorn"}}',
     });
