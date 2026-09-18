@@ -5,11 +5,12 @@
 // double-tapping the badge resets progress, and the sticker-board preview
 // runs the production renderer. ?screen=menu|pack|success|parent|board picks
 // the starting screen for headless screenshots. The menu follows the viewport
-// orientation; ?menuCards=2..6 pads/truncates the menu for the capacity
+// orientation; ?menuCards=2..9 pads/truncates the menu for the capacity
 // matrix and ?menuName=AIRA seeds a preview name so the My Name card shows.
 import '../style.css';
 import {
   drawGateRing,
+  drawPackPager,
   drawParent,
   drawParticles,
   drawStickerBoard,
@@ -47,11 +48,13 @@ import { SKINS, type SkinDef, skinById } from '../skins/skins';
 import { MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, mascotZone } from '../ui/mascot';
 import {
   hitMenuCard,
+  hitMenuPager,
   inParentGate,
   MENU_DOT_RADIUS,
   menuCardArtMaxHeight,
   menuDotPositions,
   menuLayout,
+  menuPageCount,
 } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
 import { parentZoneLayout } from '../ui/parentZone';
@@ -65,7 +68,6 @@ const NUMERALS = NUMERAL_LEVELS.map((level) => level.id);
 const NUMERAL_STROKES = new Map(
   NUMERAL_LEVELS.map((level) => [level.id, levelToPath(level)] as const),
 );
-const MENU_FILLS = allPacks().map((pack) => pack.menuFill);
 const NAVY = '#2e4a63';
 const GOLD = '#e8c15a';
 const CREAM = '#f6e3b8';
@@ -95,9 +97,9 @@ const wanted = params.get('screen');
 if (wanted === 'success' || wanted === 'pack' || wanted === 'parent' || wanted === 'board') {
   screen = wanted;
 }
-/** `?menuCards=2..6` pads/truncates the menu to N cards for the capacity matrix. */
+/** `?menuCards=2..9` pads/truncates the menu to N cards for the capacity matrix. */
 const menuCardsParam = Number.parseInt(params.get('menuCards') ?? '', 10);
-const menuCards = menuCardsParam >= 2 && menuCardsParam <= 6 ? menuCardsParam : null;
+const menuCards = menuCardsParam >= 2 && menuCardsParam <= 9 ? menuCardsParam : null;
 /** `?menuName=AIRA` seeds a preview name so the My Name card joins the menu. */
 const menuName = params.get('menuName');
 let save: SaveData = loadSave(localStorage);
@@ -229,6 +231,14 @@ function drawSuccessIcon(action: SuccessAction, x: number, y: number): void {
 const SYNTHETIC_DOT_TOTAL = 29;
 
 /** Menu ids: real packs (name included when seeded), padded/truncated to `?menuCards=`. */
+let menuPage = 0;
+
+/** The pack's own fill; synthetic capacity cards render white. */
+function menuFillFor(packId: string): string {
+  const pack = allPacks().find((entry) => entry.id === packId);
+  return pack?.menuFill ?? '#ffffff';
+}
+
 function menuPackIds(): readonly string[] {
   if (menuCards === null) {
     return PACK_IDS;
@@ -262,9 +272,12 @@ function drawMenuDot(x: number, y: number): void {
 }
 
 function drawMenu(): void {
-  const layout = menuLayout(fieldWidth, fieldHeight, menuPackIds());
+  const ids = menuPackIds();
+  const pageCount = menuPageCount(ids.length);
+  menuPage = Math.min(Math.max(menuPage, 0), pageCount - 1);
+  const layout = menuLayout(fieldWidth, fieldHeight, ids, menuPage);
   layout.cards.forEach((card, index) => {
-    drawCard(card.x, card.y, card.width, card.height, MENU_FILLS[index] ?? '#ffffff');
+    drawCard(card.x, card.y, card.width, card.height, menuFillFor(card.packId));
     const dots = menuDotTotal(card.packId);
     const artHeight = menuCardArtMaxHeight(card, dots);
     // Dashed art reserve + the dot strip, so the capacity matrix shows both.
@@ -300,6 +313,9 @@ function drawMenu(): void {
   };
   drawGateRing(context, gateCenter, 0.6);
   drawParticles(context, stepConfetti(createConfetti(12, 7, gateCenter), 0.18));
+  if (layout.pager) {
+    drawPackPager(context, layout.pager, menuPage);
+  }
 }
 
 function drawPackPreview(): void {
@@ -733,14 +749,20 @@ function onTap(point: Point): void {
     return;
   }
   if (screen === 'menu') {
-    const layout = menuLayout(fieldWidth, fieldHeight, menuPackIds());
+    const layout = menuLayout(fieldWidth, fieldHeight, menuPackIds(), menuPage);
     if (inParentGate(layout, point)) {
       log('parent gate tapped (2-finger hold opens it in the shell)');
     } else {
-      const packId = hitMenuCard(layout, point);
-      if (packId !== null) {
-        log(`open pack ${packId}`);
-        screen = 'pack';
+      const pagerTap = layout.pager ? hitMenuPager(layout.pager, point, menuPage) : null;
+      if (pagerTap) {
+        menuPage = pagerTap === 'next' ? menuPage + 1 : menuPage - 1;
+        log(`menu page ${menuPage + 1}`);
+      } else {
+        const packId = hitMenuCard(layout, point);
+        if (packId !== null) {
+          log(`open pack ${packId}`);
+          screen = 'pack';
+        }
       }
     }
   } else if (screen === 'pack') {
@@ -791,5 +813,5 @@ function resize(): void {
 window.addEventListener('resize', resize);
 resize();
 log(
-  'screens ready — tap cards; top-left triangle switches screen; G/E/S tune the mascot; menu: ?menuCards=2..6&menuName=AIRA',
+  'screens ready — tap cards; top-left triangle switches screen; G/E/S tune the mascot; menu: ?menuCards=2..9&menuName=AIRA',
 );

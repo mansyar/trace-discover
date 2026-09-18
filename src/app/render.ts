@@ -17,6 +17,7 @@ import {
   MENU_DOT_RADIUS,
   type MenuCard,
   type MenuLayout,
+  type MenuPager,
   menuCardArtMaxHeight,
   menuDotPositions,
   type SplashLayout,
@@ -396,6 +397,7 @@ export function drawMenu(
   name?: string,
   gateProgress = 0,
   hintVisible = false,
+  pager?: { readonly page: number; readonly spots: MenuPager } | null,
 ): void {
   layout.cards.forEach((card, index) => {
     ctx.beginPath();
@@ -432,6 +434,9 @@ export function drawMenu(
   drawGateRing(ctx, gateCenter, gateProgress);
   if (hintVisible) {
     drawParentHint(ctx, gate);
+  }
+  if (pager) {
+    drawPackPager(ctx, pager.spots, pager.page);
   }
 }
 

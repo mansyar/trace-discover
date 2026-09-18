@@ -3,7 +3,9 @@
 // through four cards, then a centered two-column grid; landscape keeps a
 // centered row or two-column wrap and grows to three columns. Height and gap
 // shrink only past the supported six-card capacity, within toddler floors.
-// Both orientations keep the invisible parent-gate corner zone.
+// Both orientations keep the invisible parent-gate corner zone. Beyond the
+// six-card capacity the menu paginates: one full page at a time behind the
+// same fixed prev/next + dots row the pack screen already teaches.
 import type { Point } from '../engine/types';
 
 export interface MenuCard {
@@ -23,6 +25,8 @@ export interface CornerZone {
 
 export interface MenuLayout {
   readonly cards: readonly MenuCard[];
+  /** Zero-text pager when the menu paginates; null at or below capacity. */
+  readonly pager: MenuPager | null;
   readonly parentGate: CornerZone;
 }
 
@@ -39,6 +43,11 @@ const MIN_CARD_WIDTH = 200;
 const SIDE_MARGIN = 65;
 const MENU_PARK_BOTTOM_OFFSET_PORTRAIT = 125;
 const MENU_PARK_BOTTOM_OFFSET_LANDSCAPE = 130;
+/** When the menu paginates, the park lifts so the pager row stays clear of
+ *  the mascot's slop zone (the sprite may kiss the page's bottom cards, the
+ *  same accepted overlap as the four-pack name card). */
+const PAGED_PARK_BOTTOM_OFFSET_PORTRAIT = 160;
+const PAGED_PARK_BOTTOM_OFFSET_LANDSCAPE = 150;
 
 /** Shrink floors used only when a layout exceeds the supported capacity. */
 const MIN_CARD_HEIGHT = 90;
@@ -52,17 +61,97 @@ const WIDE_MAX_COLUMNS = 3;
 /** Cards the menu lays out at full size in either orientation (the reserved My Name slot included). */
 export const MENU_CARD_CAPACITY = 6;
 
+export interface MenuPagerSpot {
+  readonly radius: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface MenuPager {
+  readonly dots: readonly MenuPagerSpot[];
+  readonly next: MenuPagerSpot;
+  readonly prev: MenuPagerSpot;
+}
+
+const PAGER_RADIUS = 45;
+const PAGER_GAP = 10;
+const PAGER_DOT_RADIUS = 10;
+const PAGER_DOT_GAP = 34;
+const PAGER_EDGE_MARGIN = 56;
+const PAGER_DOT_LEFT_EDGE = 10;
+/** Bottom band the pager row occupies; landscape pages shrink to clear it. */
+const PAGER_BAND = 110;
+
+/** Pages a card count spans (the six-card capacity is one full page). */
+export function menuPageCount(cardCount: number): number {
+  return Math.max(1, Math.ceil(cardCount / MENU_CARD_CAPACITY));
+}
+
+/** Fixed pager row for the menu: the pack screen's own spots (ui/pack.ts) so
+ *  toddlers learn one position; page dots ride between the field's left edge
+ *  and prev. Positions never move. */
+export function menuPagerLayout(
+  fieldWidth: number,
+  fieldHeight: number,
+  pageCount: number,
+): MenuPager {
+  const y = fieldHeight - PAGER_EDGE_MARGIN;
+  const next: MenuPagerSpot = { radius: PAGER_RADIUS, x: fieldWidth - PAGER_EDGE_MARGIN, y };
+  const prev: MenuPagerSpot = {
+    radius: PAGER_RADIUS,
+    x: next.x - PAGER_RADIUS * 2 - PAGER_GAP,
+    y,
+  };
+  const prevEdge = prev.x - prev.radius;
+  const dots = Array.from(
+    { length: pageCount },
+    (_, index): MenuPagerSpot => ({
+      radius: PAGER_DOT_RADIUS,
+      x: (PAGER_DOT_LEFT_EDGE + prevEdge) / 2 + (index - (pageCount - 1) / 2) * PAGER_DOT_GAP,
+      y,
+    }),
+  );
+  return { dots, next, prev };
+}
+
+/** Pager tap: next when more pages remain, prev after the first page; null otherwise. */
+export function hitMenuPager(pager: MenuPager, point: Point, page: number): 'next' | 'prev' | null {
+  if (page < pager.dots.length - 1 && inPagerSpot(pager.next, point)) {
+    return 'next';
+  }
+  if (page > 0 && inPagerSpot(pager.prev, point)) {
+    return 'prev';
+  }
+  return null;
+}
+
+function inPagerSpot(spot: MenuPagerSpot, point: Point): boolean {
+  return Math.hypot(point.x - spot.x, point.y - spot.y) <= spot.radius;
+}
+
 export function menuLayout(
   fieldWidth: number,
   fieldHeight: number,
   packIds: readonly string[],
+  page = 0,
 ): MenuLayout {
+  const pageCount = menuPageCount(packIds.length);
+  const current = Math.min(Math.max(page, 0), pageCount - 1);
+  const pageIds =
+    pageCount === 1
+      ? packIds
+      : packIds.slice(current * MENU_CARD_CAPACITY, (current + 1) * MENU_CARD_CAPACITY);
+  // Landscape reserves a bottom band for the pager row so six-card pages
+  // shrink to clear it; portrait pages end above the row as-is.
+  const zoneHeight =
+    pageCount > 1 && fieldWidth > fieldHeight ? fieldHeight - PAGER_BAND : fieldHeight;
   const cards =
     fieldWidth > fieldHeight
-      ? wideCards(fieldWidth, fieldHeight, packIds)
-      : tallCards(fieldWidth, fieldHeight, packIds);
+      ? wideCards(fieldWidth, zoneHeight, pageIds)
+      : tallCards(fieldWidth, zoneHeight, pageIds);
   return {
     cards,
+    pager: pageCount > 1 ? menuPagerLayout(fieldWidth, fieldHeight, pageCount) : null,
     parentGate: { height: GATE_SIZE, width: GATE_SIZE, x: fieldWidth - GATE_SIZE, y: 0 },
   };
 }
@@ -175,10 +264,20 @@ function wideCards(
   return gridCards(fieldWidth, fieldHeight, packIds, WIDE_MAX_COLUMNS, cardWidth, metrics);
 }
 
-/** Mascot park: bottom-center, with room below the card block in either field. */
-export function menuParkPosition(fieldWidth: number, fieldHeight: number): Point {
-  const bottomOffset =
-    fieldWidth > fieldHeight ? MENU_PARK_BOTTOM_OFFSET_LANDSCAPE : MENU_PARK_BOTTOM_OFFSET_PORTRAIT;
+/** Mascot park: bottom-center, with room below the card block in either field.
+ *  When the menu paginates, the park lifts out of the pager row's band. */
+export function menuParkPosition(
+  fieldWidth: number,
+  fieldHeight: number,
+  paginated = false,
+): Point {
+  const bottomOffset = paginated
+    ? fieldWidth > fieldHeight
+      ? PAGED_PARK_BOTTOM_OFFSET_LANDSCAPE
+      : PAGED_PARK_BOTTOM_OFFSET_PORTRAIT
+    : fieldWidth > fieldHeight
+      ? MENU_PARK_BOTTOM_OFFSET_LANDSCAPE
+      : MENU_PARK_BOTTOM_OFFSET_PORTRAIT;
   return { x: fieldWidth / 2, y: fieldHeight - bottomOffset };
 }
 
