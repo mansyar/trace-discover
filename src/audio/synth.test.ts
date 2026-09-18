@@ -202,7 +202,7 @@ describe('playVolumePreview', () => {
 });
 
 describe('instrument preset registry', () => {
-  const IDS = ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox'] as const;
+  const IDS = ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox', 'squeak'] as const;
 
   it('maps every instrument id to a usable preset', () => {
     for (const id of IDS) {
@@ -252,6 +252,15 @@ describe('instrument preset registry', () => {
     for (const chordSpec of chord) {
       expect(chordSpec.type).toBe('sine');
     }
+  });
+
+  it('voices the squeak as a short bright triangle', () => {
+    const squeak = presetForInstrument('squeak');
+    expect(squeak.type).toBe('triangle');
+    expect(squeak.duration).toBeGreaterThan(0.2);
+    expect(squeak.duration).toBeLessThanOrEqual(0.5);
+    expect(squeak.gain).toBeGreaterThan(0.35);
+    expect(squeak.gain).toBeLessThanOrEqual(0.55);
   });
 
   it('colors the completion chord with the preset timbre and keeps the sparkle', () => {
@@ -383,7 +392,14 @@ describe('giggleNoteSpec', () => {
   });
 
   it('keeps every skin instrument timbre and softens the voice', () => {
-    for (const instrument of ['marimba', 'bell', 'woodblock', 'kalimba', 'musicbox'] as const) {
+    for (const instrument of [
+      'marimba',
+      'bell',
+      'woodblock',
+      'kalimba',
+      'musicbox',
+      'squeak',
+    ] as const) {
       const preset = presetForInstrument(instrument);
       const spec = giggleNoteSpec(preset);
       expect(spec.type).toBe(preset.type);
