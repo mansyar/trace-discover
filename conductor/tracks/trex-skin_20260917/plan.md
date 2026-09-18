@@ -53,9 +53,9 @@
 
 *Goal: every acceptance criterion traced to evidence; proven on device.*
 
-- [ ] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded
-- [ ] Task: Trex spot-sweep — six-skin cycle reaches trex; one trex level traced to completion (hop + celebrate); screenshots menu/pack/level/success; zero-text audit; offline probe (`qa-offline.mjs`) covers new assets
-- [ ] Task: Perf spot-check — cold boot / fps sampling; findings folded into the owner pass
-- [ ] Task: Owner device pass — one trex level on Android + iPad; new-voice speaker check; verdict recorded
-- [ ] Task: Acceptance criteria 1–10 evidence recorded (plan + git note)
+- [x] Task: Full gates — `CI=true pnpm check && CI=true pnpm test && pnpm build`; coverage + dist recorded — check 108 files clean; tests 592/592; build 141 precache entries / 5,076.64 KiB; budget 5,224,739 / 5,600,000 B + 141/150 PASS; coverage skins.ts 100% · synth.ts 97.67% (render.ts visual module, QA-covered — pre-existing baseline)
+- [x] Task: Trex spot-sweep — six-skin cycle reaches trex; one trex level traced to completion (hop + celebrate); screenshots menu/pack/level/success; zero-text audit; offline probe (`qa-offline.mjs`) covers new assets — cycle reaches trex (qa-trex-screens asserts); pre-2 traced to completion incl. hop + celebrate (qa-trex + qa-trex-screens); screens `dev/qa/out/trex-art/*`; zero-text: no kid-facing text introduced (iconographic surfaces; parent hint + grown-ups labels are the designed adult zones); qa-offline with the skin arg: trex assets boot + trace fully offline
+- [x] Task: Perf spot-check — cold boot / fps sampling; findings folded into the owner pass — dist 4.98 MB on-disk; cold boot to interactive 142 ms; input-to-next-frame 2.4 ms; trace frame interval mean 4.27 ms · p50 4.20 · p95 4.30 · max 87.60 (headless desktop smoke bound — folded into the owner pass)
+- [x] Task: Owner device pass — one trex level on Android + iPad; new-voice speaker check; verdict recorded — owner pass Android + iPad 2026-09-18: cycle → trex, one trex level, squeak speaker check — "all good"
+- [x] Task: Acceptance criteria 1–10 evidence recorded (plan + git note) — recorded in this plan + Phase 5 git note: AC1 approval gate 2026-09-18 · AC2 six-skin cycle + wrap + persistence + parent setter + fallback · AC3 rest/blink/celebrate approved · AC4 backdrop + face approved · AC5 squeak on chimes + completion, counted notes unchanged, ear + speaker check · AC6 zero-text audit · AC7 offline probe covers trex · AC8 riv 463,868 B ≤ 500 KB + budget PASS (5.60 MB re-anchor) · AC9 checks/QA green + sweep evidence · AC10 docs synced + device pass
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
