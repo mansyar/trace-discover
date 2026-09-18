@@ -83,6 +83,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-trex.mjs` | Trex character smoke — `play.html?char=trex`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
+| `qa-trex-screens.mjs` | Trex real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5299`) | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
 | `qa-diag-pre3.mjs` · `qa-probe.mjs` | Retired debugging probes | — | stale |
 | `browsertest.mjs` · `serve.mjs` | Old spike-page driver + static server (its page no longer exists) | — | stale |
@@ -116,9 +117,10 @@ for removal. Statuses confirmed in `repo-organization_20260916` (Phases 2–4,
 ## Payload budget
 
 `pnpm budget` (`tools/dist-budget.mjs`) checks the built `dist/` against the
-payload ceilings — **5.00 MB total / 150 precache entries**, re-anchored from
-the post-diet build (4,161,522 B / 133 entries) to the merged build that
-includes the fifth skin (2026-09-17, PR #7 teddy: 4,641,746 B / 136 entries;
+payload ceilings — **5.60 MB total / 150 precache entries**, re-anchored from
+the post-diet build (4,161,522 B / 133 entries) through the fifth- and
+sixth-skin builds (2026-09-17 teddy: 4,641,746 B / 136; 2026-09-18 trex:
+5,224,739 B / 141 entries;
 history + rationale live in the tool). Run it after `pnpm build`; CI runs it
 after the build step too. A re-introduced lossless art batch trips it
 instantly — raise the ceilings only deliberately, with fresh measurements
