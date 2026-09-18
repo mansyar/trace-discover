@@ -36,6 +36,17 @@ const SOURCES = [
     // teddy cut; icon verified at button scale (menu + parent setter).
     box: { x0: 130, y0: 0, x1: 470, y1: 340 },
   },
+  {
+    id: 'trex',
+    file: 'characters/trex/base.png',
+    accent: '#d9a066',
+    region: null,
+    minArea: 40,
+    // Single gold eye (three-quarter view), so pair detection can't lock it;
+    // hand-placed like teddy. Head measured on the 490 cut: bbox ~88,28-352,253;
+    // box centers the head at button scale.
+    box: { x0: 75, y0: 0, x1: 375, y1: 300 },
+  },
 ];
 
 async function launch() {
