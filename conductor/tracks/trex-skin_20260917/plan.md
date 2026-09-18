@@ -49,7 +49,7 @@
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; `pnpm build` + `pnpm budget` green (or ceiling raised deliberately with fresh measurements, recorded); dist + precache entries vs v1.4.0 baseline recorded — build 5,224,739 B / 141 entries; ceiling re-anchored deliberately to 5.60 MB / 150 (tool history + dev/README + tech-stack); v1.4.0 ref 4,674,512 B / 138 entries (+550,227 B, +3 entries)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [5a2ea94]
 
-## Phase 5 — Compliance, QA & acceptance
+## Phase 5 — Compliance, QA & acceptance [checkpoint: edf66ce]
 
 *Goal: every acceptance criterion traced to evidence; proven on device.*
 
@@ -58,4 +58,4 @@
 - [x] Task: Perf spot-check — cold boot / fps sampling; findings folded into the owner pass — dist 4.98 MB on-disk; cold boot to interactive 142 ms; input-to-next-frame 2.4 ms; trace frame interval mean 4.27 ms · p50 4.20 · p95 4.30 · max 87.60 (headless desktop smoke bound — folded into the owner pass)
 - [x] Task: Owner device pass — one trex level on Android + iPad; new-voice speaker check; verdict recorded — owner pass Android + iPad 2026-09-18: cycle → trex, one trex level, squeak speaker check — "all good"
 - [x] Task: Acceptance criteria 1–10 evidence recorded (plan + git note) — recorded in this plan + Phase 5 git note: AC1 approval gate 2026-09-18 · AC2 six-skin cycle + wrap + persistence + parent setter + fallback · AC3 rest/blink/celebrate approved · AC4 backdrop + face approved · AC5 squeak on chimes + completion, counted notes unchanged, ear + speaker check · AC6 zero-text audit · AC7 offline probe covers trex · AC8 riv 463,868 B ≤ 500 KB + budget PASS (5.60 MB re-anchor) · AC9 checks/QA green + sweep evidence · AC10 docs synced + device pass
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [edf66ce]
