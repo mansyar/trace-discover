@@ -87,7 +87,15 @@ import {
   MASCOT_SPARKLE_SEED,
   mascotZone,
 } from './ui/mascot';
-import { hitMenuCard, inParentGate, menuLayout, menuParkPosition, splashLayout } from './ui/menu';
+import {
+  hitMenuCard,
+  hitMenuPager,
+  inParentGate,
+  menuLayout,
+  menuPageCount,
+  menuParkPosition,
+  splashLayout,
+} from './ui/menu';
 import {
   hitPackCard,
   hitPackHome,
@@ -149,6 +157,7 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
   name: { slotsPerRow: 1 }, // one shelf slot, centered under the solo card
   numbers: { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } },
   pre: { columns: 3, landscape: { cardSize: 90, columns: 6, slotsPerRow: 12 }, slotsPerRow: 6 },
+  shapes: { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } },
 };
 
 let PACKS: readonly PackEntry[] = [];
@@ -156,6 +165,8 @@ let space = fieldSizeFor('portrait');
 let orientation: Orientation = 'portrait';
 let MENU = menuLayout(space.width, space.height, []);
 let MENU_FILLS: readonly string[] = [];
+/** Current menu page (zero-based) when the pack count paginates; 0 otherwise. */
+let menuPage = 0;
 let PACK_PAGE_IDS = new Map<string, readonly (readonly string[])[]>();
 let PACK_LAYOUTS = new Map<string, readonly PackLayout[]>();
 let PACK_PAGERS = new Map<string, PackPager | null>();
@@ -164,12 +175,17 @@ let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])
 function rebuildViews(): void {
   space = fieldSizeFor(orientation);
   PACKS = appPacks(app.save, orientation);
+  const paginated = menuPageCount(PACKS.length) > 1;
+  menuPage = Math.min(Math.max(menuPage, 0), menuPageCount(PACKS.length) - 1);
   MENU = menuLayout(
     space.width,
     space.height,
     PACKS.map((pack) => pack.id),
+    menuPage,
   );
-  MENU_FILLS = PACKS.map((pack) => pack.menuFill);
+  MENU_FILLS = MENU.cards.map(
+    (card) => PACKS.find((pack) => pack.id === card.packId)?.menuFill ?? '#ffffff',
+  );
   PACK_PAGE_IDS = new Map(
     PACKS.map((pack) => {
       const levelIds = pack.levels.map((level) => level.id);
@@ -212,7 +228,7 @@ function rebuildViews(): void {
   SPLASH = splashLayout(space.width, space.height);
   PARENT = parentZoneLayout(space.width, space.height);
   BADGE = badgeLayout(space.width, space.height);
-  MENU_PARK = menuParkPosition(space.width, space.height);
+  MENU_PARK = menuParkPosition(space.width, space.height, paginated);
   PACK_PARK = packParkPosition(space.width, space.height);
 }
 let SUCCESS = successLayout(space.width, space.height);
@@ -417,6 +433,10 @@ function commit(next: AppState): void {
   const screen = app.screen;
   if (screen.name === 'pack' && (previous.name !== 'pack' || previous.packId !== screen.packId)) {
     packPage = packLandingPage(screen.packId);
+  }
+  if (screen.name === 'menu' && previous.name !== 'menu' && menuPage !== 0) {
+    menuPage = 0;
+    rebuildViews();
   }
   saveSave(saveStorage, app.save);
   syncNameInput();
@@ -673,6 +693,13 @@ const handlers: TraceHandlers = {
       commit(applyAppEvent(app, { type: 'splash-tap' }));
       pop();
     } else if (screen.name === 'menu') {
+      const pagerTap = MENU.pager ? hitMenuPager(MENU.pager, point, menuPage) : null;
+      if (pagerTap) {
+        menuPage = pagerTap === 'next' ? menuPage + 1 : menuPage - 1;
+        rebuildViews();
+        pop();
+        return;
+      }
       const packId = hitMenuCard(MENU, point);
       if (packId) {
         commit(applyAppEvent(app, { type: 'open-pack', packId }));
@@ -991,6 +1018,7 @@ function render(now: number): void {
       app.save.name,
       holdProgress(gateState),
       shouldShowParentHint(app.save),
+      MENU.pager ? { page: menuPage, spots: MENU.pager } : null,
     );
   } else if (screen.name === 'pack') {
     const pack = PACKS.find((candidate) => candidate.id === screen.packId);

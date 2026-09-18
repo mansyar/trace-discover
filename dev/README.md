@@ -11,7 +11,7 @@ purpose.
 | --- | --- |
 | `tools/` | $0 asset pipeline — Workers AI generation, cutout/optimize/composite, batch composers |
 | `qa/` | Headless-Edge (playwright-core) verification scripts + probes; outputs in `qa/out/` (git-ignored) |
-| `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery; menu capacity matrix via `?menuCards=2..6&menuName=AIRA`) · `tune.html` (feel tuning) · `pack.html` (pack JSON preview: `?pack=pre&level=pre-7`) — served by the Vite dev server |
+| `harness/` | Dev pages: `play.html` (single level) · `screens.html` (screen gallery; menu capacity matrix via `?menuCards=2..9&menuName=AIRA`, paginating past 6) · `tune.html` (feel tuning) · `pack.html` (pack JSON preview: `?pack=pre&level=pre-7`) — served by the Vite dev server |
 | `characters/` | Rive authoring workspaces — `dino4` (canonical dino; earlier `dino`/`dino2`/`dino3` iterations removed 2026-09-16) · `star` · `excavator` · `lion` · `teddy` · `trex`; each is a `rive` CLI project (`rive . --verify`); shipped `.riv` binaries are tracked in `public/rive/` |
 | `art-src/` | Per-pack art intermediates — `<pack>/` keeps the approved cutout layer + derived composites |
 
@@ -120,21 +120,28 @@ control points, the start star, the goal flag, and the six
 equal-arc-length checkpoint circles. `?pack=` defaults to the first pack
 alphabetically (currently `abc`), `?level=` to its first level; click the
 canvas to read field coordinates from the browser console. Reloading picks up
-JSON edits without an app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl]
-[--all]` spot-checks the first/middle/last level plus first bonus of every
-pack — `--all` sweeps every level of every JSON pack (54: 15 pre + 10 numbers
-+ 29 letters) — and writes shots to `dev/qa/out/`.
+JSON edits without an app rebuild. The shapes pack traces through this loop
+too — `?pack=shapes&level=shape-7` previews the two-stroke star; remember to
+add edge midpoints when authoring straight-edged shapes, or Catmull-Rom rounds
+the corners away (see `shapes.json` for the working geometry). `node
+dev/qa/qa-pack-preview.mjs [baseUrl] [--all]` spot-checks the first/middle/last
+level plus first bonus of every pack — `--all` sweeps every level of every
+JSON pack (62: 15 pre + 10 numbers + 29 letters + 8 shapes) — and writes shots
+to `dev/qa/out/`.
 
 ## Screens harness (`harness/screens.html`)
 
 Screen-gallery preview (`?screen=menu|pack|success|parent|board`). The menu
 follows the viewport orientation (portrait 430×860 / landscape 860×430, same
-letterboxing as the shell) and takes two dev-only params: `?menuCards=2..6`
+letterboxing as the shell) and takes two dev-only params: `?menuCards=2..9`
 renders exactly N cards — real packs first (My Name included when `?menuName=`
 seeds one), padded with synthetic cards that show the 29-dot worst case — and
 `?menuName=AIRA` seeds a preview name without touching storage. Each menu card
 draws its dashed art reserve + the real dot strip, so the capacity matrix
-shows art/dot behaviour at every count. `node dev/qa/qa-menu-capacity.mjs`
+shows art/dot behaviour at every count. Beyond the six-card capacity the
+preview paginates like the shell: the last page carries the remainder, the
+zero-text pager (⌀90 prev/next + page dots, same spots as the pack screen)
+is drawn and tappable, and the mascot park lifts below the pager band. `node dev/qa/qa-menu-capacity.mjs`
 shoots the 3–6 × orientation matrix plus the name-card case into
 `dev/qa/out/menu-capacity/`.
 

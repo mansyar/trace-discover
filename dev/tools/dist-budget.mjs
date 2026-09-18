@@ -8,15 +8,20 @@ import { fileURLToPath } from 'node:url';
 //   2026-09-17 - post-diet build: 4,161,522 B / 133 entries -> 4.50 MB / 150
 //   2026-09-17 - post-merge (PR #7 teddy): 4,641,746 B / 136 entries
 //     (teddy.riv 445,653 B + skin art) -> 5.00 MB / 150
+//   2026-09-18 - shapes pack art batch: 4,913,865 B / 156 entries
+//     (8 goal + 8 sticker + card + badge WebPs, ~243 KB) -> 5.00 MB / 170
+//     (shapes-pack_20260918; entry ceiling raised deliberately, size kept)
 //   2026-09-18 - sixth skin (trex, track trex-skin_20260917): 5,224,739 B /
 //     141 entries (trex.riv 463,868 B + playroom backdrop + face) -> 5.60 MB / 150
+//   2026-09-18 - merged re-anchor (shapes art + trex skin in one build):
+//     5,415,327 B / 159 entries -> 5.60 MB / 170 (both raises kept)
 // See conductor/archive/payload-diet_20260916/measurements.md for the diet
 // figures. A re-introduced lossless art batch (+5 MB) or a new pack's raw art
 // batch trips it immediately. Raise ceilings deliberately, with fresh
 // measurements.
 // Usage: node dev/tools/dist-budget.mjs [--total <bytes>] [--entries <n>]
 const CEIL_TOTAL_BYTES = 5_600_000;
-const CEIL_ENTRIES = 150;
+const CEIL_ENTRIES = 170;
 // Workbox runtime + generated service worker: never precached.
 const NOT_PRECACHED = /^(sw\.js|workbox-.*\.js)$/;
 const HERE = path.dirname(fileURLToPath(import.meta.url));

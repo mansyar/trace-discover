@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
 import { allPacks } from '../packs/catalog';
+import { type MascotZone, mascotZone } from './mascot';
 import {
   hitMenuCard,
+  hitMenuPager,
   inParentGate,
   MENU_CARD_CAPACITY,
   MENU_DOT_RADIUS,
@@ -11,6 +13,8 @@ import {
   menuCardArtMaxHeight,
   menuDotPositions,
   menuLayout,
+  menuPageCount,
+  menuPagerLayout,
   menuParkPosition,
   splashLayout,
 } from './menu';
@@ -392,17 +396,183 @@ describe('menuLayout (fidelity lock at current counts)', () => {
   });
 });
 
-describe('menuLayout (beyond capacity degrades gracefully)', () => {
+describe('menuLayout (beyond capacity paginates)', () => {
   for (const field of CAPACITY_FIELDS) {
     describe(field.label, () => {
       it.each([7, 8, 9, 10])(
-        'keeps %i cards inside the field at floor-friendly sizes, separated, and tappable',
+        'paginates %i cards: page 0 carries the first six, the remainder rides the last page, all usable',
         (count) => {
-          expectUsableLayout(field, count);
+          const ids = capacityIds(count);
+          const pages = menuPageCount(count);
+          for (let page = 0; page < pages; page += 1) {
+            const layout = menuLayout(field.width, field.height, ids, page);
+            expect(layout.pager).not.toBeNull();
+            expect(layout.cards.map((card) => card.packId)).toEqual(
+              ids.slice(page * MENU_CARD_CAPACITY, (page + 1) * MENU_CARD_CAPACITY),
+            );
+            const seen: MenuCard[] = [];
+            for (const card of layout.cards) {
+              expect(card.width).toBeGreaterThanOrEqual(90);
+              expect(card.height).toBeGreaterThanOrEqual(90);
+              expect(card.x).toBeGreaterThanOrEqual(0);
+              expect(card.y).toBeGreaterThanOrEqual(0);
+              expect(card.x + card.width).toBeLessThanOrEqual(field.width);
+              expect(card.y + card.height).toBeLessThanOrEqual(field.height);
+              for (const other of seen) {
+                const separated =
+                  other.x + other.width <= card.x ||
+                  card.x + card.width <= other.x ||
+                  other.y + other.height <= card.y ||
+                  card.y + card.height <= other.y;
+                expect(separated).toBe(true);
+              }
+              expect(
+                hitMenuCard(layout, { x: card.x + card.width / 2, y: card.y + card.height / 2 }),
+              ).toBe(card.packId);
+              seen.push(card);
+            }
+          }
         },
       );
     });
   }
+});
+
+/** The parked menu mascot's sprite scale (mirrors main.ts; kept in sync by test). */
+const MASCOT_SCALE_MENU = 0.32;
+
+interface PagerSpot {
+  readonly radius: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+/** Circle-vs-rect clearance: the tap circle must not touch the card rect. */
+function spotClearOfCard(spot: PagerSpot, card: MenuCard): boolean {
+  const nearestX = Math.max(card.x, Math.min(spot.x, card.x + card.width));
+  const nearestY = Math.max(card.y, Math.min(spot.y, card.y + card.height));
+  return Math.hypot(spot.x - nearestX, spot.y - nearestY) > spot.radius;
+}
+
+/** Center-to-center distance between the mascot zone and a pager spot. */
+function spotDistance(zone: MascotZone, spot: PagerSpot): number {
+  return Math.hypot(zone.x - spot.x, zone.y - spot.y);
+}
+
+describe('menu pager affordances (beyond the six-card capacity)', () => {
+  it('counts pages: at or below capacity one page; beyond, capped at six per page', () => {
+    for (const count of [1, 2, 3, 4, 5, 6]) {
+      expect(menuPageCount(count)).toBe(1);
+    }
+    for (const count of [7, 8, 9, 10, 11, 12]) {
+      expect(menuPageCount(count)).toBe(2);
+    }
+    expect(menuPageCount(13)).toBe(3);
+  });
+
+  it('ignores the page argument at or below capacity (pixels unchanged, no pager)', () => {
+    for (const field of CAPACITY_FIELDS) {
+      for (const count of [3, 4, 6]) {
+        const base = menuLayout(field.width, field.height, capacityIds(count));
+        expect(base.pager).toBeNull();
+        expect(menuLayout(field.width, field.height, capacityIds(count), 3).cards).toEqual(
+          base.cards,
+        );
+      }
+    }
+  });
+
+  for (const field of CAPACITY_FIELDS) {
+    describe(field.label, () => {
+      it.each([7, 8, 9])(
+        'shows a pager with %s dots whose impossible direction never hits',
+        (count) => {
+          const pages = menuPageCount(count);
+          const last = menuLayout(field.width, field.height, capacityIds(count), pages - 1);
+          const pager = last.pager;
+          if (pager === null) {
+            throw new Error('missing pager');
+          }
+          expect(pager.dots).toHaveLength(pages);
+          expect(hitMenuPager(pager, { x: pager.next.x, y: pager.next.y }, 0)).toBe('next');
+          expect(hitMenuPager(pager, { x: pager.prev.x, y: pager.prev.y }, 0)).toBeNull();
+          expect(hitMenuPager(pager, { x: pager.next.x, y: pager.next.y }, pages - 1)).toBeNull();
+          expect(hitMenuPager(pager, { x: pager.prev.x, y: pager.prev.y }, pages - 1)).toBe('prev');
+          expect(hitMenuPager(pager, { x: field.width / 2, y: field.height / 2 }, 0)).toBeNull();
+        },
+      );
+    });
+  }
+
+  it('fixes toddler-sized prev/next spots that match the pack pager position', () => {
+    for (const field of CAPACITY_FIELDS) {
+      const pager = menuPagerLayout(field.width, field.height, 2);
+      expect(pager.next.radius * 2).toBeGreaterThanOrEqual(90);
+      expect(pager.next.x + pager.next.radius).toBeLessThanOrEqual(field.width);
+      expect(pager.next.y + pager.next.radius).toBeLessThanOrEqual(field.height);
+      expect(pager.prev.x).toBeLessThan(pager.next.x);
+      const [first, second] = pager.dots;
+      if (first === undefined || second === undefined) {
+        throw new Error('missing dots');
+      }
+      expect(first.x).toBeLessThan(second.x);
+      expect(first.x - first.radius).toBeGreaterThan(0);
+      expect(second.x + second.radius).toBeLessThan(pager.prev.x - pager.prev.radius);
+    }
+    // Cross-screen consistency: the menu arrows sit exactly where the pack
+    // screen parks its own pager, so one learned spot works on both screens.
+    const portraitPager = menuPagerLayout(FIELD_WIDTH, FIELD_HEIGHT, 2);
+    expect(portraitPager.next.x).toBe(FIELD_WIDTH - 56);
+    expect(portraitPager.next.y).toBe(FIELD_HEIGHT - 56);
+    expect(portraitPager.next.x - portraitPager.prev.x).toBe(90 + 10);
+  });
+
+  it('keeps every pager spot clear of the cards and the parent gate on every page', () => {
+    for (const field of CAPACITY_FIELDS) {
+      for (const count of [7, 8, 9]) {
+        for (let page = 0; page < menuPageCount(count); page += 1) {
+          const layout = menuLayout(field.width, field.height, capacityIds(count), page);
+          const pager = layout.pager;
+          if (pager === null) {
+            throw new Error('missing pager');
+          }
+          for (const spot of [pager.prev, pager.next, ...pager.dots]) {
+            for (const card of layout.cards) {
+              expect(spotClearOfCard(spot, card)).toBe(true);
+            }
+            expect(inParentGate(layout, { x: spot.x, y: spot.y })).toBe(false);
+          }
+        }
+      }
+    }
+  });
+
+  it('keeps the pager row clear of the lifted paginated park (both orientations)', () => {
+    for (const field of CAPACITY_FIELDS) {
+      const zone = mascotZone(menuParkPosition(field.width, field.height, true), MASCOT_SCALE_MENU);
+      const pager = menuPagerLayout(field.width, field.height, 3);
+      for (const spot of [pager.prev, pager.next, ...pager.dots]) {
+        expect(spotDistance(zone, spot)).toBeGreaterThan(zone.radius);
+      }
+    }
+  });
+
+  it('keeps hidden-page cards untappable (hit parity)', () => {
+    const ids = capacityIds(7);
+    const page0 = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids, 0);
+    const page1 = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids, 1);
+    expect(page0.cards.map((card) => card.packId)).toEqual(ids.slice(0, 6));
+    expect(page1.cards.map((card) => card.packId)).toEqual(['pack-6']);
+    const hidden = cardIn(page1.cards, 0);
+    expect(
+      hitMenuCard(page0, { x: hidden.x + hidden.width / 2, y: hidden.y + hidden.height / 2 }),
+    ).toBeNull();
+  });
+
+  it('keeps the parent gate corner working under pagination', () => {
+    const layout = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, capacityIds(7), 1);
+    expect(inParentGate(layout, { x: FIELD_WIDTH - 50, y: 50 })).toBe(true);
+  });
 });
 
 describe('menu capacity guard', () => {
@@ -472,10 +642,13 @@ describe('menu dot strips and card art at capacity (29-dot letters case)', () =>
         },
       );
       it.each([7, 8, 9, 10])(
-        'degrades a 29-dot strip without overlap at %i cards (beyond capacity)',
+        'keeps a 29-dot strip legible with art room on every paginated card at %i cards',
         (count) => {
-          for (const card of menuLayout(field.width, field.height, capacityIds(count)).cards) {
-            expectLegibleDotStrip(card, 0);
+          for (let page = 0; page < menuPageCount(count); page += 1) {
+            for (const card of menuLayout(field.width, field.height, capacityIds(count), page)
+              .cards) {
+              expectLegibleDotStrip(card, MENU_ART_FLOOR);
+            }
           }
         },
       );

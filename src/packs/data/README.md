@@ -104,7 +104,9 @@ Geometry and pack rules reuse the engine's own semantics: `validateLevel`
 ```
 
 The static packs are all authored in this format: `pre.json` (12 levels + 3
-bonuses), `numbers.json` (10 numerals, no bonuses), and `abc.json` (26 uppercase
-letters + 3 sequence bonuses) — read any of them for a complete example. The My
-Name mini-pack stays runtime-composed from the letter glyphs
+bonuses), `numbers.json` (10 numerals, no bonuses), `abc.json` (26 uppercase
+letters + 3 sequence bonuses), and `shapes.json` (8 shape levels, no bonuses —
+circle, square, triangle, oval, diamond, heart, star, plus; the star and plus
+trace as two school-style strokes each) — read any of them for a complete
+example. The My Name mini-pack stays runtime-composed from the letter glyphs
 (`src/packs/name.ts`), never a JSON file.
