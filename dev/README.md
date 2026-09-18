@@ -81,6 +81,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
+| `qa-trex.mjs` | Trex character smoke — `play.html?char=trex`: trace + celebrate + page errors | dev `:5199` | one-off |
 | `qa-teddy-screens.mjs` | Teddy real-app screens (menu/pack/level/success/parent) with the skin seeded | dev (URL arg; default `:5200`) | one-off |
 | `qa-crop.mjs` · `qa-midshot.mjs` · `qa-sheet.mjs` · `qa-zoom.mjs` | Screenshot utilities — cropping, mid-trace shots, contact sheets, magnified crops | any | utility |
 | `qa-diag-pre3.mjs` · `qa-probe.mjs` | Retired debugging probes | — | stale |
