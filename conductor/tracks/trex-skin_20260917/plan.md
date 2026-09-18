@@ -27,7 +27,7 @@
 - [x] Task: Headless browser test + size/ship — `qa-trex.mjs` (harness `?char=trex` override + real-pointer trace) → completion → burst → success, no character error, page errors none; ship `public/rive/trex.riv` — `qa-trex.mjs`: idle/hop/success captured, TRACE SUCCESS (chimes 3/6→6/6, complete!, burst!, success), no character error, page errors none; first shipped 436,355 B — re-shipped 463,868 B after the celebrate QC fix; `qa-trex.mjs` re-run green on the final build
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3 — Skin + voice integration (TDD)
+## Phase 3 — Skin + voice integration (TDD) [checkpoint: b4ee347]
 
 *Goal: trex is a selectable, persisted skin with its new voice — code green, suite green.*
 
@@ -38,7 +38,7 @@
   - [ ] Tests: `InstrumentId` includes the new id; preset = approved waveform/duration/gain; chimes + completion resolve through it; counted toy-piano notes unchanged; volume/mute respected — red → green
   - [ ] Implement `src/audio/synth.ts` — preset values confirmed by ear at the Phase 4 art review
 - [x] Task: Wiring sweep — `.riv` src resolution (`public/rive/trex.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include trex; QA/harness enumerations updated where they list skins; `faces.mjs` row added [b4ee347] — faces.mjs trex row (box 75,0→375,300 on the 490 cut); qa-cast trex giggle + flourish cases; README row; refs resolve through `SKINS`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [b4ee347]
 
 ## Phase 4 — Remaining art: backdrop + face icon
 
