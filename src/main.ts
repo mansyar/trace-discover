@@ -91,7 +91,6 @@ import {
   hitMenuCard,
   hitMenuPager,
   inParentGate,
-  MENU_CARD_CAPACITY,
   menuLayout,
   menuPageCount,
   menuParkPosition,
@@ -184,8 +183,8 @@ function rebuildViews(): void {
     PACKS.map((pack) => pack.id),
     menuPage,
   );
-  MENU_FILLS = PACKS.slice(menuPage * MENU_CARD_CAPACITY, (menuPage + 1) * MENU_CARD_CAPACITY).map(
-    (pack) => pack.menuFill,
+  MENU_FILLS = MENU.cards.map(
+    (card) => PACKS.find((pack) => pack.id === card.packId)?.menuFill ?? '#ffffff',
   );
   PACK_PAGE_IDS = new Map(
     PACKS.map((pack) => {
