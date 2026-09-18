@@ -28,21 +28,21 @@
 
 ## Phase 2 — Menu overflow paging
 
-- [ ] Task: Write failing tests for the pager (Red)
-  - [ ] Test: counts ≤ 6 render exactly as today — fidelity-locked rects (existing suite untouched and green)
-  - [ ] Test: synthetic 7–9 cards paginate — one full fit-to-floors page at a time; page capacity = floors fit; page dots + zero-text prev/next affordances inside the field; ≥ 90px targets
-  - [ ] Test: hit parity (only visible-page cards hit; arrows/dots hit regions) + zone semantics (parent gate precedence preserved)
-  - [ ] Test: both orientations covered (count × orientation matrix extension)
-  - [ ] Run suite; confirm RED for pager behavior
-- [ ] Task: Implement the pager (Green)
-  - [ ] Extend `menu.ts` layout math: page state + per-page card rects (capacity = full floors fit), pager affordance geometry
-  - [ ] Wire pager interaction in `src/main.ts` / render painting in `src/app/render.ts`; zero-text; calm motion
-  - [ ] Run suite; confirm GREEN
-- [ ] Task: Dev harness preview
-  - [ ] Extend the synthetic-count preview (2–9 cards × both orientations) via `dev/harness/screens.html` + `src/dev/screens.ts`; screenshot matrix reviewed (incl. 7-card paging cases)
-  - [ ] Documented in `dev/README.md`
-- [ ] Task: Commit + checkpoint
-  - [ ] Commit (`feat(ui): menu overflow paging beyond the six-card capacity`), attach git note
+- [x] Task: Write failing tests for the pager (Red)
+  - [x] Test: counts ≤ 6 render exactly as today — fidelity-locked rects (existing suite untouched and green)
+  - [x] Test: synthetic 7–9 cards paginate — one full fit-to-floors page at a time; page capacity = floors fit; page dots + zero-text prev/next affordances inside the field; ≥ 90px targets
+  - [x] Test: hit parity (only visible-page cards hit; arrows/dots hit regions) + zone semantics (parent gate precedence preserved)
+  - [x] Test: both orientations covered (count × orientation matrix extension)
+  - [x] Run suite; confirm RED for pager behavior
+- [x] Task: Implement the pager (Green)
+  - [x] Extend `menu.ts` layout math: page state + per-page card rects (capacity = full floors fit), pager affordance geometry
+  - [x] Wire pager interaction in `src/main.ts` / render painting in `src/app/render.ts`; zero-text; calm motion
+  - [x] Run suite; confirm GREEN
+- [x] Task: Dev harness preview
+  - [x] Extend the synthetic-count preview (2–9 cards × both orientations) via `dev/harness/screens.html` + `src/dev/screens.ts`; screenshot matrix reviewed (incl. 7-card paging cases)
+  - [x] Documented in `dev/README.md`
+- [x] Task: Commit + checkpoint
+  - [x] Commit (`feat(ui): menu overflow paging beyond the six-card capacity`), attach git note
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3 — Reward art batch (goal art, stickers, card, badge)
