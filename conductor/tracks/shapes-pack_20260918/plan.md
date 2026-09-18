@@ -66,21 +66,26 @@
   - [x] Commit (`feat(packs): shapes reward art batch`), attach git note
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 — Generic surfaces, QA sweeps, docs, closeout
+## Phase 4 - Generic surfaces, QA sweeps, docs, closeout
 
-- [ ] Task: Verify pack-generic surfaces with zero special-casing (tests)
-  - [ ] Sticker board: 8 shape stickers pop/notes on the board (generic behavior asserted)
-  - [ ] Badge award on pack completion; success screen; pack screen grid + shelf
-  - [ ] Save round-trip: progress/stickers/badge for `shapes`; reset-progress unaffected; no schema change
-- [ ] Task: QA sweeps on a fresh production build
-  - [ ] `CI=true pnpm check && CI=true pnpm test && pnpm pack:check && pnpm build && pnpm budget`
-  - [ ] App journey sweep; shapes sweep (trace all 8 levels to success); `qa-pack-preview --all`; `qa-landscape` spot (both orientations); zero-text audit; offline cold start
-  - [ ] Evidence (commands + outcomes) recorded in the plan
-- [ ] Task: Docs resync
-  - [ ] `conductor/tech-stack.md`: dated note — Shapes pack (data + art), menu pager (capacity rule now "pages beyond 6"), budget delta
-  - [ ] `conductor/product.md`: dated note — Shapes pack live in the product story; packs list updated
-  - [ ] `src/packs/data/README.md`: production pack list (pre, numbers, abc, shapes)
-  - [ ] `dev/README.md`: preview/QA notes for shapes + paging matrix
+- [x] Task: Verify pack-generic surfaces with zero special-casing (tests) *(4 new tests in `src/packs/shapes.test.ts` — suite 15/15; full suite 712/712)*
+  - [x] Sticker board: 8 shape stickers pop/notes on the board (generic behavior asserted)
+  - [x] Badge award on pack completion; success screen; pack screen grid + shelf *(portrait defaults + landscape `{90, 5 cols, 10 slots}` PACK_GRID entry added to `main.ts` — landscape default would overflow 430 tall)*
+  - [x] Save round-trip: progress/stickers/badge for `shapes`; reset-progress unaffected; no schema change
+- [x] Task: QA sweeps on a fresh production build
+  - [x] `CI=true pnpm check && CI=true pnpm test && pnpm pack:check && pnpm build && pnpm budget` — all PASS (712 tests; budget 4,913,923 B / 156 entries under 5.00 MB / 170)
+  - [x] App journey sweep; shapes sweep (trace all 8 levels to success); `qa-pack-preview --all`; `qa-landscape` spot (both orientations); zero-text audit; offline cold start
+  - [x] Evidence (commands + outcomes) recorded in the plan
+    - Shapes sweep (`node dev/qa/qa-shapes-sweep.mjs`, real app journey menu → shapes → 8 levels → badge seal): all 8 `SUCCESS`, `cleared: 8, badges: ["shapes-badge"]`, page errors none.
+    - `qa-pack-preview --all`: every level of all 4 packs OK (shapes strokes/checkpoints/margins correct); default-url fallback OK; page errors none.
+    - `qa-landscape` (dev/:5199): landscape QA passed — rotation reflow with progress kept, tablet landscape menu, all targets inside the design space, 0 page errors.
+    - Offline cold start (`qa-offline.mjs http://localhost:4174/ shape-1`, production preview): SW controlling online, offline boot from precache, `shape-1 trace: SUCCESS`, page errors none.
+    - Zero-text audit: all `fillText` sites in `src/app/render.ts` are pre-existing parent-zone/parent-hint/skin-button paths; the shapes pack adds no text.
+- [x] Task: Docs resync
+  - [x] `conductor/tech-stack.md`: dated note - Shapes pack (data + art), menu pager (capacity rule now "pages beyond 6"), budget delta
+  - [x] `conductor/product.md`: dated note - Shapes pack live in the product story; packs list updated
+  - [x] `src/packs/data/README.md`: production pack list (pre, numbers, abc, shapes)
+  - [x] `dev/README.md`: preview/QA notes for shapes + paging matrix
 - [ ] Task: Owner device pass (Android + iPad)
   - [ ] Shapes journey traced unaided; menu/pager visual check both orientations; sticker board tap; sound check
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)

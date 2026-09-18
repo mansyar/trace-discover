@@ -119,10 +119,14 @@ control points, the start star, the goal flag, and the six
 equal-arc-length checkpoint circles. `?pack=` defaults to the first pack
 alphabetically (currently `abc`), `?level=` to its first level; click the
 canvas to read field coordinates from the browser console. Reloading picks up
-JSON edits without an app rebuild. `node dev/qa/qa-pack-preview.mjs [baseUrl]
-[--all]` spot-checks the first/middle/last level plus first bonus of every
-pack — `--all` sweeps every level of every JSON pack (54: 15 pre + 10 numbers
-+ 29 letters) — and writes shots to `dev/qa/out/`.
+JSON edits without an app rebuild. The shapes pack traces through this loop
+too — `?pack=shapes&level=shape-7` previews the two-stroke star; remember to
+add edge midpoints when authoring straight-edged shapes, or Catmull-Rom rounds
+the corners away (see `shapes.json` for the working geometry). `node
+dev/qa/qa-pack-preview.mjs [baseUrl] [--all]` spot-checks the first/middle/last
+level plus first bonus of every pack — `--all` sweeps every level of every
+JSON pack (62: 15 pre + 10 numbers + 29 letters + 8 shapes) — and writes shots
+to `dev/qa/out/`.
 
 ## Screens harness (`harness/screens.html`)
 
