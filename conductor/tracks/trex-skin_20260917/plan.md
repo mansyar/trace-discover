@@ -16,7 +16,7 @@
 - [x] Task: **Owner approval of the stylized master (hard gate)** — owner approved candidate B (`dev/gen/trex-cand-b.png`, strength 0.75, seed 7) 2026-09-18; canonical copy `dev/characters/trex/master.png`; downstream work unlocked
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2 — Character build: cutout → poses → Rive → verification
+## Phase 2 — Character build: cutout → poses → Rive → verification [checkpoint: 003e04f]
 
 *Goal: `public/rive/trex.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
