@@ -5,16 +5,18 @@ import { allPacks, appPacks, packById } from './catalog';
 import { LETTERS_PACK } from './letters';
 import { NUMBERS_PACK } from './numbers';
 import { PRE_PACK } from './pre';
+import { SHAPES_PACK } from './shapes';
 
 describe('pack catalog', () => {
-  it('lists packs in menu order: pre-writing, numbers, letters', () => {
-    expect(allPacks().map((pack) => pack.id)).toEqual(['pre', 'numbers', 'abc']);
+  it('lists packs in menu order: pre-writing, numbers, letters, shapes', () => {
+    expect(allPacks().map((pack) => pack.id)).toEqual(['pre', 'numbers', 'abc', 'shapes']);
   });
 
   it('looks up packs by id', () => {
     expect(packById('pre')).toBe(PRE_PACK);
     expect(packById('numbers')).toBe(NUMBERS_PACK);
     expect(packById('abc')).toBe(LETTERS_PACK);
+    expect(packById('shapes')).toBe(SHAPES_PACK);
     expect(packById('nope')).toBeUndefined();
   });
 
@@ -60,6 +62,13 @@ describe('pack catalog', () => {
       'abc-bonus-3',
     ]);
     expect(LETTERS_PACK.bonusUnlocks).toEqual([9, 18, 26]);
+  });
+
+  it('packs the eight shapes with their badge and no bonuses', () => {
+    expect(SHAPES_PACK.badgeId).toBe('shapes-badge');
+    expect(SHAPES_PACK.levels).toHaveLength(8);
+    expect(SHAPES_PACK.bonuses).toEqual([]);
+    expect(SHAPES_PACK.bonusUnlocks).toEqual([]);
   });
 });
 
