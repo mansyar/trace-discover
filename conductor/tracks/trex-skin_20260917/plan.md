@@ -44,9 +44,9 @@
 
 *Goal: all trex art integrated and screenshot-approved; precache/size recorded.*
 
-- [ ] Task: Backdrop — generate → optimize → `public/art/bg/trex.webp`; integrate; menu/pack/level/success screenshots (readability/contrast) approved
-- [ ] Task: Face icon — trex head cutout → `public/art/face/trex.webp`; button-scale crispness verified (skin button + parent setter)
-- [ ] Task: Precache/size checkpoint — SW glob covers new assets; `pnpm build` + `pnpm budget` green (or ceiling raised deliberately with fresh measurements, recorded); dist + precache entries vs v1.4.0 baseline recorded
+- [x] Task: Backdrop — generate → optimize → `public/art/bg/trex.webp`; integrate; menu/pack/level/success screenshots (readability/contrast) approved — playroom candidate A (owner pick); 1024×1024 WebP 28,086 B via `opt-art.mjs`; screens captured `dev/qa/out/trex-art/*` (menu/pack/level/success/parent) — readability good
+- [x] Task: Face icon — trex head cutout → `public/art/face/trex.webp`; button-scale crispness verified (skin button + parent setter) — faces.mjs trex row (hand-placed box 75,0→375,300 on the 490 cut); 9,052 B WebP; crisp at button scale in menu + parent shots
+- [x] Task: Precache/size checkpoint — SW glob covers new assets; `pnpm build` + `pnpm budget` green (or ceiling raised deliberately with fresh measurements, recorded); dist + precache entries vs v1.4.0 baseline recorded — build 5,224,739 B / 141 entries; ceiling re-anchored deliberately to 5.60 MB / 150 (tool history + dev/README + tech-stack); v1.4.0 ref 4,674,512 B / 138 entries (+550,227 B, +3 entries)
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 5 — Compliance, QA & acceptance
