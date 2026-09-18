@@ -7,7 +7,7 @@
 
 ---
 
-## Phase 1 — Shapes pack content + registration
+## Phase 1 — Shapes pack content + registration `[checkpoint: 00055c3]`
 
 - [x] Task: Write failing tests for the shapes pack loader (Red)
   - [x] Test: `src/packs/shapes.test.ts` — `SHAPES_PACK` identity (`id: "shapes"`, `badgeId: "shapes-badge"`, `menuFill: "#b8a9e8"`, no bonuses), 8 levels `shape-1`…`shape-8` in the locked order (circle, square, triangle, oval, diamond, heart, star, plus), stroke-count expectations (star 2, plus 2, others 1), valid geometry (per parser rules), labeled load-time error on a malformed fixture
