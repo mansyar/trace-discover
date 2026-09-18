@@ -25,7 +25,7 @@
 - [x] Task: Rive project `dev/characters/trex/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG; size ≤ ~500 KB — scene adapted from the teddy/dino4 template (ids, state machine, listener, sparkles); 426-px cast norm via 480-px cutouts @ scale 0.8875 (dino's scale); verify 0 errors, inspect problems empty; rest/blink/giggle screenshots viewed; celebrate via throwaway rig (EntryState→celebrate; jump art aligns, sparkles + shadow squash) `dev/gen/trex-celebrate-f25/f45.png`; riv 436,355 B — QC fix 2026-09-18 (owner caught a 3-arm artifact in the first celebrate pose): regenerate v3c (0.85/seed 55, both arms up, no hanging arm); shared box widened to 150,129,878,934 @ 490 px (base/blink re-cut for alignment, node offsets recomputed); celebrate re-verified via rig; riv now 463,868 B (under the ~500 KB norm)
 - [x] Task: Blink patch calibration — `composite.mjs` feathered patch; `gridshot.mjs` measurements; node placement recomputed from the crop rect; seam-free confirmation — eye measured via gridshot (297,95→402,195 on the 600 cutout); feathered patch via `composite.mjs` (rect 232,70,328,164 · feather 7 · margin 24 at 480 px; crop 208,46→352,188); node placement recomputed from the crop center (scale-invariant: x=35.5 y=−113); seam/alignment confirmed in scene screenshot + fine-grid zoom (no ghost, no halo); patch 27,897 B — final re-cut @ 490 px (see character-build QC note): rect 251,76,348,170 · feather 8 · margin 24; crop 227,52→372,194; node x=31.2 y=−117.5 (offset model validated across 600/520/480/490 geometries)
 - [x] Task: Headless browser test + size/ship — `qa-trex.mjs` (harness `?char=trex` override + real-pointer trace) → completion → burst → success, no character error, page errors none; ship `public/rive/trex.riv` — `qa-trex.mjs`: idle/hop/success captured, TRACE SUCCESS (chimes 3/6→6/6, complete!, burst!, success), no character error, page errors none; first shipped 436,355 B — re-shipped 463,868 B after the celebrate QC fix; `qa-trex.mjs` re-run green on the final build
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [003e04f]
 
 ## Phase 3 — Skin + voice integration (TDD) [checkpoint: b4ee347]
 
@@ -40,14 +40,14 @@
 - [x] Task: Wiring sweep — `.riv` src resolution (`public/rive/trex.riv`); face/backdrop refs render on menu/pack/level/success; skin button + parent setter include trex; QA/harness enumerations updated where they list skins; `faces.mjs` row added [b4ee347] — faces.mjs trex row (box 75,0→375,300 on the 490 cut); qa-cast trex giggle + flourish cases; README row; refs resolve through `SKINS`
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [b4ee347]
 
-## Phase 4 — Remaining art: backdrop + face icon
+## Phase 4 — Remaining art: backdrop + face icon [checkpoint: 5a2ea94]
 
 *Goal: all trex art integrated and screenshot-approved; precache/size recorded.*
 
 - [x] Task: Backdrop — generate → optimize → `public/art/bg/trex.webp`; integrate; menu/pack/level/success screenshots (readability/contrast) approved — playroom candidate A (owner pick); 1024×1024 WebP 28,086 B via `opt-art.mjs`; screens captured `dev/qa/out/trex-art/*` (menu/pack/level/success/parent) — readability good
 - [x] Task: Face icon — trex head cutout → `public/art/face/trex.webp`; button-scale crispness verified (skin button + parent setter) — faces.mjs trex row (hand-placed box 75,0→375,300 on the 490 cut); 9,052 B WebP; crisp at button scale in menu + parent shots
 - [x] Task: Precache/size checkpoint — SW glob covers new assets; `pnpm build` + `pnpm budget` green (or ceiling raised deliberately with fresh measurements, recorded); dist + precache entries vs v1.4.0 baseline recorded — build 5,224,739 B / 141 entries; ceiling re-anchored deliberately to 5.60 MB / 150 (tool history + dev/README + tech-stack); v1.4.0 ref 4,674,512 B / 138 entries (+550,227 B, +3 entries)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [5a2ea94]
 
 ## Phase 5 — Compliance, QA & acceptance
 
