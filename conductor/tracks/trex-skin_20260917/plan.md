@@ -4,7 +4,7 @@
 
 **Delivery strategy:** art-first behind the owner's approval gate — the stylized master is generated and **explicitly approved** before any downstream build (Phase 1); the character is then built through the cast golden loop (cutout → poses → Rive → screenshot/browser verification, Phase 2); skin + voice are integrated with TDD (Phase 3); the remaining art (backdrop, face icon) lands as a batch (Phase 4); compliance, QA evidence, device pass and acceptance close it out (Phase 5). Work stays local on `track/trex-skin` — no push/PR/release (spec §Out of Scope).
 
-## Phase 1 — Docs resync + stylized master (owner approval gate)
+## Phase 1 — Docs resync + stylized master (owner approval gate) [checkpoint: 59f7fc6]
 
 *Goal: the context docs describe the sixth skin before implementation; the stylized character master exists in the house art language and is approved by the owner — the hard gate before any build work.*
 
@@ -14,7 +14,7 @@
   - [x] `dev/README.md`: character workspace list gains trex
 - [x] Task: Reference prep + stylization candidates — copy `dev/.cf_token` into this worktree (from the main worktree; untracked); `gen2.mjs` img2img from `dev/gen/ref-trex.jpeg`; tune strength/seed; candidates inspected; raw reference + raws stay untracked — BLOCKED 2026-09-17: Workers AI daily free allocation exhausted (HTTP 429 / code 4006; shared account token); prerequisites verified ready (`dev/.cf_token`, `dev/gen/ref-trex.jpeg`, rive 1.0.2); resume after the 00:00 UTC reset (10:00 +10:00) — 3 candidates 2026-09-18 (`dev/gen/trex-cand-a..c.png`, strengths 0.6/0.75/0.9, seed 7); all viewed (a: shaded gradients; b: flat + clean; c: blush + cyan artifact)
 - [x] Task: **Owner approval of the stylized master (hard gate)** — owner approved candidate B (`dev/gen/trex-cand-b.png`, strength 0.75, seed 7) 2026-09-18; canonical copy `dev/characters/trex/master.png`; downstream work unlocked
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2 — Character build: cutout → poses → Rive → verification
 
