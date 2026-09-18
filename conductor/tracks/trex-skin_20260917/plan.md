@@ -21,7 +21,7 @@
 *Goal: `public/rive/trex.riv` passes the cast golden loop — rest/blink/celebrate screenshots verified, headless browser test green, ≤ ~500 KB.*
 
 - [x] Task: Pose sources from the approved master — base (= approved master) + celebrate + same-pose blink; first attempt (0.55/0.28) rendered photoreal — rejected; style-forward retry: celebrate v2a (0.75/seed 11) + blink v2a (0.45/seed 7) selected, both viewed 2026-09-18 (`dev/gen/trex-celebrate-v2a.png`, `dev/gen/trex-blink-v2a.png`); sources keep their own measurements — never inherit placements
-- [ ] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking
+- [x] Task: Cutouts — base + celebrate + blink with the same `--box` discipline for pixel-aligned exports; verify by looking — auto pass measured content bboxes (master 230,142→875,927 · celebrate 204,139→868,903 · blink 234,147→876,928); union box `204,139,876,928` re-cut at 600 px: base.png 290,157 B · jump.png 308,922 B · blink.png 301,638 B; all viewed — clean edges, identical framing
 - [ ] Task: Rive project `dev/characters/trex/` (from the dino4 template) — idle loop, celebrate swap, tap proxy, sparkles; `rive . --verify` → `inspect --json` (problems empty) → `--once` → screenshots rest / blink / celebrate — look at every PNG; size ≤ ~500 KB
 - [ ] Task: Blink patch calibration — `composite.mjs` feathered patch; `gridshot.mjs` measurements; node placement recomputed from the crop rect; seam-free confirmation
 - [ ] Task: Headless browser test + size/ship — `qa-trex.mjs` (harness `?char=trex` override + real-pointer trace) → completion → burst → success, no character error, page errors none; ship `public/rive/trex.riv`
