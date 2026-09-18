@@ -66,7 +66,7 @@
   - [x] Commit (`feat(packs): shapes reward art batch`), attach git note
   - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4 - Generic surfaces, QA sweeps, docs, closeout
+## Phase 4 - Generic surfaces, QA sweeps, docs, closeout `[checkpoint: dd1aa59]`
 
 - [x] Task: Verify pack-generic surfaces with zero special-casing (tests) *(4 new tests in `src/packs/shapes.test.ts` — suite 15/15; full suite 712/712)*
   - [x] Sticker board: 8 shape stickers pop/notes on the board (generic behavior asserted)
@@ -86,9 +86,9 @@
   - [x] `conductor/product.md`: dated note - Shapes pack live in the product story; packs list updated
   - [x] `src/packs/data/README.md`: production pack list (pre, numbers, abc, shapes)
   - [x] `dev/README.md`: preview/QA notes for shapes + paging matrix
-- [ ] Task: Owner device pass (Android + iPad)
-  - [ ] Shapes journey traced unaided; menu/pager visual check both orientations; sticker board tap; sound check
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Owner device pass (Android + iPad)
+  - [x] Shapes journey traced unaided; menu/pager visual check both orientations; sticker board tap; sound check *(owner pass on LAN production preview, approved 2026-09-18)*
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `dd1aa59`, user-approved)*
 
 ## Review Fixes
 
