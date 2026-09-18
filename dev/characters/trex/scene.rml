@@ -56,9 +56,9 @@
                     </Stroke>
                 </Shape>
             </Node>
-            <Image assetId="0:62" x="35.5" y="-113" scaleX="0.8875" scaleY="0.8875" opacity="0" name="Blink Art" id="0:44"/>
-            <Image assetId="0:60" x="0" y="-4" scaleX="0.8875" scaleY="0.8875" name="Trex Image" id="0:41"/>
-            <Image assetId="0:61" x="0" y="-4" scaleX="0.8875" scaleY="0.8875" opacity="0" name="Jump Art" id="0:43"/>
+            <Image assetId="0:62" x="31.2" y="-117.5" scaleX="0.8875" scaleY="0.8875" opacity="0" name="Blink Art" id="0:44"/>
+            <Image assetId="0:60" x="-17.1" y="-9.3" scaleX="0.8875" scaleY="0.8875" name="Trex Image" id="0:41"/>
+            <Image assetId="0:61" x="-17.1" y="-9.3" scaleX="0.8875" scaleY="0.8875" opacity="0" name="Jump Art" id="0:43"/>
         </Node>
         <Shape x="250" y="448" name="Shadow" id="0:29">
             <Ellipse width="216" height="44" name="Path"/>
