@@ -4,6 +4,8 @@
 // (data/patterns.json). Every level is single-stroke; loops close back to
 // their start, spirals wind inward, stairs keep their flats straight.
 import { describe, expect, it } from 'vitest';
+import type { ToneSpec } from '../audio/synth';
+import { playStickerNote } from '../audio/synth';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
 import { awardBadge, completeLevel, createDefaultSave } from '../save/store';
@@ -66,6 +68,17 @@ function byId(id: string): LevelDef {
     throw new Error(`missing level ${id}`);
   }
   return level;
+}
+
+/** Records played tone specs (synth.test.ts helper, mirrored locally). */
+function recordingPlayer() {
+  const played: ToneSpec[] = [];
+  return {
+    play: (spec: ToneSpec): void => {
+      played.push(spec);
+    },
+    played,
+  };
 }
 
 /** Landscape pack-grid options main.ts configures for patterns (mirrors pre). */
@@ -265,6 +278,41 @@ describe('patterns generic surfaces (zero special-casing)', () => {
     expect(shouldAwardPackBadge(save, PATTERNS_PACK)).toBe(false);
     expect(save.badges).not.toContain('patterns-badge');
     expect(nextPackLevelId(save, PATTERNS_PACK, 'pattern-1')).toBe('pattern-2');
+  });
+
+  it('plays rising, stable notes across the nine pattern stickers on the board', () => {
+    // The board fixes each earned sticker to a pentatonic step by level order;
+    // nine stickers stay under the two-octave wrap, so taps rise strictly.
+    const frequencies = PATTERN_LEVELS.map((_, index) => {
+      const player = recordingPlayer();
+      playStickerNote(player, index);
+      return player.played[0]?.frequency ?? 0;
+    });
+    expect(new Set(frequencies).size).toBe(9);
+    for (let i = 1; i < frequencies.length; i += 1) {
+      expect(frequencies[i] ?? 0).toBeGreaterThan(frequencies[i - 1] ?? 0);
+    }
+    const repeat = recordingPlayer();
+    playStickerNote(repeat, 4);
+    expect(repeat.played[0]?.frequency).toBe(frequencies[4]);
+  });
+
+  it('awards the badge exactly on the ninth completion and survives a JSON round-trip', () => {
+    let save = createDefaultSave();
+    for (const level of PATTERN_LEVELS.slice(0, 8)) {
+      save = completeLevel(save, level.id);
+    }
+    // Eight of nine: not yet complete, nothing to award.
+    expect(isPackComplete(save, PATTERNS_PACK)).toBe(false);
+    expect(shouldAwardPackBadge(save, PATTERNS_PACK)).toBe(false);
+    save = completeLevel(save, 'pattern-9');
+    expect(isPackComplete(save, PATTERNS_PACK)).toBe(true);
+    expect(shouldAwardPackBadge(save, PATTERNS_PACK)).toBe(true);
+    save = awardBadge(save, PATTERNS_PACK.badgeId);
+    expect(shouldAwardPackBadge(save, PATTERNS_PACK)).toBe(false);
+    const restored = JSON.parse(JSON.stringify(save)) as typeof save;
+    expect(restored.badges).toContain('patterns-badge');
+    expect(restored.completedLevels.filter((id) => id.startsWith('pattern-'))).toHaveLength(9);
   });
 });
 

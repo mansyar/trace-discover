@@ -84,6 +84,9 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-menu-capacity.mjs` | Menu capacity matrix shots: 3–6 cards × portrait/landscape + the My Name card case (`menu-capacity_20260917`) | dev `:5199` | canonical |
 | `qa-animals-sweep.mjs` | Animals pack full app flow — traces all 8 levels to success in one chain (badge award, zero page errors) (`animal-outlines_20260919`) | dev `:5199` | canonical |
 | `qa-animals-zerotext.mjs` | Zero-text audit — child surfaces (splash/menu/pack/level) render no text nodes (`animal-outlines_20260919`) | preview `:4173` | one-off |
+| `qa-patterns-sweep.mjs` | Patterns pack full app flow — traces all 9 levels to success in one chain (badge award, zero page errors) (`patterns-pack_20260920`) | dev `:5199` | canonical |
+| `qa-patterns-rotate.mjs` | Landscape spot — mid-spiral rotation to landscape and back with the stroke set kept, level completes (`patterns-pack_20260920`) | dev `:5199` | one-off |
+| `qa-patterns-zerotext.mjs` | Zero-text audit for the patterns surfaces — splash/menu (six packs)/pack/level (`patterns-pack_20260920`) | dev `:5199` | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
@@ -101,7 +104,9 @@ in `parent-zone_20260917` (2026-09-17); `qa-pack-preview` added in
 `menu-capacity_20260917` (2026-09-17); the stale category is now empty — its
 four members (`qa-diag-pre3`, `qa-probe`, `browsertest`, `serve`) were removed
 in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
-(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in `animal-outlines_20260919` (2026-09-19).*
+(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in `animal-outlines_20260919` (2026-09-19);
+`qa-patterns-sweep` + `qa-patterns-rotate` + `qa-patterns-zerotext` added in
+`patterns-pack_20260920` (2026-09-20).*
 
 > Smoke usage (two terminals): 1) `pnpm preview` (production build on `:4173`;
 > `pnpm serve` for LAN devices) — 2) `node dev/qa/qa-smoke.mjs`. CI runs the
@@ -128,8 +133,8 @@ add edge midpoints when authoring straight-edged shapes, or Catmull-Rom rounds
 the corners away (see `shapes.json` for the working geometry). `node
 dev/qa/qa-pack-preview.mjs [baseUrl] [--all]` spot-checks the first/middle/last
 level plus first bonus of every pack — `--all` sweeps every level of every
-JSON pack (62: 15 pre + 10 numbers + 29 letters + 8 shapes) — and writes shots
-to `dev/qa/out/`.
+JSON pack (71: 15 pre + 10 numbers + 29 letters + 8 shapes + 9 patterns) — and
+writes shots to `dev/qa/out/`.
 
 ## Screens harness (`harness/screens.html`)
 
@@ -167,10 +172,10 @@ shoots the 3–6 × orientation matrix plus the name-card case into
 ## Payload budget
 
 `pnpm budget` (`tools/dist-budget.mjs`) checks the built `dist/` against the
-payload ceilings — **5.60 MB total / 150 precache entries**, re-anchored from
-the post-diet build (4,161,522 B / 133 entries) through the fifth- and
-sixth-skin builds (2026-09-17 teddy: 4,641,746 B / 136; 2026-09-18 trex:
-5,224,739 B / 141 entries;
+payload ceilings — **6.00 MB total / 200 precache entries**, re-anchored from
+the post-diet build (4,161,522 B / 133 entries) through the skin and pack
+builds (2026-09-17 teddy: 4,641,746 B / 136; 2026-09-18 trex: 5,224,739 B /
+141; 2026-09-19 animals: 5,630,286 B / 177; current measurements:
 history + rationale live in the tool). Run it after `pnpm build`; CI runs it
 after the build step too. A re-introduced lossless art batch trips it
 instantly — raise the ceilings only deliberately, with fresh measurements
