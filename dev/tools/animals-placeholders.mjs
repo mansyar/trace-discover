@@ -87,12 +87,10 @@ const data = await page.evaluate((hues) => {
   return out;
 }, HUES);
 
-let failed = 0;
 for (const [rel, url] of Object.entries(data)) {
   const file = path.join(ART, rel);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, Buffer.from(url.split(',')[1], 'base64'));
   console.log(`placeholder public/art/${rel} ${fs.statSync(file).size}B`);
 }
-if (failed) process.exit(1);
 await browser.close();

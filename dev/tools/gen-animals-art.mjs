@@ -31,6 +31,7 @@ const JOBS = [
 ];
 
 let consecutiveFailures = 0;
+let failed = false;
 for (const [name, subject] of JOBS) {
   const out = path.join(RAW, `${name}.png`);
   if (fs.existsSync(out)) {
@@ -53,6 +54,7 @@ for (const [name, subject] of JOBS) {
     console.log(`ok ${name}`);
   } else {
     consecutiveFailures++;
+    failed = true;
     console.error(`fail ${name}`);
     if (consecutiveFailures >= 3) {
       console.error('stopping after 3 consecutive failures');
@@ -61,3 +63,4 @@ for (const [name, subject] of JOBS) {
   }
 }
 console.log('gen-animals-art complete');
+process.exit(failed ? 1 : 0);

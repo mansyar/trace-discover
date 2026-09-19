@@ -33,7 +33,7 @@ for (const job of JOBS) {
     console.log(`skip ${file} (exists)`);
     continue;
   }
-  const prompt = `${job.prompt}, ${job.suffix ?? SUFFIX}`;
+  const prompt = `${job.prompt}, ${SUFFIX}`;
   const args = [resolve(HERE, 'gen.mjs'), '--prompt', prompt, '--out', rel];
   const run = spawnSync('node', args, { stdio: 'inherit' });
   if (run.status !== 0) {

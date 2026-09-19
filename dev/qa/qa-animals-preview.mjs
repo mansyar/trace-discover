@@ -2,8 +2,11 @@
 // so the blind-authored geometry can be eyeballed. Delete after use.
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-mkdirSync('dev/qa/out/animals', { recursive: true });
+const OUT = join(dirname(fileURLToPath(import.meta.url)), 'out', 'animals');
+mkdirSync(OUT, { recursive: true });
 
 const LEVELS = [
   'animal-1',
@@ -41,7 +44,7 @@ for (const level of LEVELS) {
         .filter((l) => /error|fail/i.test(l))
         .join(' ; ') || '(none)',
   );
-  await page.screenshot({ path: `dev/qa/out/animals/${level}.png` });
+  await page.screenshot({ path: join(OUT, `${level}.png`) });
   console.log(`${level}: errors ${errors}`);
 }
 
@@ -52,7 +55,7 @@ for (const level of ['animal-3', 'animal-6', 'animal-7']) {
     waitUntil: 'load',
   });
   await wait(1500);
-  await wide.screenshot({ path: `dev/qa/out/animals/${level}-wide.png` });
+  await wide.screenshot({ path: join(OUT, `${level}-wide.png`) });
   console.log(`${level} (wide): shot`);
 }
 await browser.close();

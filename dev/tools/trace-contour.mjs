@@ -267,7 +267,6 @@ const json = {
   width: result.W,
   height: result.H,
   box,
-  strokemap: {},
   strokes: result.strokes.map((s) => s.map(([x, y]) => ({ x, y }))),
 };
 fs.mkdirSync(outp.replace(/[^\\/]+$/, ''), { recursive: true });
