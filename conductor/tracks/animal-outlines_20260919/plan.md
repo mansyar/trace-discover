@@ -62,9 +62,9 @@
   - [x] `conductor/tech-stack.md` + `conductor/product.md` dated notes (packs list now five incl. Animals; budget delta 5.60 MB / 170 → 6.00 MB / 200)
   - [x] `src/packs/data/README.md` production pack list (pre, numbers, abc, shapes, animals)
   - [x] `dev/README.md` harness/QA notes (`qa-animals-sweep` + `qa-animals-zerotext` rows + status legend)
-- [~] Task: Owner device pass (Android + iPad)
-  - [ ] Animals journey traced unaided; menu visual check both orientations; sticker board tap; sound check
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Owner device pass (Android + iPad) *(user-confirmed 2026-09-19)*
+  - [x] Animals journey traced unaided; menu visual check both orientations; sticker board tap; sound check — passed on Android + iPad over the LAN build (`http://192.168.0.114:4180`)
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ---
 
