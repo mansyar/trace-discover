@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createDefaultSave } from '../save/store';
+import { ANIMALS_PACK } from './animals';
 import { allPacks, appPacks, packById } from './catalog';
 import { LETTERS_PACK } from './letters';
 import { NUMBERS_PACK } from './numbers';
@@ -8,8 +9,14 @@ import { PRE_PACK } from './pre';
 import { SHAPES_PACK } from './shapes';
 
 describe('pack catalog', () => {
-  it('lists packs in menu order: pre-writing, numbers, letters, shapes', () => {
-    expect(allPacks().map((pack) => pack.id)).toEqual(['pre', 'numbers', 'abc', 'shapes']);
+  it('lists packs in menu order: pre-writing, numbers, letters, shapes, animals', () => {
+    expect(allPacks().map((pack) => pack.id)).toEqual([
+      'pre',
+      'numbers',
+      'abc',
+      'shapes',
+      'animals',
+    ]);
   });
 
   it('looks up packs by id', () => {
@@ -17,6 +24,7 @@ describe('pack catalog', () => {
     expect(packById('numbers')).toBe(NUMBERS_PACK);
     expect(packById('abc')).toBe(LETTERS_PACK);
     expect(packById('shapes')).toBe(SHAPES_PACK);
+    expect(packById('animals')).toBe(ANIMALS_PACK);
     expect(packById('nope')).toBeUndefined();
   });
 

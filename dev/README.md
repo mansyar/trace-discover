@@ -82,6 +82,8 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
 | `qa-pack-preview.mjs` | Pack preview harness smoke over every JSON pack: spot-checks first/middle/last level + first bonus per pack (or `--all` for every level), checkpoint counts, default-url fallback (pack-pipeline_20260917; all packs since pack-pipeline-2_20260917) | dev `:5199` | canonical |
 | `qa-menu-capacity.mjs` | Menu capacity matrix shots: 3–6 cards × portrait/landscape + the My Name card case (`menu-capacity_20260917`) | dev `:5199` | canonical |
+| `qa-animals-sweep.mjs` | Animals pack full app flow — traces all 8 levels to success in one chain (badge award, zero page errors) (`animal-outlines_20260919`) | dev `:5199` | canonical |
+| `qa-animals-zerotext.mjs` | Zero-text audit — child surfaces (splash/menu/pack/level) render no text nodes (`animal-outlines_20260919`) | preview `:4173` | one-off |
 | `qa-blink.mjs` · `qa-blinkshot.mjs` | Rive blink-frame screenshots (`play.html`) | dev `:5176` | one-off |
 | `qa-dino-blink.mjs` | Dino rebuild blink burst — 32 frames for mid-blink parity (`play.html`) | dev `:5199` | one-off |
 | `qa-teddy.mjs` | Teddy character smoke — `play.html?char=teddy`: trace + celebrate + page errors | dev `:5199` | one-off |
@@ -99,7 +101,7 @@ in `parent-zone_20260917` (2026-09-17); `qa-pack-preview` added in
 `menu-capacity_20260917` (2026-09-17); the stale category is now empty — its
 four members (`qa-diag-pre3`, `qa-probe`, `browsertest`, `serve`) were removed
 in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
-(canonical, runs in CI).*
+(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in `animal-outlines_20260919` (2026-09-19).*
 
 > Smoke usage (two terminals): 1) `pnpm preview` (production build on `:4173`;
 > `pnpm serve` for LAN devices) — 2) `node dev/qa/qa-smoke.mjs`. CI runs the
