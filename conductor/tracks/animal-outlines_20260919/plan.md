@@ -33,7 +33,7 @@
   - [x] Commit code (`feat(packs): add animals pack as validated JSON`), attach git note with task summary — landed earlier as `a0202e8` (traced outlines + tools), `9c0772c` (registration), `d6b707e` (tooling probe); notes attached to all three
   - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `d6b707e`, user-approved 2026-09-19; verification report appended as a git note — gates 721/721 + pack:check + check, manual menu/pack walk confirmed)*
 
-## Phase 2 — Reward art batch (habitats, stickers, card, badge)
+## Phase 2 — Reward art batch (habitats, stickers, card, badge) [checkpoint: e31eacc]
 
 - [x] Task: Author the asset pipeline batch *(`4c2b5d6`)*
   - [x] Generate → cutout → WebP per level: 8 goal habitats (animal visible in a mini-habitat) + 8 full-body chibi stickers; pack card group scene + `animals-badge` paw-print medallion — 8 habitat scenes + badge generated via flux (`gen-animals-art.mjs`, resumable; one cat NSFW false positive re-run); stickers compose the Phase 1 chibi cutouts in the house seal (`animals-compose.mjs`); card = fish·duck·butterfly row (shapes-card pattern)
@@ -43,18 +43,18 @@
 - [x] Task: Budget re-measure *(`e31eacc`)*
   - [x] `pnpm build` + `pnpm budget`; record dist/precache deltas vs the Phase 1 baseline — fresh build: 5,630,227 B / 177 precache entries (baseline 5,415,327 / 159; delta +214,900 B / +18 entries)
   - [x] If ceilings trip (expected ≈ +18 entries / ≈ +0.25 MB): raise deliberately with measured evidence in the `dev/tools/dist-budget.mjs` history comment, never silently — both raised: 5.60 MB / 170 → **6.00 MB / 200** with a dated history entry; `pnpm budget` re-run PASS
-- [~] Task: Commit + checkpoint
+- [x] Task: Commit + checkpoint
   - [x] Commit (`feat(packs): animals reward art batch`), attach git note — landed as `4c2b5d6` (48 files: 20 finals + pipeline scripts + contact probe; bytes swapped over the 18 placeholders) with note
-  - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `e31eacc`, user-approved 2026-09-19; verification report appended as a git note — suite 721/721, pack:check, check, build + budget PASS, manual art walk confirmed)*
 
 ## Phase 3 — Generic surfaces, QA sweeps, docs, closeout
 
-- [ ] Task: Verify pack-generic surfaces with zero special-casing (tests)
-  - [ ] Sticker board: 8 animal stickers pop/notes (generic behavior asserted)
-  - [ ] Badge award on completion; success screen; pack screen grid + shelf (portrait defaults + landscape `PACK_GRID` entry only if needed — shapes precedent)
-  - [ ] Save round-trip: progress/stickers/badge for `animals`; reset-progress unaffected; no schema change
-  - [ ] Menu fidelity: 6-entry menu (with saved name) renders one full page, no pager; 5-entry (no name) unchanged
-- [ ] Task: QA sweeps on a fresh production build
+- [x] Task: Verify pack-generic surfaces with zero special-casing (tests) *(`83b8a43`, `66e9548`)*
+  - [x] Sticker board: 8 animal stickers pop/notes (generic behavior asserted) — `stickerBoardLayout` cells in order + bounds in the new `animals generic surfaces` suite
+  - [x] Badge award on completion; success screen; pack screen grid + shelf (portrait defaults + landscape `PACK_GRID` entry only if needed — shapes precedent) — portrait defaults pass; landscape needed the shapes entry (the default 2-column grid overflows the 430-tall wide field for 8 cards) → `PACK_GRID.animals = { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } }` *(`66e9548`)*
+  - [x] Save round-trip: progress/stickers/badge for `animals`; reset-progress unaffected; no schema change — asserted incl. badge re-award guard + `version === 3`
+  - [x] Menu fidelity: 6-entry menu (with saved name) renders one full page, no pager; 5-entry (no name) unchanged — asserted for both *(suite 727/727; `pnpm check` clean)*
+- [~] Task: QA sweeps on a fresh production build
   - [ ] `CI=true pnpm check && CI=true pnpm test && pnpm pack:check && pnpm build && pnpm budget` — all PASS
   - [ ] App journey sweep; animals sweep (trace all 8 levels to success — new `dev/qa/qa-animals-sweep.mjs` per the shapes-sweep pattern); `qa-pack-preview --all` (70 levels); `qa-landscape` spot (both orientations); zero-text audit; offline cold start
   - [ ] Evidence (commands + outcomes) recorded in the plan
