@@ -35,10 +35,10 @@
 
 ## Phase 2 — Reward art batch (habitats, stickers, card, badge)
 
-- [~] Task: Author the asset pipeline batch
-  - [ ] Generate → cutout → WebP per level: 8 goal habitats (animal visible in a mini-habitat) + 8 full-body chibi stickers; pack card group scene + `animals-badge` paw-print medallion
-  - [ ] Owner screenshot approval gate per asset (teddy/shapes precedent) — record approvals in the plan; scripts under `dev/tools/` (resumable batch pattern), intermediates in `dev/art-src/animals/`
-- [ ] Task: Wire art into content + registry (TDD where code)
+- [x] Task: Author the asset pipeline batch *(`4c2b5d6`)*
+  - [x] Generate → cutout → WebP per level: 8 goal habitats (animal visible in a mini-habitat) + 8 full-body chibi stickers; pack card group scene + `animals-badge` paw-print medallion — 8 habitat scenes + badge generated via flux (`gen-animals-art.mjs`, resumable; one cat NSFW false positive re-run); stickers compose the Phase 1 chibi cutouts in the house seal (`animals-compose.mjs`); card = fish·duck·butterfly row (shapes-card pattern)
+  - [x] Owner screenshot approval gate per asset (teddy/shapes precedent) — record approvals in the plan; scripts under `dev/tools/` (resumable batch pattern), intermediates in `dev/art-src/animals/` — **owner approved all 20 finals 2026-09-19** (`dev/qa/out/animals-art-contact.png`); bytes swapped in place over the 18 placeholders
+- [~] Task: Wire art into content + registry (TDD where code)
   - [ ] Confirm the art-reference invariant (`artRefs.test.ts`) resolves every `animals` goalArt/sticker/card/badge URL; placeholders ship at final URLs, bytes swapped in place
 - [ ] Task: Budget re-measure
   - [ ] `pnpm build` + `pnpm budget`; record dist/precache deltas vs the Phase 1 baseline
