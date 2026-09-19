@@ -19,10 +19,11 @@
   - [x] Author `src/packs/data/animals.json` (geometry in the 430×860 field space per `src/packs/data/README.md`; `goalArt` at `/art/goal/animal-N.webp`)
   - [x] Create `src/packs/animals.ts` as a thin loader over `parsePackJson` (Numbers/Shapes pattern), preserving the tested exports
   - [x] Run the full pack suite; confirm GREEN (7/7 pack tests; full suite 721/721; `animals.ts` + `animals.json` 100% coverage; `pnpm pack:check` green)
-- [~] Task: Harness path review + owner approval
-  - [ ] Preview every level via `dev/harness/pack.html?pack=animals&level=animal-N` at 430×860 (plus a landscape spot); iterate control points until each animal reads instantly
-  - [ ] Lock stroke counts/control points with owner screenshot approval recorded in the plan
-- [ ] Task: Register the pack + menu card position (TDD)
+- [x] Task: Harness path review + owner approval *(`a0202e8`)*
+  - [x] Preview every level via `dev/harness/pack.html?pack=animals&level=animal-N` at 430×860 (plus a landscape spot); iterate control points until each animal reads instantly — first pass + two anatomy iterations shot; owner review 2026-09-19: **rejected** ("most of them does not look like the supposed animals"); blind hand-placed control points are too loose
+  - [x] **Pivot (owner decision 2026-09-19): reference-traced outlines.** Generate clean side-view reference art via the $0 pipeline (`gen.mjs` → `cutout.mjs`; raws/intermediates in `dev/art-src/animals/`), add a reusable contour tracer (`dev/tools/trace-contour.mjs`: alpha mask → largest boundary → smooth → simplify → field-mapped control points), re-author `animals.json` from traced contours (anatomy splits kept where the silhouette allows: fish body+tail, ladybug dome+head, butterfly upper/lower wings; re-pin tests if the trace disagrees), then re-shoot and re-present for owner approval. References double as Phase 2 sticker-art source. — Result: 8 side-view references generated + cut out (`dev/art-src/animals/*.png`); resumable trace batch + reusable tracer landed; `animals.json` re-authored; butterfly re-pinned 3→2 (spec updated); owner approved the traced set 2026-09-19 (`dev/qa/out/animals-contact.png` + individuals)
+  - [x] Lock stroke counts/control points with owner screenshot approval recorded in the plan — Locked: fish 2 · ladybug 2 · duck/turtle/bunny/cat/elephant 1 (closed) · butterfly 2
+- [~] Task: Register the pack + menu card position (TDD)
   - [ ] Red: failing tests asserting `animals` sits between `shapes` and the runtime `name` (with and without a saved name) and renders a card with the pack's art/menuFill
   - [ ] Green: catalog registration + menu card wiring (no other menu changes)
 - [ ] Task: Validate content via tooling
