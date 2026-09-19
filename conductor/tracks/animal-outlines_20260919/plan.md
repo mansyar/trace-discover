@@ -58,11 +58,11 @@
   - [x] Gates all PASS: `pnpm check` 0 · `pnpm test` 727/727 · `pnpm pack:check` 2/2 · `pnpm build` ok · `pnpm budget` PASS 5,630,286 B / 177 entries (vs 6.00 MB / 200)
   - [x] App journey sweep (`qa-app`: full pre pack incl. bonuses + badge, no errors); animals sweep (`qa-animals-sweep.mjs`: all 8 levels traced to success in one chain, `animals-badge` awarded, no page errors); `qa-pack-preview --all` 70/70 OK (8/8 animal screenshots); `qa-landscape` matrix PASS (portrait · landscape · rotation · tablet; 0 page errors); zero-text audit PASS (splash/menu/pack/level); offline cold start PASS (`qa-offline`: SW precache boot + offline `pre-1` trace SUCCESS)
   - [x] Evidence recorded in this plan; scripts `dev/qa/qa-animals-sweep.mjs` + `dev/qa/qa-animals-zerotext.mjs` committed
-- [~] Task: Docs resync
-  - [ ] `conductor/tech-stack.md` + `conductor/product.md` dated notes (packs list; budget delta)
-  - [ ] `src/packs/data/README.md` production pack list (pre, numbers, abc, shapes, animals)
-  - [ ] `dev/README.md` harness/QA notes
-- [ ] Task: Owner device pass (Android + iPad)
+- [x] Task: Docs resync *(`2fbfa69`)*
+  - [x] `conductor/tech-stack.md` + `conductor/product.md` dated notes (packs list now five incl. Animals; budget delta 5.60 MB / 170 → 6.00 MB / 200)
+  - [x] `src/packs/data/README.md` production pack list (pre, numbers, abc, shapes, animals)
+  - [x] `dev/README.md` harness/QA notes (`qa-animals-sweep` + `qa-animals-zerotext` rows + status legend)
+- [~] Task: Owner device pass (Android + iPad)
   - [ ] Animals journey traced unaided; menu visual check both orientations; sticker board tap; sound check
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
