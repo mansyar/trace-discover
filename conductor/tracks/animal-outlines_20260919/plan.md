@@ -9,8 +9,9 @@
 
 ## Phase 1 — Animals pack content + registration
 
-- [ ] Task: Record the pre-track budget baseline (fresh build)
-  - [ ] `pnpm build && pnpm budget` on a clean tree; record total bytes / precache entries (working `dist/` is stale — pre-shapes, no trex; the last annotated merged build was 5,415,327 B / 159 entries)
+- [x] Task: Record the pre-track budget baseline (fresh build)
+  - [x] `pnpm build && pnpm budget` on a clean tree; record total bytes / precache entries (working `dist/` is stale — pre-shapes, no trex; the last annotated merged build was 5,415,327 B / 159 entries)
+  - [x] Baseline (fresh build on this branch): **5,415,327 B / 159 precache entries** — matches the last annotated merged figure; PASS vs 5.60 MB / 170. Tight: the animals batch (~18 entries) is expected to exceed the entry ceiling → deliberate re-anchor planned in Phase 2 (grounded in the shapes precedent, +16 entries / +243 KB)
 - [ ] Task: Write failing tests for the animals pack loader (Red)
   - [ ] Test: `src/packs/animals.test.ts` — `ANIMALS_PACK` identity (`id: "animals"`, `badgeId: "animals-badge"`, `menuFill: "#f4a6a0"`, no bonuses), 8 levels `animal-1`…`animal-8` in the locked order (fish, ladybug, duck, turtle, bunny, cat, butterfly, elephant), stroke structure per the spec's anatomy guidance (exact counts confirmed during harness review; tests updated in that task if a count shifts), valid geometry per parser rules, labeled load-time error on a malformed fixture
   - [ ] Run `CI=true pnpm test -- src/packs/animals.test.ts` and confirm RED
