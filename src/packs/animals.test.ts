@@ -7,10 +7,24 @@
 // closed outline.
 import { describe, expect, it } from 'vitest';
 import type { Point } from '../engine/types';
+import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
+import { awardBadge, completeLevel, createDefaultSave } from '../save/store';
+import { menuLayout } from '../ui/menu';
+import { packLayout, packStickers } from '../ui/pack';
+import { stickerBoardLayout } from '../ui/stickerBoard';
 import { ANIMAL_LEVELS, ANIMALS_PACK } from './animals';
+import { appPacks } from './catalog';
 import { collectPackProblems, parsePackJson } from './json';
 import type { LevelDef } from './level';
 import { validateLevel } from './level';
+import {
+  bonusUnlocked,
+  completedCount,
+  firstUnlockedBonusId,
+  isPackComplete,
+  nextPackLevelId,
+  shouldAwardPackBadge,
+} from './progress';
 
 const ORDERED_IDS = [
   'animal-1',
@@ -143,5 +157,93 @@ describe('malformed animals content (labeled load-time error)', () => {
     expect(collectPackProblems(bad)).toEqual([
       "pack level 0 ('animal-1'): stroke 0 control point 0 outside field margin",
     ]);
+  });
+});
+
+describe('animals generic surfaces (zero special-casing)', () => {
+  const animalIds = ANIMAL_LEVELS.map((level) => level.id);
+  // Landscape mirrors the animals entry in main.ts PACK_GRID.
+  const ANIMALS_LANDSCAPE = { cardSize: 90, columns: 5, slotsPerRow: 10 };
+
+  it('lays the pack grid inside the field in both orientations', () => {
+    const portrait = packLayout(FIELD_WIDTH, FIELD_HEIGHT, animalIds);
+    for (const card of portrait.cards) {
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.y).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(card.y + card.height).toBeLessThanOrEqual(FIELD_HEIGHT);
+    }
+    expect(new Set(portrait.cards.map((card) => card.y)).size).toBe(4);
+    const landscape = packLayout(
+      LANDSCAPE_FIELD_WIDTH,
+      LANDSCAPE_FIELD_HEIGHT,
+      animalIds,
+      ANIMALS_LANDSCAPE,
+    );
+    for (const card of landscape.cards) {
+      expect(card.x).toBeGreaterThanOrEqual(0);
+      expect(card.y).toBeGreaterThanOrEqual(0);
+      expect(card.x + card.width).toBeLessThanOrEqual(LANDSCAPE_FIELD_WIDTH);
+      expect(card.y + card.height).toBeLessThanOrEqual(LANDSCAPE_FIELD_HEIGHT);
+    }
+    expect(new Set(landscape.cards.map((card) => card.y)).size).toBe(2);
+  });
+
+  it('boards the eight animal stickers one cell each, in order', () => {
+    const board = stickerBoardLayout(FIELD_WIDTH, FIELD_HEIGHT, animalIds);
+    expect(board.cells.map((cell) => cell.levelId)).toEqual(animalIds);
+    for (const cell of board.cells) {
+      expect(cell.x).toBeGreaterThanOrEqual(0);
+      expect(cell.y).toBeGreaterThanOrEqual(0);
+      expect(cell.x).toBeLessThanOrEqual(FIELD_WIDTH);
+      expect(cell.y).toBeLessThanOrEqual(FIELD_HEIGHT);
+    }
+  });
+
+  it('round-trips progress, stickers, and badge through the save without schema change', () => {
+    let save = createDefaultSave();
+    for (const level of ANIMAL_LEVELS) {
+      save = completeLevel(save, level.id);
+    }
+    expect(completedCount(save, ANIMALS_PACK)).toBe(8);
+    expect(isPackComplete(save, ANIMALS_PACK)).toBe(true);
+    expect(shouldAwardPackBadge(save, ANIMALS_PACK)).toBe(true);
+    expect(packStickers(save, animalIds).every((earned) => earned)).toBe(true);
+    save = awardBadge(save, ANIMALS_PACK.badgeId);
+    const restored = JSON.parse(JSON.stringify(save)) as typeof save;
+    expect(shouldAwardPackBadge(restored, ANIMALS_PACK)).toBe(false);
+    expect(restored.badges).toContain('animals-badge');
+    expect(restored.version).toBe(3);
+    // Bonus machinery stays inert for a bonusless pack.
+    expect(ANIMALS_PACK.bonuses).toEqual([]);
+    expect(bonusUnlocked(save, ANIMALS_PACK, 0)).toBe(false);
+    expect(firstUnlockedBonusId(save, ANIMALS_PACK)).toBeNull();
+  });
+
+  it('starts from a clean reset with no animals residue', () => {
+    const save = createDefaultSave();
+    expect(completedCount(save, ANIMALS_PACK)).toBe(0);
+    expect(isPackComplete(save, ANIMALS_PACK)).toBe(false);
+    expect(shouldAwardPackBadge(save, ANIMALS_PACK)).toBe(false);
+    expect(save.badges).not.toContain('animals-badge');
+    expect(nextPackLevelId(save, ANIMALS_PACK, 'animal-1')).toBe('animal-2');
+  });
+
+  it('keeps the menu a single page without the runtime name pack', () => {
+    const ids = appPacks(createDefaultSave()).map((pack) => pack.id);
+    expect(ids).toEqual(['pre', 'numbers', 'abc', 'shapes', 'animals']);
+    const menu = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids);
+    expect(menu.cards).toHaveLength(5);
+    expect(menu.pager).toBeNull();
+  });
+
+  it('keeps the menu a single page with the runtime name pack (six entries, no pager)', () => {
+    const save = { ...createDefaultSave(), name: 'AVA' };
+    const ids = appPacks(save).map((pack) => pack.id);
+    expect(ids).toEqual(['pre', 'numbers', 'abc', 'shapes', 'animals', 'name']);
+    const menu = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids);
+    expect(menu.cards).toHaveLength(6);
+    expect(menu.cards.some((card) => card.packId === 'animals')).toBe(true);
+    expect(menu.pager).toBeNull();
   });
 });
