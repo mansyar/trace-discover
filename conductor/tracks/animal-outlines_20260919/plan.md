@@ -15,11 +15,11 @@
 - [x] Task: Write failing tests for the animals pack loader (Red) *(`54318b8`)*
   - [x] Test: `src/packs/animals.test.ts` — `ANIMALS_PACK` identity (`id: "animals"`, `badgeId: "animals-badge"`, `menuFill: "#f4a6a0"`, no bonuses), 8 levels `animal-1`…`animal-8` in the locked order (fish, ladybug, duck, turtle, bunny, cat, butterfly, elephant), stroke structure per the spec's anatomy guidance (exact counts confirmed during harness review; tests updated in that task if a count shifts), valid geometry per parser rules, labeled load-time error on a malformed fixture
   - [x] Run `CI=true pnpm test -- src/packs/animals.test.ts` and confirm RED (confirmed: `Cannot find module './animals'`)
-- [~] Task: Implement the pack (Green)
-  - [ ] Author `src/packs/data/animals.json` (geometry in the 430×860 field space per `src/packs/data/README.md`; `goalArt` at `/art/goal/animal-N.webp`)
-  - [ ] Create `src/packs/animals.ts` as a thin loader over `parsePackJson` (Numbers/Shapes pattern), preserving the tested exports
-  - [ ] Run the full pack suite; confirm GREEN
-- [ ] Task: Harness path review + owner approval
+- [x] Task: Implement the pack (Green) *(`d94bdd4`)*
+  - [x] Author `src/packs/data/animals.json` (geometry in the 430×860 field space per `src/packs/data/README.md`; `goalArt` at `/art/goal/animal-N.webp`)
+  - [x] Create `src/packs/animals.ts` as a thin loader over `parsePackJson` (Numbers/Shapes pattern), preserving the tested exports
+  - [x] Run the full pack suite; confirm GREEN (7/7 pack tests; full suite 721/721; `animals.ts` + `animals.json` 100% coverage; `pnpm pack:check` green)
+- [~] Task: Harness path review + owner approval
   - [ ] Preview every level via `dev/harness/pack.html?pack=animals&level=animal-N` at 430×860 (plus a landscape spot); iterate control points until each animal reads instantly
   - [ ] Lock stroke counts/control points with owner screenshot approval recorded in the plan
 - [ ] Task: Register the pack + menu card position (TDD)
