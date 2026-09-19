@@ -69,3 +69,6 @@
 ---
 
 *All work stays local on `track/animal-outlines` — no push, PR, or release.*
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions *(`547fa43`)*
