@@ -54,11 +54,11 @@
   - [x] Badge award on completion; success screen; pack screen grid + shelf (portrait defaults + landscape `PACK_GRID` entry only if needed — shapes precedent) — portrait defaults pass; landscape needed the shapes entry (the default 2-column grid overflows the 430-tall wide field for 8 cards) → `PACK_GRID.animals = { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } }` *(`66e9548`)*
   - [x] Save round-trip: progress/stickers/badge for `animals`; reset-progress unaffected; no schema change — asserted incl. badge re-award guard + `version === 3`
   - [x] Menu fidelity: 6-entry menu (with saved name) renders one full page, no pager; 5-entry (no name) unchanged — asserted for both *(suite 727/727; `pnpm check` clean)*
-- [~] Task: QA sweeps on a fresh production build
-  - [ ] `CI=true pnpm check && CI=true pnpm test && pnpm pack:check && pnpm build && pnpm budget` — all PASS
-  - [ ] App journey sweep; animals sweep (trace all 8 levels to success — new `dev/qa/qa-animals-sweep.mjs` per the shapes-sweep pattern); `qa-pack-preview --all` (70 levels); `qa-landscape` spot (both orientations); zero-text audit; offline cold start
-  - [ ] Evidence (commands + outcomes) recorded in the plan
-- [ ] Task: Docs resync
+- [x] Task: QA sweeps on a fresh production build *(`f1b91dc`)*
+  - [x] Gates all PASS: `pnpm check` 0 · `pnpm test` 727/727 · `pnpm pack:check` 2/2 · `pnpm build` ok · `pnpm budget` PASS 5,630,286 B / 177 entries (vs 6.00 MB / 200)
+  - [x] App journey sweep (`qa-app`: full pre pack incl. bonuses + badge, no errors); animals sweep (`qa-animals-sweep.mjs`: all 8 levels traced to success in one chain, `animals-badge` awarded, no page errors); `qa-pack-preview --all` 70/70 OK (8/8 animal screenshots); `qa-landscape` matrix PASS (portrait · landscape · rotation · tablet; 0 page errors); zero-text audit PASS (splash/menu/pack/level); offline cold start PASS (`qa-offline`: SW precache boot + offline `pre-1` trace SUCCESS)
+  - [x] Evidence recorded in this plan; scripts `dev/qa/qa-animals-sweep.mjs` + `dev/qa/qa-animals-zerotext.mjs` committed
+- [~] Task: Docs resync
   - [ ] `conductor/tech-stack.md` + `conductor/product.md` dated notes (packs list; budget delta)
   - [ ] `src/packs/data/README.md` production pack list (pre, numbers, abc, shapes, animals)
   - [ ] `dev/README.md` harness/QA notes
