@@ -7,29 +7,29 @@
 
 ---
 
-## Phase 1 — Parser stroke extension + patterns pack content + registration
+## Phase 1 — Parser stroke extension + patterns pack content + registration [checkpoint: 69b0bd0]
 
-- [ ] Task: Write failing tests for the new stroke labels (Red)
-  - [ ] Test: parser/json suite (`src/packs/json.test.ts`) — `loop`, `spiral`, `stairs` accepted; unknown labels still rejected with the labeled error
-  - [ ] Run `CI=true pnpm test -- src/packs/json.test.ts` and confirm RED
-- [ ] Task: Write failing tests for the patterns pack loader (Red)
-  - [ ] Test: `src/packs/patterns.test.ts` — `PATTERNS_PACK` identity (`id: "patterns"`, `badgeId: "patterns-badge"`, `menuFill: "#8fd6c8"`, no bonuses), 9 levels `pattern-1`…`pattern-9` in locked order (size-major, pre-pack convention: loop/spiral/stairs × small → medium → large), per-level `stroke` label, stroke-count expectations, valid geometry per parser rules (margins, ≥2 points, no duplicate consecutive points), labeled load-time error on a malformed fixture
-  - [ ] Run `CI=true pnpm test -- src/packs/patterns.test.ts` and confirm RED
-- [ ] Task: Implement (Green)
-  - [ ] Extend `STROKE_PATTERNS`/`StrokePattern` additively in `src/packs/parser.ts` (no behavioral branching exists on the label — verified)
-  - [ ] Author `src/packs/data/patterns.json` — 430×860 field geometry, size bands mirroring the pre pack (small ≈145–285, medium ≈100–330, large ≈60–370); stairs keep flats straight via edge midpoints; spirals sized to stay inside margins
-  - [ ] Create `src/packs/patterns.ts` thin loader over `parsePackJson` (shapes.ts pattern)
-  - [ ] Ship placeholders at the final art URLs (adapt `dev/tools/animals-placeholders.mjs`): 9 goal + 9 sticker + `card-patterns.webp` + `patterns-badge.webp` — so the `artRefs.test.ts` invariant resolves
-  - [ ] Run the full suite; confirm GREEN
-- [ ] Task: Register the pack (TDD)
-  - [ ] Red: failing tests asserting `patterns` appends after `animals` and before the runtime `name` pack (with and without a saved name); pack screen grid config test
-  - [ ] Green: catalog registration + `PACK_GRID` entry mirroring `pre` (columns 3; landscape 6 cols/12 slots); no other menu changes (6 static cards fit the 6-card capacity; a saved name pushes to page 2 via the shipped pager)
-- [ ] Task: Validate content via tooling
-  - [ ] `pnpm pack:check` passes over the directory incl. `patterns.json`
-  - [ ] Dev preview renders `?pack=patterns` (all 9 levels) portrait + landscape with correct markers; screenshots reviewed
-- [ ] Task: Commit + checkpoint
-  - [ ] Commit code (`feat(packs): add patterns pack as validated JSON`), attach git note with task summary
-  - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing tests for the new stroke labels (Red)
+  - [x] Test: parser/json suite (`src/packs/json.test.ts`) — `loop`, `spiral`, `stairs` accepted; unknown labels still rejected with the labeled error (still-unknown label is `'rainbow'` — the spec-deferred motif; the pre-existing `'spiral'` invalid-label fixtures in json/shapes/animals suites were retargeted to `'rainbow'` as part of the additive extension)
+  - [x] Run `CI=true pnpm test -- src/packs/json.test.ts` and confirm RED *(confirmed: `invalid stroke 'loop'` at the extension test — 1 failed / 728 passed)*
+- [x] Task: Write failing tests for the patterns pack loader (Red)
+  - [x] Test: `src/packs/patterns.test.ts` — `PATTERNS_PACK` identity (`id: "patterns"`, `badgeId: "patterns-badge"`, `menuFill: "#8fd6c8"`, no bonuses), 9 levels `pattern-1`…`pattern-9` in locked order (size-major, pre-pack convention: loop/spiral/stairs × small → medium → large), per-level `stroke` label, stroke-count expectations, valid geometry per parser rules (margins, ≥2 points, no duplicate consecutive points), labeled load-time error on a malformed fixture
+  - [x] Run `CI=true pnpm test -- src/packs/patterns.test.ts` and confirm RED *(confirmed: `Cannot find module './patterns'`)*
+- [x] Task: Implement (Green)
+  - [x] Extend `STROKE_PATTERNS`/`StrokePattern` additively in `src/packs/parser.ts` (no behavioral branching exists on the label — verified)
+  - [x] Author `src/packs/data/patterns.json` — 430×860 field geometry, size bands mirroring the pre pack (small ≈145–285, medium ≈100–330, large ≈60–370); stairs keep flats straight via edge midpoints; spirals sized to stay inside margins
+  - [x] Create `src/packs/patterns.ts` thin loader over `parsePackJson` (shapes.ts pattern)
+  - [x] Ship placeholders at the final art URLs (adapt `dev/tools/animals-placeholders.mjs`): 9 goal + 9 sticker + `card-patterns.webp` + `patterns-badge.webp` — so the `artRefs.test.ts` invariant resolves *(new `dev/tools/patterns-placeholders.mjs`, 20 files, 78 KB total)*
+  - [x] Run the full suite; confirm GREEN *(746/746)*
+- [x] Task: Register the pack (TDD)
+  - [x] Red: failing tests asserting `patterns` appends after `animals` and before the runtime `name` pack (with and without a saved name); pack screen grid config test *(3 catalog tests red as intended)*
+  - [x] Green: catalog registration + `PACK_GRID` entry mirroring `pre` (columns 3; landscape 6 cols/12 slots); no other menu changes (6 static cards fit the 6-card capacity; a saved name pushes to page 2 via the shipped pager) *(menu-capacity guard test re-anchored: 7 entries paginate; animals menu-state tests updated for six static packs)*
+- [x] Task: Validate content via tooling
+  - [x] `pnpm pack:check` passes over the directory incl. `patterns.json`
+  - [x] Dev preview renders `?pack=patterns` (all 9 levels) portrait + landscape with correct markers; screenshots reviewed *(qa-pack-preview --all: 9/9 OK, strokes/checkpoints 6/margin 24; inline landscape probe on pattern-1/5/9 OK, zero page errors; screenshots in dev/qa/out/)*
+- [x] Task: Commit + checkpoint
+  - [x] Commit code (`feat(packs): add patterns pack as validated JSON`), attach git note with task summary *(`69b0bd0`)*
+  - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `69b0bd0`, user-approved 2026-09-20; verification report appended as a git note — gates: check clean, 746/746 tests, coverage 73.62/77.75/89.79/73.17 ≥ thresholds, pack:check PASS, build OK, budget PASS 5,727,956 B / 197 entries of 6.00 MB / 200; manual menu/pack walk presented and approved)*
 
 ## Phase 2 — Reward art batch (goal art, stickers, card, badge)
 
