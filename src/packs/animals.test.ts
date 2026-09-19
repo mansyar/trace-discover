@@ -1,9 +1,10 @@
 // Animal outlines pack: eight organic silhouettes (animal-1 ... animal-8) —
 // fish, ladybug, duck, turtle, bunny, cat, butterfly, elephant — authored as
-// validated JSON (data/animals.json). Stroke structure is anatomy-driven per
-// the locked spec: fish (body + tail), ladybug (dome + head line), and
-// butterfly (mirrored wings + body) trace as multiple strokes; duck, turtle,
-// bunny, cat, and elephant as one flowing closed outline.
+// validated JSON (data/animals.json) from reference-traced contours (owner
+// decision 2026-09-19). Stroke structure is anatomy-driven: fish (body + tail),
+// ladybug (dome + head line), and butterfly (upper + lower wings) trace as
+// multiple strokes; duck, turtle, bunny, cat, and elephant as one flowing
+// closed outline.
 import { describe, expect, it } from 'vitest';
 import type { Point } from '../engine/types';
 import { ANIMAL_LEVELS, ANIMALS_PACK } from './animals';
@@ -33,7 +34,7 @@ const LOCKED_STROKES: Record<string, number> = {
   'animal-4': 1, // turtle — one flowing outline
   'animal-5': 1, // bunny — one flowing outline
   'animal-6': 1, // cat — one flowing outline
-  'animal-7': 3, // butterfly — mirrored wings + body
+  'animal-7': 2, // butterfly — upper + lower wings (trace re-pin from the spec's 3)
   'animal-8': 1, // elephant — one flowing outline
 };
 
