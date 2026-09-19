@@ -1,8 +1,9 @@
 // The pack catalog: the menu-ordered registry of content packs. Pre-writing
-// ships first, numbers second, letters third, shapes fourth; the
-// runtime-composed name mini-pack appends while a name is saved.
+// ships first, numbers second, letters third, shapes fourth, animals fifth;
+// the runtime-composed name mini-pack appends while a name is saved.
 import type { Orientation } from '../field';
 import type { SaveData } from '../save/store';
+import { ANIMALS_PACK } from './animals';
 import { LETTERS_PACK } from './letters';
 import { namePackFor } from './name';
 import { NUMBERS_PACK } from './numbers';
@@ -10,7 +11,13 @@ import type { PackEntry } from './pack';
 import { PRE_PACK } from './pre';
 import { SHAPES_PACK } from './shapes';
 
-const PACKS: readonly PackEntry[] = [PRE_PACK, NUMBERS_PACK, LETTERS_PACK, SHAPES_PACK];
+const PACKS: readonly PackEntry[] = [
+  PRE_PACK,
+  NUMBERS_PACK,
+  LETTERS_PACK,
+  SHAPES_PACK,
+  ANIMALS_PACK,
+];
 
 /** All packs in menu order. */
 export function allPacks(): readonly PackEntry[] {
