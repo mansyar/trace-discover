@@ -35,7 +35,7 @@
 
 ## Phase 2 — Reward art batch (habitats, stickers, card, badge)
 
-- [ ] Task: Author the asset pipeline batch
+- [~] Task: Author the asset pipeline batch
   - [ ] Generate → cutout → WebP per level: 8 goal habitats (animal visible in a mini-habitat) + 8 full-body chibi stickers; pack card group scene + `animals-badge` paw-print medallion
   - [ ] Owner screenshot approval gate per asset (teddy/shapes precedent) — record approvals in the plan; scripts under `dev/tools/` (resumable batch pattern), intermediates in `dev/art-src/animals/`
 - [ ] Task: Wire art into content + registry (TDD where code)
