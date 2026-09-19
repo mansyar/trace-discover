@@ -15,13 +15,17 @@ import { fileURLToPath } from 'node:url';
 //     141 entries (trex.riv 463,868 B + playroom backdrop + face) -> 5.60 MB / 150
 //   2026-09-18 - merged re-anchor (shapes art + trex skin in one build):
 //     5,415,327 B / 159 entries -> 5.60 MB / 170 (both raises kept)
+//   2026-09-19 - animals pack art batch (animal-outlines_20260919; 8 goal
+//     habitats + 8 sticker seals swapped over the placeholders + card + paw
+//     badge): 5,630,227 B / 177 entries -> 6.00 MB / 200 (deliberate
+//     re-anchor, fresh measurements; +215 KB / +18 entries over baseline)
 // See conductor/archive/payload-diet_20260916/measurements.md for the diet
 // figures. A re-introduced lossless art batch (+5 MB) or a new pack's raw art
 // batch trips it immediately. Raise ceilings deliberately, with fresh
 // measurements.
 // Usage: node dev/tools/dist-budget.mjs [--total <bytes>] [--entries <n>]
-const CEIL_TOTAL_BYTES = 5_600_000;
-const CEIL_ENTRIES = 170;
+const CEIL_TOTAL_BYTES = 6_000_000;
+const CEIL_ENTRIES = 200;
 // Workbox runtime + generated service worker: never precached.
 const NOT_PRECACHED = /^(sw\.js|workbox-.*\.js)$/;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
