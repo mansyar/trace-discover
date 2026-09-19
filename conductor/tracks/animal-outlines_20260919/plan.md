@@ -7,7 +7,7 @@
 
 ---
 
-## Phase 1 — Animals pack content + registration
+## Phase 1 — Animals pack content + registration [checkpoint: d6b707e]
 
 - [x] Task: Record the pre-track budget baseline (fresh build)
   - [x] `pnpm build && pnpm budget` on a clean tree; record total bytes / precache entries (working `dist/` is stale — pre-shapes, no trex; the last annotated merged build was 5,415,327 B / 159 entries)
@@ -29,9 +29,9 @@
 - [x] Task: Validate content via tooling *(`d6b707e`)*
   - [x] `pnpm pack:check` passes over the 5-pack directory (incl. `animals.json`) — green (2/2 under the pack validator)
   - [x] Dev preview renders `?pack=animals` (all 8 levels) with correct markers; screenshots reviewed — harness shots error-free (owner-approved outlines); real app verified: menu shows the fifth animals card and the pack screen renders 8 traced minis (`dev/qa/qa-animals-menu.mjs` → `dev/qa/out/animals-menu.png`, `animals-pack.png`)
-- [~] Task: Commit + checkpoint
+- [x] Task: Commit + checkpoint
   - [x] Commit code (`feat(packs): add animals pack as validated JSON`), attach git note with task summary — landed earlier as `a0202e8` (traced outlines + tools), `9c0772c` (registration), `d6b707e` (tooling probe); notes attached to all three
-  - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `d6b707e`, user-approved 2026-09-19; verification report appended as a git note — gates 721/721 + pack:check + check, manual menu/pack walk confirmed)*
 
 ## Phase 2 — Reward art batch (habitats, stickers, card, badge)
 
