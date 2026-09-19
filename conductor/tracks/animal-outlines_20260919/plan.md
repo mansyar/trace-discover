@@ -47,7 +47,7 @@
   - [x] Commit (`feat(packs): animals reward art batch`), attach git note — landed as `4c2b5d6` (48 files: 20 finals + pipeline scripts + contact probe; bytes swapped over the 18 placeholders) with note
   - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `e31eacc`, user-approved 2026-09-19; verification report appended as a git note — suite 721/721, pack:check, check, build + budget PASS, manual art walk confirmed)*
 
-## Phase 3 — Generic surfaces, QA sweeps, docs, closeout
+## Phase 3 — Generic surfaces, QA sweeps, docs, closeout [checkpoint: 2fbfa69]
 
 - [x] Task: Verify pack-generic surfaces with zero special-casing (tests) *(`83b8a43`, `66e9548`)*
   - [x] Sticker board: 8 animal stickers pop/notes (generic behavior asserted) — `stickerBoardLayout` cells in order + bounds in the new `animals generic surfaces` suite
@@ -64,7 +64,7 @@
   - [x] `dev/README.md` harness/QA notes (`qa-animals-sweep` + `qa-animals-zerotext` rows + status legend)
 - [x] Task: Owner device pass (Android + iPad) *(user-confirmed 2026-09-19)*
   - [x] Animals journey traced unaided; menu visual check both orientations; sticker board tap; sound check — passed on Android + iPad over the LAN build (`http://192.168.0.114:4180`)
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `2fbfa69`, user-approved 2026-09-19; verification report appended as a git note — 727/727, QA sweeps/preview/landscape/offline/zero-text, budget PASS, owner device pass on Android + iPad)*
 
 ---
 
