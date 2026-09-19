@@ -47,20 +47,20 @@
 
 ## Phase 3 — Generic surfaces, QA sweeps, docs, closeout
 
-- [ ] Task: Verify pack-generic surfaces with zero special-casing (tests)
-  - [ ] Sticker board: 9 pattern stickers pop/notes; shelf pulse; badge award on completion; success screen
-  - [ ] Save round-trip: progress/stickers/badge for `patterns`; reset-progress unaffected; no schema change
-- [ ] Task: QA sweeps on a fresh production build
-  - [ ] `CI=true pnpm check && CI=true pnpm test && pnpm pack:check && pnpm build && pnpm budget` — all PASS
-  - [ ] Create `dev/qa/qa-patterns-sweep.mjs` (from `qa-shapes-sweep.mjs`) — trace all 9 levels to success + badge seal
-  - [ ] `qa-pack-preview --all` (incl. 9 new levels); `qa-landscape` spot (rotation mid-spiral keeps progress); zero-text audit; offline cold start
-  - [ ] Evidence (commands + outcomes) recorded in the plan
-- [ ] Task: Docs resync
-  - [ ] `conductor/tech-stack.md`: dated note — Patterns pack (data + art), parser stroke-label extension, budget delta
-  - [ ] `conductor/product.md`: dated note — Patterns pack in the product story; packs list updated
-  - [ ] `src/packs/data/README.md`: production pack list (pre, numbers, abc, shapes, animals, patterns)
-  - [ ] `dev/README.md`: preview/QA notes for patterns; level counts; stale budget line fix
-  - [ ] Root `README.md`: stale "five characters × three packs" line corrected (six skins × six packs)
+- [x] Task: Verify pack-generic surfaces with zero special-casing (tests) *(`9cd2252`)*
+  - [x] Sticker board: 9 pattern stickers pop/notes; shelf pulse; badge award on completion; success screen *(patterns.test.ts: nine stickers map to strictly rising, per-sticker-stable pentatonic notes under the two-octave wrap; badge lands exactly on the ninth completion)*
+  - [x] Save round-trip: progress/stickers/badge for `patterns`; reset-progress unaffected; no schema change *(JSON round-trip asserts 9 pattern completions + `patterns-badge`; clean-reset case unchanged)*
+- [x] Task: QA sweeps on a fresh production build *(`9cd2252`)*
+  - [x] `CI=true pnpm check && CI=true pnpm test && pnpm pack:check && pnpm build && pnpm budget` — all PASS *(check clean 129 files; 748/748; pack:check 2/2; build ok; budget PASS 5,896,240 B / 197 entries vs 6.00 MB / 200)*
+  - [x] Create `dev/qa/qa-patterns-sweep.mjs` (from `qa-shapes-sweep.mjs`) — trace all 9 levels to success + badge seal *(9/9 SUCCESS in one chain, `patterns-badge` awarded, zero page errors)*
+  - [x] `qa-pack-preview --all` (incl. 9 new levels); `qa-landscape` spot (rotation mid-spiral keeps progress); zero-text audit; offline cold start *(preview 80/80 OK; new `qa-patterns-rotate.mjs`: mid-spiral rotate to landscape + back keeps the stroke set, level completes; new `qa-patterns-zerotext.mjs`: splash/menu/pack/level clean; `qa-offline` (pattern-5): SW precache boot + offline trace SUCCESS — pack mapping extended for `pattern-`/`animal-` levels)*
+  - [x] Evidence (commands + outcomes) recorded in the plan
+- [x] Task: Docs resync *(`9cd2252` + `8d3425c`)*
+  - [x] `conductor/tech-stack.md`: dated note — Patterns pack (data + art), parser stroke-label extension, budget delta
+  - [x] `conductor/product.md`: dated note — Patterns pack in the product story; packs list updated
+  - [x] `src/packs/data/README.md`: production pack list (pre, numbers, abc, shapes, animals, patterns) + the three new stroke labels
+  - [x] `dev/README.md`: preview/QA notes for patterns; level counts (71 JSON levels); stale budget line fix (5.60 MB / 150 → 6.00 MB / 200)
+  - [x] Root `README.md`: stale "five characters × three packs" line corrected (six characters × six packs)
 - [ ] Task: Owner device pass (Android + iPad)
   - [ ] Patterns journey traced unaided; menu/pager; sticker board tap; sound check; independent-play observation session with friction notes
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
