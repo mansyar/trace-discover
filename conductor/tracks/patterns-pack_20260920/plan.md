@@ -31,19 +31,19 @@
   - [x] Commit code (`feat(packs): add patterns pack as validated JSON`), attach git note with task summary *(`69b0bd0`)*
   - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `69b0bd0`, user-approved 2026-09-20; verification report appended as a git note — gates: check clean, 746/746 tests, coverage 73.62/77.75/89.79/73.17 ≥ thresholds, pack:check PASS, build OK, budget PASS 5,727,956 B / 197 entries of 6.00 MB / 200; manual menu/pack walk presented and approved)*
 
-## Phase 2 — Reward art batch (goal art, stickers, card, badge)
+## Phase 2 — Reward art batch (goal art, stickers, card, badge) [checkpoint: 42e639f]
 
-- [ ] Task: Author the asset pipeline batch
-  - [ ] Generate → cutout → WebP per level: 9 goal + 9 stickers (playground & garden mapping: yo-yo / hula hoop / jump rope (loops), snail / pinwheel / rose (spirals), step ladder / slide steps / treehouse ladder (stairs); final set locked at art review)
-  - [ ] Pack card art + `patterns-badge` badge art
-  - [ ] Owner screenshot approval gate per asset (teddy/shapes precedent) — record approvals in the plan
-- [ ] Task: Swap art into place + budget re-measure
-  - [ ] Bytes swapped at the identical placeholder URLs (no reference changes); confirm GREEN
-  - [ ] `pnpm build` + `pnpm budget`; record dist/precache deltas vs baseline **5,630,286 B / 177 entries** — expected ≈ +200–240 KB / +20 entries (≈5.87 MB / 197) under the 6.00 MB / 200 ceilings
-  - [ ] If a ceiling is exceeded: raise deliberately with measured evidence (documented in the dist-budget history comment + tech-stack note), never silently
-- [ ] Task: Commit + checkpoint
-  - [ ] Commit code (`feat(packs): patterns reward art batch`), attach git note with task summary
-  - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Author the asset pipeline batch
+  - [x] Generate → cutout → WebP per level: 9 goal + 9 stickers (playground & garden mapping: yo-yo / hula hoop / jump rope (loops), snail / pinwheel / rose (spirals), step ladder / slide steps / treehouse ladder (stairs); final set locked at art review) *(new `dev/tools/gen-patterns.mjs` — resumable raw batch; three prompts needed rewording past a stochastic Workers-AI NSFW false-positive filter; `cutout.mjs` ×10 at 600px into `art-src/patterns/clean/`)*
+  - [x] Pack card art + `patterns-badge` badge art *(new `dev/tools/patterns-compose.mjs` — goals 256 / sticker seals 520→160 / badge 400 / card = one object per motif (yo-yo · snail · step ladder), mirrors `shapes-compose`)*
+  - [x] Owner screenshot approval gate per asset (teddy/shapes precedent) — record approvals in the plan *(contact sheet `dev/art-src/patterns/contact-sheet.png` via new `dev/tools/patterns-sheet.mjs`; owner approved "Approve all" 2026-09-20)*
+- [x] Task: Swap art into place + budget re-measure
+  - [x] Bytes swapped at the identical placeholder URLs (no reference changes); confirm GREEN *(746/746; artRefs invariant unchanged)*
+  - [x] `pnpm build` + `pnpm budget`; record dist/precache deltas vs baseline **5,630,286 B / 177 entries** — expected ≈ +200–240 KB / +20 entries (≈5.87 MB / 197) under the 6.00 MB / 200 ceilings *(measured 5,896,240 B / 197 entries: +266 KB / +20 entries vs the animals-close baseline — within ceilings, no re-anchor)*
+  - [x] If a ceiling is exceeded: raise deliberately with measured evidence (documented in the dist-budget history comment + tech-stack note), never silently *(not exceeded)*
+- [x] Task: Commit + checkpoint
+  - [x] Commit code (`feat(packs): patterns reward art batch`), attach git note with task summary *(`42e639f`; art-src policy: `clean/` + `out/` tracked, `raw/` gitignored, sheet regenerable)*
+  - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `42e639f`, user-approved 2026-09-20; verification report appended as a git note — gates: check clean, 746/746, coverage ≥ thresholds, pack:check PASS, build OK, budget PASS 5,896,240 / 6,000,000 B, 197 / 200 entries; manual art walk presented and approved)*
 
 ## Phase 3 — Generic surfaces, QA sweeps, docs, closeout
 
