@@ -159,6 +159,11 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
   pre: { columns: 3, landscape: { cardSize: 90, columns: 6, slotsPerRow: 12 }, slotsPerRow: 6 },
   shapes: { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } },
   animals: { landscape: { cardSize: 90, columns: 5, slotsPerRow: 10 } },
+  patterns: {
+    columns: 3,
+    landscape: { cardSize: 90, columns: 6, slotsPerRow: 12 },
+    slotsPerRow: 6,
+  },
 };
 
 let PACKS: readonly PackEntry[] = [];

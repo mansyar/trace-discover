@@ -5,17 +5,19 @@ import { ANIMALS_PACK } from './animals';
 import { allPacks, appPacks, packById } from './catalog';
 import { LETTERS_PACK } from './letters';
 import { NUMBERS_PACK } from './numbers';
+import { PATTERNS_PACK } from './patterns';
 import { PRE_PACK } from './pre';
 import { SHAPES_PACK } from './shapes';
 
 describe('pack catalog', () => {
-  it('lists packs in menu order: pre-writing, numbers, letters, shapes, animals', () => {
+  it('lists packs in menu order: pre-writing, numbers, letters, shapes, animals, patterns', () => {
     expect(allPacks().map((pack) => pack.id)).toEqual([
       'pre',
       'numbers',
       'abc',
       'shapes',
       'animals',
+      'patterns',
     ]);
   });
 
@@ -25,6 +27,7 @@ describe('pack catalog', () => {
     expect(packById('abc')).toBe(LETTERS_PACK);
     expect(packById('shapes')).toBe(SHAPES_PACK);
     expect(packById('animals')).toBe(ANIMALS_PACK);
+    expect(packById('patterns')).toBe(PATTERNS_PACK);
     expect(packById('nope')).toBeUndefined();
   });
 
@@ -78,14 +81,23 @@ describe('pack catalog', () => {
     expect(SHAPES_PACK.bonuses).toEqual([]);
     expect(SHAPES_PACK.bonusUnlocks).toEqual([]);
   });
+
+  it('packs the nine patterns with their badge and no bonuses', () => {
+    expect(PATTERNS_PACK.badgeId).toBe('patterns-badge');
+    expect(PATTERNS_PACK.levels).toHaveLength(9);
+    expect(PATTERNS_PACK.bonuses).toEqual([]);
+    expect(PATTERNS_PACK.bonusUnlocks).toEqual([]);
+  });
 });
 
 describe('appPacks', () => {
-  it('appends the name mini-pack only while a name is saved', () => {
+  it('appends the name mini-pack only while a name is saved, after the static packs', () => {
     const base = allPacks().map((pack) => pack.id);
     expect(appPacks(createDefaultSave()).map((pack) => pack.id)).toEqual(base);
     const withName = appPacks({ ...createDefaultSave(), name: 'AIRA' });
     expect(withName.map((pack) => pack.id)).toEqual([...base, 'name']);
     expect(withName.at(-1)?.levels[0]?.id).toBe('name-1');
+    // The runtime name pack trails the newest static pack (patterns).
+    expect(withName[withName.length - 2]?.id).toBe('patterns');
   });
 });

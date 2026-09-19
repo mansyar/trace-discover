@@ -116,7 +116,7 @@ describe('malformed animals content (labeled load-time error)', () => {
           goal: { x: 215, y: 340 },
           goalArt: '/art/goal/animal-1.webp',
           id: 'animal-1',
-          stroke: 'spiral',
+          stroke: 'rainbow',
           strokes: [
             [
               { x: 215, y: 340 },
@@ -128,10 +128,10 @@ describe('malformed animals content (labeled load-time error)', () => {
       menuFill: '#f4a6a0',
     };
     expect(() => parsePackJson(bad)).toThrow(
-      /pack 'animals' is invalid[\s\S]*level 0: invalid stroke 'spiral'/,
+      /pack 'animals' is invalid[\s\S]*level 0: invalid stroke 'rainbow'/,
     );
     // Stroke errors abort before the level id is known; the level index is the label.
-    expect(collectPackProblems(bad)).toEqual(["pack level 0: invalid stroke 'spiral'"]);
+    expect(collectPackProblems(bad)).toEqual(["pack level 0: invalid stroke 'rainbow'"]);
   });
 
   it('labels an out-of-margin control point for its level', () => {
@@ -229,21 +229,25 @@ describe('animals generic surfaces (zero special-casing)', () => {
     expect(nextPackLevelId(save, ANIMALS_PACK, 'animal-1')).toBe('animal-2');
   });
 
-  it('keeps the menu a single page without the runtime name pack', () => {
+  it('keeps the menu a single page without the runtime name pack (six static packs)', () => {
     const ids = appPacks(createDefaultSave()).map((pack) => pack.id);
-    expect(ids).toEqual(['pre', 'numbers', 'abc', 'shapes', 'animals']);
+    expect(ids).toEqual(['pre', 'numbers', 'abc', 'shapes', 'animals', 'patterns']);
     const menu = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids);
-    expect(menu.cards).toHaveLength(5);
+    expect(menu.cards).toHaveLength(6);
     expect(menu.pager).toBeNull();
   });
 
-  it('keeps the menu a single page with the runtime name pack (six entries, no pager)', () => {
+  it('paginates the menu when the runtime name pack joins (seven entries, one pager)', () => {
     const save = { ...createDefaultSave(), name: 'AVA' };
     const ids = appPacks(save).map((pack) => pack.id);
-    expect(ids).toEqual(['pre', 'numbers', 'abc', 'shapes', 'animals', 'name']);
+    expect(ids).toEqual(['pre', 'numbers', 'abc', 'shapes', 'animals', 'patterns', 'name']);
+    // Page one holds the six static packs; the name card rides page two behind
+    // the shipped pager (patterns-pack_20260920).
     const menu = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids);
     expect(menu.cards).toHaveLength(6);
     expect(menu.cards.some((card) => card.packId === 'animals')).toBe(true);
-    expect(menu.pager).toBeNull();
+    expect(menu.pager).not.toBeNull();
+    const secondPage = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ids, 1);
+    expect(secondPage.cards.map((card) => card.packId)).toEqual(['name']);
   });
 });

@@ -57,8 +57,8 @@ describe('parsePackJson shape errors', () => {
   });
 
   it('rejects a level with an invalid stroke pattern', () => {
-    expect(() => parsePackJson({ ...PACK, levels: [{ ...LEVEL, stroke: 'spiral' }] })).toThrow(
-      /level 0: invalid stroke 'spiral'/,
+    expect(() => parsePackJson({ ...PACK, levels: [{ ...LEVEL, stroke: 'rainbow' }] })).toThrow(
+      /level 0: invalid stroke 'rainbow'/,
     );
   });
 
@@ -135,6 +135,30 @@ describe('parsePackJson shape errors', () => {
     expect(pack.id).toBe('pre');
     expect(pack.levels).toHaveLength(1);
     expect(pack.levels[0]?.strokes).toHaveLength(1);
+  });
+});
+
+describe('parsePackJson stroke-label extension (patterns-pack_20260920)', () => {
+  const LABEL_LEVEL = (label: string) => ({
+    ...LEVEL,
+    id: 'pattern-1',
+    stroke: label,
+  });
+
+  it('accepts the loop, spiral, and stairs stroke labels', () => {
+    for (const label of ['loop', 'spiral', 'stairs']) {
+      const pack = parsePackJson({ ...PACK, levels: [LABEL_LEVEL(label)] });
+      expect(pack.levels[0]?.stroke, `${label} accepted`).toBe(label);
+    }
+  });
+
+  it('still rejects labels outside the extended set with the labeled error', () => {
+    expect(() => parsePackJson({ ...PACK, levels: [LABEL_LEVEL('rainbow')] })).toThrow(
+      /level 0: invalid stroke 'rainbow'/,
+    );
+    expect(collectPackProblems({ ...PACK, levels: [LABEL_LEVEL('rainbow')] })).toEqual([
+      "pack level 0: invalid stroke 'rainbow'",
+    ]);
   });
 });
 
