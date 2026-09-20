@@ -12,5 +12,5 @@ Patterns pack — pre-writing part 2 (loops, spirals, stairs) as validated JSON.
 
 - **Type:** Feature
 - **Branch:** `track/patterns-pack`
-- **Status:** new
+- **Status:** complete
 - **Created:** 2026-09-20
