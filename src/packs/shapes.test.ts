@@ -189,7 +189,7 @@ describe('malformed shapes content (labeled load-time error)', () => {
           goal: { x: 215, y: 340 },
           goalArt: '/art/goal/shape-1.webp',
           id: 'shape-1',
-          stroke: 'spiral',
+          stroke: 'rainbow',
           strokes: [
             [
               { x: 215, y: 340 },
@@ -201,10 +201,10 @@ describe('malformed shapes content (labeled load-time error)', () => {
       menuFill: '#b8a9e8',
     };
     expect(() => parsePackJson(bad)).toThrow(
-      /pack 'shapes' is invalid[\s\S]*level 0: invalid stroke 'spiral'/,
+      /pack 'shapes' is invalid[\s\S]*level 0: invalid stroke 'rainbow'/,
     );
     // Shape errors abort before the level id is known; the level index is the label.
-    expect(collectPackProblems(bad)).toEqual(["pack level 0: invalid stroke 'spiral'"]);
+    expect(collectPackProblems(bad)).toEqual(["pack level 0: invalid stroke 'rainbow'"]);
   });
 
   it('labels an out-of-margin control point for its level', () => {

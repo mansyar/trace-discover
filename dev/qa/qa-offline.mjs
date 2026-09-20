@@ -104,7 +104,15 @@ async function launch() {
   };
 
   await tap('splash');
-  const packId = LEVEL.startsWith('num-') ? 'numbers' : LEVEL.startsWith('shape-') ? 'shapes' : 'pre';
+  const packId = LEVEL.startsWith('num-')
+    ? 'numbers'
+    : LEVEL.startsWith('shape-')
+      ? 'shapes'
+      : LEVEL.startsWith('pattern-')
+        ? 'patterns'
+        : LEVEL.startsWith('animal-')
+          ? 'animals'
+          : 'pre';
   await tap(`pack:${packId}`);
   await page.screenshot({ path: path.join(OUT, 'offline-pack.png') });
 

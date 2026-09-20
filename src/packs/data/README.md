@@ -27,7 +27,7 @@ they are never fetched at runtime (offline-first).
   "id": "pre-1",                   // unique, non-empty
   "goal": { "x": 285, "y": 430 },  // endpoint where the goal vignette appears
   "goalArt": "/art/goal/pre-1.webp", // bundle path under /art/goal/ (see rules)
-  "stroke": "line",                // classification: line | wave | arc | zigzag | circle
+  "stroke": "line",                // classification: line | wave | arc | zigzag | circle | loop | spiral | stairs
   "strokes": [                     // ordered strokes, traced in sequence
     [ { "x": 145, "y": 430 }, { "x": 215, "y": 430 }, { "x": 285, "y": 430 } ]
   ]
@@ -107,8 +107,11 @@ The static packs are all authored in this format: `pre.json` (12 levels + 3
 bonuses), `numbers.json` (10 numerals, no bonuses), `abc.json` (26 uppercase
 letters + 3 sequence bonuses), `shapes.json` (8 shape levels, no bonuses —
 circle, square, triangle, oval, diamond, heart, star, plus; the star and plus
-trace as two school-style strokes each), and `animals.json` (8 reference-traced
+trace as two school-style strokes each), `animals.json` (8 reference-traced
 animal outlines, no bonuses — fish, ladybug, duck, turtle, bunny, cat,
-butterfly, elephant; multi-stroke where anatomy asks) — read any of them for a
-complete example. The My Name mini-pack stays runtime-composed from the letter glyphs
+butterfly, elephant; multi-stroke where anatomy asks), and `patterns.json`
+(9 pattern levels, no bonuses — loop/spiral/stairs motifs × small/medium/large
+in size-major order; loops close back to their start, spirals wind inward as
+ring chains, stairs keep flats straight via edge midpoints) — read any of them
+for a complete example. The My Name mini-pack stays runtime-composed from the letter glyphs
 (`src/packs/name.ts`), never a JSON file.

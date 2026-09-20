@@ -576,8 +576,11 @@ describe('menu pager affordances (beyond the six-card capacity)', () => {
 });
 
 describe('menu capacity guard', () => {
-  it('holds registered packs plus the reserved My Name slot within the six-card capacity', () => {
-    expect(allPacks().length + 1).toBeLessThanOrEqual(MENU_CARD_CAPACITY);
+  it('paginates registered packs plus the reserved My Name slot beyond the six-card capacity', () => {
+    // Six static packs fill page one (patterns-pack_20260920); the reserved
+    // My Name slot is served by the shipped pager on page two.
+    expect(allPacks().length + 1).toBeGreaterThan(MENU_CARD_CAPACITY);
+    expect(menuPageCount(allPacks().length + 1)).toBe(2);
   });
 });
 

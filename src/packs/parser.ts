@@ -25,7 +25,16 @@ export interface RawLevel {
   readonly strokes: readonly (readonly Point[])[];
 }
 
-const STROKE_PATTERNS: readonly StrokePattern[] = ['line', 'wave', 'arc', 'zigzag', 'circle'];
+const STROKE_PATTERNS: readonly StrokePattern[] = [
+  'line',
+  'wave',
+  'arc',
+  'zigzag',
+  'circle',
+  'loop',
+  'spiral',
+  'stairs',
+];
 
 const PACK_KEYS = ['badgeId', 'bonusUnlocks', 'bonuses', 'id', 'levels', 'menuFill'] as const;
 const LEVEL_KEYS = ['goal', 'goalArt', 'id', 'stroke', 'strokes'] as const;

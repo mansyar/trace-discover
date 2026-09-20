@@ -27,3 +27,4 @@ dev/art-src/*/raw/
 dev/art-src/*/*.trace.json
 dev/ref/
 dev/package-lock.json
+.freebuff/
