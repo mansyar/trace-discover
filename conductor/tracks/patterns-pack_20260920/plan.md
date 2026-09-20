@@ -45,7 +45,7 @@
   - [x] Commit code (`feat(packs): patterns reward art batch`), attach git note with task summary *(`42e639f`; art-src policy: `clean/` + `out/` tracked, `raw/` gitignored, sheet regenerable)*
   - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `42e639f`, user-approved 2026-09-20; verification report appended as a git note — gates: check clean, 746/746, coverage ≥ thresholds, pack:check PASS, build OK, budget PASS 5,896,240 / 6,000,000 B, 197 / 200 entries; manual art walk presented and approved)*
 
-## Phase 3 — Generic surfaces, QA sweeps, docs, closeout
+## Phase 3 — Generic surfaces, QA sweeps, docs, closeout [checkpoint: 9cd2252]
 
 - [x] Task: Verify pack-generic surfaces with zero special-casing (tests) *(`9cd2252`)*
   - [x] Sticker board: 9 pattern stickers pop/notes; shelf pulse; badge award on completion; success screen *(patterns.test.ts: nine stickers map to strictly rising, per-sticker-stable pentatonic notes under the two-octave wrap; badge lands exactly on the ninth completion)*
@@ -63,4 +63,4 @@
   - [x] Root `README.md`: stale "five characters × three packs" line corrected (six characters × six packs)
 - [x] Task: Owner device pass (Android + iPad) *(owner-confirmed passed 2026-09-20 over the LAN build `http://192.168.0.114:4173`)*
   - [x] Patterns journey traced unaided; menu/pager; sticker board tap; sound check; independent-play observation session with friction notes *(menu shows six pack cards with the patterns card last; all 9 levels traced; sticker board pops with rising notes; badge seals after level 9; checkpoint chimes + completion fanfare confirmed on both devices' speakers; mid-spiral rotation holds progress)*
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) *(checkpoint `9cd2252`, user-approved 2026-09-20; verification report appended as a git note — gates: check clean, 748/748 tests, coverage 73.62/77.75/89.79/73.17 ≥ thresholds, pack:check PASS, build OK, budget PASS 5,896,240 B / 197 entries of 6.00 MB / 200; sweep 9/9 + badge; rotation/zero-text/offline probes green; device pass owner-confirmed)*
