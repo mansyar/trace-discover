@@ -61,6 +61,6 @@
   - [x] `src/packs/data/README.md`: production pack list (pre, numbers, abc, shapes, animals, patterns) + the three new stroke labels
   - [x] `dev/README.md`: preview/QA notes for patterns; level counts (71 JSON levels); stale budget line fix (5.60 MB / 150 → 6.00 MB / 200)
   - [x] Root `README.md`: stale "five characters × three packs" line corrected (six characters × six packs)
-- [ ] Task: Owner device pass (Android + iPad)
-  - [ ] Patterns journey traced unaided; menu/pager; sticker board tap; sound check; independent-play observation session with friction notes
+- [x] Task: Owner device pass (Android + iPad) *(owner-confirmed passed 2026-09-20 over the LAN build `http://192.168.0.114:4173`)*
+  - [x] Patterns journey traced unaided; menu/pager; sticker board tap; sound check; independent-play observation session with friction notes *(menu shows six pack cards with the patterns card last; all 9 levels traced; sticker board pops with rising notes; badge seals after level 9; checkpoint chimes + completion fanfare confirmed on both devices' speakers; mid-spiral rotation holds progress)*
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
