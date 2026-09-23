@@ -10,10 +10,12 @@
 
 ## Phase 1 — Baseline inventory and safe-candidate decision
 
-- [ ] Task: Capture the production baseline
-  - [ ] Build with `pnpm build` from the track base commit and record total dist bytes, precache entries, and category breakdown.
-  - [ ] Record the exact asset/file list contributing to the baseline, including Rive/WASM, raster art, generated JS/CSS, icons, and service-worker entries.
-  - [ ] Record the current `pnpm budget` result: 5,896,240 B / 6,000,000 B and 197 / 200 entries at track creation.
+- [x] Task: Capture the production baseline
+  - [x] Build with `pnpm build` from the track base commit and record total dist bytes, precache entries, and category breakdown.
+  - [x] Record the exact asset/file list contributing to the baseline, including Rive/WASM, raster art, generated JS/CSS, icons, and service-worker entries.
+  - [x] Record the current `pnpm budget` result: 5,896,240 B / 6,000,000 B and 197 / 200 entries at track creation.
+
+  **Evidence (2026-09-24):** `pnpm build && pnpm budget` passed. The build emitted 199 dist files, 197 precache entries, and `dist-budget: total 5896240 / 6000000 B - PASS`, `entries 197 / 200 - PASS`. Categories: Rive 2,575,533 B; art 2,134,170 B (goal 1,031,748 B; sticker 551,674 B; pack 311,518 B; bg 179,790 B; face 59,440 B); generated assets 1,124,099 B; root 32,415 B; icons 30,023 B. The exact file/size listing was captured from `find dist -type f -printf '%P %s\\n' | sort` and `find public -type f -printf '%P %s\\n' | sort`.
 - [ ] Task: Write failing tests for deterministic payload inventory
   - [ ] Add a test for the inventory report's stable category totals and required fields before adding or changing any inventory tooling.
   - [ ] Add a negative fixture proving missing or unreferenced shipped assets are reported rather than silently ignored.
