@@ -42,7 +42,7 @@
 
 ---
 
-## Phase 2 — Split precache and content warm-up implementation
+## Phase 2 — Split precache and content warm-up implementation [checkpoint: ee5a1fe]
 
 - [x] Task: Implement the critical precache policy
   - [x] Update `vite.config.ts` so the Workbox precache glob includes the app shell, HTML, JavaScript, CSS, WASM, manifest, icons, and other boot-critical files.
@@ -87,7 +87,7 @@
 
 ## Phase 3 — Build, budget, offline, and update verification
 
-- [ ] Task: Validate the new production payload
+- [~] Task: Validate the new production payload
   - [ ] Run `pnpm build`.
   - [ ] Run `pnpm budget`.
   - [ ] Confirm the build has no more than 180 precache entries.
