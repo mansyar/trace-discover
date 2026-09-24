@@ -18,21 +18,27 @@
 
   **Baseline evidence (2026-09-24):** Fresh `pnpm build` passed. `pnpm budget` reported 199 dist files, 197 precache entries, 5,555,072 total bytes, and `sw.js` reporting the same 197 entries. Category totals: Rive 2,575,533 B; art 1,793,002 B (goal 855,212 B; sticker 446,716 B; pack 251,844 B; backgrounds 179,790 B; faces 59,440 B); generated assets 1,124,099 B; root 32,415 B; icons 30,023 B. Both fixed ceilings passed: 5,555,072 / 6,000,000 B and 197 / 200 entries. `CI=true pnpm check` passed; `CI=true pnpm test` passed with 59 test files and 754 tests.
 
-- [~] Task: Define and test the critical/content cache contract
-  - [ ] Add failing tests for the classification of critical boot resources versus shipped content resources.
-  - [ ] Add failing tests proving every shipped pack and skin asset is included in the content warm-up set.
-  - [ ] Add failing tests for idempotent warm-up behavior and partial-failure recovery.
-  - [ ] Add a negative test proving critical boot resources cannot be omitted from the precache set.
-  - [ ] Run the focused tests and confirm the expected RED state before implementation.
+- [x] Task: Define and test the critical/content cache contract
+  - [x] Add failing tests for the classification of critical boot resources versus shipped content resources.
+  - [x] Add failing tests proving every shipped pack and skin asset is included in the content warm-up set.
+  - [x] Add failing tests for idempotent warm-up behavior and partial-failure recovery.
+  - [x] Add a negative test proving critical boot resources cannot be omitted from the precache set.
+  - [x] Run the focused tests and confirm the expected RED state before implementation.
 
-- [ ] Task: Record the deliberate PWA strategy in the tech-stack document
-  - [ ] Add a dated entry describing the split precache/content boundary, first-load warm-up guarantee, cache invalidation/update policy, and unchanged offline guarantees.
-  - [ ] Keep the decision within the existing Vite/`vite-plugin-pwa`/Workbox architecture with no new runtime dependency.
+  **Contract evidence (2026-09-24):** The initial focused run failed as intended because `src/pwa/contentCache.ts` did not exist; 754 existing tests passed and the new suite failed at the missing import. After the minimal implementation, the focused run passed with 60 test files and 758 tests. The suite covers critical/content/unclassified path classification, complete `art/` + `rive/` inventory, duplicate suppression, cache idempotence, and partial-failure recovery.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Verify that the baseline is recorded before implementation.
-  - [ ] Verify the proposed strategy is documented before production code changes.
-  - [ ] Run the required phase tests and checkpoint the phase according to the workflow.
+- [x] Task: Record the deliberate PWA strategy in the tech-stack document
+  - [x] Add a dated entry describing the split precache/content boundary, first-load warm-up guarantee, cache invalidation/update policy, and unchanged offline guarantees.
+  - [x] Keep the decision within the existing Vite/`vite-plugin-pwa`/Workbox architecture with no new runtime dependency.
+
+  **Strategy evidence (2026-09-24):** `conductor/tech-stack.md` now records the critical/content split, background first-load warm-up, `NetworkFirst` runtime cache behavior, online refresh/offline fallback, and the unchanged waiting-service-worker guarantee. The entry is marked planned before Workbox wiring.
+
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Verify that the baseline is recorded before implementation.
+  - [x] Verify the proposed strategy is documented before production code changes.
+  - [x] Run the required phase tests and checkpoint the phase according to the workflow.
+
+  **Phase 1 evidence (2026-09-24):** The RED run failed at the intended missing-module boundary with 754 existing tests passing. The GREEN contract run passed with 60 test files and 758 tests. `CI=true pnpm check` passed after the implementation and documentation updates. The deliberate strategy is documented in `conductor/tech-stack.md` before Vite/Workbox wiring.
 
 ---
 
