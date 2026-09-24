@@ -19,6 +19,9 @@ import { fileURLToPath } from 'node:url';
 //     habitats + 8 sticker seals swapped over the placeholders + card + paw
 //     badge): 5,630,227 B / 177 entries -> 6.00 MB / 200 (deliberate
 //     re-anchor, fresh measurements; +215 KB / +18 entries over baseline)
+//   2026-09-24 - payload-headroom_20260924 foreground WebP diet: 5,555,072 B
+//     / 197 entries -> 6.00 MB / 200 (no re-anchor; 341,168 B saved by
+//     re-encoding 169 goal/sticker/pack WebPs; 3 entry slots remain)
 // See conductor/archive/payload-diet_20260916/measurements.md for the diet
 // figures. A re-introduced lossless art batch (+5 MB) or a new pack's raw art
 // batch trips it immediately. Raise ceilings deliberately, with fresh

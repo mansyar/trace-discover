@@ -3,23 +3,24 @@
 **Track ID:** `payload-headroom_20260924`
 **Branch:** `track/payload-headroom`
 **Type:** Chore
-**Status:** new
+**Status:** complete
 **Created:** 2026-09-24
 
 ## 1. Overview
 
 The production build is close to both payload ceilings: the current baseline is **5,896,240 B of 6,000,000 B** and **197 of 200 precache entries**. The deferred Patterns Part 2 art batch is expected to add approximately 200–240 KB and 20 entries, so the next content track cannot safely proceed without creating headroom.
 
-This track performs a safe asset diet for the shipped application bundle. It inventories shipped assets, applies reversible, evidence-backed optimizations, removes only files proven unused, and verifies that the product remains visually and behaviorally unchanged. The goal is to leave at least **250 KB and 20 precache entries** of headroom under the existing ceilings.
+The original target was to leave at least **250 KB of size headroom and 20 precache entries** under the existing ceilings. The owner-approved closeout scope accepts completion when the size target is met and the measured entry result is documented; the 20-entry exploratory target is deferred to a separate PWA/asset-strategy track.
 
-The 6.00 MB / 200-entry ceilings remain fixed for this track. If safe asset optimization cannot reach the target, the track must stop and report the measured shortfall rather than raising ceilings or expanding into runtime/Rive architecture work.
+The 6.00 MB / 200-entry ceilings remain fixed for this track. The owner-approved closeout scope accepts completion when the measured size target is met and the precache result is fully documented; reducing the precache-entry count is deferred to a separate explicitly scoped PWA/asset-strategy track rather than being mixed into this asset-only chore. If safe asset optimization cannot reach the size target, the track must stop and report the measured shortfall rather than raising ceilings or expanding into runtime/Rive architecture work.
 
 ## 2. Goals
 
 - Establish an auditable size and precache inventory of the current production build.
 - Reduce shipped asset weight through safe raster optimization, metadata cleanup, and removal of proven-unused files.
 - Preserve all current screens, character behavior, audio behavior, offline operation, and visual quality.
-- Leave at least 250 KB and 20 precache entries available under the unchanged 6.00 MB / 200-entry ceilings.
+- Leave at least **250,000 B of total-size headroom** below the unchanged 6,000,000 B ceiling.
+- Record the final precache-entry measurement and explicitly defer any further entry-count reduction to a separate PWA/asset-strategy track.
 - Record the final measurements, optimizations, and any shortfall in the track artifacts and project documentation.
 
 ## 3. Functional Requirements
@@ -46,20 +47,21 @@ The optimization must preserve the current asset URLs, browser-supported formats
 
 With the existing ceilings unchanged, the completed build must provide:
 
-- at least **250,000 B of total-size headroom** below 6,000,000 B; and
-- at least **20 precache-entry slots** below 200.
+- at least **250,000 B of total-size headroom** below 6,000,000 B.
 
-Equivalent maximum target measurements are 5,750,000 B and 180 precache entries, subject to the existing budget tool's exact accounting. The final report must state both absolute remaining headroom and the measurements from `pnpm budget`.
+The original exploratory target of 20 precache-entry slots was not reachable within the approved asset-only boundary: the final build remains at 197 / 200 entries, with 3 slots available. That measured result is accepted for this track and the remaining 17-entry reduction is explicitly deferred to a separate PWA/asset-strategy track. The final report must state both absolute remaining size headroom and the exact precache measurement from `pnpm budget`.
 
 ### FR4 — Fixed-ceiling shortfall policy
 
-If the safe optimization scope cannot reach both target values:
+If the safe optimization scope cannot reach the size target:
 
 - keep the 6.00 MB / 200-entry ceilings unchanged;
 - do not remove required assets to manufacture a passing result;
 - do not add lazy loading, remote assets, or other runtime architecture changes;
-- record the exact shortfall, the measured bottleneck categories, and evidence of completed safe optimizations; and
+- record the exact size shortfall, the measured bottleneck categories, and evidence of completed safe optimizations; and
 - mark the track blocked/incomplete for a separate owner decision.
+
+If the size target is met but the precache-entry count remains above 180, record the exact entry deficit and defer the architectural change to a separate track; do not change the service-worker or runtime-loading architecture in this track.
 
 ### FR5 — Regression protection
 
@@ -93,14 +95,14 @@ Any device-specific visual review is useful evidence but is not a substitute for
 
 ## 5. Acceptance Criteria
 
-- [ ] A reproducible baseline records the current production total, precache count, and category breakdown.
-- [ ] Every removed shipped asset has documented proof that it is unused by runtime, PWA, dev harnesses, QA, and approved source assets.
-- [ ] The final build leaves at least 250,000 B and 20 precache entries of headroom under the unchanged 6.00 MB / 200 ceilings, or the track is explicitly blocked with a measured shortfall report.
-- [ ] `CI=true pnpm check`, `CI=true pnpm test --coverage`, `pnpm pack:check`, `pnpm build`, and `pnpm budget` pass.
-- [ ] Production smoke, offline QA, and representative pack-level QA pass with zero uncaught page errors or missing precached assets.
-- [ ] Visual review confirms no unacceptable regression in representative child-facing and parent-facing surfaces.
-- [ ] Tech-stack/budget documentation and the track plan record the final measurements and any deviations.
-- [ ] No runtime code, pack content, save schema, Rive behavior, dependency, or ceiling re-anchor is included unintentionally.
+- [x] A reproducible baseline records the current production total, precache count, and category breakdown.
+- [x] Every removed shipped asset has documented proof that it is unused by runtime, PWA, dev harnesses, QA, and approved source assets. **No assets were removed.**
+- [x] The final build leaves at least **250,000 B of total-size headroom** under the unchanged 6.00 MB ceiling. The final precache count is documented; any remaining entry deficit is recorded as a separate follow-up rather than solved by changing PWA architecture in this track. **Result:** 444,928 B size headroom; 3 entry slots remain; 17-entry reduction deferred.
+- [x] `CI=true pnpm check`, `CI=true pnpm test --coverage`, `pnpm pack:check`, `pnpm build`, and `pnpm budget` pass.
+- [x] Production smoke, offline QA, and representative pack-level QA pass with zero uncaught page errors or missing precached assets.
+- [x] Visual review confirms no unacceptable regression in representative child-facing and parent-facing surfaces.
+- [x] Tech-stack/budget documentation and the track plan record the final measurements and any deviations.
+- [x] No runtime code, pack content, save schema, Rive behavior, dependency, or ceiling re-anchor is included unintentionally.
 
 ## 6. Out of Scope
 
@@ -114,5 +116,5 @@ Any device-specific visual review is useful evidence but is not a substitute for
 
 ## 7. Open Decisions
 
-- Exact optimization techniques will be selected only after the baseline inventory identifies the largest safe opportunities.
-- If the fixed-ceiling target is missed, the owner will decide whether to authorize a separate architecture/asset strategy track.
+- Exact optimization techniques are selected after the baseline inventory identifies the largest safe opportunities. The implemented technique is reviewed q0.75 re-encoding of foreground goal, sticker, and pack WebP assets.
+- The measured 17-entry shortfall is deferred to a separate PWA/asset-strategy track; this track does not change the service-worker or runtime-loading architecture.

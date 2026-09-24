@@ -175,8 +175,18 @@ shoots the 3–6 × orientation matrix plus the name-card case into
 payload ceilings — **6.00 MB total / 200 precache entries**, re-anchored from
 the post-diet build (4,161,522 B / 133 entries) through the skin and pack
 builds (2026-09-17 teddy: 4,641,746 B / 136; 2026-09-18 trex: 5,224,739 B /
-141; 2026-09-19 animals: 5,630,286 B / 177; current measurements:
-history + rationale live in the tool). Run it after `pnpm build`; CI runs it
-after the build step too. A re-introduced lossless art batch trips it
-instantly — raise the ceilings only deliberately, with fresh measurements
-(`conductor/archive/payload-diet_20260916/measurements.md`).
+141; 2026-09-19 animals: 5,630,286 B / 177; 2026-09-24 payload diet: 5,555,072
+B / 197). Run it after `pnpm build`; CI runs it after the build step too. A
+re-introduced lossless art batch trips it instantly — raise the ceilings only
+deliberately, with fresh measurements
+(`conductor/archive/payload-diet_20260916/measurements.md`). The current
+payload-headroom track reduced foreground art by 341,168 B and intentionally
+leaves the 17-entry precache reduction for a separate PWA/asset-strategy track.
+
+For the safe foreground diet workflow, run `node tools/asset-inventory.mjs` to
+inspect the production build, then `node tools/webp-diet.mjs` to stage reviewed
+q0.75 candidates under ignored `qa/out/webp-diet/`. Only after reviewing the
+side-by-side report, run `node tools/webp-diet.mjs --install`; this preserves
+paths, dimensions, alpha channels, and URLs. Run `CI=true pnpm check`,
+`CI=true pnpm test --coverage`, `pnpm pack:check`, `pnpm build`, and
+`pnpm budget` after installation.

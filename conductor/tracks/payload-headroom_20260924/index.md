@@ -12,5 +12,5 @@ Payload headroom and asset diet.
 
 - **Type:** Chore
 - **Branch:** `track/payload-headroom`
-- **Status:** new
+- **Status:** complete
 - **Created:** 2026-09-24
