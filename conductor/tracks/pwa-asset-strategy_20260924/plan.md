@@ -10,11 +10,13 @@
 
 ## Phase 1 — Baseline and cache contract
 
-- [~] Task: Capture the current production and test baseline
-  - [ ] Build from the track base commit with `pnpm build`.
-  - [ ] Record total dist bytes, filesystem files, precache entries, generated service-worker manifest entries, and category totals.
-  - [ ] Record the current `pnpm budget` result and confirm the unchanged 6,000,000-byte / 200-entry ceilings.
-  - [ ] Run `CI=true pnpm check` and `CI=true pnpm test` to establish the pre-change baseline.
+- [x] Task: Capture the current production and test baseline
+  - [x] Build from the track base commit with `pnpm build`.
+  - [x] Record total dist bytes, filesystem files, precache entries, generated service-worker manifest entries, and category totals.
+  - [x] Record the current `pnpm budget` result and confirm the unchanged 6,000,000-byte / 200-entry ceilings.
+  - [x] Run `CI=true pnpm check` and `CI=true pnpm test` to establish the pre-change baseline.
+
+  **Baseline evidence (2026-09-24):** Fresh `pnpm build` passed. `pnpm budget` reported 199 dist files, 197 precache entries, 5,555,072 total bytes, and `sw.js` reporting the same 197 entries. Category totals: Rive 2,575,533 B; art 1,793,002 B (goal 855,212 B; sticker 446,716 B; pack 251,844 B; backgrounds 179,790 B; faces 59,440 B); generated assets 1,124,099 B; root 32,415 B; icons 30,023 B. Both fixed ceilings passed: 5,555,072 / 6,000,000 B and 197 / 200 entries. `CI=true pnpm check` passed; `CI=true pnpm test` passed with 59 test files and 754 tests.
 
 - [ ] Task: Define and test the critical/content cache contract
   - [ ] Add failing tests for the classification of critical boot resources versus shipped content resources.
