@@ -55,7 +55,7 @@
 
 ---
 
-## Phase 2 — Warm-up progress and retry contract
+## Phase 2 — Warm-up progress and retry contract [checkpoint: b656daf]
 
 - [x] Task: Write failing tests for incremental warm-up progress [646cb6d]
   - [x] Report progress after every resolved asset, counting already-cached assets as resolved.
@@ -83,16 +83,18 @@
   **Implementation notes:** defaults are `attempts: 3`, `concurrency: 6`, and backoff `250 ms` then `750 ms` (any further attempt reuses the last delay); `retryDelayMs(attempt)` receives the 1-based attempt that just failed and is never called after the final attempt. Concurrency is clamped to the inventory size, so an empty inventory resolves with a single `0 / 0` report and no store access. `scheduleContentWarmup` is untouched — its signature, injected `schedule(…)` semantics, and online gate behave exactly as before, which the pre-existing scheduling test still proves.
 
   **Coverage gap closed in this step:** the first coverage run showed `contentCache.ts` lines 73–78 uncovered — the *default* backoff path, which only executes in the real app. A fake-timer test now pins the schedule precisely (one attempt at 0 ms, no retry at 249 ms, second attempt at 250 ms, none at 999 ms, third at 1000 ms, then a permanent failure), removing the last untested production timing value from this module.
-- [x] Task: Verify GREEN and preserve existing behavior
+- [x] Task: Verify GREEN and preserve existing behavior [b656daf]
   - [x] Run the focused warm-up tests, then the full suite with `CI=true pnpm test`.
   - [x] Run `CI=true pnpm check`.
   - [x] Confirm no precache policy, cache name, save, or child-facing behavior changed.
 
   **Verification evidence (2026-09-24):** Focused suite 15/15; full `CI=true pnpm test` 60 files / 769 tests; `CI=true pnpm check` clean. The phase's change surface is exactly three files (`src/pwa/contentCache.ts`, `src/pwa/contentCache.test.ts`, and this plan) — `git diff --stat b63cc09 HEAD -- src/pwa/cachePolicy.ts vite.config.ts src/save src/main.ts` is empty, proving the cache name `trace-discover-content-v1`, the precache boundary, save schema v3, and every child-facing surface are untouched, and that this phase added no wiring. Fresh `pnpm build` reports 10 generated precache entries and `pnpm budget` PASSes at 5,556,165 / 6,000,000 B and 10 / 200 entries — the total rose by 576 B against the baseline purely from the new warm-up code, with the ceilings still un-re-anchored.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Confirm the progress contract alone is sufficient for a truthful indication.
-  - [ ] Confirm the warm-up remains idempotent and retains successful work.
-  - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Confirm the progress contract alone is sufficient for a truthful indication.
+  - [x] Confirm the warm-up remains idempotent and retains successful work.
+  - [x] Run the phase's automated checks and checkpoint the phase according to the workflow.
+
+  **Phase 2 evidence (2026-09-24):** `CI=true pnpm test` passed (60 files / 769 tests, +9 over the 760 baseline) and `CI=true pnpm check` is clean. The phase-coverage step found every changed code file has a sibling test (`src/pwa/contentCache.ts` ↔ `src/pwa/contentCache.test.ts`). A truthful indication is guaranteed by the contract itself: `resolved` counts already-cached, newly-cached, and permanently-failed units, is monotonic, reaches `total` exactly once, and every path emits (including a single `0 / 0` for an empty inventory), so the gate's indicator cannot stall before it releases. Idempotence is preserved — already-cached assets resolve without re-fetching, and the pre-existing partial-failure test still proves a later warm-up recovers a previously failed asset while retaining earlier successes. Invariants hold: exactly three files changed this phase, with `cachePolicy.ts`, `vite.config.ts`, `src/save/`, and `src/main.ts` untouched. The owner ran the manual browser pass (app playable while warming, 187/187 cached, second load reuses it without re-downloading) and confirmed; the auditable report is attached to `b656daf` as a git note.
 
 ---
 
