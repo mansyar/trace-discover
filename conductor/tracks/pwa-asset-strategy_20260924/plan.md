@@ -10,7 +10,7 @@
 
 ## Phase 1 — Baseline and cache contract
 
-- [x] Task: Capture the current production and test baseline
+- [x] Task: Capture the current production and test baseline [26cfbe1]
   - [x] Build from the track base commit with `pnpm build`.
   - [x] Record total dist bytes, filesystem files, precache entries, generated service-worker manifest entries, and category totals.
   - [x] Record the current `pnpm budget` result and confirm the unchanged 6,000,000-byte / 200-entry ceilings.
