@@ -5,6 +5,7 @@ import {
   createBrowserContentCacheStore,
   scheduleContentWarmup,
   warmContentAssets,
+  type ContentWarmupProgress,
 } from './contentCache';
 
 const SHIPPED_CONTENT_KEYS = [
@@ -109,7 +110,9 @@ describe('content cache contract', () => {
       store.cached.add(url);
     });
 
-    const first = await warmContentAssets(['/art/goal/pre-1.webp', '/rive/dino.riv'], store);
+    const first = await warmContentAssets(['/art/goal/pre-1.webp', '/rive/dino.riv'], store, {
+      retryDelayMs: () => 0,
+    });
     failOnce = false;
     const second = await warmContentAssets(['/art/goal/pre-1.webp', '/rive/dino.riv'], store);
 
@@ -123,5 +126,67 @@ describe('content cache contract', () => {
       complete: true,
       failed: [],
     });
+  });
+});
+
+describe('content warm-up progress', () => {
+  function reporter() {
+    const reports: ContentWarmupProgress[] = [];
+    return { reports, onProgress: (progress: ContentWarmupProgress) => reports.push(progress) };
+  }
+
+  it('reports one resolution per asset, counting already cached assets as resolved', async () => {
+    const store = memoryStore(['/art/goal/pre-1.webp']);
+    const progress = reporter();
+
+    await warmContentAssets(
+      ['/art/goal/pre-1.webp', '/rive/dino.riv', '/art/sticker/pre-1.webp'],
+      store,
+      { onProgress: progress.onProgress },
+    );
+
+    expect(progress.reports.map((report) => report.resolved)).toEqual([1, 2, 3]);
+    expect(progress.reports.map((report) => report.total)).toEqual([3, 3, 3]);
+    expect(store.has).toHaveBeenCalledWith('/art/goal/pre-1.webp');
+  });
+
+  it('reports a single empty resolution for an empty inventory', async () => {
+    const store = memoryStore();
+    const progress = reporter();
+
+    await warmContentAssets([], store, { onProgress: progress.onProgress });
+
+    expect(progress.reports).toEqual([{ resolved: 0, total: 0 }]);
+    expect(store.add).not.toHaveBeenCalled();
+  });
+
+  it('never exceeds the inventory size or repeats a resolution', async () => {
+    const store = memoryStore();
+    store.add.mockImplementation(async (url: string) => {
+      if (url.includes('unreachable')) {
+        throw new Error('offline');
+      }
+      store.cached.add(url);
+    });
+    const progress = reporter();
+
+    await warmContentAssets(['/art/goal/pre-1.webp', '/art/unreachable.webp'], store, {
+      onProgress: progress.onProgress,
+      retryDelayMs: () => 0,
+    });
+
+    const resolved = progress.reports.map((report) => report.resolved);
+    expect(resolved).toEqual([...resolved].sort((left, right) => left - right));
+    expect(new Set(resolved).size).toBe(resolved.length);
+    expect(Math.max(...resolved)).toBe(2);
+    expect(progress.reports.at(-1)).toEqual({ resolved: 2, total: 2 });
+  });
+
+  it('warms without a reporter', async () => {
+    const store = memoryStore();
+
+    const result = await warmContentAssets(['/rive/dino.riv'], store);
+
+    expect(result).toEqual({ cached: ['/rive/dino.riv'], complete: true, failed: [] });
   });
 });
