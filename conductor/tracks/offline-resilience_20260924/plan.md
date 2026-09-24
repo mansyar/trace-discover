@@ -8,7 +8,7 @@
 
 ---
 
-## Phase 1 — Baseline, deliberate documentation, and gate budget
+## Phase 1 — Baseline, deliberate documentation, and gate budget [checkpoint: 88faa77]
 
 - [x] Task: Capture the current production and test baseline [d5bde5b]
   - [x] Build from the track base commit with `pnpm build`.
@@ -46,10 +46,12 @@
   **Deliberately rejected exit:** a wall-clock deadline. Releasing on elapsed time alone would abandon a slow-but-working link to drawn stand-ins, which contradicts the owner's chosen policy (bounded retries, then proceed). **Accepted residual risk:** a very slow but functioning connection can hold the gate for minutes; re-examined against real-network behaviour at the Phase 6 device pass. Nothing is at risk when that happens — the save is untouched and a closed session loses nothing.
 
   **Expected benefit of the concurrency change:** on a 400 ms-RTT link the serial loop costs ~187 sequential round trips (the ~90–160 s estimate above); at concurrency 6 the same work becomes ~31 rounds — roughly an order of magnitude less latency-bound and transfer-bound instead.
-- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [~] Verify the baseline is recorded before any production change.
-  - [ ] Verify the strategy and guideline amendment are documented before implementation.
-  - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Verify the baseline is recorded before any production change.
+  - [x] Verify the strategy and guideline amendment are documented before implementation.
+  - [x] Run the phase's automated checks and checkpoint the phase according to the workflow.
+
+  **Phase 1 evidence (2026-09-24):** `CI=true pnpm test` passed (60 files / 760 tests) and `CI=true pnpm check` is clean, run after the documentation changes. Every file this phase touched is Markdown, so the phase-coverage step found no code file needing a sibling test. The baseline (`d5bde5b`) was recorded before the strategy notes (`e7ac437`) and the gate budget (`88faa77`), so the deliberate documentation precedes all production code as `workflow.md` requires. The owner explicitly confirmed the recorded decisions, the pinned budget, the rejected wall-clock exit, and the CDP measurement limitation; the auditable verification report is appended to `88faa77` as a git note.
 
 ---
 
