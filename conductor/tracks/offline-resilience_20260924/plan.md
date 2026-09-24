@@ -57,11 +57,13 @@
 
 ## Phase 2 — Warm-up progress and retry contract
 
-- [ ] Task: Write failing tests for incremental warm-up progress
-  - [ ] Report progress after every resolved asset, counting already-cached assets as resolved.
-  - [ ] Prove progress is monotonic and reaches `total` exactly once.
-  - [ ] Prove an empty inventory resolves with a single `0 / 0` report.
-  - [ ] Run the focused suite and confirm the expected RED state before implementation.
+- [x] Task: Write failing tests for incremental warm-up progress [646cb6d]
+  - [x] Report progress after every resolved asset, counting already-cached assets as resolved.
+  - [x] Prove progress is monotonic and reaches `total` exactly once.
+  - [x] Prove an empty inventory resolves with a single `0 / 0` report.
+  - [x] Run the focused suite and confirm the expected RED state before implementation.
+
+  **RED evidence (2026-09-24):** Focused `CI=true pnpm exec vitest run src/pwa/contentCache.test.ts` failed as intended with 3 failed / 7 passed. The three new progress tests fail because `warmContentAssets` accepts no options today, so no reports are emitted (the monotonicity assertion receives an empty list and `Math.max()` yields `-Infinity`), while all seven pre-existing content-cache tests still pass — the Red state is the missing behavior, not a broken harness. The new suite asserts report *shape* (one resolution per asset, constant totals, no repeated resolution, final resolution equal to the inventory size, already-cached assets counted as resolved) rather than a strict emission order, so it remains valid once bounded concurrency lands. The one pre-existing partial-failure test now injects `retryDelayMs: () => 0` so the upcoming retry default cannot slow the suite; its expectations are unchanged.
 - [ ] Task: Write failing tests for concurrency and retry behavior
   - [ ] Prove the in-flight count never exceeds the configured concurrency.
   - [ ] Prove a transient failure is retried up to the configured attempts and a later success is retained.
