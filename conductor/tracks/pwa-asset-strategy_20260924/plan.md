@@ -18,7 +18,7 @@
 
   **Baseline evidence (2026-09-24):** Fresh `pnpm build` passed. `pnpm budget` reported 199 dist files, 197 precache entries, 5,555,072 total bytes, and `sw.js` reporting the same 197 entries. Category totals: Rive 2,575,533 B; art 1,793,002 B (goal 855,212 B; sticker 446,716 B; pack 251,844 B; backgrounds 179,790 B; faces 59,440 B); generated assets 1,124,099 B; root 32,415 B; icons 30,023 B. Both fixed ceilings passed: 5,555,072 / 6,000,000 B and 197 / 200 entries. `CI=true pnpm check` passed; `CI=true pnpm test` passed with 59 test files and 754 tests.
 
-- [ ] Task: Define and test the critical/content cache contract
+- [~] Task: Define and test the critical/content cache contract
   - [ ] Add failing tests for the classification of critical boot resources versus shipped content resources.
   - [ ] Add failing tests proving every shipped pack and skin asset is included in the content warm-up set.
   - [ ] Add failing tests for idempotent warm-up behavior and partial-failure recovery.
