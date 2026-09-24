@@ -31,6 +31,9 @@ export default defineConfig({
     // Dev-tooling suites (e.g. the pack validator) run alongside app tests.
     include: ['src/**/*.test.ts', 'dev/tools/**/*.test.ts'],
     coverage: {
+      // Dev-only asset/pack tooling is tested by Vitest but excluded from
+      // shipped-app coverage; the app remains the product-quality boundary.
+      exclude: ['dev/tools/**'],
       // Enforced gate calibrated to the measured master baseline (track
       // ci-qa-hardening_20260917): 72.88 / 77.55 / 89.57 / 72.42 at fa84ee1.
       // Active only when coverage runs (`pnpm test --coverage`); CI runs it.

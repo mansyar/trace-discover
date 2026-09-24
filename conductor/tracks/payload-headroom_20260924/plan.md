@@ -29,7 +29,7 @@
   - [x] Exclude Rive behavior changes, runtime loading changes, required art, and unproven files.
   - [x] Document the selected candidates and expected headroom in this plan before modifying shipped assets.
 
-  **Selected candidates (2026-09-24):** re-encode the 117 `public/art/{goal,sticker,pack}/**/*.webp` files at WebP quality 0.80 with unchanged dimensions, alpha, filenames, and URLs. Keep backgrounds at their existing q0.80 policy, faces at q0.85, and do not touch Rive/WASM or generated code. Do not remove any shipped asset. Representative q80 probes saved 10–20% per large goal/sticker/pack asset; the 1,894,940 B foreground set therefore has an estimated 190–380 KB savings range, with the exact full-stage measurement required before installation. The q80 floor is the first safe candidate; q75 remains available only if visual review and measured results justify it.
+  **Selected candidates (2026-09-24):** re-encode the 169 `public/art/{goal,sticker,pack}/**/*.webp` files at WebP quality 0.80 with unchanged dimensions, alpha, filenames, and URLs. Keep backgrounds at their existing q0.80 policy, faces at q0.85, and do not touch Rive/WASM or generated code. Do not remove any shipped asset. Representative q80 probes saved 10–20% per large goal/sticker/pack asset; the 1,894,940 B foreground set therefore has an estimated 190–380 KB savings range, with the exact full-stage measurement required before installation. The q80 floor is the first safe candidate; q75 remains available only if visual review and measured results justify it.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [x] Run the phase's focused tests and record the inventory command and output.
   - [x] Confirm the selected candidates satisfy the spec's fixed-ceiling and safe-asset boundaries.
@@ -38,26 +38,28 @@
 
 ## Phase 2 — Safe asset optimization and budget re-measurement
 
-- [ ] Task: Write failing tests for new optimization behavior
-  - [ ] If a new optimizer or asset-pipeline change is required, write focused tests for deterministic output, allowed format/dimension behavior, and preservation of required URLs before implementation.
-  - [ ] Add a negative test proving required offline assets cannot be removed by the optimization process.
-  - [ ] Run the focused tests and confirm RED for the intended unimplemented behavior.
-- [ ] Task: Implement the approved safe optimizations
-  - [ ] Apply the documented re-encoding/metadata/dimension optimizations only to the selected candidates.
-  - [ ] Remove a shipped file only when the inventory evidence proves it is unused by runtime, PWA, dev harness, QA, and approved source assets.
-  - [ ] Keep source/approval artifacts and the current public asset URLs stable unless the spec explicitly permits a reviewed replacement.
-  - [ ] Run the focused tests and confirm GREEN.
-- [ ] Task: Re-measure the production build
-  - [ ] Build with `pnpm build` and run `pnpm budget`.
-  - [ ] Record absolute bytes, precache entries, category deltas, and remaining headroom against the unchanged 6.00 MB / 200-entry ceilings.
-  - [ ] If either target is missed, stop before unrelated changes and record the exact shortfall for a separate owner decision; do not re-anchor the ceilings in this track.
-- [ ] Task: Review the optimized assets
-  - [ ] Inspect representative optimized assets for visual parity, alpha handling, dimensions, and file integrity.
-  - [ ] Confirm approved source assets remain available for future regeneration and review.
-  - [ ] Document every changed shipped file and its reason in the plan.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Run the phase tests and production build evidence.
-  - [ ] Confirm the measured result either meets 250 KB / 20 entries or is explicitly documented as blocked.
+- [x] Task: Write failing tests for new optimization behavior
+  - [x] If a new optimizer or asset-pipeline change is required, write focused tests for deterministic output, allowed format/dimension behavior, and preservation of required URLs before implementation.
+  - [x] Add a negative test proving required offline assets cannot be removed by the optimization process.
+  - [x] Run the focused tests and confirm RED for the intended unimplemented behavior. **RED confirmed:** missing `dev/tools/webp-diet.mjs`; 751 existing tests passed.
+- [x] Task: Implement the approved safe optimizations
+  - [x] Apply the documented re-encoding/metadata/dimension optimizations only to the selected candidates.
+  - [x] Remove a shipped file only when the inventory evidence proves it is unused by runtime, PWA, dev harness, QA, and approved source assets. **No files removed:** inventory found no unreferenced dist or public-only assets.
+  - [x] Keep source/approval artifacts and the current public asset URLs stable unless the spec explicitly permits a reviewed replacement. **Verified:** 169 WebP paths, dimensions, alpha channels, and URLs preserved.
+  - [x] Run the focused tests and confirm GREEN. **GREEN confirmed:** 754 tests passed with `CI=true pnpm test -- dev/tools/webp-diet.test.ts`.
+- [x] Task: Re-measure the production build
+  - [x] Build with `pnpm build` and run `pnpm budget`.
+  - [x] Record absolute bytes, precache entries, category deltas, and remaining headroom against the unchanged 6.00 MB / 200-entry ceilings.
+  - [x] If either target is missed, stop before unrelated changes and record the exact shortfall for a separate owner decision; do not re-anchor the ceilings in this track. **Shortfall:** 5,555,072 B / 6,000,000 B gives 444,928 B size headroom, but 197 / 200 entries gives only 3 entry slots; target requires 20, a 17-entry shortfall.
+
+  **Measured result (2026-09-24):** q0.75 foreground candidates reduced `public/art` from 2,134,170 B to 1,793,002 B (−341,168 B). Final dist: 5,555,072 B; categories: Rive 2,575,533 B, art 1,793,002 B (goal 855,212 B; sticker 446,716 B; pack 251,844 B; bg 179,790 B; face 59,440 B), assets 1,124,099 B, root 32,415 B, icons 30,023 B. `pnpm budget` passed both fixed ceilings.
+- [x] Task: Review the optimized assets
+  - [x] Inspect representative optimized assets for visual parity, alpha handling, dimensions, and file integrity.
+  - [x] Confirm approved source assets remain available for future regeneration and review.
+  - [x] Document every changed shipped file and its reason in the plan. **Review:** q0.75 side-by-side review passed for representative goal, sticker, and pack assets, including the highest-difference `sticker/pre-bonus-3.webp` sample. Changed set: 169 files under `public/art/{goal,sticker,pack}/`; all changed to reviewed q0.75 WebP candidates with stable paths.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Run the phase tests and production build evidence. **PASS:** `CI=true pnpm check`, coverage (73.62 / 77.75 / 89.79 / 73.17), `pnpm pack:check`, build, budget, and inventory assertion all pass; 754 tests pass.
+  - [x] Confirm the measured result either meets 250 KB / 20 entries or is explicitly documented as blocked. **BLOCKED:** size target met (444,928 B headroom); entry target missed by 17 (3 slots available vs 20 required). No Phase 2 checkpoint is claimed because the approved completion criteria are not fully met; do not re-anchor or expand scope.
 
 ## Phase 3 — Regression, offline, and visual verification
 
