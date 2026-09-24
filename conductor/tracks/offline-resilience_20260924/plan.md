@@ -64,12 +64,14 @@
   - [x] Run the focused suite and confirm the expected RED state before implementation.
 
   **RED evidence (2026-09-24):** Focused `CI=true pnpm exec vitest run src/pwa/contentCache.test.ts` failed as intended with 3 failed / 7 passed. The three new progress tests fail because `warmContentAssets` accepts no options today, so no reports are emitted (the monotonicity assertion receives an empty list and `Math.max()` yields `-Infinity`), while all seven pre-existing content-cache tests still pass — the Red state is the missing behavior, not a broken harness. The new suite asserts report *shape* (one resolution per asset, constant totals, no repeated resolution, final resolution equal to the inventory size, already-cached assets counted as resolved) rather than a strict emission order, so it remains valid once bounded concurrency lands. The one pre-existing partial-failure test now injects `retryDelayMs: () => 0` so the upcoming retry default cannot slow the suite; its expectations are unchanged.
-- [ ] Task: Write failing tests for concurrency and retry behavior
-  - [ ] Prove the in-flight count never exceeds the configured concurrency.
-  - [ ] Prove a transient failure is retried up to the configured attempts and a later success is retained.
-  - [ ] Prove an exhausted asset is reported as failed and still counts as resolved for progress.
-  - [ ] Prove one failing asset never blocks or discards another asset's successful cache write.
-  - [ ] Run the focused suite and confirm the expected RED state.
+- [x] Task: Write failing tests for concurrency and retry behavior [b82c9cf]
+  - [x] Prove the in-flight count never exceeds the configured concurrency.
+  - [x] Prove a transient failure is retried up to the configured attempts and a later success is retained.
+  - [x] Prove an exhausted asset is reported as failed and still counts as resolved for progress.
+  - [x] Prove one failing asset never blocks or discards another asset's successful cache write.
+  - [x] Run the focused suite and confirm the expected RED state.
+
+  **RED evidence (2026-09-24):** Focused run reported 6 failed / 8 passed. The concurrency test fails because the serial loop never overlaps work (peak in-flight stays 1, so `expect(peak).toBeGreaterThan(1)` fails), the retry tests fail because a thrown `add` is never re-attempted (attempt count stays 1) and the injected backoff is never called, and the three progress tests remain Red pending the Green step. The test that proves a permanently failing asset cannot discard another asset's cached result already passes against the serial implementation; it is retained deliberately as a characterization guard on behavior the Green step must not break rather than as a Red assertion. The retry contract is pinned precisely: `retryDelayMs(attempt)` receives the 1-based attempt that just failed and is not called after the final attempt (`[1, 2]` for `attempts: 3`).
 - [ ] Task: Implement the progress, concurrency, and retry contract
   - [ ] Add injectable `onProgress`, `concurrency`, `attempts`, and retry-delay options with documented defaults.
   - [ ] Keep the injected `schedule(…)` semantics and the online gate of the scheduling entry point unchanged for existing callers.
