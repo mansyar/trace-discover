@@ -72,11 +72,17 @@
   - [x] Run the focused suite and confirm the expected RED state.
 
   **RED evidence (2026-09-24):** Focused run reported 6 failed / 8 passed. The concurrency test fails because the serial loop never overlaps work (peak in-flight stays 1, so `expect(peak).toBeGreaterThan(1)` fails), the retry tests fail because a thrown `add` is never re-attempted (attempt count stays 1) and the injected backoff is never called, and the three progress tests remain Red pending the Green step. The test that proves a permanently failing asset cannot discard another asset's cached result already passes against the serial implementation; it is retained deliberately as a characterization guard on behavior the Green step must not break rather than as a Red assertion. The retry contract is pinned precisely: `retryDelayMs(attempt)` receives the 1-based attempt that just failed and is not called after the final attempt (`[1, 2]` for `attempts: 3`).
-- [ ] Task: Implement the progress, concurrency, and retry contract
-  - [ ] Add injectable `onProgress`, `concurrency`, `attempts`, and retry-delay options with documented defaults.
-  - [ ] Keep the injected `schedule(…)` semantics and the online gate of the scheduling entry point unchanged for existing callers.
-  - [ ] Return the accumulated result so a caller can observe completion, failures, and exhausted assets.
-  - [ ] Keep the module dependency-free (no timers, no globals) so every behavior stays unit-testable.
+- [x] Task: Implement the progress, concurrency, and retry contract [0cf618e]
+  - [x] Add injectable `onProgress`, `concurrency`, `attempts`, and retry-delay options with documented defaults.
+  - [x] Keep the injected `schedule(…)` semantics and the online gate of the scheduling entry point unchanged for existing callers.
+  - [x] Return the accumulated result so a caller can observe completion, failures, and exhausted assets.
+  - [x] Keep the module dependency-free (no timers, no globals) so every behavior stays unit-testable.
+
+  **GREEN evidence (2026-09-24):** Focused `CI=true pnpm exec vitest run src/pwa/contentCache.test.ts` passed 15/15 in 33 ms (the injected zero-delay keeps the suite free of real backoff). Full `CI=true pnpm test` passed with 60 files / 769 tests; `CI=true pnpm check` clean (Biome 132 files, TypeScript strict with `noUncheckedIndexedAccess` — the lane pool indexes the inventory through an explicit `undefined` guard rather than a non-null assertion). `contentCache.ts` coverage rose to 98.27 statements / 84 branches / 100 functions / 98.24 lines (from 91.37 / 76 / 78.57 / 91.22); global coverage 74.31 / 78.01 / 90.2 / 73.87 sits above both the enforced thresholds (72 / 76 / 88 / 72) and the pre-track baseline (74.02 / 77.93 / 90.07 / 73.57).
+
+  **Implementation notes:** defaults are `attempts: 3`, `concurrency: 6`, and backoff `250 ms` then `750 ms` (any further attempt reuses the last delay); `retryDelayMs(attempt)` receives the 1-based attempt that just failed and is never called after the final attempt. Concurrency is clamped to the inventory size, so an empty inventory resolves with a single `0 / 0` report and no store access. `scheduleContentWarmup` is untouched — its signature, injected `schedule(…)` semantics, and online gate behave exactly as before, which the pre-existing scheduling test still proves.
+
+  **Coverage gap closed in this step:** the first coverage run showed `contentCache.ts` lines 73–78 uncovered — the *default* backoff path, which only executes in the real app. A fake-timer test now pins the schedule precisely (one attempt at 0 ms, no retry at 249 ms, second attempt at 250 ms, none at 999 ms, third at 1000 ms, then a permanent failure), removing the last untested production timing value from this module.
 - [ ] Task: Verify GREEN and preserve existing behavior
   - [ ] Run the focused warm-up tests, then the full suite with `CI=true pnpm test`.
   - [ ] Run `CI=true pnpm check`.
