@@ -10,11 +10,15 @@
 
 ## Phase 1 — Baseline, deliberate documentation, and gate budget
 
-- [ ] Task: Capture the current production and test baseline
+- [~] Task: Capture the current production and test baseline
   - [ ] Build from the track base commit with `pnpm build`.
   - [ ] Record total dist bytes, filesystem files, generated precache entries, and the `pnpm budget` result against the unchanged 6,000,000 B / 200-entry ceilings.
   - [ ] Run `CI=true pnpm check` and `CI=true pnpm test` to establish the pre-change baseline.
   - [ ] Run `qa-offline.mjs` and `qa-perf.mjs` from the production preview and record the warm-up wall clock, cold boot, input-to-frame, and frame p95.
+
+  **Baseline evidence (2026-09-24):** Fresh `pnpm build` passed (precache 10 entries, 1135.92 KiB). `pnpm budget` passed both unchanged ceilings: 5,555,589 / 6,000,000 B and 10 / 200 entries (199 dist files; 197 filesystem non-worker files). `CI=true pnpm check` passed (Biome 132 files, TypeScript clean). `CI=true pnpm test` passed with 60 test files and 760 tests. `qa-offline.mjs` passed: 187/187 content warm-up online, 187/187 retained after the offline cold reload, `pre-1` traced to success, no page errors. `qa-perf.mjs` reported 262 ms boot to interactive (domContentLoaded 116 ms, load 210 ms), 1.7 ms input-to-next-frame, and frame intervals n=1549 mean 4.43 ms / p50 4.20 ms / p95 4.30 ms / max 133.40 ms, no page errors; the 262 ms figure sits well above the 130–150 ms recorded on the previous track, so it is treated as run/machine variance to be re-checked at closeout.
+
+  **Warm-up wall clock (2026-09-24):** With a fresh browser context and page-level CDP throttling, the content cache reached 187/187 in 3.9 s at Fast 3G and 7.6 s at Slow 3G, stepping 0 → 42 → 160 → 187 at roughly one-second intervals. The emulation demonstrably throttles page requests (boot to interactive rose from 852 ms to 2521 ms) but **not** service-worker fetches — 4.37 MB of content cannot cross a 400 kbps link in 7.6 s — so real-network warm-up time is **not** measurable with this instrument and the fast figures must not be read as 3G behaviour. Because `warmContentAssets` is serial, the honest worst-case estimate for a real 400 kbps / 400 ms link is ~90–160 s of sequential fetching; that estimate is the basis for the offline escape (FR3/FR4), bounded retries (FR3), and the concurrency change (FR2). Temporary instrumentation lived at `dev/qa/out/warmup-timing.mjs` (git-ignored); the permanent probe arrives in Phase 6.
 - [ ] Task: Record the deliberate readiness-gate strategy before implementation
   - [ ] Add a dated `tech-stack.md` entry covering the readiness gate and the warm-up progress/retry contract.
   - [ ] Record the deliberate relaxation of the "no spinners" and "never urgent" guidelines in `product-guidelines.md`, including its limits (drawn only, no text, no failure state, three exits).
