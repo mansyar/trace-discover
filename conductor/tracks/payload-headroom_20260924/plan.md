@@ -8,7 +8,7 @@
 
 ---
 
-## Phase 1 — Baseline inventory and safe-candidate decision
+## Phase 1 — Baseline inventory and safe-candidate decision [checkpoint: 550d9d0]
 
 - [x] Task: Capture the production baseline
   - [x] Build with `pnpm build` from the track base commit and record total dist bytes, precache entries, and category breakdown.
@@ -16,21 +16,25 @@
   - [x] Record the current `pnpm budget` result: 5,896,240 B / 6,000,000 B and 197 / 200 entries at track creation.
 
   **Evidence (2026-09-24):** `pnpm build && pnpm budget` passed. The build emitted 199 dist files, 197 precache entries, and `dist-budget: total 5896240 / 6000000 B - PASS`, `entries 197 / 200 - PASS`. Categories: Rive 2,575,533 B; art 2,134,170 B (goal 1,031,748 B; sticker 551,674 B; pack 311,518 B; bg 179,790 B; face 59,440 B); generated assets 1,124,099 B; root 32,415 B; icons 30,023 B. The exact file/size listing was captured from `find dist -type f -printf '%P %s\\n' | sort` and `find public -type f -printf '%P %s\\n' | sort`.
-- [ ] Task: Write failing tests for deterministic payload inventory
-  - [ ] Add a test for the inventory report's stable category totals and required fields before adding or changing any inventory tooling.
-  - [ ] Add a negative fixture proving missing or unreferenced shipped assets are reported rather than silently ignored.
-  - [ ] Run `CI=true pnpm test -- dev/tools/asset-inventory.test.ts` and confirm the new tests fail for the expected missing behavior.
-- [ ] Task: Implement or extend the dev-only inventory tool
-  - [ ] Add only the minimum deterministic reporting needed to produce the baseline categories and orphaned-asset evidence.
-  - [ ] Reuse existing project conventions and avoid production runtime dependencies.
-  - [ ] Run the focused inventory tests and confirm GREEN.
-- [ ] Task: Select safe optimization candidates
-  - [ ] Rank candidates by measured savings, confidence of visual parity, and risk of breaking offline references.
-  - [ ] Exclude Rive behavior changes, runtime loading changes, required art, and unproven files.
-  - [ ] Document the selected candidates and expected headroom in this plan before modifying shipped assets.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Run the phase's focused tests and record the inventory command and output.
-  - [ ] Confirm the selected candidates satisfy the spec's fixed-ceiling and safe-asset boundaries.
+- [x] Task: Write failing tests for deterministic payload inventory
+  - [x] Add a test for the inventory report's stable category totals and required fields before adding or changing any inventory tooling.
+  - [x] Add a negative fixture proving missing or unreferenced shipped assets are reported rather than silently ignored.
+  - [x] Run `CI=true pnpm test -- dev/tools/asset-inventory.test.ts` and confirm the new tests fail for the expected missing behavior. **RED confirmed:** missing `dev/tools/asset-inventory.mjs`; 748 existing tests passed.
+- [x] Task: Implement or extend the dev-only inventory tool
+  - [x] Add only the minimum deterministic reporting needed to produce the baseline categories and orphaned-asset evidence.
+  - [x] Reuse existing project conventions and avoid production runtime dependencies.
+  - [x] Run the focused inventory tests and confirm GREEN. **GREEN confirmed:** 751 tests passed; CLI reproduced 5,896,240 B / 197 entries with no unreferenced dist or public-only files.
+- [x] Task: Select safe optimization candidates
+  - [x] Rank candidates by measured savings, confidence of visual parity, and risk of breaking offline references.
+  - [x] Exclude Rive behavior changes, runtime loading changes, required art, and unproven files.
+  - [x] Document the selected candidates and expected headroom in this plan before modifying shipped assets.
+
+  **Selected candidates (2026-09-24):** re-encode the 117 `public/art/{goal,sticker,pack}/**/*.webp` files at WebP quality 0.80 with unchanged dimensions, alpha, filenames, and URLs. Keep backgrounds at their existing q0.80 policy, faces at q0.85, and do not touch Rive/WASM or generated code. Do not remove any shipped asset. Representative q80 probes saved 10–20% per large goal/sticker/pack asset; the 1,894,940 B foreground set therefore has an estimated 190–380 KB savings range, with the exact full-stage measurement required before installation. The q80 floor is the first safe candidate; q75 remains available only if visual review and measured results justify it.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Run the phase's focused tests and record the inventory command and output.
+  - [x] Confirm the selected candidates satisfy the spec's fixed-ceiling and safe-asset boundaries.
+
+  **Phase evidence (2026-09-24):** `CI=true pnpm test -- dev/tools/asset-inventory.test.ts` passed with 751 tests; the real-build inventory assertion passed at 5,896,240 B / 197 entries with `unreferencedDist: []` and `publicOnly: []`. Selected candidates remain q0.80 foreground WebP only, with no Rive/runtime/URL/removal scope. Awaiting owner manual-verification confirmation before checkpointing.
 
 ## Phase 2 — Safe asset optimization and budget re-measurement
 
