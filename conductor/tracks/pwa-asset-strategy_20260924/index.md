@@ -12,5 +12,5 @@ PWA precache headroom and runtime asset strategy.
 
 - **Type:** Chore
 - **Branch:** `track/pwa-asset-strategy`
-- **Status:** new
+- **Status:** complete
 - **Created:** 2026-09-24

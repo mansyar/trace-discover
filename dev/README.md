@@ -63,8 +63,8 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-numerals.mjs` | Numerals pack trace QA | dev `:5199` | canonical |
 | `qa-pack-app.mjs` | Numbers pack full app flow | preview | canonical |
 | `qa-pack-badge.mjs` | Numbers badge chain (10 numerals → celebration → collection) | dev `:5199` | canonical |
-| `qa-offline.mjs` | SW install → fully-offline cold-start probe | preview `:4173` | canonical |
-| `qa-update.mjs` | Update lifecycle: waiting SW proven on a sandboxed `dist/` copy (run `pnpm build` first) | none — self-served `:4185` | canonical |
+| `qa-offline.mjs` | SW install → all-content warm-up (`187/187`) → fully-offline cold-start probe | preview `:4173` | canonical |
+| `qa-update.mjs` | Update lifecycle: waiting SW + runtime content refresh + next-cold-start activation on a sandboxed `dist/` copy (run `pnpm build` first) | none — self-served `:4185` | canonical |
 | `qa-perf.mjs` | Perf sampling (cold boot / input latency / frame times) | preview | canonical |
 | `qa-letters-pack.mjs` | Letters pack journey: two pages + pager, level A, harness trace | dev `:5199` | canonical |
 | `qa-letters-glyphs.mjs` | Per-glyph harness screenshots — A–Z + `ABC`/`MOM`/`ZOO` | dev `:5199` | utility |
@@ -104,9 +104,44 @@ in `parent-zone_20260917` (2026-09-17); `qa-pack-preview` added in
 `menu-capacity_20260917` (2026-09-17); the stale category is now empty — its
 four members (`qa-diag-pre3`, `qa-probe`, `browsertest`, `serve`) were removed
 in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
-(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in `animal-outlines_20260919` (2026-09-19);
-`qa-patterns-sweep` + `qa-patterns-rotate` + `qa-patterns-zerotext` added in
-`patterns-pack_20260920` (2026-09-20).*
+(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in
+`animal-outlines_20260919` (2026-09-19); `qa-patterns-sweep` +
+`qa-patterns-rotate` + `qa-patterns-zerotext` added in
+`patterns-pack_20260920` (2026-09-20); PWA asset-strategy coverage updated in
+`pwa-asset-strategy_20260924` (2026-09-24).*
+
+## PWA asset strategy and verification
+
+The production build precaches the app shell and boot-critical resources, while
+all shipped `public/art/**/*` and `public/rive/*.riv` files use the shared
+`trace-discover-content-v1` runtime cache. `src/pwa/contentCache.ts` derives the
+complete content inventory from Vite's public-asset globs, so new shipped
+content is included automatically. After a successful online boot, the app
+schedules a background, idempotent warm-up and retries on the browser `online`
+event. The Workbox `NetworkFirst` route refreshes content online and falls back
+to the cached response offline; partial failures are retained and retried on a
+later online boot without showing child-facing loading, error, or update UI.
+The service worker remains waiting-only: a downloaded update activates on the
+next cold start, never into a running child session.
+
+For a clean verification pass, run the production build first:
+
+```bash
+pnpm build
+node dev/qa/qa-offline.mjs http://localhost:4173/ pre-1
+node dev/qa/qa-update.mjs
+node dev/qa/qa-smoke.mjs http://localhost:4173
+node dev/qa/qa-perf.mjs http://localhost:4173
+```
+
+`qa-offline.mjs` should report `online: content warm-up 187/187`, then
+`offline: app booted with 187/187 content assets` and complete the selected
+`pre-1` journey without page errors. `qa-update.mjs` must report a waiting
+worker, no running-page takeover, an online runtime-content refresh, successful
+next-cold-start activation, and updated offline content with no page errors.
+The update probe serves its own sandbox and does not need a separately running
+preview server. Run the final size guard with `pnpm budget`; it reports the
+filesystem count separately from the generated service-worker precache count.
 
 > Smoke usage (two terminals): 1) `pnpm preview` (production build on `:4173`;
 > `pnpm serve` for LAN devices) — 2) `node dev/qa/qa-smoke.mjs`. CI runs the

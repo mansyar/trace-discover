@@ -2,7 +2,7 @@
   "id": "pwa-asset-strategy_20260924",
   "name": "PWA precache headroom and runtime asset strategy",
   "type": "Chore",
-  "status": "new",
+  "status": "complete",
   "created": "2026-09-24",
   "updated": "2026-09-24"
 }

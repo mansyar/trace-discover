@@ -3,7 +3,7 @@
 **Track ID:** `pwa-asset-strategy_20260924`
 **Branch:** `track/pwa-asset-strategy`
 **Spec:** [spec.md](./spec.md)
-**Status:** new
+**Status:** complete
 **Created:** 2026-09-24
 
 ---
@@ -85,7 +85,7 @@
 
 ---
 
-## Phase 3 — Build, budget, offline, and update verification
+## Phase 3 — Build, budget, offline, and update verification [checkpoint: e65315b]
 
 - [x] Task: Validate the new production payload
   - [x] Run `pnpm build`.
@@ -133,28 +133,36 @@
 
 ## Phase 4 — Documentation, review, and closeout
 
-- [~] Task: Update project documentation
-  - [ ] Add the deliberate PWA cache strategy and final measurements to `conductor/tech-stack.md`.
-  - [ ] Update the relevant dev/runbook instructions for the new warm-up and verification commands.
-  - [ ] Update this plan with final measurements, cache behavior, and any unresolved risk.
-  - [ ] Leave product definition and product guidelines unchanged because this track has no child-facing product change.
+- [x] Task: Update project documentation
+  - [x] Add the deliberate PWA cache strategy and final measurements to `conductor/tech-stack.md`.
+  - [x] Update the relevant dev/runbook instructions for the new warm-up and verification commands.
+  - [x] Update this plan with final measurements, cache behavior, and any unresolved risk.
+  - [x] Leave product definition and product guidelines unchanged because this track has no child-facing product change.
 
-- [ ] Task: Perform final self-review against the specification
-  - [ ] Confirm the final build has at most 180 precache entries.
-  - [ ] Confirm the final build remains at or below 6,000,000 bytes.
-  - [ ] Confirm every shipped pack and skin is available offline after warm-up.
-  - [ ] Confirm the update-on-next-launch and storage guarantees remain intact.
-  - [ ] Confirm no unrelated untracked files were modified or staged.
+  **Documentation evidence (2026-09-24):** `conductor/tech-stack.md` now records the completed critical/content split, `trace-discover-content-v1` `NetworkFirst` behavior, background warm-up/retry/failure policy, 10-entry precache result, 5,555,589 B total, and unchanged update lifecycle. `dev/README.md` documents the production build/QA sequence and the expected 187/187 offline and update probe outcomes. No product or product-guideline change was made.
 
-- [ ] Task: Run the final quality gates
-  - [ ] Run `CI=true pnpm check`.
-  - [ ] Run `CI=true pnpm test --coverage`.
-  - [ ] Run `pnpm pack:check`.
-  - [ ] Run `pnpm build` and `pnpm budget`.
-  - [ ] Run the final production smoke, offline, update, and performance probes.
+- [x] Task: Perform final self-review against the specification
+  - [x] Confirm the final build has at most 180 precache entries.
+  - [x] Confirm the final build remains at or below 6,000,000 bytes.
+  - [x] Confirm every shipped pack and skin is available offline after warm-up.
+  - [x] Confirm the update-on-next-launch and storage guarantees remain intact.
+  - [x] Confirm no unrelated untracked files were modified or staged.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Record the final evidence and owner feedback.
-  - [ ] Attach the required auditable verification report.
-  - [ ] Commit the final closeout updates using the repository’s conductor plan-commit convention.
-  - [ ] Mark the track complete only if the approved measurable outcomes pass.
+  **Self-review evidence (2026-09-24):** Fresh build reports 10 generated service-worker precache entries (187 fewer than the 197-entry baseline) and 5,555,589 B total, within the 180-entry target and 6,000,000 B ceiling. The complete generated `art/` + `rive/` inventory is 187/187 in the runtime cache after warm-up and remains 187/187 after an offline cold reload; the representative `pre-1` offline journey succeeds. The update probe proves the waiting worker, online content refresh, next-cold-start activation, offline updated content, and no running-session takeover. The save schema, storage behavior, child-facing UI, gameplay, audio, Rive triggers, and level geometry are unchanged. `git status` confirms the two pre-existing contact-sheet files remain untracked and untouched.
+
+- [x] Task: Run the final quality gates
+  - [x] Run `CI=true pnpm check`.
+  - [x] Run `CI=true pnpm test --coverage`.
+  - [x] Run `pnpm pack:check`.
+  - [x] Run `pnpm build` and `pnpm budget`.
+  - [x] Run the final production smoke, offline, update, and performance probes.
+
+  **Final-gate evidence (2026-09-24):** `CI=true pnpm check` passed (Biome checked 132 files; TypeScript clean). `CI=true pnpm test --coverage` passed (60 files / 760 tests; 74.02% statements, 77.93% branches, 90.07% functions, 73.57% lines; configured thresholds passed). `pnpm pack:check` passed (2 tests). Fresh `pnpm build && pnpm budget` passed with 10 precache entries and 5,555,589 B. Final QA passed: `qa-offline` 187/187 warm-up and offline `pre-1`; `qa-update` all checks including waiting worker/no takeover/runtime refresh/next-launch/offline updated content; `qa-smoke`; `qa-perf` (150 ms cold boot, 2.9 ms input-to-frame, 4.30 ms frame p95); and `qa-landscape` full portrait/landscape/rotation/tablet matrix with zero page errors.
+
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Record the final evidence and owner feedback.
+  - [x] Attach the required auditable verification report to functional commit `e65315b` as a git note, preserving the prior Phase 3 note and adding the Phase 4 closeout addendum.
+  - [x] Commit the final closeout updates using the repository’s conductor plan-commit convention.
+  - [x] Mark the track complete only if the approved measurable outcomes pass.
+
+  **Closeout evidence (2026-09-24):** The owner explicitly confirmed the manual-verification protocol and expected outcomes. All automated gates and browser probes passed: 10 generated precache entries, 5,555,589 B total, 187/187 content warm-up and offline coverage, waiting-worker/update-on-next-launch behavior, smoke, performance, and full portrait/landscape/rotation/tablet compatibility with zero page errors. The required auditable report is attached to `e65315b` as an appended git note; the pre-existing Phase 3 note was preserved. Acceptance conclusion: PASS. Product definition and product guidelines remain unchanged.
