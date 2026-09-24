@@ -83,10 +83,12 @@
   **Implementation notes:** defaults are `attempts: 3`, `concurrency: 6`, and backoff `250 ms` then `750 ms` (any further attempt reuses the last delay); `retryDelayMs(attempt)` receives the 1-based attempt that just failed and is never called after the final attempt. Concurrency is clamped to the inventory size, so an empty inventory resolves with a single `0 / 0` report and no store access. `scheduleContentWarmup` is untouched — its signature, injected `schedule(…)` semantics, and online gate behave exactly as before, which the pre-existing scheduling test still proves.
 
   **Coverage gap closed in this step:** the first coverage run showed `contentCache.ts` lines 73–78 uncovered — the *default* backoff path, which only executes in the real app. A fake-timer test now pins the schedule precisely (one attempt at 0 ms, no retry at 249 ms, second attempt at 250 ms, none at 999 ms, third at 1000 ms, then a permanent failure), removing the last untested production timing value from this module.
-- [ ] Task: Verify GREEN and preserve existing behavior
-  - [ ] Run the focused warm-up tests, then the full suite with `CI=true pnpm test`.
-  - [ ] Run `CI=true pnpm check`.
-  - [ ] Confirm no precache policy, cache name, save, or child-facing behavior changed.
+- [x] Task: Verify GREEN and preserve existing behavior
+  - [x] Run the focused warm-up tests, then the full suite with `CI=true pnpm test`.
+  - [x] Run `CI=true pnpm check`.
+  - [x] Confirm no precache policy, cache name, save, or child-facing behavior changed.
+
+  **Verification evidence (2026-09-24):** Focused suite 15/15; full `CI=true pnpm test` 60 files / 769 tests; `CI=true pnpm check` clean. The phase's change surface is exactly three files (`src/pwa/contentCache.ts`, `src/pwa/contentCache.test.ts`, and this plan) — `git diff --stat b63cc09 HEAD -- src/pwa/cachePolicy.ts vite.config.ts src/save src/main.ts` is empty, proving the cache name `trace-discover-content-v1`, the precache boundary, save schema v3, and every child-facing surface are untouched, and that this phase added no wiring. Fresh `pnpm build` reports 10 generated precache entries and `pnpm budget` PASSes at 5,556,165 / 6,000,000 B and 10 / 200 entries — the total rose by 576 B against the baseline purely from the new warm-up code, with the ceilings still un-re-anchored.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Confirm the progress contract alone is sufficient for a truthful indication.
   - [ ] Confirm the warm-up remains idempotent and retains successful work.
