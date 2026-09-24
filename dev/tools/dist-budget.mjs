@@ -58,6 +58,7 @@ const artSub = new Map();
 let totalBytes = 0;
 let fileCount = 0;
 let entries = 0;
+let filesystemEntries = 0;
 
 function walk(dir) {
   for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -76,7 +77,7 @@ function walk(dir) {
     }
     totalBytes += bytes;
     fileCount += 1;
-    if (!NOT_PRECACHED.test(path.basename(rel))) entries += 1;
+    if (!NOT_PRECACHED.test(path.basename(rel))) filesystemEntries += 1;
   }
 }
 walk(DIST);
@@ -86,13 +87,16 @@ const swPath = path.join(DIST, 'sw.js');
 if (fs.existsSync(swPath)) {
   const matches = fs.readFileSync(swPath, 'utf8').match(/url:"/g);
   swReported = matches ? matches.length : 0;
+  entries = swReported;
+} else {
+  entries = filesystemEntries;
 }
 
 const mb = (n) => `${(n / 1e6).toFixed(2)} MB`;
 console.log(`dist-budget: ${path.relative(process.cwd(), DIST)}`);
 console.log(
-  `  files: ${fileCount} (precache entries: ${entries}${
-    swReported === null ? '' : `; sw.js reports ${swReported}`
+  `  files: ${fileCount} (filesystem non-worker files: ${filesystemEntries}; precache entries: ${entries}${
+    swReported === null ? '' : ' from sw.js manifest'
   })`,
 );
 console.log(`  total: ${totalBytes} B (${mb(totalBytes)})`);
@@ -120,9 +124,9 @@ if (entries > ceilEntries) {
 } else {
   console.log(`dist-budget: entries ${entries} / ${ceilEntries} - PASS`);
 }
-if (swReported !== null && swReported !== entries) {
+if (swReported !== null && swReported !== filesystemEntries) {
   console.log(
-    `dist-budget: note - sw.js manifest count (${swReported}) differs from filesystem count (${entries})`,
+    `dist-budget: note - sw.js manifest count (${swReported}) differs from filesystem non-worker count (${filesystemEntries})`,
   );
 }
 process.exit(failed ? 1 : 0);

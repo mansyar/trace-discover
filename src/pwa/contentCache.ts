@@ -2,33 +2,10 @@
 // expose the shipped content inventory for a background runtime-cache warm-up.
 // The inventory is derived from Vite's public-asset view so new art and Rive
 // files are included without maintaining a second hand-written URL list.
-export const CONTENT_CACHE_NAME = 'trace-discover-content-v1';
+import { CONTENT_CACHE_NAME } from './cachePolicy';
 
-export type AssetCacheKind = 'critical' | 'content' | 'unclassified';
-
-const CRITICAL_FILES = new Set([
-  '/index.html',
-  '/manifest.webmanifest',
-  '/registerSW.js',
-  '/sw.js',
-]);
-const CRITICAL_PREFIXES = ['/assets/', '/icons/'];
-const CONTENT_PREFIXES = ['/art/', '/rive/'];
-
-/** Classifies a served URL so build/runtime policy cannot silently overlap. */
-export function classifyAssetPath(path: string): AssetCacheKind {
-  if (
-    CRITICAL_FILES.has(path) ||
-    CRITICAL_PREFIXES.some((prefix) => path.startsWith(prefix)) ||
-    /^\/workbox-[^/]+\.js$/.test(path)
-  ) {
-    return 'critical';
-  }
-  if (CONTENT_PREFIXES.some((prefix) => path.startsWith(prefix))) {
-    return 'content';
-  }
-  return 'unclassified';
-}
+export type { AssetCacheKind } from './cachePolicy';
+export { CONTENT_CACHE_NAME, classifyAssetPath } from './cachePolicy';
 
 const ART_ASSET_KEYS = Object.keys(import.meta.glob('/public/art/**/*'));
 const RIVE_ASSET_KEYS = Object.keys(import.meta.glob('/public/rive/*.riv'));
@@ -41,6 +18,23 @@ export const CONTENT_ASSET_URLS: readonly string[] = [...ART_ASSET_KEYS, ...RIVE
 export interface ContentCacheStore {
   add(url: string): Promise<void>;
   has(url: string): Promise<boolean>;
+}
+
+/** Adapts the browser Cache API to the small store used by warmContentAssets. */
+export function createBrowserContentCacheStore(
+  storage: CacheStorage = globalThis.caches,
+): ContentCacheStore {
+  let cachePromise: Promise<Cache> | null = null;
+  const cache = (): Promise<Cache> => {
+    cachePromise ??= storage.open(CONTENT_CACHE_NAME);
+    return cachePromise;
+  };
+  return {
+    add: async (url) => {
+      await (await cache()).add(url);
+    },
+    has: async (url) => Boolean(await (await cache()).match(url)),
+  };
 }
 
 export interface ContentWarmupResult {
@@ -68,4 +62,25 @@ export async function warmContentAssets(
     }
   }
   return { cached, complete: failed.length === 0, failed };
+}
+
+export interface ContentWarmupScheduleOptions {
+  isOnline: () => boolean;
+  schedule: (task: () => void) => void;
+  store: ContentCacheStore;
+  urls?: readonly string[];
+}
+
+/** Schedules the full content warm-up only when the browser reports connectivity. */
+export function scheduleContentWarmup(
+  options: ContentWarmupScheduleOptions,
+): Promise<ContentWarmupResult | null> {
+  if (!options.isOnline()) {
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve) => {
+    options.schedule(() => {
+      void warmContentAssets(options.urls ?? CONTENT_ASSET_URLS, options.store).then(resolve);
+    });
+  });
 }

@@ -72,6 +72,7 @@ import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
 import { levelForOrientation, pathGeometryLength } from './packs/wide';
+import { createBrowserContentCacheStore, scheduleContentWarmup } from './pwa/contentCache';
 import { type ConfettiParticle, createConfetti, stepConfetti } from './render/confetti';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
@@ -1332,7 +1333,20 @@ window.__app = {
   targets: () => screenTargets(),
 };
 
+function scheduleContentCacheWarmup(): void {
+  if (typeof caches === 'undefined') {
+    return;
+  }
+  void scheduleContentWarmup({
+    isOnline: () => navigator.onLine,
+    schedule: (task) => window.setTimeout(task, 0),
+    store: createBrowserContentCacheStore(),
+  });
+}
+
+window.addEventListener('online', scheduleContentCacheWarmup);
 window.addEventListener('resize', resize);
+scheduleContentCacheWarmup();
 hideCharacter();
 resize();
 requestAnimationFrame(frame);

@@ -44,34 +44,44 @@
 
 ## Phase 2 — Split precache and content warm-up implementation
 
-- [~] Task: Implement the critical precache policy
-  - [ ] Update `vite.config.ts` so the Workbox precache glob includes the app shell, HTML, JavaScript, CSS, WASM, manifest, icons, and other boot-critical files.
-  - [ ] Exclude only explicitly classified shipped content resources from precache.
-  - [ ] Add a maintainable classification mechanism with comments or constants explaining each resource class.
+- [x] Task: Implement the critical precache policy
+  - [x] Update `vite.config.ts` so the Workbox precache glob includes the app shell, HTML, JavaScript, CSS, WASM, manifest, icons, and other boot-critical files.
+  - [x] Exclude only explicitly classified shipped content resources from precache.
+  - [x] Add a maintainable classification mechanism with comments or constants explaining each resource class.
 
-- [ ] Task: Implement the content runtime-cache policy
-  - [ ] Add the minimal Workbox runtime caching rules needed for the classified content assets.
-  - [ ] Ensure the cache policy cannot serve stale content across a new service-worker release.
-  - [ ] Keep update activation waiting-only and preserve the existing first-install `clientsClaim` behavior.
-  - [ ] Do not add loading UI, error UI, update prompts, analytics, or network services.
+  **Precache evidence (2026-09-24):** `vite.config.ts` now keeps the existing critical extension set and adds explicit `globIgnores: ['**/art/**/*', '**/rive/**/*']`. `pnpm build && pnpm budget` passed with 10 generated service-worker precache entries, 5,555,589 B total, and the fixed 6,000,000 B / 200-entry ceilings. The budget tool now reports the generated SW manifest count rather than treating runtime-only files as precached.
 
-- [ ] Task: Implement the first-session content warm-up
-  - [ ] Add a pure, testable content-asset URL inventory covering all shipped goal art, sticker art, pack cards, badges, backdrops, and Rive characters.
-  - [ ] Warm content after the first successful online boot using a non-blocking background schedule.
-  - [ ] Make warm-up requests bounded and idempotent so they do not block first input or duplicate work.
-  - [ ] Make partial warm-up failure safe: continue normal online play, retain successfully cached assets, and retry safely on a later boot.
-  - [ ] Avoid requiring a child to open each pack before the app can become wholly offline-capable.
+- [x] Task: Implement the content runtime-cache policy
+  - [x] Add the minimal Workbox runtime caching rules needed for the classified content assets.
+  - [x] Ensure the cache policy cannot serve stale content across a new service-worker release.
+  - [x] Keep update activation waiting-only and preserve the existing first-install `clientsClaim` behavior.
+  - [x] Do not add loading UI, error UI, update prompts, analytics, or network services.
 
-- [ ] Task: Verify GREEN and preserve existing behavior
-  - [ ] Run the focused cache-policy and warm-up tests.
-  - [ ] Run the full unit suite with `CI=true pnpm test`.
-  - [ ] Run `CI=true pnpm check`.
-  - [ ] Confirm no save schema, level geometry, pack catalog, audio, Rive trigger, or child-facing UI behavior changed unintentionally.
+  **Runtime-cache evidence (2026-09-24):** `vite.config.ts` now registers a `NetworkFirst` rule for `/art/` and `/rive/` using the shared `trace-discover-content-v1` cache name, with a 3-second network timeout and 250-entry expiration. The generated `dist/sw.js` contains the rule; the existing `registerType: 'prompt'`, no-`skipWaiting`, and `clientsClaim` settings remain unchanged.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Build and inspect the generated service worker.
-  - [ ] Confirm the critical/content split is explicit and the warm-up contract is testable.
-  - [ ] Run the phase’s automated checks and checkpoint the phase according to the workflow.
+- [x] Task: Implement the first-session content warm-up
+  - [x] Add a pure, testable content-asset URL inventory covering all shipped goal art, sticker art, pack cards, badges, backdrops, and Rive characters.
+  - [x] Warm content after the first successful online boot using a non-blocking background schedule.
+  - [x] Make warm-up requests bounded and idempotent so they do not block first input or duplicate work.
+  - [x] Make partial warm-up failure safe: continue normal online play, retain successfully cached assets, and retry safely on a later boot.
+  - [x] Avoid requiring a child to open each pack before the app can become wholly offline-capable.
+
+  **Warm-up evidence (2026-09-24):** `src/pwa/contentCache.ts` derives the complete `art/` + `rive/` inventory from Vite public-asset globs, wraps the Cache API in an idempotent store, and schedules bounded background warming only when online. `src/main.ts` invokes it after boot and retries on the browser `online` event; no child-facing state or save behavior was added.
+
+- [x] Task: Verify GREEN and preserve existing behavior
+  - [x] Run the focused cache-policy and warm-up tests.
+  - [x] Run the full unit suite with `CI=true pnpm test`.
+  - [x] Run `CI=true pnpm check`.
+  - [x] Confirm no save schema, level geometry, pack catalog, audio, Rive trigger, or child-facing UI behavior changed unintentionally.
+
+  **GREEN evidence (2026-09-24):** Focused contract tests passed with 60 test files and 760 tests. Full `CI=true pnpm test` passed with 760 tests; `CI=true pnpm check` passed. The production build and budget gate passed with 10 precache entries and 5,555,589 B total.
+
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Build and inspect the generated service worker.
+  - [x] Confirm the critical/content split is explicit and the warm-up contract is testable.
+  - [x] Run the phase’s automated checks and checkpoint the phase according to the workflow.
+
+  **Phase 2 evidence (2026-09-24):** Fresh build reported 10 SW precache entries and 5,555,589 B total; `pnpm budget` passed. Full tests and `CI=true pnpm check` passed. The generated SW contains the explicit `/art/` + `/rive/` `NetworkFirst` runtime route and the existing waiting-service-worker behavior.
 
 ---
 
