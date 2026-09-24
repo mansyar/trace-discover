@@ -45,3 +45,9 @@
 - Per-theme presets (marimba / kalimba / soft plucks) share one musical language
 - Soft UI pops (a single soft instrument note per tap giggle, throttled so notes never stack); nothing loud or sudden; audio unlocks on first touch (iOS)
 - No ambient loops required — silence is fine
+
+---
+
+## Amendments
+
+*2026-09-24 — Amended (track `offline-resilience_20260924`, owner-approved 2026-09-24): one drawn readiness wait at first run.* Prior wording — UX Principle 6 (offline-first always: no network, no spinners, no errors) and the Voice & Tone rule that nothing is ever urgent — is narrowed here, not discarded. The app still needs no network to play, still shows no error states, and still counts down nothing. On a first run whose content cache is incomplete, the boot screen may hold with a code-drawn mascot and a traced-path progress indication until the shipped content inventory is cached, because a child who closes the app mid-warm-up otherwise owns a half-offline install. The wait is confined to that path: no text and no numbers, skipped entirely when the cache is complete, skipped when the device is offline, and released after bounded retries when assets keep failing — so every exit is reachable and the wait can never become a dead end. Recorded before implementation per `workflow.md` (Tech Stack is Deliberate).
