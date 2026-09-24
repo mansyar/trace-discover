@@ -87,43 +87,53 @@
 
 ## Phase 3 — Build, budget, offline, and update verification
 
-- [~] Task: Validate the new production payload
-  - [ ] Run `pnpm build`.
-  - [ ] Run `pnpm budget`.
-  - [ ] Confirm the build has no more than 180 precache entries.
-  - [ ] Confirm the build remains at or below 6,000,000 bytes.
-  - [ ] Record category totals and the exact entry-count reduction.
+- [x] Task: Validate the new production payload
+  - [x] Run `pnpm build`.
+  - [x] Run `pnpm budget`.
+  - [x] Confirm the build has no more than 180 precache entries.
+  - [x] Confirm the build remains at or below 6,000,000 bytes.
+  - [x] Record category totals and the exact entry-count reduction.
 
-- [ ] Task: Extend or adjust production QA probes
-  - [ ] Extend the offline probe to wait for and assert the all-content warm-up condition.
-  - [ ] Prove offline cold start works after warm-up.
-  - [ ] Prove navigation, levels, rewards, backdrops, sticker art, pack cards, badges, and all registered skin assets are available offline.
-  - [ ] Assert zero uncaught page errors during warm-up and offline navigation.
-  - [ ] Keep the probes compatible with the existing headless-Edge QA workflow.
+  **Payload evidence (2026-09-24):** Fresh `pnpm build && pnpm budget` passed. The generated service worker reports 10 precache entries (187 fewer than the 197-entry baseline), with 199 dist files and 197 non-worker filesystem files. Total is 5,555,589 B, leaving 444,411 B under the 6,000,000 B ceiling. Categories: Rive 2,575,533 B; art 1,793,002 B; generated assets 1,131,315 B; icons 30,023 B; root 25,716 B.
 
-- [ ] Task: Verify update lifecycle safety
-  - [ ] Run the existing update lifecycle probe.
-  - [ ] Confirm a downloaded update never takes over a running child session.
-  - [ ] Confirm activation occurs on the next cold start.
-  - [ ] Confirm content cached by the previous service worker is refreshed or safely superseded rather than served indefinitely.
-  - [ ] Confirm a failed or partial update leaves the current app playable.
+- [x] Task: Extend or adjust production QA probes
+  - [x] Extend the offline probe to wait for and assert the all-content warm-up condition.
+  - [x] Prove offline cold start works after warm-up.
+  - [x] Prove navigation, levels, rewards, backdrops, sticker art, pack cards, badges, and all registered skin assets are available offline.
+  - [x] Assert zero uncaught page errors during warm-up and offline navigation.
+  - [x] Keep the probes compatible with the existing headless-Edge QA workflow.
 
-- [ ] Task: Run performance and compatibility checks
-  - [ ] Run the production performance probe.
-  - [ ] Confirm first input is not delayed by warm-up work.
-  - [ ] Confirm boot, frame timing, and memory/resource behavior remain within the existing product budget.
-  - [ ] Run representative portrait and landscape browser journeys.
+  **QA evidence (2026-09-24):** `qa-offline.mjs` waited for 187/187 content assets online, retained 187/187 after the offline cold reload, traced `pre-1` to success, and reported no page errors. The probe compares the runtime cache against all shipped `dist/art/` + `dist/rive/` files.
 
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Record exact commands and outcomes for build, budget, coverage, smoke, offline, update, performance, portrait, and landscape checks.
-  - [ ] Confirm all acceptance criteria from the approved specification are satisfied.
-  - [ ] Perform the workflow’s manual-verification and checkpoint protocol.
+- [x] Task: Verify update lifecycle safety
+  - [x] Run the existing update lifecycle probe.
+  - [x] Confirm a downloaded update never takes over a running child session.
+  - [x] Confirm activation occurs on the next cold start.
+  - [x] Confirm content cached by the previous service worker is refreshed or safely superseded rather than served indefinitely.
+  - [x] Confirm a failed or partial update leaves the current app playable.
+
+  **Update evidence (2026-09-24):** `qa-update.mjs` passed all checks: the waiting worker did not claim or reload the running page, the synthetic content asset refreshed online through the runtime cache, the next cold start served vB, the updated content remained available offline, and no page errors occurred.
+
+- [x] Task: Run performance and compatibility checks
+  - [x] Run the production performance probe.
+  - [x] Confirm first input is not delayed by warm-up work.
+  - [x] Confirm boot, frame timing, and memory/resource behavior remain within the existing product budget.
+  - [x] Run representative portrait and landscape browser journeys.
+
+  **Performance evidence (2026-09-24):** `qa-smoke.mjs` passed with `pre-1` success and no page errors. `qa-perf.mjs` reported 130 ms cold boot, 2.4 ms input-to-next-frame, and 4.30 ms frame p95. `qa-landscape.mjs` passed the full portrait/landscape/rotation/tablet matrix with zero page errors.
+
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Record exact commands and outcomes for build, budget, coverage, smoke, offline, update, performance, portrait, and landscape checks.
+  - [x] Confirm all acceptance criteria from the approved specification are satisfied.
+  - [x] Perform the workflow’s manual-verification and checkpoint protocol.
+
+  **Phase 3 evidence (2026-09-24):** Build/budget, `qa-offline`, `qa-update`, `qa-smoke`, `qa-perf`, and `qa-landscape` passed. The build remains under 6,000,000 B with 10 generated precache entries; whole-app offline content coverage is 187/187; update lifecycle and performance/compatibility checks are green. `CI=true pnpm check` and `pnpm pack:check` also passed after the QA changes.
 
 ---
 
 ## Phase 4 — Documentation, review, and closeout
 
-- [ ] Task: Update project documentation
+- [~] Task: Update project documentation
   - [ ] Add the deliberate PWA cache strategy and final measurements to `conductor/tech-stack.md`.
   - [ ] Update the relevant dev/runbook instructions for the new warm-up and verification commands.
   - [ ] Update this plan with final measurements, cache behavior, and any unresolved risk.

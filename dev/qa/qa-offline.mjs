@@ -10,6 +10,27 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const URL = process.argv[2] ?? 'http://localhost:4173/';
 const LEVEL = process.argv[3] ?? 'pre-1';
 const OUT = path.join(HERE, 'out', 'offline');
+const DIST = path.resolve(HERE, '..', '..', 'dist');
+const CONTENT_CACHE_NAME = 'trace-discover-content-v1';
+
+function countShippedContentFiles() {
+  let count = 0;
+  const walk = (dir) => {
+    for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, dirent.name);
+      if (dirent.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      const relative = path.relative(DIST, full).split(path.sep).join('/');
+      if (relative.startsWith('art/') || relative.startsWith('rive/')) {
+        count += 1;
+      }
+    }
+  };
+  walk(DIST);
+  return count;
+}
 
 const EDGE_PATHS = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
@@ -47,6 +68,27 @@ async function launch() {
   await page.waitForTimeout(1200);
   await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
 
+  const expectedContentCount = countShippedContentFiles();
+  await page.waitForFunction(
+    (expected) =>
+      caches
+        .open('trace-discover-content-v1')
+        .then((cache) => cache.keys())
+        .then((keys) => keys.length >= expected),
+    expectedContentCount,
+    { timeout: 60000 },
+  );
+  const onlineContentCount = await page.evaluate(async () => {
+    const cache = await caches.open('trace-discover-content-v1');
+    return (await cache.keys()).length;
+  });
+  if (onlineContentCount < expectedContentCount) {
+    throw new Error(
+      `online content warm-up incomplete: ${onlineContentCount}/${expectedContentCount}`,
+    );
+  }
+  console.log(`online: content warm-up ${onlineContentCount}/${expectedContentCount}`);
+
   // Optional preset skin (4th arg): prove that skin's assets boot offline too.
   const skin = process.argv[4];
   if (skin) {
@@ -82,7 +124,18 @@ async function launch() {
     const raw = localStorage.getItem('trace-discover-save-v1');
     return raw ? JSON.parse(raw).settings.skin : null;
   });
-  console.log(`offline: app booted from precache (storage skin: ${offlineSkin})`);
+  const offlineContentCount = await page.evaluate(async () => {
+    const cache = await caches.open('trace-discover-content-v1');
+    return (await cache.keys()).length;
+  });
+  if (offlineContentCount < expectedContentCount) {
+    throw new Error(
+      `offline content cache incomplete: ${offlineContentCount}/${expectedContentCount}`,
+    );
+  }
+  console.log(
+    `offline: app booted with ${offlineContentCount}/${expectedContentCount} content assets (storage skin: ${offlineSkin})`,
+  );
 
   const tap = async (id) => {
     const pt = await page.evaluate((targetId) => {
