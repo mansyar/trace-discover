@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   CONTENT_ASSET_URLS,
+  type ContentWarmupProgress,
   classifyAssetPath,
   createBrowserContentCacheStore,
   scheduleContentWarmup,
   warmContentAssets,
-  type ContentWarmupProgress,
 } from './contentCache';
 
 const SHIPPED_CONTENT_KEYS = [
@@ -251,6 +251,38 @@ describe('content warm-up retry and concurrency', () => {
     expect(delays).toEqual([1, 2]);
     expect(result).toEqual({ cached: [], complete: false, failed: ['/rive/dino.riv'] });
     expect(progress.reports).toEqual([{ resolved: 1, total: 1 }]);
+  });
+
+  it('uses the default 250 ms then 750 ms backoff schedule', async () => {
+    vi.useFakeTimers();
+    try {
+      const store = memoryStore();
+      store.add.mockImplementation(async () => {
+        throw new Error('unreachable');
+      });
+
+      const pending = warmContentAssets(['/rive/dino.riv'], store);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.add).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(249);
+      expect(store.add).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(store.add).toHaveBeenCalledTimes(2);
+
+      await vi.advanceTimersByTimeAsync(749);
+      expect(store.add).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(store.add).toHaveBeenCalledTimes(3);
+
+      expect(await pending).toEqual({
+        cached: [],
+        complete: false,
+        failed: ['/rive/dino.riv'],
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('keeps other assets cached when one asset fails permanently', async () => {

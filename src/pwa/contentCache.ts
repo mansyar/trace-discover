@@ -43,24 +43,102 @@ export interface ContentWarmupResult {
   failed: readonly string[];
 }
 
-/** Warms each unique content URL once, retaining successful work after failures. */
+/**
+ * Incremental warm-up progress. `resolved` counts every asset the warm-up is
+ * finished with — already cached, newly cached, or permanently failed — so it
+ * reaches `total` exactly once and never stalls before the warm-up ends.
+ */
+export interface ContentWarmupProgress {
+  readonly resolved: number;
+  readonly total: number;
+}
+
+export interface ContentWarmupOptions {
+  /** Delivery attempts per asset, including the first. */
+  readonly attempts?: number;
+  /** Maximum assets fetched at once. */
+  readonly concurrency?: number;
+  /** Called after every asset resolves, with a monotonic count. */
+  readonly onProgress?: (progress: ContentWarmupProgress) => void;
+  /** Backoff before a retry; receives the 1-based attempt that just failed. */
+  readonly retryDelayMs?: (attempt: number) => number;
+}
+
+const DEFAULT_ATTEMPTS = 3;
+const DEFAULT_CONCURRENCY = 6;
+/** Backoff between attempts: 250 ms after the first failure, then 750 ms for any further one. */
+const RETRY_DELAYS_MS = [250, 750];
+
+function retryDelayFor(attempt: number): number {
+  return RETRY_DELAYS_MS[attempt - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1] ?? 0;
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+/**
+ * Warms each unique content URL once, retaining successful work after failures.
+ * Work runs with bounded concurrency and bounded retries so a slow network is
+ * latency-bound rather than serial, and every asset settles exactly once.
+ */
 export async function warmContentAssets(
   urls: readonly string[],
   store: ContentCacheStore,
+  options: ContentWarmupOptions = {},
 ): Promise<ContentWarmupResult> {
+  const unique = [...new Set(urls)];
+  const attempts = Math.max(1, options.attempts ?? DEFAULT_ATTEMPTS);
+  const lanes = Math.min(Math.max(1, options.concurrency ?? DEFAULT_CONCURRENCY), unique.length);
+  const retryDelayMs = options.retryDelayMs ?? retryDelayFor;
   const cached: string[] = [];
   const failed: string[] = [];
-  for (const url of new Set(urls)) {
-    try {
-      if (await store.has(url)) {
-        continue;
+  let resolved = 0;
+  let cursor = 0;
+
+  const warmAsset = async (url: string): Promise<void> => {
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        if (!(await store.has(url))) {
+          await store.add(url);
+          cached.push(url);
+        }
+        return;
+      } catch {
+        if (attempt === attempts) {
+          failed.push(url);
+          return;
+        }
+        const backoff = retryDelayMs(attempt);
+        if (backoff > 0) {
+          await wait(backoff);
+        }
       }
-      await store.add(url);
-      cached.push(url);
-    } catch {
-      failed.push(url);
     }
+  };
+
+  const lane = async (): Promise<void> => {
+    while (cursor < unique.length) {
+      const url = unique[cursor];
+      cursor += 1;
+      if (url === undefined) {
+        return;
+      }
+      await warmAsset(url);
+      resolved += 1;
+      options.onProgress?.({ resolved, total: unique.length });
+    }
+  };
+
+  if (unique.length === 0) {
+    options.onProgress?.({ resolved: 0, total: 0 });
+    return { cached, complete: true, failed };
   }
+
+  await Promise.all(Array.from({ length: lanes }, lane));
+
   return { cached, complete: failed.length === 0, failed };
 }
 
