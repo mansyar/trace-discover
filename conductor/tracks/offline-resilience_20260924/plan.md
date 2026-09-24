@@ -25,11 +25,27 @@
   - [x] State explicitly that the precache policy and the update lifecycle are unchanged.
 
   **Strategy evidence (2026-09-24):** `conductor/tech-stack.md` carries a dated entry describing the readiness gate, the warm-up progress/retry contract, the shared drawn mascot primitive, the three gate exits, and the deliberate guideline relaxation, with the precache boundary, the `NetworkFirst` + `trace-discover-content-v1` runtime cache, the waiting-service-worker update lifecycle, and the save schema explicitly declared unchanged. `conductor/product-guidelines.md` gains an `## Amendments` section recording the narrowing (not discarding) of UX Principle 6 and the never-urgent rule, including its limits: no text or numbers, skipped when the cache is complete, skipped when offline, released after bounded retries. Both notes are recorded before any production code and reference `workflow.md` (Tech Stack is Deliberate).
-- [ ] Task: Fix the gate's measurable budget
-  - [ ] Define the gate's exit conditions in writing (cache complete · offline · retries exhausted).
-  - [ ] Define the attempts/backoff/concurrency defaults so the gate has a bounded worst case.
-  - [ ] Define the indicator's progress definition (`resolved / total`) so a stalled indication is detectable in review.
-  - [ ] Confirm the drawn gate needs zero new shipped bytes and record the expected payload delta (~0).
+- [~] Task: Fix the gate's measurable budget
+  - [x] Define the gate's exit conditions in writing (cache complete · offline · retries exhausted).
+  - [x] Define the attempts/backoff/concurrency defaults so the gate has a bounded worst case.
+  - [x] Define the indicator's progress definition (`resolved / total`) so a stalled indication is detectable in review.
+  - [x] Confirm the drawn gate needs zero new shipped bytes and record the expected payload delta (~0).
+
+  **Gate budget (2026-09-24, fixed before implementation):**
+
+  | Item | Value |
+  | --- | --- |
+  | Progress | `resolved / total`, emitted after every asset resolution; `total` = unique deduped inventory (187 shipped today); `resolved` = already-cached + newly-cached + exhausted-failed; monotonic; reaches `total` once; render clamps to 0..1 |
+  | Concurrency | 6 in flight by default (never exceeded) |
+  | Attempts | 3 per asset, backoff 250 ms then 750 ms (delay injectable; no attempt after the third) |
+  | Fetch-attempt ceiling | `attempts × total` (≤ 561 today); warm-up stays idempotent and retains successes across boots |
+  | Exits | cache complete · device offline at decision time · attempts exhausted |
+  | Warm-boot cost | zero when the cache is complete (gate skipped, no added work) |
+  | Payload delta | 0 shipped bytes (gate and stand-in are drawn on canvas); precache stays 10 entries; ceilings unchanged at 6,000,000 B / 200 with 444,411 B headroom |
+
+  **Deliberately rejected exit:** a wall-clock deadline. Releasing on elapsed time alone would abandon a slow-but-working link to drawn stand-ins, which contradicts the owner's chosen policy (bounded retries, then proceed). **Accepted residual risk:** a very slow but functioning connection can hold the gate for minutes; re-examined against real-network behaviour at the Phase 6 device pass. Nothing is at risk when that happens — the save is untouched and a closed session loses nothing.
+
+  **Expected benefit of the concurrency change:** on a 400 ms-RTT link the serial loop costs ~187 sequential round trips (the ~90–160 s estimate above); at concurrency 6 the same work becomes ~31 rounds — roughly an order of magnitude less latency-bound and transfer-bound instead.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Verify the baseline is recorded before any production change.
   - [ ] Verify the strategy and guideline amendment are documented before implementation.
