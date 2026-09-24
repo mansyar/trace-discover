@@ -24,6 +24,11 @@ function memoryStore(initial: readonly string[] = []) {
   return { cached, has, add };
 }
 
+function progressReporter() {
+  const reports: ContentWarmupProgress[] = [];
+  return { reports, onProgress: (progress: ContentWarmupProgress) => reports.push(progress) };
+}
+
 describe('content cache contract', () => {
   it('classifies boot-critical and content paths explicitly', () => {
     expect(classifyAssetPath('/index.html')).toBe('critical');
@@ -130,14 +135,9 @@ describe('content cache contract', () => {
 });
 
 describe('content warm-up progress', () => {
-  function reporter() {
-    const reports: ContentWarmupProgress[] = [];
-    return { reports, onProgress: (progress: ContentWarmupProgress) => reports.push(progress) };
-  }
-
   it('reports one resolution per asset, counting already cached assets as resolved', async () => {
     const store = memoryStore(['/art/goal/pre-1.webp']);
-    const progress = reporter();
+    const progress = progressReporter();
 
     await warmContentAssets(
       ['/art/goal/pre-1.webp', '/rive/dino.riv', '/art/sticker/pre-1.webp'],
@@ -152,7 +152,7 @@ describe('content warm-up progress', () => {
 
   it('reports a single empty resolution for an empty inventory', async () => {
     const store = memoryStore();
-    const progress = reporter();
+    const progress = progressReporter();
 
     await warmContentAssets([], store, { onProgress: progress.onProgress });
 
@@ -168,7 +168,7 @@ describe('content warm-up progress', () => {
       }
       store.cached.add(url);
     });
-    const progress = reporter();
+    const progress = progressReporter();
 
     await warmContentAssets(['/art/goal/pre-1.webp', '/art/unreachable.webp'], store, {
       onProgress: progress.onProgress,
@@ -188,5 +188,89 @@ describe('content warm-up progress', () => {
     const result = await warmContentAssets(['/rive/dino.riv'], store);
 
     expect(result).toEqual({ cached: ['/rive/dino.riv'], complete: true, failed: [] });
+  });
+});
+
+describe('content warm-up retry and concurrency', () => {
+  const MANY = Array.from({ length: 12 }, (_unused, index) => `/art/goal/level-${index}.webp`);
+
+  it('never exceeds the configured concurrency while still overlapping work', async () => {
+    const store = memoryStore();
+    let inFlight = 0;
+    let peak = 0;
+    store.add.mockImplementation(async (url: string) => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await Promise.resolve();
+      await Promise.resolve();
+      inFlight -= 1;
+      store.cached.add(url);
+    });
+
+    const result = await warmContentAssets(MANY, store, { concurrency: 3 });
+
+    expect(peak).toBeLessThanOrEqual(3);
+    expect(peak).toBeGreaterThan(1);
+    expect(store.add).toHaveBeenCalledTimes(MANY.length);
+    expect(result.complete).toBe(true);
+  });
+
+  it('retries a transient failure and retains the eventual success', async () => {
+    const store = memoryStore();
+    let attempts = 0;
+    store.add.mockImplementation(async (url: string) => {
+      attempts += 1;
+      if (attempts < 3) {
+        throw new Error('transient network failure');
+      }
+      store.cached.add(url);
+    });
+
+    const result = await warmContentAssets(['/rive/dino.riv'], store, { retryDelayMs: () => 0 });
+
+    expect(attempts).toBe(3);
+    expect(result).toEqual({ cached: ['/rive/dino.riv'], complete: true, failed: [] });
+  });
+
+  it('backs off between attempts and stops at the configured attempt count', async () => {
+    const store = memoryStore();
+    const delays: number[] = [];
+    store.add.mockRejectedValue(new Error('permanently unreachable'));
+
+    const progress = progressReporter();
+    const result = await warmContentAssets(['/rive/dino.riv'], store, {
+      attempts: 3,
+      onProgress: progress.onProgress,
+      retryDelayMs: (attempt) => {
+        delays.push(attempt);
+        return 0;
+      },
+    });
+
+    expect(store.add).toHaveBeenCalledTimes(3);
+    expect(delays).toEqual([1, 2]);
+    expect(result).toEqual({ cached: [], complete: false, failed: ['/rive/dino.riv'] });
+    expect(progress.reports).toEqual([{ resolved: 1, total: 1 }]);
+  });
+
+  it('keeps other assets cached when one asset fails permanently', async () => {
+    const store = memoryStore();
+    store.add.mockImplementation(async (url: string) => {
+      if (url === '/art/broken.webp') {
+        throw new Error('404');
+      }
+      store.cached.add(url);
+    });
+
+    const result = await warmContentAssets(
+      ['/art/broken.webp', '/rive/dino.riv', '/art/goal/pre-1.webp'],
+      store,
+      { attempts: 2, retryDelayMs: () => 0 },
+    );
+
+    expect([...result.cached].sort()).toEqual(['/art/goal/pre-1.webp', '/rive/dino.riv']);
+    expect(result.failed).toEqual(['/art/broken.webp']);
+    expect(result.complete).toBe(false);
+    expect(store.cached).toContain('/rive/dino.riv');
   });
 });
