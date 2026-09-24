@@ -8,7 +8,7 @@
 
 ---
 
-## Phase 1 — Baseline and cache contract
+## Phase 1 — Baseline and cache contract [checkpoint: f48571e]
 
 - [x] Task: Capture the current production and test baseline [26cfbe1]
   - [x] Build from the track base commit with `pnpm build`.
@@ -44,7 +44,7 @@
 
 ## Phase 2 — Split precache and content warm-up implementation
 
-- [ ] Task: Implement the critical precache policy
+- [~] Task: Implement the critical precache policy
   - [ ] Update `vite.config.ts` so the Workbox precache glob includes the app shell, HTML, JavaScript, CSS, WASM, manifest, icons, and other boot-critical files.
   - [ ] Exclude only explicitly classified shipped content resources from precache.
   - [ ] Add a maintainable classification mechanism with comments or constants explaining each resource class.
