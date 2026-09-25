@@ -31,9 +31,20 @@ export interface MenuLayout {
 }
 
 export interface SplashLayout {
+  /** Traced-path start angle: the top of the ring, where the fill begins. */
+  readonly arcStartAngle: number;
+  /** Stroke width of the traced progress fill, drawn on the ring itself. */
+  readonly arcWidth: number;
   readonly centerX: number;
   readonly centerY: number;
   readonly emblemRadius: number;
+  /** Drawn-mascot radius: nests inside the trace ring with room to spare. */
+  readonly mascotRadius: number;
+  /** Radius of the dashed trace ring (the splash identity). */
+  readonly ringRadius: number;
+  readonly ringWidth: number;
+  /** Tracer star radius: the marker riding the traced path as it fills. */
+  readonly tracerRadius: number;
 }
 
 const CARD_GAP = 30;
@@ -302,12 +313,42 @@ export function inParentGate(layout: MenuLayout, point: Point): boolean {
   );
 }
 
+const GATE_ARC_START = -Math.PI / 2;
+const GATE_ARC_WIDTH = 14;
+const GATE_MASCOT_RATIO = 0.86;
+const GATE_RING_RATIO = 1.35;
+const GATE_RING_WIDTH = 10;
+const GATE_TRACER_RATIO = 0.3;
+
+/**
+ * Splash and gate geometry for a field: one emblem scale drives the dashed
+ * ring, the traced fill sitting on it, the waiting mascot inside it, and the
+ * tracer star that rides the path. Every radius is a ratio of the emblem, so
+ * the whole gate scales with the field and cannot drift out of shape.
+ */
 export function splashLayout(fieldWidth: number, fieldHeight: number): SplashLayout {
+  const emblemRadius = Math.min(fieldWidth, fieldHeight) * 0.22;
   return {
+    arcStartAngle: GATE_ARC_START,
+    arcWidth: GATE_ARC_WIDTH,
     centerX: fieldWidth / 2,
     centerY: fieldHeight / 2,
-    emblemRadius: Math.min(fieldWidth, fieldHeight) * 0.22,
+    emblemRadius,
+    mascotRadius: emblemRadius * GATE_MASCOT_RATIO,
+    ringRadius: emblemRadius * GATE_RING_RATIO,
+    ringWidth: GATE_RING_WIDTH,
+    tracerRadius: emblemRadius * GATE_TRACER_RATIO,
   };
+}
+
+/**
+ * End angle of the traced path at `progress`, clamped to 0..1 so the fill can
+ * never overshoot or run backwards. The swept angle is independent of the field
+ * size, so a rotation rebuilds the geometry without moving the indication.
+ */
+export function gateArcEnd(layout: SplashLayout, progress: number): number {
+  const swept = Math.min(1, Math.max(0, progress)) * Math.PI * 2;
+  return layout.arcStartAngle + swept;
 }
 
 export const MENU_DOT_RADIUS = 5.5;

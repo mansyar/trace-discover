@@ -14,6 +14,7 @@ import type { SkinDef } from '../skins/skins';
 import type { BadgeLayout } from '../ui/badge';
 import type { InstallVariant } from '../ui/install';
 import {
+  gateArcEnd,
   MENU_DOT_RADIUS,
   type MenuCard,
   type MenuLayout,
@@ -307,16 +308,24 @@ export function drawActionIcon(
   }
 }
 
-export function drawSplash(ctx: CanvasRenderingContext2D, now: number, layout: SplashLayout): void {
-  const pulse = 1 + 0.08 * Math.sin(now / 350);
+/**
+ * Dashed trace ring: the splash identity, shared by the plain splash and the
+ * boot gate so the two can never drift apart.
+ */
+function drawTraceRing(ctx: CanvasRenderingContext2D, layout: SplashLayout): void {
   ctx.setLineDash([4, 18]);
-  ctx.lineWidth = 10;
+  ctx.lineWidth = layout.ringWidth;
   ctx.lineCap = 'round';
   ctx.strokeStyle = '#6fa8d4';
   ctx.beginPath();
-  ctx.arc(layout.centerX, layout.centerY, layout.emblemRadius * 1.35, 0, Math.PI * 2);
+  ctx.arc(layout.centerX, layout.centerY, layout.ringRadius, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
+}
+
+export function drawSplash(ctx: CanvasRenderingContext2D, now: number, layout: SplashLayout): void {
+  const pulse = 1 + 0.08 * Math.sin(now / 350);
+  drawTraceRing(ctx, layout);
   drawStar(ctx, layout.centerX, layout.centerY, layout.emblemRadius * pulse);
   ctx.fillStyle = GOLD;
   ctx.fill();
@@ -324,6 +333,9 @@ export function drawSplash(ctx: CanvasRenderingContext2D, now: number, layout: S
   ctx.strokeStyle = NAVY;
   ctx.stroke();
 }
+
+const MASCOT_BREATHE_MS = 350;
+const MASCOT_BREATHE_SCALE = 0.04;
 
 /**
  * Drawn mascot: the gate's waiting face and, on a failed character load, the
@@ -336,16 +348,34 @@ export function drawDrawnMascot(
   radius: number,
   accent: string,
 ): void {
-  void ctx;
-  void center;
-  void radius;
-  void accent;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = accent;
+  ctx.fill();
+  ctx.lineWidth = Math.max(3, radius * 0.07);
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(center.x, center.y + radius * 0.3, radius * 0.5, 0, Math.PI * 2);
+  ctx.fillStyle = CREAM;
+  ctx.fill();
+
+  const eyeRadius = radius * 0.11;
+  const eyeY = center.y - radius * 0.12;
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.arc(center.x + radius * 0.32 * side, eyeY, eyeRadius, 0, Math.PI * 2);
+    ctx.fillStyle = NAVY;
+    ctx.fill();
+  }
 }
 
 /**
- * Boot gate (implementation lands with the phase's Green step): the splash
- * identity — dashed trace ring plus the star riding the traced path — with the
- * waiting mascot at its center and the filled fraction of the path as progress.
+ * Boot gate: the splash identity — the dashed trace ring with the star riding
+ * the traced path — carrying the drawn waiting mascot at its center and the
+ * filled fraction of the path behind it. Drawn throughout: no image, no text,
+ * and an explicit empty state (nothing filled) that never nudges geometry.
  */
 export function drawGate(
   ctx: CanvasRenderingContext2D,
@@ -354,11 +384,37 @@ export function drawGate(
   progress: number,
   accent: string,
 ): void {
-  void ctx;
-  void now;
-  void layout;
-  void progress;
-  void accent;
+  drawTraceRing(ctx, layout);
+
+  const traced = gateArcEnd(layout, progress);
+  if (traced > layout.arcStartAngle) {
+    ctx.lineWidth = layout.arcWidth;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = accent;
+    ctx.beginPath();
+    ctx.arc(layout.centerX, layout.centerY, layout.ringRadius, layout.arcStartAngle, traced);
+    ctx.stroke();
+  }
+
+  const pulse = 1 + MASCOT_BREATHE_SCALE * Math.sin(now / MASCOT_BREATHE_MS);
+  drawDrawnMascot(
+    ctx,
+    { x: layout.centerX, y: layout.centerY },
+    layout.mascotRadius * pulse,
+    accent,
+  );
+
+  drawStar(
+    ctx,
+    layout.centerX + Math.cos(traced) * layout.ringRadius,
+    layout.centerY + Math.sin(traced) * layout.ringRadius,
+    layout.tracerRadius,
+  );
+  ctx.fillStyle = GOLD;
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = NAVY;
+  ctx.stroke();
 }
 
 /** Pack card extras: real art plus zero-text progress (first frames: null). */

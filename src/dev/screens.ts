@@ -9,6 +9,7 @@
 // matrix and ?menuName=AIRA seeds a preview name so the My Name card shows.
 import '../style.css';
 import {
+  drawGate,
   drawGateRing,
   drawPackPager,
   drawParent,
@@ -55,13 +56,14 @@ import {
   menuDotPositions,
   menuLayout,
   menuPageCount,
+  splashLayout,
 } from '../ui/menu';
 import { hitPackCard, packLayout, packStickers } from '../ui/pack';
 import { parentZoneLayout } from '../ui/parentZone';
 import { hitBoardHome, hitStickerCell, stickerBoardLayout } from '../ui/stickerBoard';
 import { hitSuccessButton, type SuccessAction, successLayout } from '../ui/success';
 
-type PreviewScreen = 'menu' | 'pack' | 'success' | 'parent' | 'board';
+type PreviewScreen = 'menu' | 'pack' | 'success' | 'parent' | 'board' | 'gate';
 
 const PACK_IDS = allPacks().map((pack) => pack.id);
 const NUMERALS = NUMERAL_LEVELS.map((level) => level.id);
@@ -94,9 +96,22 @@ const lines: string[] = [];
 let screen: PreviewScreen = 'menu';
 const params = new URLSearchParams(window.location.search);
 const wanted = params.get('screen');
-if (wanted === 'success' || wanted === 'pack' || wanted === 'parent' || wanted === 'board') {
+if (
+  wanted === 'success' ||
+  wanted === 'pack' ||
+  wanted === 'parent' ||
+  wanted === 'board' ||
+  wanted === 'gate'
+) {
   screen = wanted;
 }
+/** `?gateF=0..1` sets the gate's traced fraction for screenshots (default half). */
+const gateFractionParam = Number.parseFloat(params.get('gateF') ?? '');
+const gateFraction = Number.isNaN(gateFractionParam)
+  ? 0.42
+  : Math.min(1, Math.max(0, gateFractionParam));
+/** `?chrome=0` hides the dev overlay so a screenshot shows the screen alone. */
+const showChrome = params.get('chrome') !== '0';
 /** `?menuCards=2..9` pads/truncates the menu to N cards for the capacity matrix. */
 const menuCardsParam = Number.parseInt(params.get('menuCards') ?? '', 10);
 const menuCards = menuCardsParam >= 2 && menuCardsParam <= 9 ? menuCardsParam : null;
@@ -535,7 +550,10 @@ function render(now: number = performance.now()): void {
   context.setTransform(scale, 0, 0, scale, field.x * dpr, field.y * dpr);
   context.fillStyle = FIELD_FILL;
   context.fillRect(0, 0, fieldWidth, fieldHeight);
-  if (screen === 'menu') {
+  if (screen === 'gate') {
+    const gate = splashLayout(fieldWidth, fieldHeight);
+    drawGate(context, now, gate, gateFraction, previewSkin().accent);
+  } else if (screen === 'menu') {
     drawMenu();
   } else if (screen === 'pack') {
     drawPackPreview();
@@ -558,10 +576,12 @@ function render(now: number = performance.now()): void {
       }
     }
   }
-  drawMascotOverlay();
-  drawSparkles();
-  drawCycle();
-  drawTuningButtons();
+  if (showChrome) {
+    drawMascotOverlay();
+    drawSparkles();
+    drawCycle();
+    drawTuningButtons();
+  }
 }
 
 function cycle(): void {
