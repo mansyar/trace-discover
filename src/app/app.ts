@@ -1,7 +1,8 @@
 // Production app state machine (pure): splash -> menu -> pack -> level ->
 // success, with badge celebration, circle unlocks, and the parent zone. The
 // shell renders the current screen and feeds tap/runtime events back in;
-// every transition and save update here is unit-tested.
+// every transition and save update here is unit-tested. The splash also holds
+// the content readiness gate, so a first run cannot leave it half-open.
 import { appPacks } from '../packs/catalog';
 import type { PackEntry } from '../packs/pack';
 import {
@@ -42,6 +43,12 @@ export type AppScreen =
   | { readonly name: 'sticker-board'; readonly packId: string };
 
 export interface AppState {
+  /**
+   * Content readiness gate: false until the boot flow reports every shipped
+   * content asset resolved, or one of the escapes (cache complete · offline ·
+   * attempts exhausted). While false, the splash tap does not advance.
+   */
+  readonly contentReady: boolean;
   /** Badge earned but not yet celebrated (success "next" routes to it). */
   readonly pendingBadge: string | null;
   readonly save: SaveData;
@@ -52,6 +59,7 @@ export interface AppState {
 }
 
 export type AppEvent =
+  | { readonly type: 'content-ready' }
   | { readonly type: 'splash-tap' }
   | { readonly type: 'open-pack'; readonly packId: string }
   | { readonly type: 'pack-back' }
@@ -76,7 +84,13 @@ export type AppEvent =
   | { readonly type: 'sticker-tap'; readonly levelId: string };
 
 export function startApp(save: SaveData): AppState {
-  return { pendingBadge: null, save, screen: { name: 'splash' }, stickerMoment: null };
+  return {
+    contentReady: false,
+    pendingBadge: null,
+    save,
+    screen: { name: 'splash' },
+    stickerMoment: null,
+  };
 }
 
 /** Static packs, plus the runtime-composed name pack while a name is saved. */
@@ -272,8 +286,12 @@ function parentAction(state: AppState, action: ParentZoneAction): AppState {
 
 export function applyAppEvent(state: AppState, event: AppEvent): AppState {
   switch (event.type) {
+    case 'content-ready':
+      return state.contentReady ? state : { ...state, contentReady: true };
     case 'splash-tap':
-      return state.screen.name === 'splash' ? { ...state, screen: { name: 'menu' } } : state;
+      return state.screen.name === 'splash' && state.contentReady
+        ? { ...state, screen: { name: 'menu' } }
+        : state;
     case 'open-pack':
       return packFor(state, event.packId)
         ? { ...state, screen: { name: 'pack', packId: event.packId } }
