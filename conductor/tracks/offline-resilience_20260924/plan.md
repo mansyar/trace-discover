@@ -98,7 +98,7 @@
 
 ---
 
-## Phase 3 — Pure readiness gate and reducer enforcement
+## Phase 3 — Pure readiness gate and reducer enforcement [checkpoint: 2b0505e]
 
 - [x] Task: Write failing tests for the readiness decision [525f325]
   - [x] Complete cache → ready immediately, with no gate presented.
