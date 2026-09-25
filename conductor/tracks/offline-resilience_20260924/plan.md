@@ -124,11 +124,15 @@
   **Coverage gap closed in this step:** the first coverage run left line 101 uncovered — the double-settle guard, unreachable from a single warm-up. The harness now settles every warm-up it starts and a test runs the scheduled task twice (real, because boot re-schedules the warm-up on the `online` event today), pinning one terminal state under a double start; two no-observer tests cover the three optional `onState` call sites.
 
   **Carried into Phase 5:** `bootReadiness` takes `cacheComplete` as an already-decided boolean, so the *timing* of the completeness check stays boot wiring. Awaiting that check before the first frame is what stops a returning user from seeing a one-frame gate, and it is the one detail Phase 5 must not lose.
-- [ ] Task: Write failing tests for reducer-enforced gating
-  - [ ] Prove the start state holds `contentReady === false`.
-  - [ ] Prove `splash-tap` while not ready leaves the screen on `splash`.
-  - [ ] Prove a readiness event opens the gate exactly once and a later `splash-tap` reaches the menu.
-  - [ ] Prove readiness does not alter save, sticker, badge, or progress state.
+- [x] Task: Write failing tests for reducer-enforced gating [a0c7d35]
+  - [x] Prove the start state holds `contentReady === false`.
+  - [x] Prove `splash-tap` while not ready leaves the screen on `splash`.
+  - [x] Prove a readiness event opens the gate exactly once and a later `splash-tap` reaches the menu.
+  - [x] Prove readiness does not alter save, sticker, badge, or progress state.
+
+  **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/app/app.test.ts` reported 4 failed / 47 passed — the four new gate tests red while every pre-existing test stays green, so the Red state is the missing behaviour rather than a broken harness. The failure modes name the gap precisely: `expected undefined to be false` (the state has no `contentReady`), `expected { pendingBadge: null, … } to be { pendingBadge: null, … }` (the tap still advances splash → menu), and two `TypeError: Cannot read properties of undefined`. The last pair is the informative one: with no `content-ready` case the switch falls off its end and returns `undefined` instead of a state, so the reducer must *handle* the event rather than merely ignore it.
+
+  **Contract pinned:** the gate assertion on `splash-tap` is an identity check (`toBe(app)`), not just a screen check, so the blocked tap may not produce a new state object with an unchanged screen; the second readiness event is likewise pinned as an identity no-op, which is what "exactly once" means for a reducer; and "readiness does not alter save, sticker, badge, or progress state" is proven with object-identity checks plus content checks on `completedLevels`, `badges`, and `stickerIntroSeen` rather than assumed from the shape of the code.
 - [ ] Task: Implement the reducer gate
   - [ ] Add the readiness flag and readiness event to the app state machine and guard `splash-tap` on it.
   - [ ] Keep the reducer pure — no DOM, timers, or network access.
