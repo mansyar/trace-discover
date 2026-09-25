@@ -158,11 +158,17 @@
 
 ## Phase 4 — Drawn gate: mascot and traced-path progress
 
-- [ ] Task: Write failing render tests for the drawn mascot and progress indication
-  - [ ] Draw the mascot from the active skin's accent with no image source.
-  - [ ] Fill the trace ring strictly proportionally to progress, with defined empty and full states.
-  - [ ] Prove the drawn mascot renders when no character art is available (the fallback primitive).
-  - [ ] Follow the existing fake-context operation-assertion style in the render tests.
+- [x] Task: Write failing render tests for the drawn mascot and progress indication [0f6f4a8]
+  - [x] Draw the mascot from the active skin's accent with no image source.
+  - [x] Fill the trace ring strictly proportionally to progress, with defined empty and full states.
+  - [x] Prove the drawn mascot renders when no character art is available (the fallback primitive).
+  - [x] Follow the existing fake-context operation-assertion style in the render tests.
+
+  **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/app/render.test.ts` reported 5 failed / 7 passed. Every pre-existing sticker painter test still passes, so the failures are the missing behaviour and not a broken harness: `expected [] to have a length of 2 but got +0` (no arc at the trace-ring radius) and `expected [] to include 'fillStyle:#8ecae6'` (the accent never reaches the canvas). This is the strong form of Red — assertions comparing emitted ops against expected ops — because the two painters were committed alongside the tests as typed, documented, body-less declarations (`drawDrawnMascot`, `drawGate`; parameters referenced through `void` statements to satisfy `noUnusedParameters` without underscore names). Nothing renders through them yet, so this commit changes no shipped behaviour.
+
+  **Contract asserted:** the fill is *strictly* proportional — 0.25 sweeps `π/2` and 0.5 sweeps exactly twice that — while the dashed identity ring underneath stays a full circle; the empty state draws **no** fill and the full state closes the circle at `2π`; the waiting mascot is painted in the active skin's accent with no image source and no text op; the mascot breathes between frames (`now = 0` vs `now = 350·π/2`) while the ring geometry stays bit-identical; the mascot primitive renders standalone with no character art; and `drawSplash` still draws the dashed ring at the layout's ring radius with the centred star — a characterization guard that passes *before* the Green refactor and must keep passing after it.
+
+  **Harness change:** the shared fake context now records arc geometry and style assignments and records `fillText`, so "zero text" is an assertion rather than an untested absence. Pre-existing assertions are containment- or prefix-based, which is why the extra ops leave them valid.
 - [ ] Task: Write failing layout tests for the gate in both orientations
   - [ ] Add gate geometry (emblem, ring, progress arc) to the splash layout math.
   - [ ] Prove portrait and landscape geometry stays inside the field with no clipping and no overlap.
