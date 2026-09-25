@@ -229,11 +229,17 @@
   **Contract asserted:** the canvas presents the drawn stand-in before anything loads and through a failed attempt (a failure is a *fallback*, not a blank); the failure is reported through the dev-QA hook while the child-facing presentation does not change; a retry after a failure starts a second attempt whose success moves the presentation to the loaded character; a retry while an attempt is in flight is ignored, so a slow load cannot be duplicated; a loaded character that later fails falls back to the stand-in; and `onChange` never fires twice for one presentation, so the shell is never asked to redraw a canvas that has not changed.
 
   **Third sub-bullet is covered by the existing suite, not by a new test:** "unknown or unloaded triggers keep their existing failure-safe behavior" is pinned in `src/character/character.test.ts` — *stays inert when the runtime fails to load* (`fire` returns false, `resize` is skipped) and *fires a named trigger only after load* (`fire('missing')` is false). Those are characterization guards on behaviour the wiring must not break.
-- [ ] Task: Write failing tests for on-demand level warming
-  - [ ] Prove entering a level warms that level's backdrop, goal, sticker, and character assets.
-  - [ ] Prove a partially warmed level keeps drawn stand-ins and neither restarts nor resets progress.
-  - [ ] Prove assets cached later replace stand-ins in place when the network returns.
-  - [ ] Prove warming never duplicates an already-cached asset.
+- [x] Task: Write failing tests for on-demand level warming [c3181b0]
+  - [x] Prove entering a level warms that level's backdrop, goal, sticker, and character assets.
+  - [x] Prove a partially warmed level keeps drawn stand-ins and neither restarts nor resets progress.
+  - [x] Prove assets cached later replace stand-ins in place when the network returns.
+  - [x] Prove warming never duplicates an already-cached asset.
+
+  **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/pwa/levelWarmup.test.ts` → 6 failed, every one of them `createLevelWarmup: not implemented`, so no assertion executes yet. Full suite at this commit: **2 failed files | 61 passed (63); 12 failed tests | 798 passed (810)**. The second failing file is `src/character/presenter.test.ts` from the previous task — both modules are declared-but-unimplemented and both land in this phase's task 5.4, exactly as the Phase 4 painter declarations did. That is deliberate and reported here rather than hidden behind a stub: the suite stays red until the wiring task implements both, which is also why task 5.3's own evidence records the same known-red state.
+
+  **Contract asserted:** entering a level warms exactly that level's assets (backdrop, goal, sticker, character) once; a repeat call while the level is warming does nothing, so re-entering a level cannot restart or duplicate its warm-up; on settle the module reports the split — every URL that is drawable for real now, and every URL that exhausted its attempts and therefore keeps a drawn stand-in; a settled level is never refetched; a **failed** level re-warms on its next entry, which is the only path that heals it when the network returns; levels are tracked separately, so one level's failure cannot mark another warm; and a warm-up that rejects settles as `failed` with the whole inventory named, rather than leaving the level stuck at `warming` forever.
+
+  **Why warming is a side channel, not a load path:** the drawn stand-ins are only acceptable if the real art can still arrive, so the rule the shell needs is "one attempt per entry, retry on the next entry, tell me exactly what is drawable" rather than a fire-and-forget fetch. Progress, retries, dedupe, and concurrency stay in `warmContentAssets` (Phase 2), so a level's warm-up cannot duplicate work the boot warm-up already did and cannot disturb a running level.
 - [ ] Task: Wire the gate into boot
   - [ ] Replace the discarded fire-and-forget warm-up with the readiness-driven flow.
   - [ ] Resolve readiness on completion and on every escape (cache complete · offline · retries exhausted).
