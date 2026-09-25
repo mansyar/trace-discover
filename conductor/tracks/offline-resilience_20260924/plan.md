@@ -110,10 +110,20 @@
   **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/pwa/readiness.test.ts` fails as intended: the suite cannot load (`Error: Cannot find module './readiness'`), so no assertion executes in this state — the canonical Red for a brand-new module, stated plainly rather than dressed up as a behavioural failure. Every assertion is therefore pinned but unverified until the next task's Green run, which is the first time they execute against an implementation.
 
   **Contract pinned:** the decision table (play on a complete cache, play while offline, wait only when the cache is incomplete on a live connection, already-cached winning over offline); `readinessFraction` as `resolved / total` clamped to 0..1 with a `0 / 0` empty-inventory guard instead of a division; both escapes starting **no** work (`warmUp` and the injected `schedule` are never called) and reporting exactly one terminal state, which is what "no gate presented" means in evidence; the waiting path reporting the pending gate at fraction 0 *before* the injected scheduler runs the task, then filling strictly with warm-up progress; exhausted failures surfaced in the terminal state for dev QA; a single resolution that later progress and a second completion cannot re-report or reverse; and a rejecting warm-up still releasing the gate, so no path can trap the child.
-- [ ] Task: Implement the readiness module
-  - [ ] Add a pure readiness module exposing the decision plus the gate state derived from warm-up progress.
-  - [ ] Accept injected connectivity, warm-up, and timer hooks so every branch is testable without a browser.
-  - [ ] Expose the progress fraction the gate renders, clamped to 0..1.
+- [x] Task: Implement the readiness module [e70bc14]
+  - [x] Add a pure readiness module exposing the decision plus the gate state derived from warm-up progress.
+  - [x] Accept injected connectivity, warm-up, and timer hooks so every branch is testable without a browser.
+  - [x] Expose the progress fraction the gate renders, clamped to 0..1.
+
+  **GREEN evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/pwa/readiness.test.ts` passed 15/15 in 8 ms (three of them added to close the coverage gaps below). Full `CI=true pnpm test --coverage` passed with 61 files / 784 tests (baseline 60 / 769); `CI=true pnpm check` clean (Biome 134 files, `tsc --noEmit` strict). `src/pwa/readiness.ts` sits at 100 / 100 / 100 / 100 statements / branches / functions / lines; global coverage 74.63 / 78.22 / 90.44 / 74.2 against the enforced 72 / 76 / 88 / 72 and the pre-track baseline 74.02 / 77.93 / 90.07 / 73.57.
+
+  **Hook mapping:** connectivity = the injected `cacheComplete` and `online` inputs; warm-up = the injected `warmUp`; timer = the injected `schedule(task)`, so the warm-up starts off the boot frame exactly as `scheduleContentWarmup` starts it today and `main.ts` passes `window.setTimeout(task, 0)`. An escape calls neither `warmUp` nor `schedule` — asserted in tests rather than asserted in a comment, which is what "no gate presented" means in evidence.
+
+  **Resolution rule:** the pending state is reported *before* the scheduler runs, so a shell holding the state can tell "waiting" from "nothing yet"; each progress report becomes `ready: false` at `resolved / total` (clamped, with a `0 / 0` guard instead of a division); the terminal state is reported exactly once and later progress is dropped, so readiness cannot reverse. A warm-up that throws still releases the gate with an empty `failed` list — an unnamed failure beats a child stuck on the splash.
+
+  **Coverage gap closed in this step:** the first coverage run left line 101 uncovered — the double-settle guard, unreachable from a single warm-up. The harness now settles every warm-up it starts and a test runs the scheduled task twice (real, because boot re-schedules the warm-up on the `online` event today), pinning one terminal state under a double start; two no-observer tests cover the three optional `onState` call sites.
+
+  **Carried into Phase 5:** `bootReadiness` takes `cacheComplete` as an already-decided boolean, so the *timing* of the completeness check stays boot wiring. Awaiting that check before the first frame is what stops a returning user from seeing a one-frame gate, and it is the one detail Phase 5 must not lose.
 - [ ] Task: Write failing tests for reducer-enforced gating
   - [ ] Prove the start state holds `contentReady === false`.
   - [ ] Prove `splash-tap` while not ready leaves the screen on `splash`.
