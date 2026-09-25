@@ -169,10 +169,14 @@
   **Contract asserted:** the fill is *strictly* proportional — 0.25 sweeps `π/2` and 0.5 sweeps exactly twice that — while the dashed identity ring underneath stays a full circle; the empty state draws **no** fill and the full state closes the circle at `2π`; the waiting mascot is painted in the active skin's accent with no image source and no text op; the mascot breathes between frames (`now = 0` vs `now = 350·π/2`) while the ring geometry stays bit-identical; the mascot primitive renders standalone with no character art; and `drawSplash` still draws the dashed ring at the layout's ring radius with the centred star — a characterization guard that passes *before* the Green refactor and must keep passing after it.
 
   **Harness change:** the shared fake context now records arc geometry and style assignments and records `fillText`, so "zero text" is an assertion rather than an untested absence. Pre-existing assertions are containment- or prefix-based, which is why the extra ops leave them valid.
-- [ ] Task: Write failing layout tests for the gate in both orientations
-  - [ ] Add gate geometry (emblem, ring, progress arc) to the splash layout math.
-  - [ ] Prove portrait and landscape geometry stays inside the field with no clipping and no overlap.
-  - [ ] Prove the layout recomputes on resize and rotation without losing progress state.
+- [x] Task: Write failing layout tests for the gate in both orientations [05ef96b]
+  - [x] Add gate geometry (emblem, ring, progress arc) to the splash layout math.
+  - [x] Prove portrait and landscape geometry stays inside the field with no clipping and no overlap.
+  - [x] Prove the layout recomputes on resize and rotation without losing progress state.
+
+  **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/ui/menu.test.ts` reported 4 failed / 84 passed — the four new geometry tests red, every pre-existing layout test green. The failures are of two kinds and are recorded as they are rather than dressed up: `expected NaN to be greater than or equal to 0` (the ring/arc/mascot/tracer fields are absent, so the derived outer extent is NaN) and `TypeError: gateArcEnd is not a function` twice. That is weaker than an assertion diff, so the Green step has to show these same four tests passing against real geometry, not merely non-throwing.
+
+  **Contract asserted:** the furthest gate pixel (the widest ring stroke, or the tracer star riding the ring) stays inside the field in **both** orientations; the mascot nests inside the ring's inner edge *and* the tracer star never reaches the mascot; the sweep is strictly proportional — equal to `arcStartAngle` when empty, `+ π/2` at a quarter, `+ 2π` when full, clamped for negative and over-full input; and rotating the field recomputes the layout (the centres move) while the swept angle is identical at every progress value, which is what "recomputes without losing progress state" means for a layout that holds no state: **the swept angle is size-independent, so a rotation cannot move the indication even though the geometry is rebuilt.**
 - [ ] Task: Implement the drawn gate and mascot
   - [ ] Extend the splash rendering with the animated drawn mascot and the traced-path progress ring — no text, no raster asset.
   - [ ] Keep both drawn primitives in one place so the gate and the character stand-in share them.
