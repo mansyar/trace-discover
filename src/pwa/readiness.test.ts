@@ -13,25 +13,38 @@ function gateRecorder() {
   return { states, onState: (state: ReadinessState) => states.push(state) };
 }
 
-/** Warm-up harness: the driver starts it, the test reports and resolves it. */
+/**
+ * Warm-up harness: the driver starts it and the test reports and resolves it.
+ * Every started warm-up is settled, so a driver that starts more than one is
+ * held to the same single-resolution rule as one that starts a single warm-up.
+ */
 function pendingWarmup() {
-  let report: (progress: ContentWarmupProgress) => void = () => {};
-  let settle: (result: ContentWarmupResult) => void = () => {};
-  let reject: (error: Error) => void = () => {};
+  const reports: ((progress: ContentWarmupProgress) => void)[] = [];
+  const settlements: ((result: ContentWarmupResult) => void)[] = [];
+  const rejections: ((error: Error) => void)[] = [];
   const warmUp = vi.fn(
     (onProgress: (progress: ContentWarmupProgress) => void) =>
       new Promise<ContentWarmupResult>((resolve, rejectPromise) => {
-        report = onProgress;
-        settle = resolve;
-        reject = rejectPromise;
+        reports.push(onProgress);
+        settlements.push(resolve);
+        rejections.push(rejectPromise);
       }),
   );
   return {
     warmUp,
-    progress: (resolved: number, total: number): void => report({ resolved, total }),
-    complete: (failed: readonly string[] = []): void =>
-      settle({ cached: [], complete: failed.length === 0, failed }),
-    reject: (error: Error): void => reject(error),
+    progress: (resolved: number, total: number): void => {
+      reports.at(-1)?.({ resolved, total });
+    },
+    complete: (failed: readonly string[] = []): void => {
+      for (const settle of settlements) {
+        settle({ cached: [], complete: failed.length === 0, failed });
+      }
+    },
+    reject: (error: Error): void => {
+      for (const reject of rejections) {
+        reject(error);
+      }
+    },
   };
 }
 
@@ -205,6 +218,65 @@ describe('content readiness contract', () => {
 
     expect(gate.states).toHaveLength(before);
     expect(gate.states.filter((entry) => entry.ready)).toEqual([state]);
+  });
+
+  it('resolves once even when the scheduler runs the warm-up task twice', async () => {
+    const warm = pendingWarmup();
+    const scheduler = manualScheduler();
+    const gate = gateRecorder();
+
+    const pending = startContentReadiness({
+      cacheComplete: false,
+      online: true,
+      warmUp: warm.warmUp,
+      schedule: scheduler.schedule,
+      onState: gate.onState,
+    });
+    scheduler.run();
+    scheduler.run();
+    expect(warm.warmUp).toHaveBeenCalledTimes(2);
+
+    warm.complete(['/art/goal/pre-1.webp']);
+    const state = await pending;
+
+    expect(state).toEqual({
+      ready: true,
+      reason: 'warmed',
+      fraction: 1,
+      failed: ['/art/goal/pre-1.webp'],
+    });
+    expect(gate.states.filter((entry) => entry.ready)).toEqual([state]);
+  });
+
+  it('drives the waiting gate with no observer attached', async () => {
+    const warm = pendingWarmup();
+    const scheduler = manualScheduler();
+
+    const pending = startContentReadiness({
+      cacheComplete: false,
+      online: true,
+      warmUp: warm.warmUp,
+      schedule: scheduler.schedule,
+    });
+    scheduler.run();
+    warm.progress(1, 2);
+    warm.complete();
+
+    expect(await pending).toEqual({ ready: true, reason: 'warmed', fraction: 1, failed: [] });
+  });
+
+  it('releases an escape with no observer attached', async () => {
+    const warm = pendingWarmup();
+    const scheduler = manualScheduler();
+
+    const pending = startContentReadiness({
+      cacheComplete: true,
+      online: true,
+      warmUp: warm.warmUp,
+      schedule: scheduler.schedule,
+    });
+
+    expect(await pending).toEqual({ ready: true, reason: 'complete', fraction: 1, failed: [] });
   });
 
   it('releases rather than trapping the child when the warm-up itself fails', async () => {
