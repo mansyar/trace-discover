@@ -28,7 +28,17 @@ function harness() {
       settled.push({ levelId, summary });
     },
   });
-  return { pending, settled, warm, warmup };
+  // Settling hands control back through a promise reaction, so a test has to
+  // yield once before the module has taken the outcome in.
+  const resolve = async (result: ContentWarmupResult, index = 0): Promise<void> => {
+    pending[index]?.resolve(result);
+    await Promise.resolve();
+  };
+  const reject = async (error: Error, index = 0): Promise<void> => {
+    pending[index]?.reject(error);
+    await Promise.resolve();
+  };
+  return { pending, reject, resolve, settled, warm, warmup };
 }
 
 const COMPLETE: ContentWarmupResult = { cached: LEVEL_URLS, complete: true, failed: [] };
@@ -60,11 +70,11 @@ describe('createLevelWarmup', () => {
     expect(fixture.warmup.state('pre-1')).toBe('warming');
   });
 
-  it('reports the split when a level settles, and never repeats it', () => {
+  it('reports the split when a level settles, and never repeats it', async () => {
     const fixture = harness();
 
     fixture.warmup.warmLevel('pre-1', LEVEL_URLS);
-    fixture.pending[0]?.resolve(COMPLETE);
+    await fixture.resolve(COMPLETE);
 
     expect(fixture.warmup.state('pre-1')).toBe('warmed');
     expect(fixture.settled).toEqual([
@@ -76,11 +86,11 @@ describe('createLevelWarmup', () => {
     expect(fixture.settled).toHaveLength(1);
   });
 
-  it('keeps stand-ins for the assets that failed and re-warms on the next entry', () => {
+  it('keeps stand-ins for the assets that failed and re-warms on the next entry', async () => {
     const fixture = harness();
 
     fixture.warmup.warmLevel('pre-1', LEVEL_URLS);
-    fixture.pending[0]?.resolve(PARTIAL);
+    await fixture.resolve(PARTIAL);
 
     expect(fixture.warmup.state('pre-1')).toBe('failed');
     expect(fixture.settled).toEqual([
@@ -98,11 +108,11 @@ describe('createLevelWarmup', () => {
     expect(fixture.warmup.state('pre-1')).toBe('warming');
   });
 
-  it('tracks levels separately', () => {
+  it('tracks levels separately', async () => {
     const fixture = harness();
 
     fixture.warmup.warmLevel('pre-1', LEVEL_URLS);
-    fixture.pending[0]?.resolve(COMPLETE);
+    await fixture.resolve(COMPLETE);
     fixture.warmup.warmLevel('pre-2', ['/art/goal/pre-2.webp']);
 
     expect(fixture.warmup.state('pre-1')).toBe('warmed');
@@ -111,11 +121,11 @@ describe('createLevelWarmup', () => {
     expect(fixture.warm).toHaveBeenCalledTimes(2);
   });
 
-  it('releases a level whose warm-up throws, and lets the next entry retry', () => {
+  it('releases a level whose warm-up throws, and lets the next entry retry', async () => {
     const fixture = harness();
 
     fixture.warmup.warmLevel('pre-1', LEVEL_URLS);
-    fixture.pending[0]?.reject(new Error('warm-up exploded'));
+    await fixture.reject(new Error('warm-up exploded'));
 
     expect(fixture.warmup.state('pre-1')).toBe('failed');
     expect(fixture.settled).toEqual([

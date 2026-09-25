@@ -3,7 +3,6 @@
 // tries again the next time it is opened. Warming is a side channel — it never
 // touches a running level's progress, and the content cache already skips
 // assets it holds, so a repeat entry can never duplicate work.
-// Implementation lands with the phase's Green step.
 import type { ContentWarmupResult } from './contentCache';
 
 export type LevelWarmupState = 'idle' | 'warming' | 'warmed' | 'failed';
@@ -34,6 +33,38 @@ export interface LevelWarmup {
 }
 
 export function createLevelWarmup(options: LevelWarmupOptions): LevelWarmup {
-  void options;
-  throw new Error('createLevelWarmup: not implemented');
+  const states = new Map<string, LevelWarmupState>();
+
+  /** The settle report: what this level can draw for real, and what it cannot. */
+  const summaryOf = (urls: readonly string[], failed: readonly string[]): LevelWarmupSummary => {
+    const lost = new Set(failed);
+    return { cached: [...new Set(urls)].filter((url) => !lost.has(url)), failed: [...lost] };
+  };
+
+  const settle = (levelId: string, summary: LevelWarmupSummary): void => {
+    states.set(levelId, summary.failed.length === 0 ? 'warmed' : 'failed');
+    options.onSettled?.(levelId, summary);
+  };
+
+  return {
+    state: (levelId) => states.get(levelId) ?? 'idle',
+    warmLevel: (levelId, urls) => {
+      const current = states.get(levelId) ?? 'idle';
+      if (current === 'warming' || current === 'warmed') {
+        return;
+      }
+      states.set(levelId, 'warming');
+      void options.warm(urls).then(
+        (result) => {
+          settle(levelId, summaryOf(urls, result.failed));
+        },
+        () => {
+          // A rejected warm-up names nothing per asset, so the whole inventory
+          // stays a stand-in — but the level settles, so the next entry retries
+          // instead of waiting on it forever.
+          settle(levelId, { cached: [], failed: [...new Set(urls)] });
+        },
+      );
+    },
+  };
 }

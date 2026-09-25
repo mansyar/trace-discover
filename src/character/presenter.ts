@@ -1,7 +1,6 @@
 // What the character canvas presents. The real Rive character is the goal, but
 // the canvas must never be an empty hole where the mascot belongs: the drawn
 // stand-in is the default presentation and stays until a load reports ready.
-// Implementation lands with the phase's Green step.
 
 /** The two things the character canvas can show. */
 export type CharacterPresentation = 'real' | 'standin';
@@ -31,6 +30,43 @@ export interface CharacterPresenter {
 }
 
 export function createCharacterPresenter(options: CharacterPresenterOptions): CharacterPresenter {
-  void options;
-  throw new Error('createCharacterPresenter: not implemented');
+  let presentation: CharacterPresentation = 'standin';
+  let inFlight = false;
+
+  const present = (next: CharacterPresentation): void => {
+    if (next === presentation) {
+      return;
+    }
+    presentation = next;
+    options.onChange(next);
+  };
+
+  const attempt = (): void => {
+    // A retry while an attempt is still in flight would let one slow load run
+    // twice, so it is dropped rather than queued: the next explicit retry picks
+    // it up.
+    if (inFlight) {
+      return;
+    }
+    inFlight = true;
+    options.attempt({
+      onError: (error) => {
+        inFlight = false;
+        options.onFailure?.(error);
+        // A failure is a fallback, never a blank: whatever was presented before
+        // gives way to the drawn stand-in.
+        present('standin');
+      },
+      onReady: () => {
+        inFlight = false;
+        present('real');
+      },
+    });
+  };
+
+  return {
+    presentation: () => presentation,
+    retry: attempt,
+    start: attempt,
+  };
 }

@@ -18,6 +18,7 @@ import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
   beginField,
   drawBadge,
+  drawDrawnMascot,
   drawGate,
   drawLevel,
   drawMenu,
@@ -63,6 +64,11 @@ import {
   stepEntrance,
 } from './character/entrance';
 import type { HopTimeline } from './character/hops';
+import {
+  type CharacterPresentation,
+  type CharacterPresenter,
+  createCharacterPresenter,
+} from './character/presenter';
 import type { Point } from './engine/types';
 import { fieldSizeFor, type Orientation, orientationFor } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
@@ -76,9 +82,12 @@ import { levelForOrientation, pathGeometryLength } from './packs/wide';
 import {
   allContentCached,
   CONTENT_ASSET_URLS,
+  type ContentCacheStore,
+  type ContentWarmupResult,
   createBrowserContentCacheStore,
   warmContentAssets,
 } from './pwa/contentCache';
+import { createLevelWarmup, type LevelWarmup, type LevelWarmupState } from './pwa/levelWarmup';
 import { type ReadinessState, startContentReadiness } from './pwa/readiness';
 import { type ConfettiParticle, createConfetti, stepConfetti } from './render/confetti';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
@@ -277,6 +286,12 @@ let app: AppState = startApp(loadSave(saveStorage));
 rebuildViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
+/** What the character canvas presents; null until a character is wanted. */
+let characterPresenter: CharacterPresenter | null = null;
+/** Dev QA: the last character load failure. The child only ever sees the stand-in. */
+let characterFailure: unknown = null;
+/** Dev QA: the current level's content warming, as the warm-up reports it. */
+let levelContent: { levelId: string; cached: number; failed: number } | null = null;
 /** Gate state driving the splash; null until the boot flow decides. */
 let contentReadiness: ReadinessState | null = null;
 /** Splash taps taken while the gate was closed, replayed when it opens. */
@@ -510,6 +525,25 @@ function hideCharacter(): void {
   charCanvas.style.display = 'none';
 }
 
+/**
+ * Shows the character canvas only while the real character is presented. The
+ * stand-in goes on the field canvas instead, so a character that never loads
+ * cannot leave an empty box where the mascot belongs.
+ */
+function syncCharacterCanvas(): void {
+  const next = characterPresenter?.presentation() === 'real' ? 'block' : 'none';
+  if (charCanvas.style.display !== next) {
+    charCanvas.style.display = next;
+  }
+}
+
+/** Retries a character that fell back to the drawn stand-in (network returned). */
+function retryCharacter(): void {
+  if (characterPresenter?.presentation() === 'standin') {
+    characterPresenter.retry();
+  }
+}
+
 /** The persisted skin; falls back to the first registry entry. */
 function activeSkin(): SkinDef {
   const skin = skinById(app.save.settings.skin);
@@ -523,21 +557,85 @@ function activeSkin(): SkinDef {
   return fallback;
 }
 
-/** Loads (or reuses) the character sprite for a skin; reused across menu <-> pack. */
+/**
+ * Loads (or reuses) the character sprite for a skin; reused across menu <-> pack.
+ * Every attempt runs through a presenter whose default and fallback is the drawn
+ * stand-in, so swapping, retrying, or failing a sprite can never present a blank
+ * canvas. A new sprite is a new attempt sequence, so the previous presenter is
+ * replaced rather than retried: its in-flight load is stale by definition.
+ */
 function ensureCharacter(name: string, forceReload = false): void {
-  if (!forceReload && character && idleCharFor === name) {
-    charCanvas.style.display = 'block';
+  if (!forceReload && characterPresenter && idleCharFor === name) {
+    syncCharacterCanvas();
     return;
   }
   hideCharacter();
-  charCanvas.style.display = 'block';
-  character = loadCharacter({
-    canvas: charCanvas,
-    riveFactory: canvasLiteFactory,
-    src: `/rive/${name}.riv`,
-    stateMachine: 'State Machine 1',
-  });
   idleCharFor = name;
+  characterPresenter = createCharacterPresenter({
+    attempt: ({ onError, onReady }) => {
+      character = loadCharacter({
+        canvas: charCanvas,
+        onError,
+        onReady,
+        riveFactory: canvasLiteFactory,
+        src: `/rive/${name}.riv`,
+        stateMachine: 'State Machine 1',
+      });
+    },
+    onChange: () => {
+      syncCharacterCanvas();
+    },
+    onFailure: (error) => {
+      characterFailure = error;
+    },
+  });
+  characterPresenter.start();
+}
+
+/**
+ * The mascot box in field units. Mirrors `positionCharacter`'s CSS sizing — the
+ * same box, measured in the units the field canvas draws in — so the drawn
+ * stand-in lands exactly where the real character's canvas sits.
+ */
+function fieldMascot(park: Point, scale: number): { center: Point; radius: number } {
+  const cssSize = Math.min(field.width, field.height) * scale;
+  const fieldUnitsPerCss = field.width > 0 ? field.width / space.width : 1;
+  const size = cssSize / fieldUnitsPerCss;
+  return { center: { x: park.x, y: park.y + size * CHARACTER_OFFSET_Y }, radius: size / 2 };
+}
+
+/**
+ * Where the mascot belongs on this screen: the park point and scale the shell
+ * hands to the Rive canvas, plus the field-space box the drawn stand-in is
+ * painted in. Null when the screen shows no mascot — the splash carries the gate
+ * mascot instead, and the badge and parent zone carry none.
+ */
+function mascotPlacement(): {
+  center: Point;
+  park: Point;
+  radius: number;
+  scale: number;
+} | null {
+  const screen = app.screen;
+  let park: Point;
+  let scale: number;
+  if ((screen.name === 'level' || screen.name === 'success') && session) {
+    park =
+      entrance && !entrance.state.settled
+        ? entrancePos(entrance.timeline, entrance.state)
+        : session.snapshot().charPos;
+    // The wide field is short: keep the mascot at its portrait share of the height.
+    scale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+  } else if (screen.name === 'menu') {
+    park = MENU_PARK;
+    scale = MASCOT_SCALE_MENU;
+  } else if (screen.name === 'pack') {
+    park = PACK_PARK;
+    scale = MASCOT_SCALE_PACK;
+  } else {
+    return null;
+  }
+  return { park, scale, ...fieldMascot(park, scale) };
 }
 
 /** Places the mascot canvas: field-space park point + character scale. */
@@ -641,6 +739,12 @@ function startRun(
     preloadArt(art.sticker);
   }
   ensureCharacter(characterName, true);
+  warmLevelContent(levelId, [
+    art.backdrop,
+    art.goal,
+    art.sticker ?? '',
+    `/rive/${characterName}.riv`,
+  ]);
   session = createSession(runLevel, {
     character: {
       fire: (trigger) => character?.fire(trigger) ?? false,
@@ -1182,19 +1286,15 @@ function render(now: number): void {
   if (gateBurst.length > 0) {
     drawParticles(trailContext, gateBurst);
   }
+  const mascot = mascotPlacement();
+  if (mascot && characterPresenter?.presentation() !== 'real') {
+    // The drawn stand-in, in the same place and size as the Rive canvas it
+    // stands in for: the mascot is never missing, only sometimes unanimated.
+    drawDrawnMascot(trailContext, mascot.center, mascot.radius, activeSkin().accent);
+  }
   endField(trailContext);
-  if ((screen.name === 'level' || screen.name === 'success') && session) {
-    const charPos =
-      entrance && !entrance.state.settled
-        ? entrancePos(entrance.timeline, entrance.state)
-        : session.snapshot().charPos;
-    // The wide field is short: keep the mascot at its portrait share of the height.
-    const characterScale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
-    positionCharacter(charPos, characterScale);
-  } else if (screen.name === 'menu') {
-    positionCharacter(MENU_PARK, MASCOT_SCALE_MENU);
-  } else if (screen.name === 'pack') {
-    positionCharacter(PACK_PARK, MASCOT_SCALE_PACK);
+  if (mascot) {
+    positionCharacter(mascot.park, mascot.scale);
   } else if (charCanvas.style.display !== 'none') {
     charCanvas.style.display = 'none';
   }
@@ -1215,9 +1315,20 @@ function drawMascotSparkles(context: CanvasRenderingContext2D): void {
 declare global {
   interface Window {
     __app?: {
+      /** Character canvas (dev QA): the drawn stand-in, or the loaded character. */
+      readonly character: () => CharacterPresentation;
+      /** Dev QA: the last character load failure, or null. Never child-facing. */
+      readonly characterError: () => string | null;
       /** Boot gate state (dev QA): null until the flow decides, then the gate. */
       readonly content: () => ReadinessState | null;
       readonly field: () => Rect;
+      /** Level content warming (dev QA): null until a level has been entered. */
+      readonly levelContent: () => {
+        readonly cached: number;
+        readonly failed: number;
+        readonly levelId: string;
+        readonly state: LevelWarmupState;
+      } | null;
       readonly orientation: () => Orientation;
       readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
@@ -1350,8 +1461,19 @@ function screenTargets(): AppTarget[] {
 }
 
 window.__app = {
+  character: () => characterPresenter?.presentation() ?? 'standin',
+  characterError: () => (characterFailure === null ? null : String(characterFailure)),
   content: () => contentReadiness,
   field: () => ({ ...field }),
+  levelContent: () =>
+    levelContent === null
+      ? null
+      : {
+          cached: levelContent.cached,
+          failed: levelContent.failed,
+          levelId: levelContent.levelId,
+          state: levelWarmup.state(levelContent.levelId),
+        },
   orientation: () => orientation,
   moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
@@ -1366,14 +1488,68 @@ const contentStore = typeof caches === 'undefined' ? null : createBrowserContent
 
 /**
  * Full-inventory warm-up for the returning-connectivity path: a first run that
- * escaped the gate while offline still becomes fully offline later. Readiness
- * itself is terminal, so this can never move the gate.
+ * escaped the gate while offline still becomes fully offline later, and a level
+ * that ran on drawn stand-ins gets its art requested again so the real images
+ * appear in place rather than waiting for the next entry. Readiness itself is
+ * terminal, so this can never move the gate.
  */
 function warmContentWhenBackOnline(): void {
+  const store: ContentCacheStore | null = contentStore;
+  if (!store) {
+    return;
+  }
+  void warmContentAssets(CONTENT_ASSET_URLS, store).then(() => {
+    for (const url of [levelArtUrls?.backdrop, levelArtUrls?.goal, levelArtUrls?.sticker]) {
+      if (url) {
+        preloadArt(url);
+      }
+    }
+  });
+}
+
+/** Caches a level's assets; without a Cache API nothing can be drawn for real. */
+function warmLevelUrls(urls: readonly string[]): Promise<ContentWarmupResult> {
+  const store: ContentCacheStore | null = contentStore;
+  if (!store) {
+    return Promise.resolve({ cached: [], complete: false, failed: [...urls] });
+  }
+  return warmContentAssets(urls, store);
+}
+
+/**
+ * Level assets, warmed once per entry and threaded into the running render when
+ * they arrive late: late art appears in place because every painter reads the
+ * art cache each frame, and a late character retries the load that fell back to
+ * the drawn stand-in. Warming is a side channel — it never touches a level's
+ * progress and never restarts a level.
+ */
+const levelWarmup: LevelWarmup = createLevelWarmup({
+  onSettled: (levelId, summary) => {
+    levelContent = { cached: summary.cached.length, failed: summary.failed.length, levelId };
+    if (currentRun?.levelId !== levelId) {
+      return;
+    }
+    for (const url of summary.cached) {
+      if (!url.endsWith('.riv')) {
+        preloadArt(url);
+      }
+    }
+    if (summary.cached.some((url) => url.endsWith('.riv'))) {
+      retryCharacter();
+    }
+  },
+  warm: warmLevelUrls,
+});
+
+/** Warms the assets a level needs, once, on entry. */
+function warmLevelContent(levelId: string, urls: readonly string[]): void {
   if (!contentStore) {
     return;
   }
-  void warmContentAssets(CONTENT_ASSET_URLS, contentStore);
+  levelWarmup.warmLevel(
+    levelId,
+    urls.filter((url) => url !== ''),
+  );
 }
 
 /**
@@ -1417,7 +1593,13 @@ async function bootContentReadiness(): Promise<void> {
   releaseSplash();
 }
 
-window.addEventListener('online', warmContentWhenBackOnline);
+window.addEventListener('online', () => {
+  // Returning connectivity is the retry path: the sprite that fell back to the
+  // drawn stand-in gets another attempt straight away, and the full-inventory
+  // warm-up then fills in whatever the level was still missing.
+  retryCharacter();
+  warmContentWhenBackOnline();
+});
 window.addEventListener('resize', resize);
 void bootContentReadiness();
 hideCharacter();
