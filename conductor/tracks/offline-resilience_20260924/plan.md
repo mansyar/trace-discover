@@ -144,9 +144,15 @@
   **Harness change:** `readyApp(save)` opens the gate and `setup()` delegates to it, so the 47 pre-existing tests still exercise the app as the shell hands it over after readiness; 7 direct call sites that tapped a raw `startApp` now route through the helper (2 failed for real, the other 5 were silent no-ops whose variable names promised a menu). The four new gate tests call `startApp` directly, so the closed start state stays pinned.
 
   **⚠ Known intermediate state — deliberate, not a defect:** nothing in production dispatches `content-ready` yet (`grep -rn content-ready src/` matches only `app.ts`), so **at this commit the real app holds at the splash**. The four QA probes that tap the splash (`qa-smoke.mjs:101`, `qa-perf.mjs:115`, `qa-offline.mjs:159`, `qa-landscape.mjs:258`) cannot pass until Phase 5's *Wire the gate into boot* replaces the discarded fire-and-forget warm-up with the readiness-driven flow. Recorded rather than patched, because that wiring is Phase 5's task — and recorded *here* so the Phase 3 checkpoint below is read against the right expectation instead of surprising the Phase 5 implementer.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Confirm the gate cannot be bypassed, double-opened, or reversed.
-  - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Confirm the gate cannot be bypassed, double-opened, or reversed.
+  - [x] Run the phase's automated checks and checkpoint the phase according to the workflow.
+
+  **Phase 3 evidence (2026-09-25):** `CI=true pnpm test` passed (61 files / 788 tests, +19 over the 769 baseline) and `CI=true pnpm check` is clean (Biome 134 files, `tsc --noEmit`). Focused suites: `readiness.test.ts` 15/15, `app.test.ts` 51/51. Phase-coverage step: `git diff --name-only b656daf HEAD` lists `src/pwa/readiness.ts` (sibling test `readiness.test.ts`), `src/app/app.ts` (sibling test `app.test.ts`), those two test files, and this plan — no code file is missing a test. Coverage: `readiness.ts` 100 / 100 / 100 / 100, `app.ts` 98.13 / 98 / 100 / 98.01 (both uncovered lines are pre-existing guards this phase did not touch), global 74.64 / 78.39 / 90.44 / 74.21 against the enforced 72 / 76 / 88 / 72 and the pre-track baseline 74.02 / 77.93 / 90.07 / 73.57.
+
+  **Gate invariants confirmed by inspection:** `contentReady` appears exactly four times in `app.ts` — the declaration, `false` in `startApp`, the idempotent open, and the `splash-tap` guard — so only the boot flow's `content-ready` ever sets the flag, no event clears it, a repeat event returns the same state object, and every `{ …state }` spread preserves it (including the reset path, which replaces only `save`). The gate cannot be bypassed, double-opened, or reversed.
+
+  **Owner decision (2026-09-25):** presented with the documented interim state (the app holds at the splash until Phase 5 wires boot, and four probes tap the splash), the owner **confirmed the checkpoint as planned** — the splash hold is accepted as a dev-branch state and is explicitly *not* to be patched ahead of Phase 5, whose task it is. Phase 5 inherits the probe list: `qa-smoke.mjs:101`, `qa-perf.mjs:115`, `qa-offline.mjs:159`, `qa-landscape.mjs:258`.
 
 ---
 
