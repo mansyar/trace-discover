@@ -219,10 +219,16 @@
 
 ## Phase 5 — Boot wiring: gate, character stand-in, self-healing content
 
-- [ ] Task: Write failing tests for the character failure stand-in
-  - [ ] Prove a failed character load reports through `onError` and puts the drawn stand-in on screen — never a blank canvas.
-  - [ ] Prove a later successful retry replaces the stand-in with the real character.
-  - [ ] Prove unknown or unloaded triggers keep their existing failure-safe behavior.
+- [x] Task: Write failing tests for the character failure stand-in [2b37e16]
+  - [x] Prove a failed character load reports through `onError` and puts the drawn stand-in on screen — never a blank canvas.
+  - [x] Prove a later successful retry replaces the stand-in with the real character.
+  - [x] Prove unknown or unloaded triggers keep their existing failure-safe behavior.
+
+  **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/character/presenter.test.ts` → 6 failed. Full suite at this commit: **1 failed file | 61 passed; 6 failed tests | 798 passed**, so nothing else regressed. The committed declaration throws (`createCharacterPresenter: not implemented`) rather than returning a plausible default: an inert stub would have let "starts as the stand-in" and "ignores a retry while in flight" pass while the behaviour was still missing. Honest limitation: in this state the assertions do not execute — they are pinned, not yet exercised — and the Green step is where they first run.
+
+  **Contract asserted:** the canvas presents the drawn stand-in before anything loads and through a failed attempt (a failure is a *fallback*, not a blank); the failure is reported through the dev-QA hook while the child-facing presentation does not change; a retry after a failure starts a second attempt whose success moves the presentation to the loaded character; a retry while an attempt is in flight is ignored, so a slow load cannot be duplicated; a loaded character that later fails falls back to the stand-in; and `onChange` never fires twice for one presentation, so the shell is never asked to redraw a canvas that has not changed.
+
+  **Third sub-bullet is covered by the existing suite, not by a new test:** "unknown or unloaded triggers keep their existing failure-safe behavior" is pinned in `src/character/character.test.ts` — *stays inert when the runtime fails to load* (`fire` returns false, `resize` is skipped) and *fires a named trigger only after load* (`fire('missing')` is false). Those are characterization guards on behaviour the wiring must not break.
 - [ ] Task: Write failing tests for on-demand level warming
   - [ ] Prove entering a level warms that level's backdrop, goal, sticker, and character assets.
   - [ ] Prove a partially warmed level keeps drawn stand-ins and neither restarts nor resets progress.
