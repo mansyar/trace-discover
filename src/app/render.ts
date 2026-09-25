@@ -325,6 +325,42 @@ export function drawSplash(ctx: CanvasRenderingContext2D, now: number, layout: S
   ctx.stroke();
 }
 
+/**
+ * Drawn mascot: the gate's waiting face and, on a failed character load, the
+ * stand-in on the character canvas. Accent-tinted and drawn from paths only,
+ * so it renders with no image and no character art available.
+ */
+export function drawDrawnMascot(
+  ctx: CanvasRenderingContext2D,
+  center: Point,
+  radius: number,
+  accent: string,
+): void {
+  void ctx;
+  void center;
+  void radius;
+  void accent;
+}
+
+/**
+ * Boot gate (implementation lands with the phase's Green step): the splash
+ * identity — dashed trace ring plus the star riding the traced path — with the
+ * waiting mascot at its center and the filled fraction of the path as progress.
+ */
+export function drawGate(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  layout: SplashLayout,
+  progress: number,
+  accent: string,
+): void {
+  void ctx;
+  void now;
+  void layout;
+  void progress;
+  void accent;
+}
+
 /** Pack card extras: real art plus zero-text progress (first frames: null). */
 export interface PackMenuArt {
   readonly image: HTMLImageElement | null;
