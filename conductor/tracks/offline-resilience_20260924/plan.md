@@ -156,7 +156,7 @@
 
 ---
 
-## Phase 4 — Drawn gate: mascot and traced-path progress
+## Phase 4 — Drawn gate: mascot and traced-path progress [checkpoint: e9958a3]
 
 - [x] Task: Write failing render tests for the drawn mascot and progress indication [0f6f4a8]
   - [x] Draw the mascot from the active skin's accent with no image source.
