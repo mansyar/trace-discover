@@ -177,10 +177,20 @@
   **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/ui/menu.test.ts` reported 4 failed / 84 passed — the four new geometry tests red, every pre-existing layout test green. The failures are of two kinds and are recorded as they are rather than dressed up: `expected NaN to be greater than or equal to 0` (the ring/arc/mascot/tracer fields are absent, so the derived outer extent is NaN) and `TypeError: gateArcEnd is not a function` twice. That is weaker than an assertion diff, so the Green step has to show these same four tests passing against real geometry, not merely non-throwing.
 
   **Contract asserted:** the furthest gate pixel (the widest ring stroke, or the tracer star riding the ring) stays inside the field in **both** orientations; the mascot nests inside the ring's inner edge *and* the tracer star never reaches the mascot; the sweep is strictly proportional — equal to `arcStartAngle` when empty, `+ π/2` at a quarter, `+ 2π` when full, clamped for negative and over-full input; and rotating the field recomputes the layout (the centres move) while the swept angle is identical at every progress value, which is what "recomputes without losing progress state" means for a layout that holds no state: **the swept angle is size-independent, so a rotation cannot move the indication even though the geometry is rebuilt.**
-- [ ] Task: Implement the drawn gate and mascot
-  - [ ] Extend the splash rendering with the animated drawn mascot and the traced-path progress ring — no text, no raster asset.
-  - [ ] Keep both drawn primitives in one place so the gate and the character stand-in share them.
-  - [ ] Keep the existing splash identity (star on the dashed trace ring).
+- [x] Task: Implement the drawn gate and mascot [2429d57]
+  - [x] Extend the splash rendering with the animated drawn mascot and the traced-path progress ring — no text, no raster asset.
+  - [x] Keep both drawn primitives in one place so the gate and the character stand-in share them.
+  - [x] Keep the existing splash identity (star on the dashed trace ring).
+
+  **GREEN evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/app/render.test.ts src/ui/menu.test.ts` passed 101/101; full `CI=true pnpm test` 61 files / 798 tests (was 788); `CI=true pnpm check` clean (Biome 134 files, `tsc`).
+
+  **Geometry:** every gate radius is a ratio of one emblem scale (ring 1.35 · mascot 0.86 · tracer 0.30 of `0.22 × min(field)`), so the gate scales with the field rather than with pixel guesses. `gateArcEnd(layout, progress)` clamps to 0..1 and returns the start angle plus the swept fraction — deliberately **size-independent**, which is what makes "recomputes on rotation without losing progress" true rather than hopeful.
+
+  **Drawing:** `drawDrawnMascot` paints an accent-tinted face (CREAM muzzle, NAVY outline and eyes) from paths only — no image, no text — so Phase 5's character stand-in is the *same* primitive rather than a lookalike. `drawGate` draws the trace ring extracted from `drawSplash` (one dashed ring, two callers, no drift), the accent fill on that same circle, the breathing mascot (1 ± 0.04 over 350 ms), and the gold star riding the ring at the traced angle — the existing identity, kept. An empty fraction draws no fill arc at all.
+
+  **Raster verification (measured, not asserted):** a temporary probe (`dev/qa/out/gate-shots.mjs`, git-ignored) screenshotted the harness preview and sampled the canvas. Ring-band accent pixels: **0** at `gateF=0`, **2328** at 0.25, **4977** at 0.5, **9805** at 1.0 — proportional to arc length — and *identical* in portrait and landscape (4977 / 9805 in both), which is the raster twin of the size-independent sweep. The contiguous fill run measured 0.228 at 0.25 and 0.482 at 0.5 against 0.25 / 0.5 requested; the shortfall is the antialiased trailing cap, because the metric matches exact accent pixels rather than blends. No page errors in any shot. Screenshots: `dev/qa/out/gate/*.png` (empty · quarter · half · full, portrait and landscape).
+
+  **Dev surface (unshipped):** the screens harness gained `?screen=gate&gateF=0..1` and `?chrome=0`. `src/dev/screens.ts` is not a build input, so this adds **zero shipped bytes** — and it exists because the real app cannot reach the gate until Phase 5 wires boot, while this phase's checkpoint calls for a legibility review in both orientations.
 - [ ] Task: Verify GREEN and preserve existing screens
   - [ ] Run the focused render and layout tests, then the full suite with `CI=true pnpm test`.
   - [ ] Run `CI=true pnpm check`.
