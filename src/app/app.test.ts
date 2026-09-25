@@ -701,3 +701,43 @@ describe('shouldPulseStickerShelf', () => {
     expect(shouldPulseStickerShelf(stocked, 'space')).toBe(false);
   });
 });
+
+describe('content readiness gate', () => {
+  it('starts with the gate closed', () => {
+    expect(startApp(createDefaultSave()).contentReady).toBe(false);
+  });
+
+  it('holds the splash when it is tapped before content is ready', () => {
+    const app = startApp(createDefaultSave());
+    expect(applyAppEvent(app, { type: 'splash-tap' })).toBe(app);
+  });
+
+  it('opens the gate once, then lets the tap through to the menu', () => {
+    let app = applyAppEvent(startApp(createDefaultSave()), { type: 'content-ready' });
+    expect(app.contentReady).toBe(true);
+    const opened = app;
+    expect(applyAppEvent(opened, { type: 'content-ready' })).toBe(opened);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    expect(app.screen.name).toBe('menu');
+    expect(applyAppEvent(app, { type: 'splash-tap' })).toBe(app);
+  });
+
+  it('leaves the save, the pop moment, and the pending badge untouched', () => {
+    const save = {
+      ...createDefaultSave(),
+      badges: ['pre-badge'],
+      completedLevels: ['pre-1'],
+      stickerIntroSeen: true,
+    };
+    const app = startApp(save);
+
+    const ready = applyAppEvent(app, { type: 'content-ready' });
+
+    expect(ready.save).toBe(app.save);
+    expect(ready.pendingBadge).toBe(app.pendingBadge);
+    expect(ready.stickerMoment).toBe(app.stickerMoment);
+    expect(ready.save.completedLevels).toEqual(['pre-1']);
+    expect(ready.save.badges).toEqual(['pre-badge']);
+    expect(ready.save.stickerIntroSeen).toBe(true);
+  });
+});
