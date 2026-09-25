@@ -191,10 +191,16 @@
   **Raster verification (measured, not asserted):** a temporary probe (`dev/qa/out/gate-shots.mjs`, git-ignored) screenshotted the harness preview and sampled the canvas. Ring-band accent pixels: **0** at `gateF=0`, **2328** at 0.25, **4977** at 0.5, **9805** at 1.0 — proportional to arc length — and *identical* in portrait and landscape (4977 / 9805 in both), which is the raster twin of the size-independent sweep. The contiguous fill run measured 0.228 at 0.25 and 0.482 at 0.5 against 0.25 / 0.5 requested; the shortfall is the antialiased trailing cap, because the metric matches exact accent pixels rather than blends. No page errors in any shot. Screenshots: `dev/qa/out/gate/*.png` (empty · quarter · half · full, portrait and landscape).
 
   **Dev surface (unshipped):** the screens harness gained `?screen=gate&gateF=0..1` and `?chrome=0`. `src/dev/screens.ts` is not a build input, so this adds **zero shipped bytes** — and it exists because the real app cannot reach the gate until Phase 5 wires boot, while this phase's checkpoint calls for a legibility review in both orientations.
-- [ ] Task: Verify GREEN and preserve existing screens
-  - [ ] Run the focused render and layout tests, then the full suite with `CI=true pnpm test`.
-  - [ ] Run `CI=true pnpm check`.
-  - [ ] Confirm menu, pack, level, success, badge, parent-zone, and sticker rendering are unchanged.
+- [x] Task: Verify GREEN and preserve existing screens
+  - [x] Run the focused render and layout tests, then the full suite with `CI=true pnpm test`.
+  - [x] Run `CI=true pnpm check`.
+  - [x] Confirm menu, pack, level, success, badge, parent-zone, and sticker rendering are unchanged.
+
+  **Verification evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/app/render.test.ts src/ui/menu.test.ts` passed 101/101. Full `CI=true pnpm test --coverage` passed 61 files / 798 tests (Phase 3 close: 788), with global coverage 75.7 / 78.43 / 90.77 / 75.31 (was 74.64 / 78.39 / 90.44 / 74.21) against thresholds 72 / 76 / 88 / 72. `CI=true pnpm check` clean (Biome 134 files, `tsc --noEmit` strict).
+
+  **Other screens unchanged — proven by the diff, not by inspection:** `git diff 899e43b..HEAD -- src/app/render.ts` removes **four** lines, all of them inside `drawSplash` (its signature line, the pulse line, `lineWidth = 10`, and the arc that computed `emblemRadius * 1.35` inline). Every other line of that 1411-line painter module is an addition, so the menu, pack, level, success, badge, parent-zone, and sticker painters are byte-identical — the phase's whole source footprint is `src/app/render.ts`, `src/ui/menu.ts`, and the unshipped dev harness. The screen suites agree: `CI=true pnpm exec vitest run src/ui src/app src/render src/field.test.ts` passed 22 files / 344 tests.
+
+  **Payload check (informational; Phase 6 re-measures):** fresh `pnpm build` reports the same **10** precache entries, and `pnpm budget` PASSes at 5,556,444 / 6,000,000 B and 10 / 200 entries. The 279 B rise against Phase 2's 5,556,165 B is the gate and mascot *code*; the gate ships no asset, which is why the entry count is unmoved and the ceilings were not re-anchored.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Review gate screenshots in portrait and landscape for legibility and zero text.
   - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
