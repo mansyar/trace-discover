@@ -110,8 +110,14 @@ const gateFractionParam = Number.parseFloat(params.get('gateF') ?? '');
 const gateFraction = Number.isNaN(gateFractionParam)
   ? 0.42
   : Math.min(1, Math.max(0, gateFractionParam));
-/** `?chrome=0` hides the dev overlay so a screenshot shows the screen alone. */
+/** `?chrome=0` hides the dev overlay *and* the log so a screenshot shows the screen alone. */
 const showChrome = params.get('chrome') !== '0';
+if (!showChrome) {
+  const logElement = document.getElementById('log');
+  if (logElement) {
+    logElement.style.display = 'none';
+  }
+}
 /** `?menuCards=2..9` pads/truncates the menu to N cards for the capacity matrix. */
 const menuCardsParam = Number.parseInt(params.get('menuCards') ?? '', 10);
 const menuCards = menuCardsParam >= 2 && menuCardsParam <= 9 ? menuCardsParam : null;
