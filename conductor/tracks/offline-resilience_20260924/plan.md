@@ -201,9 +201,19 @@
   **Other screens unchanged — proven by the diff, not by inspection:** `git diff 899e43b..HEAD -- src/app/render.ts` removes **four** lines, all of them inside `drawSplash` (its signature line, the pulse line, `lineWidth = 10`, and the arc that computed `emblemRadius * 1.35` inline). Every other line of that 1411-line painter module is an addition, so the menu, pack, level, success, badge, parent-zone, and sticker painters are byte-identical — the phase's whole source footprint is `src/app/render.ts`, `src/ui/menu.ts`, and the unshipped dev harness. The screen suites agree: `CI=true pnpm exec vitest run src/ui src/app src/render src/field.test.ts` passed 22 files / 344 tests.
 
   **Payload check (informational; Phase 6 re-measures):** fresh `pnpm build` reports the same **10** precache entries, and `pnpm budget` PASSes at 5,556,444 / 6,000,000 B and 10 / 200 entries. The 279 B rise against Phase 2's 5,556,165 B is the gate and mascot *code*; the gate ships no asset, which is why the entry count is unmoved and the ceilings were not re-anchored.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Review gate screenshots in portrait and landscape for legibility and zero text.
-  - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Review gate screenshots in portrait and landscape for legibility and zero text.
+  - [x] Run the phase's automated checks and checkpoint the phase according to the workflow.
+
+  **Phase 4 evidence (2026-09-25):** `CI=true pnpm test` passed (61 files / 798 tests, +10 over the Phase 3 close) and `CI=true pnpm check` is clean (Biome 134 files, `tsc --noEmit`). Phase scope (`git diff --name-only 899e43b HEAD`): the two test files, `src/app/render.ts`, `src/ui/menu.ts`, the unshipped dev harness, and this plan — both source files have their sibling tests.
+
+  **Screenshot review:** six Chromium captures in `dev/qa/out/gate/` — portrait empty · quarter · half · full, landscape half · full — taken with `?chrome=0`, which now hides the harness overlay *and* its log line, so the images contain no text at all; the canvas draws no text op either (asserted in `render.test.ts`). Raster measurements alongside them: ring-band accent pixels 0 / 2328 / 4977 / 9805 for fractions 0 / 0.25 / 0.5 / 1.0, identical in portrait and landscape, no page errors in any shot.
+
+  **`src/dev/screens.ts` and the test-per-code-file rule:** the harness is a browser-only entry point (`requireCanvas(document)` at module scope) and **no file in `src/dev/` has a sibling test** — that is the repository's standing convention, and the two tracks that previously extended this same harness (`menu-capacity_20260917`, `shapes-pack_20260918`) verified it the same way: render the screenshot matrix and review it. Here it was verified *by execution* rather than by unit test — six real captures, six states, pixel-measured, zero page errors — which is the stronger check for a file that exists only to be looked at. It is not a build input, so it adds no shipped bytes.
+
+  **Owner decision (2026-09-25):** reviewed the captures and the live harness, and **accepted the gate as drawn** — including the one real design call, the gold star riding the leading edge of the traced path rather than sitting at the centre where it would collide with the mascot — with no adjustments requested.
+
+  **Live surface:** the dev server on `:5199` serves `?screen=gate&gateF=0..1&chrome=0` for further eyeballing; the temporary probe and the captures stay git-ignored (`dev/qa/out/`).
 
 ---
 
