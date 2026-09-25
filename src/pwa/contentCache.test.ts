@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  allContentCached,
   CONTENT_ASSET_URLS,
   type ContentWarmupProgress,
   classifyAssetPath,
@@ -45,6 +46,21 @@ describe('content cache contract', () => {
   it('keeps the content inventory complete and duplicate-free', () => {
     expect(CONTENT_ASSET_URLS).toEqual(SHIPPED_CONTENT_KEYS);
     expect(new Set(CONTENT_ASSET_URLS).size).toBe(CONTENT_ASSET_URLS.length);
+  });
+
+  it('reports the inventory complete only when every URL is already cached', async () => {
+    const warm = memoryStore(['/art/goal/pre-1.webp', '/rive/dino.riv']);
+    expect(await allContentCached(['/art/goal/pre-1.webp', '/rive/dino.riv'], warm)).toBe(true);
+    expect(await allContentCached([], warm)).toBe(true);
+
+    const cold = memoryStore(['/art/goal/pre-1.webp']);
+    const partial = await allContentCached(
+      ['/art/goal/pre-1.webp', '/rive/dino.riv', '/art/backdrop/pre-1.webp'],
+      cold,
+    );
+    expect(partial).toBe(false);
+    // Stops at the first miss instead of walking the rest of the inventory.
+    expect(cold.has).toHaveBeenCalledTimes(2);
   });
 
   it('skips already cached content and deduplicates requested URLs', async () => {

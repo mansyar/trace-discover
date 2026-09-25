@@ -142,6 +142,24 @@ export async function warmContentAssets(
   return { cached, complete: failed.length === 0, failed };
 }
 
+/**
+ * True when every unique URL in the inventory is already in the content cache,
+ * which is what lets a warm boot skip the readiness gate entirely. Sequential
+ * on purpose: it runs once at boot, against a local Cache API, and stops at the
+ * first miss rather than walking the rest of the inventory.
+ */
+export async function allContentCached(
+  urls: readonly string[],
+  store: ContentCacheStore,
+): Promise<boolean> {
+  for (const url of new Set(urls)) {
+    if (!(await store.has(url))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export interface ContentWarmupScheduleOptions {
   isOnline: () => boolean;
   schedule: (task: () => void) => void;

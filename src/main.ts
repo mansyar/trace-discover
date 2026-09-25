@@ -18,6 +18,7 @@ import { menuCardArtUrl, packBadgeArtUrl } from './app/packArt';
 import {
   beginField,
   drawBadge,
+  drawGate,
   drawLevel,
   drawMenu,
   drawNameOverlay,
@@ -72,12 +73,19 @@ import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
 import { levelForOrientation, pathGeometryLength } from './packs/wide';
-import { createBrowserContentCacheStore, scheduleContentWarmup } from './pwa/contentCache';
+import {
+  allContentCached,
+  CONTENT_ASSET_URLS,
+  createBrowserContentCacheStore,
+  warmContentAssets,
+} from './pwa/contentCache';
+import { type ReadinessState, startContentReadiness } from './pwa/readiness';
 import { type ConfettiParticle, createConfetti, stepConfetti } from './render/confetti';
 import { acquireSaveStorage, requestPersistence } from './save/storage';
 import { loadSave, MAX_NAME_LENGTH, saveSave } from './save/store';
 import { require2dContext, requireCanvas } from './shell/boot';
 import { computeBackingSize, fitRect, type Rect } from './shell/layout';
+import { createSplashTapHold } from './shell/splashTap';
 import { SKINS, type SkinDef, skinById } from './skins/skins';
 import { badgeLayout } from './ui/badge';
 import { type InstallVariant, installVariant } from './ui/install';
@@ -269,6 +277,10 @@ let app: AppState = startApp(loadSave(saveStorage));
 rebuildViews();
 let session: LevelSession | null = null;
 let character: Character | null = null;
+/** Gate state driving the splash; null until the boot flow decides. */
+let contentReadiness: ReadinessState | null = null;
+/** Splash taps taken while the gate was closed, replayed when it opens. */
+const splashTapHold = createSplashTapHold();
 let field: Rect = fitRect(1, 1, space.width, space.height);
 let gateState: ParentGateState = PARENT_GATE_START;
 const gatePointers = new Set<number>();
@@ -697,8 +709,15 @@ const handlers: TraceHandlers = {
     }
     const screen = app.screen;
     if (screen.name === 'splash') {
-      commit(applyAppEvent(app, { type: 'splash-tap' }));
       pop();
+      if (app.contentReady) {
+        commit(applyAppEvent(app, { type: 'splash-tap' }));
+      } else {
+        // The gate is still closed, so the reducer would drop this tap as if
+        // nothing happened. Hold it instead: the boot flow replays it the
+        // moment readiness lands.
+        splashTapHold.hold();
+      }
     } else if (screen.name === 'menu') {
       const pagerTap = MENU.pager ? hitMenuPager(MENU.pager, point, menuPage) : null;
       if (pagerTap) {
@@ -1000,7 +1019,13 @@ function render(now: number): void {
   beginField(trailContext, trailCanvas.width, trailCanvas.height, field, space, dpr);
   const screen = app.screen;
   if (screen.name === 'splash') {
-    drawSplash(trailContext, now, SPLASH);
+    // Undecided readiness keeps the plain splash; a decision to wait swaps in
+    // the gate, which carries the same identity plus the traced fill.
+    if (contentReadiness && !contentReadiness.ready) {
+      drawGate(trailContext, now, SPLASH, contentReadiness.fraction, activeSkin().accent);
+    } else {
+      drawSplash(trailContext, now, SPLASH);
+    }
   } else if (screen.name === 'menu') {
     const packArts = new Map<string, PackMenuArt>();
     for (const pack of PACKS) {
@@ -1190,6 +1215,8 @@ function drawMascotSparkles(context: CanvasRenderingContext2D): void {
 declare global {
   interface Window {
     __app?: {
+      /** Boot gate state (dev QA): null until the flow decides, then the gate. */
+      readonly content: () => ReadinessState | null;
       readonly field: () => Rect;
       readonly orientation: () => Orientation;
       readonly moment: () => AppState['stickerMoment'];
@@ -1323,6 +1350,7 @@ function screenTargets(): AppTarget[] {
 }
 
 window.__app = {
+  content: () => contentReadiness,
   field: () => ({ ...field }),
   orientation: () => orientation,
   moment: () => app.stickerMoment,
@@ -1333,20 +1361,65 @@ window.__app = {
   targets: () => screenTargets(),
 };
 
-function scheduleContentCacheWarmup(): void {
-  if (typeof caches === 'undefined') {
+/** Shared content-cache store; null when the Cache API is unavailable. */
+const contentStore = typeof caches === 'undefined' ? null : createBrowserContentCacheStore();
+
+/**
+ * Full-inventory warm-up for the returning-connectivity path: a first run that
+ * escaped the gate while offline still becomes fully offline later. Readiness
+ * itself is terminal, so this can never move the gate.
+ */
+function warmContentWhenBackOnline(): void {
+  if (!contentStore) {
     return;
   }
-  void scheduleContentWarmup({
-    isOnline: () => navigator.onLine,
-    schedule: (task) => window.setTimeout(task, 0),
-    store: createBrowserContentCacheStore(),
-  });
+  void warmContentAssets(CONTENT_ASSET_URLS, contentStore);
 }
 
-window.addEventListener('online', scheduleContentCacheWarmup);
+/**
+ * Opens the gate: from here on the splash tap advances. A tap taken while the
+ * gate was closed is replayed now, so a tap that landed during the boot window
+ * starts the game rather than being swallowed.
+ */
+function releaseSplash(): void {
+  commit(applyAppEvent(app, { type: 'content-ready' }));
+  if (splashTapHold.take()) {
+    commit(applyAppEvent(app, { type: 'splash-tap' }));
+  }
+}
+
+/**
+ * Boot content readiness: scan the inventory once, then either play straight
+ * away (an already-cached inventory, or a device that cannot fetch) or hold the
+ * gate while the warm-up runs. Every decision is in src/pwa/readiness.ts; this
+ * is the wiring that feeds it and hands its outcome to the reducer.
+ */
+async function bootContentReadiness(): Promise<void> {
+  const store = contentStore;
+  if (!store) {
+    releaseSplash();
+    return;
+  }
+  const online = navigator.onLine;
+  // Only an online boot can gain from the scan: an offline device plays
+  // immediately whatever the cache holds, so the scan is skipped rather than
+  // run and discarded, and the gate opens before the first frame.
+  const cacheComplete = online ? await allContentCached(CONTENT_ASSET_URLS, store) : false;
+  await startContentReadiness({
+    cacheComplete,
+    online,
+    warmUp: (onProgress) => warmContentAssets(CONTENT_ASSET_URLS, store, { onProgress }),
+    schedule: (task) => window.setTimeout(task, 0),
+    onState: (next) => {
+      contentReadiness = next;
+    },
+  });
+  releaseSplash();
+}
+
+window.addEventListener('online', warmContentWhenBackOnline);
 window.addEventListener('resize', resize);
-scheduleContentCacheWarmup();
+void bootContentReadiness();
 hideCharacter();
 resize();
 requestAnimationFrame(frame);
