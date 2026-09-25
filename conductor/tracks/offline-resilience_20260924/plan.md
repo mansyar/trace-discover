@@ -133,9 +133,17 @@
   **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/app/app.test.ts` reported 4 failed / 47 passed — the four new gate tests red while every pre-existing test stays green, so the Red state is the missing behaviour rather than a broken harness. The failure modes name the gap precisely: `expected undefined to be false` (the state has no `contentReady`), `expected { pendingBadge: null, … } to be { pendingBadge: null, … }` (the tap still advances splash → menu), and two `TypeError: Cannot read properties of undefined`. The last pair is the informative one: with no `content-ready` case the switch falls off its end and returns `undefined` instead of a state, so the reducer must *handle* the event rather than merely ignore it.
 
   **Contract pinned:** the gate assertion on `splash-tap` is an identity check (`toBe(app)`), not just a screen check, so the blocked tap may not produce a new state object with an unchanged screen; the second readiness event is likewise pinned as an identity no-op, which is what "exactly once" means for a reducer; and "readiness does not alter save, sticker, badge, or progress state" is proven with object-identity checks plus content checks on `completedLevels`, `badges`, and `stickerIntroSeen` rather than assumed from the shape of the code.
-- [ ] Task: Implement the reducer gate
-  - [ ] Add the readiness flag and readiness event to the app state machine and guard `splash-tap` on it.
-  - [ ] Keep the reducer pure — no DOM, timers, or network access.
+- [x] Task: Implement the reducer gate [27f0dc6]
+  - [x] Add the readiness flag and readiness event to the app state machine and guard `splash-tap` on it.
+  - [x] Keep the reducer pure — no DOM, timers, or network access.
+
+  **GREEN evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/app/app.test.ts` passed 51/51 (from 47 passed / 4 failed in the Red step); full `CI=true pnpm test --coverage` passed with 61 files / 788 tests; `CI=true pnpm check` clean (Biome 134 files, `tsc --noEmit` strict). `app.ts` coverage 98.13 / 98 / 100 / 98.01, where lines 105 and 233 are the pre-existing `!pack` guard in `openLevel` and the non-parent guard in `parentAction` — neither is on this task's change surface. Global coverage 74.64 / 78.39 / 90.44 / 74.21 against the enforced 72 / 76 / 88 / 72.
+
+  **Purity kept:** the reducer gained one boolean, one event case, and one guard; no timers, no DOM, no network, no new imports. The gate is identity-preserving in both directions — a blocked `splash-tap` returns the same state object and a repeated `content-ready` returns the same state object — so "cannot be bypassed" and "opens exactly once" are properties of the code rather than claims in a comment.
+
+  **Harness change:** `readyApp(save)` opens the gate and `setup()` delegates to it, so the 47 pre-existing tests still exercise the app as the shell hands it over after readiness; 7 direct call sites that tapped a raw `startApp` now route through the helper (2 failed for real, the other 5 were silent no-ops whose variable names promised a menu). The four new gate tests call `startApp` directly, so the closed start state stays pinned.
+
+  **⚠ Known intermediate state — deliberate, not a defect:** nothing in production dispatches `content-ready` yet (`grep -rn content-ready src/` matches only `app.ts`), so **at this commit the real app holds at the splash**. The four QA probes that tap the splash (`qa-smoke.mjs:101`, `qa-perf.mjs:115`, `qa-offline.mjs:159`, `qa-landscape.mjs:258`) cannot pass until Phase 5's *Wire the gate into boot* replaces the discarded fire-and-forget warm-up with the readiness-driven flow. Recorded rather than patched, because that wiring is Phase 5's task — and recorded *here* so the Phase 3 checkpoint below is read against the right expectation instead of surprising the Phase 5 implementer.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
   - [ ] Confirm the gate cannot be bypassed, double-opened, or reversed.
   - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
