@@ -100,12 +100,16 @@
 
 ## Phase 3 — Pure readiness gate and reducer enforcement
 
-- [ ] Task: Write failing tests for the readiness decision
-  - [ ] Complete cache → ready immediately, with no gate presented.
-  - [ ] Incomplete cache while offline → ready immediately, never waiting on work that cannot finish.
-  - [ ] Incomplete cache while online → not ready until the warm-up resolves.
-  - [ ] Warm-up resolving with exhausted failures → ready, with the failures surfaced for dev QA.
-  - [ ] Prove readiness resolves exactly once and cannot reverse on later signals.
+- [x] Task: Write failing tests for the readiness decision [525f325]
+  - [x] Complete cache → ready immediately, with no gate presented.
+  - [x] Incomplete cache while offline → ready immediately, never waiting on work that cannot finish.
+  - [x] Incomplete cache while online → not ready until the warm-up resolves.
+  - [x] Warm-up resolving with exhausted failures → ready, with the failures surfaced for dev QA.
+  - [x] Prove readiness resolves exactly once and cannot reverse on later signals.
+
+  **RED evidence (2026-09-25):** Focused `CI=true pnpm exec vitest run src/pwa/readiness.test.ts` fails as intended: the suite cannot load (`Error: Cannot find module './readiness'`), so no assertion executes in this state — the canonical Red for a brand-new module, stated plainly rather than dressed up as a behavioural failure. Every assertion is therefore pinned but unverified until the next task's Green run, which is the first time they execute against an implementation.
+
+  **Contract pinned:** the decision table (play on a complete cache, play while offline, wait only when the cache is incomplete on a live connection, already-cached winning over offline); `readinessFraction` as `resolved / total` clamped to 0..1 with a `0 / 0` empty-inventory guard instead of a division; both escapes starting **no** work (`warmUp` and the injected `schedule` are never called) and reporting exactly one terminal state, which is what "no gate presented" means in evidence; the waiting path reporting the pending gate at fraction 0 *before* the injected scheduler runs the task, then filling strictly with warm-up progress; exhausted failures surfaced in the terminal state for dev QA; a single resolution that later progress and a second completion cannot re-report or reverse; and a rejecting warm-up still releasing the gate, so no path can trap the child.
 - [ ] Task: Implement the readiness module
   - [ ] Add a pure readiness module exposing the decision plus the gate state derived from warm-up progress.
   - [ ] Accept injected connectivity, warm-up, and timer hooks so every branch is testable without a browser.
