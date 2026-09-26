@@ -217,7 +217,7 @@
 
 ---
 
-## Phase 5 — Boot wiring: gate, character stand-in, self-healing content
+## Phase 5 — Boot wiring: gate, character stand-in, self-healing content [checkpoint: ad94390]
 
 - [x] Task: Write failing tests for the character failure stand-in [2b37e16]
   - [x] Prove a failed character load reports through `onError` and puts the drawn stand-in on screen — never a blank canvas.
@@ -282,9 +282,11 @@
   **Verification evidence (2026-09-25):** Focused phase suites — announced command `CI=true pnpm exec vitest run src/pwa/contentCache.test.ts src/pwa/readiness.test.ts src/pwa/levelWarmup.test.ts src/character/presenter.test.ts src/shell/splashTap.test.ts src/app/app.test.ts` — passed **6 files / 99 tests**. Full `CI=true pnpm test` passed **64 files / 816 tests** (Phase 3 close: 61 / 788; Phase 4 close: 61 / 798) and `CI=true pnpm check` is clean (Biome 140 files, `tsc --noEmit` strict). Coverage `CI=true pnpm test --coverage` 76.14 / 78.7 / 91.16 / 75.75 against the enforced 72 / 76 / 88 / 72, with every module this phase touched at or near the top: `presenter.ts`, `levelWarmup.ts`, `readiness.ts`, `splashTap.ts` all 100/100/100/100, `contentCache.ts` 98.38/85.18/100/98.36.
 
   **Invariants proven by the diff, not by inspection:** `git diff --name-only e9958a3 HEAD` lists exactly this phase's surface — `src/main.ts` (boot wiring), `src/shell/splashTap.ts` + test, `src/pwa/contentCache.ts` + test, `src/pwa/levelWarmup.ts` + test, `src/character/presenter.ts` + test, and this plan. `git diff --name-only e9958a3 HEAD -- src/save src/packs src/engine src/audio src/ui src/app src/render index.html vite.config.ts src/style.css package.json` is **empty**, so the save schema (`src/save`), pack data and geometry (`src/packs`), tracing and assists (`src/engine`), audio (`src/audio`), every drawn screen (`src/ui`, `src/app`), the shell markup, the Vite/PWA config, and the stylesheet are untouched by this phase. `pnpm pack:check` passes; fresh `pnpm build` still reports **10 precache entries**; `pnpm budget` PASSes at 5,560,355 / 6,000,000 B and 10 / 200 entries — a 3,911 B rise over the Phase 4 close (5,556,444 B) purely from new JavaScript, with the ceilings still un-re-anchored and no new asset shipped.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Confirm every gate exit is reachable and that no path leaves the child stuck.
-  - [ ] Run the phase's automated checks and checkpoint the phase according to the workflow.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Confirm every gate exit is reachable and that no path leaves the child stuck.
+  - [x] Run the phase's automated checks and checkpoint the phase according to the workflow.
+
+  **Phase 5 evidence (2026-09-26):** `CI=true pnpm test` passed (64 files / 816 tests, +18 over the Phase 4 close of 798) and `CI=true pnpm check` is clean (Biome 140 files, `tsc --noEmit` strict); the focused phase suites ran 6 files / 99 tests. Phase scope (`git diff --name-only e9958a3 HEAD`) is exactly this phase's surface — `src/main.ts`, `src/shell/splashTap.ts` + test, `src/pwa/contentCache.ts` + test, `src/pwa/levelWarmup.ts` + test, `src/character/presenter.ts` + test, and this plan — every code file with its sibling test except the boot shell, which the repository's convention verifies by execution (the probes below). Every gate exit is reachable and no path leaves the child stuck: a complete cache never draws the gate (ready/complete at 41–67 ms), an offline boot plays at 0–12 ms, the waiting path fills `resolved / total` and releases exactly once, exhausted retries release with the failures named, a rejecting warm-up still releases, and a splash tap landing inside the boot window is held and replayed exactly once. Stand-in and self-healing behaviour were measured with every `/rive/*.riv` request aborted (mascot box 81–82% painted, no empty canvas, `levelContent()` `{cached: 3, failed: 1}`, then `character: 'real'` with the traced path length preserved after an online retry). Owner confirmation: **YES (explicit, 2026-09-26)** — accepts the manual verification; the auditable Phase 5 Verification & Checkpoint Report is appended as a git note to `ad94390` (after the task-level verification note).
 
 ---
 
