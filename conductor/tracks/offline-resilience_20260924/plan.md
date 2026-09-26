@@ -348,7 +348,7 @@
 
 ---
 
-## Phase 7 — Documentation, review, and closeout
+## Phase 7 — Documentation, review, and closeout [checkpoint: b1bd814]
 
 - [ ] Task: Update project documentation
   - [ ] Finalize `tech-stack.md` with the shipped gate, warm-up contract, and final measurements.
@@ -380,8 +380,10 @@
   - `pnpm build` → **10 precache entries** (1140.58 KiB); `pnpm budget` → **PASS** at 5,560,355 / 6,000,000 B and 10 / 200 entries.
   - Production probes re-run at the closeout tree, all exit 0: `qa-readiness.mjs` **READINESS OK** (gate held, held tap replayed, menu reached); `qa-character.mjs` **CHARACTER OK** (stand-in where the mascot belongs, then `character: 'real'` in place); `qa-offline.mjs` 187/187, no gate on either returning-user boot (offline decision 43 ms), 6/187-cached escape in 60 ms with one tap, and the open level healing to `{cached: 4, failed: 0, state: 'warmed'}`; `qa-smoke.mjs` **SMOKE OK**; `qa-update.mjs` **ALL CHECKS PASSED** (10/10 — the new worker waits while a session is open, the running page is never claimed, the open session keeps the old version, and the next cold start serves the new one), which is the behavioural proof that the update lifecycle is unchanged; `qa-perf.mjs` exited 0 on three consecutive runs.
   - **Perf spread recorded honestly:** the closeout runs measured cold boot **149–196 ms**, input-to-next-frame **4.0–5.1 ms** and frame p95 **6.60 ms** (n≈1190, mean ≈5.8; three consecutive runs agreeing with each other), where Phase 6's earlier sample on the *same* application code measured 108 ms / 3.0 ms / p95 4.30 ms. The only commit between the two sets touched `dev/qa/qa-perf.mjs` and documentation, so the difference is machine-state variance — and every figure stays far inside the ~16.7 ms frame budget and the ~100 ms input bound. The landscape matrix (a dev-server probe rather than a production one) was last run at 39/39 in Phase 6, and no shipped code changed since.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Record the final evidence and owner feedback.
-  - [ ] Attach the required auditable verification report as a git note to the last functional commit.
-  - [ ] Commit the closeout using the repository's conductor plan-commit convention.
-  - [ ] Mark the track complete only if the approved measurable outcomes pass.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Record the final evidence and owner feedback.
+  - [x] Attach the required auditable verification report as a git note to the last functional commit.
+  - [x] Commit the closeout using the repository's conductor plan-commit convention.
+  - [x] Mark the track complete only if the approved measurable outcomes pass.
+
+  **Phase 7 evidence (2026-09-26):** `CI=true pnpm test` passed 64 files / 816 tests and `CI=true pnpm check` is clean; the phase scope (`git diff --name-only ed86682 HEAD`) is five Markdown files — `conductor/tech-stack.md`, `conductor/product-guidelines.md`, `conductor/product.md`, `dev/README.md`, and this plan — so the coverage step found no code file needing a sibling test. The final gates re-ran green at the closeout tree (10 precache entries, budget PASS 5,560,355 / 6,000,000 B, `pack:check` exit 0, every production probe exit 0 including `qa-update` 10/10) and the self-review confirmed the invariants, the payload delta, and the untracked-file state. Owner feedback: **YES (explicit, 2026-09-26)** — accepts the closeout. The auditable Phase 7 Verification & Checkpoint Report is attached as a git note to `b1bd814`, and the track is marked complete in `conductor/tracks.md`.
