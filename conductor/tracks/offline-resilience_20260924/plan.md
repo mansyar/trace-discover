@@ -327,6 +327,23 @@
   - [ ] Confirm all acceptance criteria from the approved specification are satisfied.
   - [ ] Perform the workflow's manual-verification and checkpoint protocol.
 
+  **Phase 6 verification record (2026-09-26):** every command and outcome, probes run against the production preview on `:4173` unless noted.
+
+  | Check | Outcome |
+  | --- | --- |
+  | `pnpm build` / `pnpm budget` | 10 precache entries / 1140.58 KiB; PASS 5,560,355 / 6,000,000 B and 10 / 200 entries. Payload delta against the Phase 1 baseline (5,555,589 B) is **+4,766 B of code, no asset** — the ceilings were never re-anchored |
+  | `dev/qa/qa-readiness.mjs` | **READINESS OK** twice: gate closed across 191 / 140 samples (fills 0.000–0.989 / 0.000–0.995, monotonic), released after ~467 / ~322 ms with `reason 'warmed'`, `fraction 1`, `failed 0`, cache 187/187, held tap reaching the menu, no page errors |
+  | `dev/qa/qa-character.mjs` | **CHARACTER OK** twice: menu stand-in 82% painted, sprite canvas `display: none`, `characterError 'Error: rive failed to load'`; level on stand-ins 81% painted with `levelContent()` `{cached: 3, failed: 1, state: 'failed'}`; after the route returns and `online` fires → `character 'real'`, canvas `display: block`, screen `level/pre-1`, path 19; no page errors |
+  | `dev/qa/qa-offline.mjs` (extended) | exit 0 twice: warm-up 187/187; online returning-user boot `reason 'complete'`, no closed-gate sample; offline returning-user boot no gate, decided 29–35 ms; offline `pre-1` trace SUCCESS; 6/187-cached offline boot no gate, decided 53–71 ms, one tap to the menu; a level opened while content was missing ends fully real in place (`character 'real'`, `levelContent()` `{cached: 4, failed: 0, state: 'warmed'}`, screen and path preserved), cache back to 187/187; no page errors |
+  | `dev/qa/qa-smoke.mjs` | SMOKE OK (splash → menu → pack → level → successful trace), no page errors |
+  | `dev/qa/qa-perf.mjs` | cold boot to interactive 108 ms; input-to-next-frame 3.0 ms; frames n=1604 mean 4.25 / p50 4.20 / p95 4.30 / max 62.40 ms; no page errors |
+  | `PORT=5176 node qa/qa-landscape.mjs` (dev server, from `dev/`) | 39 ok checks incl. portrait/landscape, rotation reflow with progress kept, targets inside the design space, `pre-12` completing in tablet landscape; no page errors |
+  | `CI=true pnpm test` | **64 files / 816 tests passed** (baseline 760); `CI=true pnpm check` clean (Biome 140 files, `tsc --noEmit` strict). Coverage from Phase 5's last full run 76.14 / 78.7 / 91.16 / 75.75 against 72 / 76 / 88 / 72, with `presenter.ts`, `levelWarmup.ts`, `readiness.ts`, `splashTap.ts` at 100/100/100/100 |
+
+  **Phase scope and coverage:** `git diff --name-only ad94390 HEAD` lists `dev/qa/qa-readiness.mjs`, `dev/qa/qa-character.mjs`, `dev/qa/qa-offline.mjs`, `dev/qa/qa-perf.mjs`, and this plan — four dev-side probes and the plan, **no shipped code**. No file in `dev/qa/` has a sibling test, the standing convention for the 50+ probes there: each probe is itself the verification instrument and is verified by execution, which here means two clean runs each (both reproduced above) rather than a unit test of a browser script.
+
+  **Acceptance criteria (from the approved spec):** (1) progress/retry/concurrency/partial-failure unit tests — Phase 2, `contentCache.test.ts` 15/15; (2) reducer gate and single-resolution escapes — Phase 3, `app.test.ts` 51/51; (3) character failure renders the drawn stand-in through `onError` — Phase 5, `presenter.test.ts` 6/6 at 100% coverage; (4) cold-cache probe fills and reaches the menu with every shipped asset cached — `qa-readiness.mjs`; (5) `.riv` aborted → drawn mascot, no blank canvas, no error surface, retry succeeds — `qa-character.mjs`; (6) returning user with a warm cache sees no gate with boot time unchanged within noise — `qa-offline.mjs` plus `qa-perf.mjs` (108 ms cold boot, p95 identical to the Phase 1 baseline); (7) offline + incomplete cache plays immediately — `qa-offline.mjs` (6/187 cached, no gate, one tap); (8) gate screenshot/text audit with counts recorded before and after — Phase 4's six captures and raster measurement, zero text asserted in `render.test.ts`, plus the before/after build and budget figures above. **All eight are satisfied**, and the non-functional requirements hold: full suite green above the 760-test baseline, new logic at 100% coverage, `pnpm check` clean, budget inside the unchanged ceilings, payload delta ~0, and the device pass reported passing on Android phone + iPad.
+
 ---
 
 ## Phase 7 — Documentation, review, and closeout
