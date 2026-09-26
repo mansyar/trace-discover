@@ -355,11 +355,19 @@
   - [ ] Record the guideline amendment's outcome in `product-guidelines.md`.
   - [ ] Add the new probes to the `dev/README.md` QA inventory with their expected results.
   - [ ] Update `product.md` with the child-facing change (first-run readiness, no blank mascot).
-- [ ] Task: Perform final self-review against the specification
-  - [ ] Confirm no blank character canvas is reachable and every gate exit is covered.
-  - [ ] Confirm the save schema, pack geometry, precache policy, and update lifecycle are unchanged.
-  - [ ] Confirm the payload delta is ~0 and that the budget ceilings were not re-anchored.
-  - [ ] Confirm no unrelated untracked files were modified or staged.
+- [x] Task: Perform final self-review against the specification
+  - [x] Confirm no blank character canvas is reachable and every gate exit is covered.
+  - [x] Confirm the save schema, pack geometry, precache policy, and update lifecycle are unchanged.
+  - [x] Confirm the payload delta is ~0 and that the budget ceilings were not re-anchored.
+  - [x] Confirm no unrelated untracked files were modified or staged.
+
+  **Self-review evidence (2026-09-26):** run against the tree at `780c4ed`.
+
+  - **No blank character canvas is reachable.** The presenter starts and falls back to the drawn stand-in (`src/character/presenter.ts`, 100/100/100/100 coverage), `syncCharacterCanvas()` shows the Rive canvas only while the presentation is `real`, and the render loop paints `drawDrawnMascot` in the mascot's field-space box whenever it is not (`src/main.ts:1290–1293`) — the same primitive as the boot gate. Measured rather than asserted: with every `/rive/*.riv` aborted the mascot box is 82% painted on the menu and 81% in a running level, the sprite canvas is `display: none` (no empty box sitting beside the stand-in), and the only failure surface is the dev-QA hook `characterError`. Unknown or unloaded triggers keep their existing failure-safe behaviour, pinned in `character.test.ts`.
+  - **Every gate exit is covered.** `bootReadiness` has three exits — complete cache · offline · the waiting path released by `startContentReadiness` (warmed, exhausted retries named, or a rejecting warm-up) — and each is exercised end to end: returning-user online (`reason 'complete'`), returning-user offline and 6/187-cached offline (`reason 'offline'`, 29–71 ms, one tap to the menu), and the first-run warm-up (`reason 'warmed'`, `failed []`). `contentReady` appears exactly four times in `src/app/app.ts` (declaration, `false` at start, the idempotent open, the `splash-tap` guard), so the gate cannot be bypassed or reversed; the one way a tap could have been lost — landing while the gate is closed — is a held tap replayed by the shell, proven by the readiness probe.
+  - **Invariants unchanged.** `git diff --name-only 88faa77 HEAD -- src/save src/packs src/engine src/audio index.html vite.config.ts src/style.css package.json dev/tools/dist-budget.mjs` is **empty**: save schema, pack data and geometry, tracing engine, audio, shell markup, PWA config, stylesheet, and the budget-ceiling tool are untouched by the whole track. `src/pwa/cachePolicy.ts` and `vite.config.ts` are likewise unchanged, so the precache boundary and the waiting-service-worker update lifecycle are untouched by construction — task 3 re-runs `qa-update.mjs` to prove that behaviourally too. The track's total changed surface is exactly the spec's: `src/app/{app,render}.ts`, `src/ui/menu.ts`, `src/main.ts`, `src/pwa/{contentCache,levelWarmup,readiness}.ts`, `src/character/presenter.ts`, `src/shell/splashTap.ts`, the unshipped `src/dev/screens.ts` harness, the `dev/qa` probes, and the four documents. One scope correction is recorded honestly: the Phase 5 checkpoint's restricted-diff check also listed `src/app` and `src/ui`, which are **in-scope spec changes** (the reducer gate and the drawn gate), not invariant violations — this track-level invariant list is the right instrument for the review.
+  - **Payload delta ~0, ceilings never re-anchored.** Phase 1 baseline 5,555,589 B → `pnpm build` 10 precache entries and `pnpm budget` PASS at 5,560,355 / 6,000,000 B and 10 / 200: the entire track added **4,766 B of code and no asset**, and `dev/tools/dist-budget.mjs` is untouched.
+  - **No unrelated untracked files were modified or staged.** `git status --porcelain` shows only the two art-source files that predate this track (`dev/art-src/patterns/contact-sheet.html` / `.png`, mtime 2026-09-20, from the patterns contact sheet), and every commit staged an explicit file list — `780c4ed`, for example, staged exactly the four documentation files. The only other artefacts are git-ignored probe output under `dev/qa/out/`.
 - [ ] Task: Run the final quality gates
   - [ ] Run `CI=true pnpm check`, `CI=true pnpm test --coverage`, and `pnpm pack:check`.
   - [ ] Re-run `pnpm build`, `pnpm budget`, and the production probes.
