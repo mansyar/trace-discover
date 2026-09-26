@@ -113,6 +113,10 @@ function summarize(name, samples) {
   };
   const downAt = Date.now();
   await tapTarget('splash');
+  // A first run can tap the splash while the readiness gate is still warming;
+  // the shell holds that tap and replays it, so wait for the menu before
+  // looking for the pack target instead of failing on a missing one.
+  await page.waitForFunction(() => window.__app.screen().name === 'menu', null, { timeout: 30000 });
   const packId = LEVEL.startsWith('num-')
     ? 'numbers'
     : LEVEL.startsWith('abc-')
@@ -178,5 +182,7 @@ function summarize(name, samples) {
   await browser.close();
 })().catch((error) => {
   console.error('perf run failed:', error);
-  process.exitCode = 1;
+  // Exit outright: a stranded browser keeps the event loop alive, which would
+  // hang the probe instead of reporting the failure.
+  process.exit(1);
 });
