@@ -44,6 +44,8 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 
 *2026-09-20 — Patterns pack (track `patterns-pack_20260920`) implemented on branch `track/patterns-pack`, awaiting the merge/release decision: a sixth static pack, `patterns` — 9 levels (loop/spiral/stairs motifs × small/medium/large in size-major order), extending the pre-writing ladder after line/wave/arc/zigzag with the three curved-and-cornered motifs. Authored as validated JSON on the declarative pack pipeline (`data/patterns.json`; parser stroke labels extended additively with `loop`/`spiral`/`stairs`); playground & garden object rewards (loop → yo-yo/hula hoop/jump rope, spiral → snail/pinwheel/rose, stairs → step ladder/slide steps/treehouse ladder), pack card + badge; no bonuses, Numbers precedent; no save/schema change. The menu now shows six static pack cards (page one exactly; a saved name paginates My Name to page two via the shipped pager). Budget 5,896,240 B / 197 entries of 6.00 MB / 200 — no re-anchor.*
 
+*2026-09-26 — Offline-first-run resilience (track `offline-resilience_20260924`) completed on branch `track/offline-resilience`, awaiting the merge/release decision: a first run now ends in a complete offline install instead of a half-cached one. When the content cache is still filling, boot holds a drawn readiness gate — the mascot inside the traced ring, filling as assets land, no text — and the tap a child makes while it is closed is remembered and played back, never dropped, so the splash is never a dead tap. A returning user never sees it: a warm cache skips it entirely and an offline device plays immediately with drawn stand-ins. The character canvas can no longer be blank — a sprite that fails to load gives way to the same drawn mascot, and a returning connection quietly swaps the real sprite in, in place; a level opened before its art has arrived fills itself in the same way, without restarting or losing progress. QA: three permanent probes (cold-cache readiness, failed character, offline escape + self-healing) green twice each, 816 tests, budget unchanged at 5,560,355 B / 10 precache entries with no new asset, cold boot 108 ms; owner device pass on Android phone + iPad passed 2026-09-26.*
+
 ## Target Audience
 
 - **Primary — toddlers ~3–4 years old** (starting at ~3.5): one-hand touch, short attention spans, no reading. Need instant feedback, generous tolerance, zero dead-ends.
@@ -62,7 +64,7 @@ Long-term direction: the architecture — skins × packs + path engine + Rive ch
 - Reward loop: content-neutral sticker per level; a per-pack **sticker board** makes collected stickers playable — tapping one springs it up with sparkles and a pentatonic note (stable per sticker, so taps play little melodies); badge per pack; legacy world badges shown as display-only trophies
 - Zero-text, content-first UI: pack cards → level cards + sticker slots → 3-icon success screen; idle mascot on menu + pack screens (tap → giggle with one note and sparkles)
 - Parent zone (hold-to-open gate): sound with level pips + preview, easier tracing, skin setter, trophies, reset progress, platform-aware install guide
-- PWA: installable, standalone, fully offline after first load
+- PWA: installable, standalone, fully offline after the first completed load — the first-run readiness gate now guarantees the content cache finishes, while a returning user and an offline device both skip it
 
 ## Success Criteria
 

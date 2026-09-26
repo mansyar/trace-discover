@@ -63,7 +63,9 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-numerals.mjs` | Numerals pack trace QA | dev `:5199` | canonical |
 | `qa-pack-app.mjs` | Numbers pack full app flow | preview | canonical |
 | `qa-pack-badge.mjs` | Numbers badge chain (10 numerals → celebration → collection) | dev `:5199` | canonical |
-| `qa-offline.mjs` | SW install → all-content warm-up (`187/187`) → fully-offline cold-start probe | preview `:4173` | canonical |
+| `qa-readiness.mjs` | Cold-cache readiness gate: a first-run boot holds the drawn gate, fills it monotonically in `0..1`, releases with `reason 'warmed'` / `failed 0`, caches the whole inventory (`187/187`), and reaches the menu from the tap made while the gate was closed — no page errors | preview `:4173` | canonical |
+| `qa-character.mjs` | Failed-character stand-in: every `.riv` aborted → drawn stand-in where the mascot belongs (82%/81% of the box painted, sprite canvas hidden, no child-facing surface), a level keeps its stand-in and progress, and `online` heals to the real sprite in place | preview `:4173` | canonical |
+| `qa-offline.mjs` | SW install → all-content warm-up (`187/187`) → fully-offline cold-start probe; plus the escape/self-healing asserts: no gate for a returning user (online or offline), a 6/187-cached offline boot escapes in one tap, and a level opened with its content still missing ends fully real in place | preview `:4173` | canonical |
 | `qa-update.mjs` | Update lifecycle: waiting SW + runtime content refresh + next-cold-start activation on a sandboxed `dist/` copy (run `pnpm build` first) | none — self-served `:4185` | canonical |
 | `qa-perf.mjs` | Perf sampling (cold boot / input latency / frame times) | preview | canonical |
 | `qa-letters-pack.mjs` | Letters pack journey: two pages + pager, level A, harness trace | dev `:5199` | canonical |
@@ -108,7 +110,8 @@ in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
 `animal-outlines_20260919` (2026-09-19); `qa-patterns-sweep` +
 `qa-patterns-rotate` + `qa-patterns-zerotext` added in
 `patterns-pack_20260920` (2026-09-20); PWA asset-strategy coverage updated in
-`pwa-asset-strategy_20260924` (2026-09-24).*
+`pwa-asset-strategy_20260924` (2026-09-24); `qa-readiness` + `qa-character`
+added and `qa-offline` extended in `offline-resilience_20260924` (2026-09-26).*
 
 ## PWA asset strategy and verification
 
@@ -129,10 +132,14 @@ For a clean verification pass, run the production build first:
 ```bash
 pnpm build
 node dev/qa/qa-offline.mjs http://localhost:4173/ pre-1
+node dev/qa/qa-readiness.mjs http://localhost:4173/
+node dev/qa/qa-character.mjs http://localhost:4173/
 node dev/qa/qa-update.mjs
 node dev/qa/qa-smoke.mjs http://localhost:4173
 node dev/qa/qa-perf.mjs http://localhost:4173
 ```
+
+The readiness trio needs a running production preview (`pnpm preview`, or `pnpm serve` for devices on the LAN): `qa-offline` extends the inventory check with the boot-escape and self-healing asserts, `qa-readiness` needs an empty content cache (a brand-new browser profile is the probe's own), and `qa-character` blocks the service worker deliberately so the aborted sprite cannot be served from the content cache. `qa-landscape` is the exception in shells that export `PORT`: run it from `dev/` as `PORT=5176 node qa/qa-landscape.mjs` against a dev server on `:5176`.
 
 `qa-offline.mjs` should report `online: content warm-up 187/187`, then
 `offline: app booted with 187/187 content assets` and complete the selected
