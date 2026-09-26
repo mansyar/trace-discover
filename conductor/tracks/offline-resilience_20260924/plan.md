@@ -290,7 +290,7 @@
 
 ---
 
-## Phase 6 — Production probes, performance, and device verification
+## Phase 6 — Production probes, performance, and device verification [checkpoint: ed86682]
 
 - [x] Task: Add the cold-cache readiness probe [27d5633]
   - [x] Boot with an empty content cache and assert the gate appears, fills monotonically, and reaches the menu.
@@ -322,10 +322,10 @@
   - [x] Record the child-facing result: no text, no dead-end, and nothing visible to signal an asset failure.
 
   **Device evidence (2026-09-26, owner-reported):** the owner ran the pass on an Android phone and an iPad against the LAN-served production build (`pnpm serve --port 4173 --strictPort` → `http://192.168.0.114:4173/`, the Wi-Fi address) and reported **both devices passing**: the first-run gate fills and completes and one splash tap opens the menu; an airplane-mode relaunch with the warm cache shows **no gate** and stays playable; the drawn stand-in appears when the character asset cannot be fetched and **self-heals** to the real sprite when connectivity returns without restarting the level; and nothing child-facing shows text, dead-ends, or signals an asset failure. This is the track's only real-hardware evidence and it is recorded as the owner's report rather than as machine output — the automated probes cover the same behaviours (`qa-readiness.mjs`, `qa-character.mjs`, and the extended `qa-offline.mjs`), but on headless desktop Edge only.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
-  - [ ] Record exact commands and outcomes for every probe and measurement.
-  - [ ] Confirm all acceptance criteria from the approved specification are satisfied.
-  - [ ] Perform the workflow's manual-verification and checkpoint protocol.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+  - [x] Record exact commands and outcomes for every probe and measurement.
+  - [x] Confirm all acceptance criteria from the approved specification are satisfied.
+  - [x] Perform the workflow's manual-verification and checkpoint protocol.
 
   **Phase 6 verification record (2026-09-26):** every command and outcome, probes run against the production preview on `:4173` unless noted.
 
@@ -343,6 +343,8 @@
   **Phase scope and coverage:** `git diff --name-only ad94390 HEAD` lists `dev/qa/qa-readiness.mjs`, `dev/qa/qa-character.mjs`, `dev/qa/qa-offline.mjs`, `dev/qa/qa-perf.mjs`, and this plan — four dev-side probes and the plan, **no shipped code**. No file in `dev/qa/` has a sibling test, the standing convention for the 50+ probes there: each probe is itself the verification instrument and is verified by execution, which here means two clean runs each (both reproduced above) rather than a unit test of a browser script.
 
   **Acceptance criteria (from the approved spec):** (1) progress/retry/concurrency/partial-failure unit tests — Phase 2, `contentCache.test.ts` 15/15; (2) reducer gate and single-resolution escapes — Phase 3, `app.test.ts` 51/51; (3) character failure renders the drawn stand-in through `onError` — Phase 5, `presenter.test.ts` 6/6 at 100% coverage; (4) cold-cache probe fills and reaches the menu with every shipped asset cached — `qa-readiness.mjs`; (5) `.riv` aborted → drawn mascot, no blank canvas, no error surface, retry succeeds — `qa-character.mjs`; (6) returning user with a warm cache sees no gate with boot time unchanged within noise — `qa-offline.mjs` plus `qa-perf.mjs` (108 ms cold boot, p95 identical to the Phase 1 baseline); (7) offline + incomplete cache plays immediately — `qa-offline.mjs` (6/187 cached, no gate, one tap); (8) gate screenshot/text audit with counts recorded before and after — Phase 4's six captures and raster measurement, zero text asserted in `render.test.ts`, plus the before/after build and budget figures above. **All eight are satisfied**, and the non-functional requirements hold: full suite green above the 760-test baseline, new logic at 100% coverage, `pnpm check` clean, budget inside the unchanged ceilings, payload delta ~0, and the device pass reported passing on Android phone + iPad.
+
+  **Owner confirmation (2026-09-26):** **YES (explicit)** — the owner accepted the Phase 6 result, the probe and measurement record, the mapped acceptance criteria, and the recorded device pass. The auditable Phase 6 Verification & Checkpoint Report is attached as a git note to `ed86682`.
 
 ---
 
