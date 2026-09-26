@@ -292,11 +292,13 @@
 
 ## Phase 6 — Production probes, performance, and device verification
 
-- [ ] Task: Add the cold-cache readiness probe
-  - [ ] Boot with an empty content cache and assert the gate appears, fills monotonically, and reaches the menu.
-  - [ ] Assert the warm-up result reports every shipped asset cached, naming any failures.
-  - [ ] Assert zero uncaught page errors during the gated boot.
-  - [ ] Keep the probe compatible with the existing headless-Edge QA workflow.
+- [x] Task: Add the cold-cache readiness probe [27d5633]
+  - [x] Boot with an empty content cache and assert the gate appears, fills monotonically, and reaches the menu.
+  - [x] Assert the warm-up result reports every shipped asset cached, naming any failures.
+  - [x] Assert zero uncaught page errors during the gated boot.
+  - [x] Keep the probe compatible with the existing headless-Edge QA workflow.
+
+  **Probe evidence (2026-09-26):** `dev/qa/qa-readiness.mjs` (headless Edge via playwright-core, the `qa-offline.mjs` launch and exit conventions, output under `dev/qa/out/readiness/`) boots a brand-new profile against the production preview on `:4173` so the content cache starts empty, samples `window.__app.content()` from inside the page every 2 ms — Node-side polling would miss most of the fill, and a Playwright async predicate returns its Promise immediately, so `waitForFunction` cannot be used here — taps the splash while the gate is still closed, and fails on any of: no closed-gate sample, a non-monotonic fill, a fill outside 0..1, a release whose `reason` is not `'warmed'` / `fraction` is not 1 / `failed` is non-empty, an incomplete content cache, a tap that never reaches the menu, or a single page error. Two consecutive cold runs pass, both exit 0: **191 gate samples 0.000–0.989, released in ~467 ms**, then **140 samples 0.000–0.995, released in ~322 ms**, each with `187/187` content assets and `failed=0`, the tap held and replayed, the menu reached without a second tap, and no page errors. Artifacts (git-ignored): `gate-filling.png` (the drawn gate mid-fill), `menu-after-warmup.png`, `run-2.log`. This supersedes the temporary Phase 5 instrumentation `dev/qa/out/boot-window.mjs` and `hold.mjs`; the returning-user and offline-escape assertions are the next tasks' probe work.
 - [ ] Task: Add the failed-character probe
   - [ ] Abort the character asset request and assert the drawn stand-in appears with no blank canvas and no error surface.
   - [ ] Restore the route and assert the real character replaces the stand-in without restarting the level.
