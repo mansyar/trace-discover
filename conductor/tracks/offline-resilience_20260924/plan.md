@@ -3,7 +3,7 @@
 **Track ID:** `offline-resilience_20260924`
 **Branch:** `track/offline-resilience`
 **Spec:** [spec.md](./spec.md)
-**Status:** new
+**Status:** complete
 **Created:** 2026-09-24
 
 ---

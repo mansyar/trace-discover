@@ -12,5 +12,5 @@ Offline-first-run resilience — a drawn readiness gate at first run, a drawn st
 
 - **Type:** Feature
 - **Branch:** `track/offline-resilience`
-- **Status:** new
+- **Status:** complete
 - **Created:** 2026-09-24
