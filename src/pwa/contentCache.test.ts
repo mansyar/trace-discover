@@ -5,7 +5,6 @@ import {
   type ContentWarmupProgress,
   classifyAssetPath,
   createBrowserContentCacheStore,
-  scheduleContentWarmup,
   warmContentAssets,
 } from './contentCache';
 
@@ -95,30 +94,6 @@ describe('content cache contract', () => {
     await store.add('/art/goal/pre-1.webp');
     expect(await store.has('/art/goal/pre-1.webp')).toBe(true);
     expect(storage.open).toHaveBeenCalledWith('trace-discover-content-v1');
-  });
-
-  it('schedules warm-up only when online and does not run without an online signal', async () => {
-    const store = memoryStore();
-    const schedule = vi.fn((task: () => void) => task());
-    const offlineSchedule = vi.fn((task: () => void) => task());
-
-    scheduleContentWarmup({
-      isOnline: () => false,
-      schedule: offlineSchedule,
-      store,
-      urls: ['/art/goal/pre-1.webp'],
-    });
-    expect(offlineSchedule).not.toHaveBeenCalled();
-
-    scheduleContentWarmup({
-      isOnline: () => true,
-      schedule,
-      store,
-      urls: ['/art/goal/pre-1.webp'],
-    });
-    await Promise.resolve();
-    expect(schedule).toHaveBeenCalledTimes(1);
-    expect(store.add).toHaveBeenCalledWith('/art/goal/pre-1.webp');
   });
 
   it('continues after a partial failure and can recover on a later warm-up', async () => {

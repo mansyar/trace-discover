@@ -1495,7 +1495,9 @@ const contentStore = typeof caches === 'undefined' ? null : createBrowserContent
  */
 function warmContentWhenBackOnline(): void {
   const store: ContentCacheStore | null = contentStore;
-  if (!store) {
+  // A complete inventory was already fully cached at boot, so reconnecting can
+  // add nothing: skip the full-inventory scan rather than repeat it per event.
+  if (!store || contentReadiness?.reason === 'complete') {
     return;
   }
   void warmContentAssets(CONTENT_ASSET_URLS, store).then(() => {
@@ -1576,21 +1578,29 @@ async function bootContentReadiness(): Promise<void> {
     releaseSplash();
     return;
   }
-  const online = navigator.onLine;
-  // Only an online boot can gain from the scan: an offline device plays
-  // immediately whatever the cache holds, so the scan is skipped rather than
-  // run and discarded, and the gate opens before the first frame.
-  const cacheComplete = online ? await allContentCached(CONTENT_ASSET_URLS, store) : false;
-  await startContentReadiness({
-    cacheComplete,
-    online,
-    warmUp: (onProgress) => warmContentAssets(CONTENT_ASSET_URLS, store, { onProgress }),
-    schedule: (task) => window.setTimeout(task, 0),
-    onState: (next) => {
-      contentReadiness = next;
-    },
-  });
-  releaseSplash();
+  try {
+    const online = navigator.onLine;
+    // Only an online boot can gain from the scan: an offline device plays
+    // immediately whatever the cache holds, so the scan is skipped rather than
+    // run and discarded, and the gate opens before the first frame.
+    const cacheComplete = online ? await allContentCached(CONTENT_ASSET_URLS, store) : false;
+    await startContentReadiness({
+      cacheComplete,
+      online,
+      warmUp: (onProgress) => warmContentAssets(CONTENT_ASSET_URLS, store, { onProgress }),
+      schedule: (task) => window.setTimeout(task, 0),
+      onState: (next) => {
+        contentReadiness = next;
+      },
+    });
+  } catch {
+    // The same rule as src/pwa/readiness.ts: a scan that throws — a cache the
+    // browser refuses to open or read — must still open the gate, because a
+    // splash that cannot advance is the one dead end this boot path may never
+    // create.
+  } finally {
+    releaseSplash();
+  }
 }
 
 window.addEventListener('online', () => {

@@ -112,4 +112,36 @@ describe('createCharacterPresenter', () => {
 
     expect(fixture.changes).toEqual(['real']);
   });
+
+  it('settles an attempt that throws outright and leaves retry available', () => {
+    const changes: CharacterPresentation[] = [];
+    const failures: unknown[] = [];
+    const error = new Error('rive constructor threw');
+    let throws = true;
+    const presenter = createCharacterPresenter({
+      attempt: (hooks) => {
+        if (throws) {
+          throw error;
+        }
+        hooks.onReady();
+      },
+      onChange: (presentation) => {
+        changes.push(presentation);
+      },
+      onFailure: (failure) => {
+        failures.push(failure);
+      },
+    });
+
+    // A synchronous throw is a failure like any other: the stand-in stays, and
+    // the attempt is no longer in flight, so a later retry is not ignored.
+    presenter.start();
+    expect(presenter.presentation()).toBe('standin');
+    expect(failures).toEqual([error]);
+
+    throws = false;
+    presenter.retry();
+    expect(presenter.presentation()).toBe('real');
+    expect(changes).toEqual(['real']);
+  });
 });

@@ -159,24 +159,3 @@ export async function allContentCached(
   }
   return true;
 }
-
-export interface ContentWarmupScheduleOptions {
-  isOnline: () => boolean;
-  schedule: (task: () => void) => void;
-  store: ContentCacheStore;
-  urls?: readonly string[];
-}
-
-/** Schedules the full content warm-up only when the browser reports connectivity. */
-export function scheduleContentWarmup(
-  options: ContentWarmupScheduleOptions,
-): Promise<ContentWarmupResult | null> {
-  if (!options.isOnline()) {
-    return Promise.resolve(null);
-  }
-  return new Promise((resolve) => {
-    options.schedule(() => {
-      void warmContentAssets(options.urls ?? CONTENT_ASSET_URLS, options.store).then(resolve);
-    });
-  });
-}

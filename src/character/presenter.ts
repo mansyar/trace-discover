@@ -49,7 +49,7 @@ export function createCharacterPresenter(options: CharacterPresenterOptions): Ch
       return;
     }
     inFlight = true;
-    options.attempt({
+    const hooks: CharacterAttemptHooks = {
       onError: (error) => {
         inFlight = false;
         options.onFailure?.(error);
@@ -61,7 +61,15 @@ export function createCharacterPresenter(options: CharacterPresenterOptions): Ch
         inFlight = false;
         present('real');
       },
-    });
+    };
+    try {
+      options.attempt(hooks);
+    } catch (error) {
+      // A loader that throws outright — the adapter runs `new Rive(...)` with no
+      // guard of its own — must settle like any other failure: otherwise `inFlight`
+      // stays true and no retry can ever run, and the throw escapes into the shell.
+      hooks.onError(error);
+    }
   };
 
   return {
