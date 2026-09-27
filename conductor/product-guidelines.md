@@ -45,3 +45,11 @@
 - Per-theme presets (marimba / kalimba / soft plucks) share one musical language
 - Soft UI pops (a single soft instrument note per tap giggle, throttled so notes never stack); nothing loud or sudden; audio unlocks on first touch (iOS)
 - No ambient loops required — silence is fine
+
+---
+
+## Amendments
+
+*2026-09-24 — Amended (track `offline-resilience_20260924`, owner-approved 2026-09-24): one drawn readiness wait at first run.* Prior wording — UX Principle 6 (offline-first always: no network, no spinners, no errors) and the Voice & Tone rule that nothing is ever urgent — is narrowed here, not discarded. The app still needs no network to play, still shows no error states, and still counts down nothing. On a first run whose content cache is incomplete, the boot screen may hold with a code-drawn mascot and a traced-path progress indication until the shipped content inventory is cached, because a child who closes the app mid-warm-up otherwise owns a half-offline install. The wait is confined to that path: no text and no numbers, skipped entirely when the cache is complete, skipped when the device is offline, and released after bounded retries when assets keep failing — so every exit is reachable and the wait can never become a dead end. Recorded before implementation per `workflow.md` (Tech Stack is Deliberate).
+
+*2026-09-26 — Outcome (track `offline-resilience_20260924`): the amendment shipped inside its limits and there is nothing further to relax. The gate has only ever been observed on a first run with an incomplete cache while online: a complete cache skips it entirely (a returning user decides in 29–71 ms and sees the plain splash), an offline device plays immediately whatever the cache holds, and exhausted retries release it with the failures named for dev QA. It draws no text and no numbers, shows no failure state, and has not become a dead end — probes hold the closed gate, fill it monotonically, and leave it in one tap, and the owner's Android + iPad pass found nothing child-facing that signals waiting or failure. UX Principle 6 and the never-urgent rule remain narrowed for this one first-run path only; nothing else about offline-first play or tone changed.*

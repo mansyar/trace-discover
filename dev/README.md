@@ -63,8 +63,10 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-numerals.mjs` | Numerals pack trace QA | dev `:5199` | canonical |
 | `qa-pack-app.mjs` | Numbers pack full app flow | preview | canonical |
 | `qa-pack-badge.mjs` | Numbers badge chain (10 numerals → celebration → collection) | dev `:5199` | canonical |
-| `qa-offline.mjs` | SW install → fully-offline cold-start probe | preview `:4173` | canonical |
-| `qa-update.mjs` | Update lifecycle: waiting SW proven on a sandboxed `dist/` copy (run `pnpm build` first) | none — self-served `:4185` | canonical |
+| `qa-readiness.mjs` | Cold-cache readiness gate: a first-run boot holds the drawn gate, fills it monotonically in `0..1`, releases with `reason 'warmed'` / `failed 0`, caches the whole inventory (`187/187`), and reaches the menu from the tap made while the gate was closed — no page errors | preview `:4173` | canonical |
+| `qa-character.mjs` | Failed-character stand-in: every `.riv` aborted → drawn stand-in where the mascot belongs (82%/81% of the box painted, sprite canvas hidden, no child-facing surface), a level keeps its stand-in and progress, and `online` heals to the real sprite in place | preview `:4173` | canonical |
+| `qa-offline.mjs` | SW install → all-content warm-up (`187/187`) → fully-offline cold-start probe; plus the escape/self-healing asserts: no gate for a returning user (online or offline), a 6/187-cached offline boot escapes in one tap, and a level opened with its content still missing ends fully real in place | preview `:4173` | canonical |
+| `qa-update.mjs` | Update lifecycle: waiting SW + runtime content refresh + next-cold-start activation on a sandboxed `dist/` copy (run `pnpm build` first) | none — self-served `:4185` | canonical |
 | `qa-perf.mjs` | Perf sampling (cold boot / input latency / frame times) | preview | canonical |
 | `qa-letters-pack.mjs` | Letters pack journey: two pages + pager, level A, harness trace | dev `:5199` | canonical |
 | `qa-letters-glyphs.mjs` | Per-glyph harness screenshots — A–Z + `ABC`/`MOM`/`ZOO` | dev `:5199` | utility |
@@ -104,9 +106,49 @@ in `parent-zone_20260917` (2026-09-17); `qa-pack-preview` added in
 `menu-capacity_20260917` (2026-09-17); the stale category is now empty — its
 four members (`qa-diag-pre3`, `qa-probe`, `browsertest`, `serve`) were removed
 in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
-(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in `animal-outlines_20260919` (2026-09-19);
-`qa-patterns-sweep` + `qa-patterns-rotate` + `qa-patterns-zerotext` added in
-`patterns-pack_20260920` (2026-09-20).*
+(canonical, runs in CI); `qa-animals-sweep` + `qa-animals-zerotext` added in
+`animal-outlines_20260919` (2026-09-19); `qa-patterns-sweep` +
+`qa-patterns-rotate` + `qa-patterns-zerotext` added in
+`patterns-pack_20260920` (2026-09-20); PWA asset-strategy coverage updated in
+`pwa-asset-strategy_20260924` (2026-09-24); `qa-readiness` + `qa-character`
+added and `qa-offline` extended in `offline-resilience_20260924` (2026-09-26).*
+
+## PWA asset strategy and verification
+
+The production build precaches the app shell and boot-critical resources, while
+all shipped `public/art/**/*` and `public/rive/*.riv` files use the shared
+`trace-discover-content-v1` runtime cache. `src/pwa/contentCache.ts` derives the
+complete content inventory from Vite's public-asset globs, so new shipped
+content is included automatically. After a successful online boot, the app
+schedules a background, idempotent warm-up and retries on the browser `online`
+event. The Workbox `NetworkFirst` route refreshes content online and falls back
+to the cached response offline; partial failures are retained and retried on a
+later online boot without showing child-facing loading, error, or update UI.
+The service worker remains waiting-only: a downloaded update activates on the
+next cold start, never into a running child session.
+
+For a clean verification pass, run the production build first:
+
+```bash
+pnpm build
+node dev/qa/qa-offline.mjs http://localhost:4173/ pre-1
+node dev/qa/qa-readiness.mjs http://localhost:4173/
+node dev/qa/qa-character.mjs http://localhost:4173/
+node dev/qa/qa-update.mjs
+node dev/qa/qa-smoke.mjs http://localhost:4173
+node dev/qa/qa-perf.mjs http://localhost:4173
+```
+
+The readiness trio needs a running production preview (`pnpm preview`, or `pnpm serve` for devices on the LAN): `qa-offline` extends the inventory check with the boot-escape and self-healing asserts, `qa-readiness` needs an empty content cache (a brand-new browser profile is the probe's own), and `qa-character` blocks the service worker deliberately so the aborted sprite cannot be served from the content cache. `qa-landscape` is the exception in shells that export `PORT`: run it from `dev/` as `PORT=5176 node qa/qa-landscape.mjs` against a dev server on `:5176`.
+
+`qa-offline.mjs` should report `online: content warm-up 187/187`, then
+`offline: app booted with 187/187 content assets` and complete the selected
+`pre-1` journey without page errors. `qa-update.mjs` must report a waiting
+worker, no running-page takeover, an online runtime-content refresh, successful
+next-cold-start activation, and updated offline content with no page errors.
+The update probe serves its own sandbox and does not need a separately running
+preview server. Run the final size guard with `pnpm budget`; it reports the
+filesystem count separately from the generated service-worker precache count.
 
 > Smoke usage (two terminals): 1) `pnpm preview` (production build on `:4173`;
 > `pnpm serve` for LAN devices) — 2) `node dev/qa/qa-smoke.mjs`. CI runs the
@@ -175,8 +217,18 @@ shoots the 3–6 × orientation matrix plus the name-card case into
 payload ceilings — **6.00 MB total / 200 precache entries**, re-anchored from
 the post-diet build (4,161,522 B / 133 entries) through the skin and pack
 builds (2026-09-17 teddy: 4,641,746 B / 136; 2026-09-18 trex: 5,224,739 B /
-141; 2026-09-19 animals: 5,630,286 B / 177; current measurements:
-history + rationale live in the tool). Run it after `pnpm build`; CI runs it
-after the build step too. A re-introduced lossless art batch trips it
-instantly — raise the ceilings only deliberately, with fresh measurements
-(`conductor/archive/payload-diet_20260916/measurements.md`).
+141; 2026-09-19 animals: 5,630,286 B / 177; 2026-09-24 payload diet: 5,555,072
+B / 197). Run it after `pnpm build`; CI runs it after the build step too. A
+re-introduced lossless art batch trips it instantly — raise the ceilings only
+deliberately, with fresh measurements
+(`conductor/archive/payload-diet_20260916/measurements.md`). The current
+payload-headroom track reduced foreground art by 341,168 B and intentionally
+leaves the 17-entry precache reduction for a separate PWA/asset-strategy track.
+
+For the safe foreground diet workflow, run `node tools/asset-inventory.mjs` to
+inspect the production build, then `node tools/webp-diet.mjs` to stage reviewed
+q0.75 candidates under ignored `qa/out/webp-diet/`. Only after reviewing the
+side-by-side report, run `node tools/webp-diet.mjs --install`; this preserves
+paths, dimensions, alpha channels, and URLs. Run `CI=true pnpm check`,
+`CI=true pnpm test --coverage`, `pnpm pack:check`, `pnpm build`, and
+`pnpm budget` after installation.

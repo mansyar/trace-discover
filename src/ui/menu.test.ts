@@ -3,6 +3,7 @@ import { FIELD_HEIGHT, FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDT
 import { allPacks } from '../packs/catalog';
 import { type MascotZone, mascotZone } from './mascot';
 import {
+  gateArcEnd,
   hitMenuCard,
   hitMenuPager,
   inParentGate,
@@ -16,6 +17,7 @@ import {
   menuPageCount,
   menuPagerLayout,
   menuParkPosition,
+  type SplashLayout,
   splashLayout,
 } from './menu';
 
@@ -115,6 +117,19 @@ describe('inParentGate', () => {
 });
 
 describe('splashLayout', () => {
+  const GATE_SIZES = [
+    [FIELD_WIDTH, FIELD_HEIGHT],
+    [LANDSCAPE_FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT],
+  ] as const;
+
+  /** Furthest gate pixel from the centre: the widest ring stroke or the tracer star. */
+  function gateOuterRadius(splash: SplashLayout): number {
+    return Math.max(
+      splash.ringRadius + Math.max(splash.ringWidth, splash.arcWidth) / 2,
+      splash.ringRadius + splash.tracerRadius,
+    );
+  }
+
   it('centers the emblem with a radius that fits the field', () => {
     const splash = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
     expect(splash.centerX).toBe(FIELD_WIDTH / 2);
@@ -122,6 +137,49 @@ describe('splashLayout', () => {
     expect(splash.emblemRadius).toBeGreaterThan(0);
     expect(splash.centerX - splash.emblemRadius).toBeGreaterThanOrEqual(0);
     expect(splash.centerX + splash.emblemRadius).toBeLessThanOrEqual(FIELD_WIDTH);
+  });
+
+  it('keeps the gate geometry inside the field in both orientations', () => {
+    for (const [width, height] of GATE_SIZES) {
+      const splash = splashLayout(width, height);
+      const outer = gateOuterRadius(splash);
+      expect(splash.centerX - outer).toBeGreaterThanOrEqual(0);
+      expect(splash.centerX + outer).toBeLessThanOrEqual(width);
+      expect(splash.centerY - outer).toBeGreaterThanOrEqual(0);
+      expect(splash.centerY + outer).toBeLessThanOrEqual(height);
+    }
+  });
+
+  it('nests the mascot inside the ring and the tracer outside the mascot', () => {
+    for (const [width, height] of GATE_SIZES) {
+      const splash = splashLayout(width, height);
+      const widestStroke = Math.max(splash.ringWidth, splash.arcWidth) / 2;
+      expect(splash.ringRadius - widestStroke).toBeGreaterThan(splash.mascotRadius);
+      expect(splash.ringRadius - splash.tracerRadius).toBeGreaterThan(splash.mascotRadius);
+      expect(splash.tracerRadius).toBeGreaterThan(0);
+    }
+  });
+
+  it('advances the traced path strictly proportionally, empty to full', () => {
+    const splash = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    expect(gateArcEnd(splash, 0)).toBeCloseTo(splash.arcStartAngle, 6);
+    expect(gateArcEnd(splash, 0.25)).toBeCloseTo(splash.arcStartAngle + Math.PI / 2, 6);
+    expect(gateArcEnd(splash, 1)).toBeCloseTo(splash.arcStartAngle + Math.PI * 2, 6);
+    expect(gateArcEnd(splash, -1)).toBeCloseTo(splash.arcStartAngle, 6);
+    expect(gateArcEnd(splash, 2)).toBeCloseTo(splash.arcStartAngle + Math.PI * 2, 6);
+  });
+
+  it('recomputes on rotation without changing the swept angle', () => {
+    const portrait = splashLayout(FIELD_WIDTH, FIELD_HEIGHT);
+    const landscape = splashLayout(LANDSCAPE_FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT);
+    const again = splashLayout(LANDSCAPE_FIELD_WIDTH, LANDSCAPE_FIELD_HEIGHT);
+
+    expect(landscape).toEqual(again);
+    expect(landscape.centerX).not.toBe(portrait.centerX);
+    for (const progress of [0, 0.42, 1]) {
+      const swept = gateArcEnd(landscape, progress) - gateArcEnd(portrait, progress);
+      expect(swept).toBeCloseTo(0, 6);
+    }
   });
 });
 

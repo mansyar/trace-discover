@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createDefaultSave } from '../save/store';
+import { createDefaultSave, type SaveData } from '../save/store';
 import {
   type AppState,
   applyAppEvent,
@@ -8,8 +8,14 @@ import {
   startApp,
 } from './app';
 
+/** Boot state with the readiness gate already open, as the shell gets it once content is ready. */
+function readyApp(save: SaveData = createDefaultSave()): AppState {
+  return applyAppEvent(startApp(save), { type: 'content-ready' });
+}
+
+/** Fresh app state for every test that is not about the gate itself. */
 function setup(): AppState {
-  return startApp(createDefaultSave());
+  return readyApp();
 }
 
 function preIds(count = 12): readonly string[] {
@@ -191,7 +197,7 @@ describe('app navigation', () => {
       completedLevels: ['pre-1'],
       trophies: ['dino'],
     };
-    let resetting = startApp(seeded);
+    let resetting = readyApp(seeded);
     resetting = applyAppEvent(resetting, { type: 'splash-tap' });
     resetting = applyAppEvent(resetting, { type: 'parent-open' });
     resetting = applyAppEvent(resetting, { type: 'parent-action', action: 'reset' });
@@ -462,7 +468,7 @@ describe('skin cycling', () => {
   });
 
   it('leaves the current screen untouched', () => {
-    const app = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
+    const app = applyAppEvent(readyApp(), { type: 'splash-tap' });
     const cycled = applyAppEvent(app, { type: 'skin-cycle' });
     expect(cycled.screen).toEqual({ name: 'menu' });
   });
@@ -475,8 +481,7 @@ describe('name preservation', () => {
       completedLevels: ['pre-1'],
       name: 'AVA',
     };
-    let app = startApp(seeded);
-    app = applyAppEvent(app, { type: 'splash-tap' });
+    let app = applyAppEvent(readyApp(seeded), { type: 'splash-tap' });
     app = applyAppEvent(app, { type: 'parent-open' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
@@ -491,8 +496,7 @@ describe('name preservation', () => {
       completedLevels: ['pre-1'],
       settings: { ...base.settings, parentHintSeen: true },
     };
-    let app = startApp(seeded);
-    app = applyAppEvent(app, { type: 'splash-tap' });
+    let app = applyAppEvent(readyApp(seeded), { type: 'splash-tap' });
     app = applyAppEvent(app, { type: 'parent-open' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
@@ -508,8 +512,7 @@ describe('sticker intro preservation', () => {
       completedLevels: ['pre-1'],
       stickerIntroSeen: true,
     };
-    let app = startApp(seeded);
-    app = applyAppEvent(app, { type: 'splash-tap' });
+    let app = applyAppEvent(readyApp(seeded), { type: 'splash-tap' });
     app = applyAppEvent(app, { type: 'parent-open' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
     app = applyAppEvent(app, { type: 'parent-action', action: 'reset' });
@@ -659,7 +662,7 @@ describe('sticker board navigation', () => {
   });
 
   it('ignores sticker-close outside the board', () => {
-    const menu = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
+    const menu = applyAppEvent(readyApp(), { type: 'splash-tap' });
     expect(applyAppEvent(menu, { type: 'sticker-close' })).toBe(menu);
   });
 
@@ -678,7 +681,7 @@ describe('sticker board navigation', () => {
   });
 
   it('ignores sticker taps outside the board', () => {
-    const menu = applyAppEvent(startApp(createDefaultSave()), { type: 'splash-tap' });
+    const menu = applyAppEvent(readyApp(), { type: 'splash-tap' });
     expect(applyAppEvent(menu, { type: 'sticker-tap', levelId: 'pre-1' })).toBe(menu);
   });
 
@@ -699,5 +702,45 @@ describe('shouldPulseStickerShelf', () => {
     expect(shouldPulseStickerShelf(stocked, 'pre')).toBe(false);
     expect(shouldPulseStickerShelf({ ...stocked, stickerIntroSeen: true }, 'numbers')).toBe(false);
     expect(shouldPulseStickerShelf(stocked, 'space')).toBe(false);
+  });
+});
+
+describe('content readiness gate', () => {
+  it('starts with the gate closed', () => {
+    expect(startApp(createDefaultSave()).contentReady).toBe(false);
+  });
+
+  it('holds the splash when it is tapped before content is ready', () => {
+    const app = startApp(createDefaultSave());
+    expect(applyAppEvent(app, { type: 'splash-tap' })).toBe(app);
+  });
+
+  it('opens the gate once, then lets the tap through to the menu', () => {
+    let app = applyAppEvent(startApp(createDefaultSave()), { type: 'content-ready' });
+    expect(app.contentReady).toBe(true);
+    const opened = app;
+    expect(applyAppEvent(opened, { type: 'content-ready' })).toBe(opened);
+    app = applyAppEvent(app, { type: 'splash-tap' });
+    expect(app.screen.name).toBe('menu');
+    expect(applyAppEvent(app, { type: 'splash-tap' })).toBe(app);
+  });
+
+  it('leaves the save, the pop moment, and the pending badge untouched', () => {
+    const save = {
+      ...createDefaultSave(),
+      badges: ['pre-badge'],
+      completedLevels: ['pre-1'],
+      stickerIntroSeen: true,
+    };
+    const app = startApp(save);
+
+    const ready = applyAppEvent(app, { type: 'content-ready' });
+
+    expect(ready.save).toBe(app.save);
+    expect(ready.pendingBadge).toBe(app.pendingBadge);
+    expect(ready.stickerMoment).toBe(app.stickerMoment);
+    expect(ready.save.completedLevels).toEqual(['pre-1']);
+    expect(ready.save.badges).toEqual(['pre-badge']);
+    expect(ready.save.stickerIntroSeen).toBe(true);
   });
 });

@@ -134,6 +134,10 @@ const fetchManifest = async (page) =>
     'audit: precache + cleanup + navigation fallback intact',
     sw.includes('precacheAndRoute(') && sw.includes('cleanupOutdatedCaches(') && sw.includes('createHandlerBoundToURL('),
   );
+  check(
+    'audit: content runtime cache route intact',
+    sw.includes('trace-discover-content-v1') && sw.includes('NetworkFirst') && sw.includes('art/') && sw.includes('rive/'),
+  );
 
   const server = await startServer(SANDBOX);
   const browser = await launch();
@@ -154,6 +158,8 @@ const fetchManifest = async (page) =>
   // 2b. Deploy version B into the sandbox: mark a file both versions precache
   // (manifest.webmanifest) and bump its precache revision so vB fetches the
   // new bytes; the changed sw.js is what the update check picks up.
+  const contentPath = 'art/bg/dino.webp';
+  const contentFile = path.join(SANDBOX, contentPath);
   const manifestPath = path.join(SANDBOX, 'manifest.webmanifest');
   const manifestB = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   manifestB['qa-update-vB'] = true;
@@ -163,6 +169,7 @@ const fetchManifest = async (page) =>
     throw new Error('qa-update: failed to rewrite the manifest revision in sw.js');
   }
   fs.writeFileSync(path.join(SANDBOX, 'sw.js'), swB);
+  fs.writeFileSync(contentFile, 'qa-update-vB');
 
   await page.evaluate(() => {
     window.__qaCtrl = 0;
@@ -188,6 +195,16 @@ const fetchManifest = async (page) =>
     .then(() => true)
     .catch(() => false);
   check('update: new worker waits while a session is open', waitingOk);
+
+  const contentMid = await page.evaluate(async () => {
+    const response = await fetch('./art/bg/dino.webp');
+    return response.text();
+  });
+  check(
+    'update: content runtime cache refreshes online content',
+    contentMid === 'qa-update-vB',
+    contentMid,
+  );
 
   await page.waitForTimeout(2000); // settle window: any (wrong) activation must surface here
   const live = await page.evaluate(() => ({ ctrl: window.__qaCtrl, alive: window.__qaAlive }));
@@ -216,6 +233,15 @@ const fetchManifest = async (page) =>
   check('offline: app boots from precache', true);
   const manifestOffline = await fetchManifest(page2);
   check('offline: vB precache serves the marker', manifestOffline === 'vB', manifestOffline);
+  const contentOffline = await page2.evaluate(async () => {
+    const response = await fetch('./art/bg/dino.webp');
+    return response.text();
+  });
+  check(
+    'offline: content runtime cache serves the updated asset',
+    contentOffline === 'qa-update-vB',
+    contentOffline,
+  );
   await page2.screenshot({ path: path.join(OUT, 'd-offline.png') });
 
   check('no page errors', errors.length === 0, errors.join(' | ') || 'none');
