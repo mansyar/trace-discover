@@ -76,7 +76,7 @@
   - [x] Add injectable `onProgress`, `concurrency`, `attempts`, and retry-delay options with documented defaults.
   - [x] Keep the injected `schedule(…)` semantics and the online gate of the scheduling entry point unchanged for existing callers.
   - [x] Return the accumulated result so a caller can observe completion, failures, and exhausted assets.
-  - [x] Keep the module dependency-free (no timers, no globals) so every behavior stays unit-testable.
+  - [x] Keep the module dependency-free (no imports; every timing value injected) so every behavior stays unit-testable. The default backoff path uses the host timer, pinned by a fake-timer test — corrected during the code review, which found this line claiming a property the shipped module does not have.
 
   **GREEN evidence (2026-09-24):** Focused `CI=true pnpm exec vitest run src/pwa/contentCache.test.ts` passed 15/15 in 33 ms (the injected zero-delay keeps the suite free of real backoff). Full `CI=true pnpm test` passed with 60 files / 769 tests; `CI=true pnpm check` clean (Biome 132 files, TypeScript strict with `noUncheckedIndexedAccess` — the lane pool indexes the inventory through an explicit `undefined` guard rather than a non-null assertion). `contentCache.ts` coverage rose to 98.27 statements / 84 branches / 100 functions / 98.24 lines (from 91.37 / 76 / 78.57 / 91.22); global coverage 74.31 / 78.01 / 90.2 / 73.87 sits above both the enforced thresholds (72 / 76 / 88 / 72) and the pre-track baseline (74.02 / 77.93 / 90.07 / 73.57).
 
@@ -385,5 +385,16 @@
   - [x] Attach the required auditable verification report as a git note to the last functional commit.
   - [x] Commit the closeout using the repository's conductor plan-commit convention.
   - [x] Mark the track complete only if the approved measurable outcomes pass.
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions [0f97746]
+
+  **Review evidence (2026-09-26):**
+
+  - **Medium — a throwing boot scan could leave the splash unadvanceable.** `bootContentReadiness` awaited the cache scan with no rejection path, so a `caches.open`/`match` failure rejected into `void bootContentReadiness()`: the gate would never open, every tap would be held by `splashTapHold` and never replayed. The scan and the gate driver now sit in `try`/`catch`/`finally`, so the gate opens on any throw, mirroring the rule `readiness.ts` already applies to a thrown warm-up.
+  - **Medium — a synchronously throwing character load wedged the presenter.** `options.attempt(...)` was unguarded, and the adapter runs `new Rive(...)` with no guard of its own; a synchronous throw left `inFlight` true forever (every later retry ignored) and escaped into `ensureCharacter` from `startRun`/`reloadLevelSkin`. The attempt now runs in a `try`/`catch` through the same hooks, so a throwing loader settles as a failure; a new presenter test proves the stand-in stays and `retry()` still works afterwards.
+  - **Low — `scheduleContentWarmup` removed.** The readiness gate and `warmContentWhenBackOnline` superseded its only caller in Phase 5, leaving an exported, tested, unreachable path. `ContentWarmupScheduleOptions`, the function, and its scheduling test are deleted.
+  - **Low — plan wording corrected.** The Phase 2 sub-bullet above claimed "no timers, no globals"; the shipped module schedules its default backoff with the host timer (injected and fake-timer-tested). The line now states what the module actually does.
+  - **Low — repeated full-inventory warm-ups.** `warmContentWhenBackOnline` now returns early when the boot decision was `complete`, so a flapping link cannot re-run the 187-asset scan for no gain.
 
   **Phase 7 evidence (2026-09-26):** `CI=true pnpm test` passed 64 files / 816 tests and `CI=true pnpm check` is clean; the phase scope (`git diff --name-only ed86682 HEAD`) is five Markdown files — `conductor/tech-stack.md`, `conductor/product-guidelines.md`, `conductor/product.md`, `dev/README.md`, and this plan — so the coverage step found no code file needing a sibling test. The final gates re-ran green at the closeout tree (10 precache entries, budget PASS 5,560,355 / 6,000,000 B, `pack:check` exit 0, every production probe exit 0 including `qa-update` 10/10) and the self-review confirmed the invariants, the payload delta, and the untracked-file state. Owner feedback: **YES (explicit, 2026-09-26)** — accepts the closeout. The auditable Phase 7 Verification & Checkpoint Report is attached as a git note to `b1bd814`, and the track is marked complete in `conductor/tracks.md`.
