@@ -82,6 +82,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-sticker-play.mjs` | Sticker play: first-open pulse → board → tap notes (oscillator-frequency captured) → reload/fresh-save semantics → 29-slot letters fit | dev `:5199` | canonical |
 | `qa-perf-pack.mjs` | Pack-screen frame sampling with a seeded clear save | preview `:4173` | utility |
 | `qa-landscape.mjs` | Canonical portrait + landscape matrix: per-screen sweeps, rotation reflow with progress kept, field/target assertions, screenshots (landscape-layout_20260917) | dev | canonical |
+| `qa-tablet.mjs` | Tablet-space matrix (**planned**, `tablet-fit_20261006`): 4:3 + 16:10 × portrait/landscape per-screen sweeps, rotation reflow with progress kept, field-fill (bar tolerance) + target assertions, screenshots | dev | planned |
 | `qa-pack-preview.mjs` | Pack preview harness smoke over every JSON pack: spot-checks first/middle/last level + first bonus per pack (or `--all` for every level), checkpoint counts, default-url fallback (pack-pipeline_20260917; all packs since pack-pipeline-2_20260917) | dev `:5199` | canonical |
 | `qa-menu-capacity.mjs` | Menu capacity matrix shots: 3–6 cards × portrait/landscape + the My Name card case (`menu-capacity_20260917`) | dev `:5199` | canonical |
 | `qa-animals-sweep.mjs` | Animals pack full app flow — traces all 8 levels to success in one chain (badge award, zero page errors) (`animal-outlines_20260919`) | dev `:5199` | canonical |
