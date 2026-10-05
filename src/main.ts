@@ -70,7 +70,7 @@ import {
   createCharacterPresenter,
 } from './character/presenter';
 import type { Point } from './engine/types';
-import { fieldSizeFor, type Orientation, orientationFor } from './field';
+import { FIELD_SPACES, type FieldSpace, fieldSpaceFor, type Orientation } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
 import { appPacks } from './packs/catalog';
 import { bonusRunLevel } from './packs/letters';
@@ -185,7 +185,7 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
 };
 
 let PACKS: readonly PackEntry[] = [];
-let space = fieldSizeFor('portrait');
+let space: FieldSpace = FIELD_SPACES['phone-portrait'];
 let orientation: Orientation = 'portrait';
 let MENU = menuLayout(space.width, space.height, []);
 let MENU_FILLS: readonly string[] = [];
@@ -197,7 +197,8 @@ let PACK_PAGERS = new Map<string, PackPager | null>();
 let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>();
 
 function rebuildViews(): void {
-  space = fieldSizeFor(orientation);
+  space = fieldSpaceFor(window.innerWidth, window.innerHeight);
+  orientation = space.orientation;
   PACKS = appPacks(app.save, orientation);
   const paginated = menuPageCount(PACKS.length) > 1;
   menuPage = Math.min(Math.max(menuPage, 0), menuPageCount(PACKS.length) - 1);
@@ -1027,9 +1028,8 @@ function resize(): void {
   const size = computeBackingSize(window.innerWidth, window.innerHeight, dpr);
   trailCanvas.width = size.width;
   trailCanvas.height = size.height;
-  const next = orientationFor(window.innerWidth, window.innerHeight);
-  if (next !== orientation) {
-    orientation = next;
+  const nextSpace = fieldSpaceFor(window.innerWidth, window.innerHeight);
+  if (nextSpace.id !== space.id) {
     rebuildViews();
     reflowRun();
   }
@@ -1333,6 +1333,8 @@ declare global {
       readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
       readonly screen: () => AppState['screen'];
+      /** Active design space (dev QA): the anchor the viewport selected. */
+      readonly space: () => FieldSpace;
       readonly strokes: () => readonly (readonly Point[])[];
       readonly success: () => boolean;
       readonly targets: () => readonly {
@@ -1478,6 +1480,7 @@ window.__app = {
   moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
   screen: () => app.screen,
+  space: () => ({ ...space }),
   strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),
   success: () => session?.success ?? false,
   targets: () => screenTargets(),
