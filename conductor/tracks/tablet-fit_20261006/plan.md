@@ -49,13 +49,13 @@ push/PR/release; no new deps and no new shipped assets.
 
 ## Phase 2: Level composition and progress-preserving reflow across spaces
 
-- [ ] Task 1: Projection generalization for tablet boxes (TDD)
-  - [ ] Red: single glyphs fit-and-center in each new space (scale ≤ 1.0,
+- [x] Task 1: Projection generalization for tablet boxes (TDD) (174c10a)
+  - [x] Red: single glyphs fit-and-center in each new space (scale ≤ 1.0,
         margins honored); word rows (My Name, `ABC`/`MOM`/`ZOO`) recompose in
         the wider boxes; phone outputs deep-equal today's composition
-  - [ ] Green: extend the projection layer; wire session/pack consumers
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Green: extend the projection layer; wire session/pack consumers
+  - [x] Verify coverage
+  - [x] Commit + git note
 - [ ] Task 2: Session/trail reflow across any two spaces (TDD)
   - [ ] Red: mid-stroke switch between phone and tablet spaces preserves stroke
         index + proportional position; in-flight stroke cancels cleanly;
