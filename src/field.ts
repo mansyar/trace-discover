@@ -150,6 +150,20 @@ export function fieldSpaceFor(viewportWidth: number, viewportHeight: number): Fi
   return best;
 }
 
+/**
+ * A design space, or the orientation shorthand for that orientation's authored
+ * phone reference (the pre-tablet entry point most callers still use).
+ */
+export type FieldSpaceRef = FieldSpace | Orientation;
+
+/** Resolves a space reference: an orientation string means that phone reference. */
+export function resolveSpace(space: FieldSpaceRef = 'portrait'): FieldSpace {
+  if (typeof space !== 'string') {
+    return space;
+  }
+  return FIELD_SPACES[space === 'landscape' ? 'phone-landscape' : 'phone-portrait'];
+}
+
 /** Design-space size for an orientation (the authored phone reference). */
 export function fieldSizeFor(orientation: Orientation): { width: number; height: number } {
   return orientation === 'landscape'

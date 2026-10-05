@@ -4,12 +4,12 @@
 // `data/README.md`) and this module is a thin loader plus the shared glyph and
 // wide-row helpers the name composer and landscape layout rely on.
 import type { Point, StrokePattern } from '../engine/types';
-import { LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH, type Orientation } from '../field';
+import { type FieldSpaceRef, resolveSpace } from '../field';
 import letterJson from './data/abc.json';
 import { parsePackJson } from './json';
 import type { LevelDef } from './level';
 import type { PackEntry } from './pack';
-import { composeWordRow, WIDE_WORD_BOX, type WordGlyph } from './word';
+import { composeWordRow, WIDE_WORD_BOX, type WordGlyph, wordRowBox } from './word';
 
 const pack = parsePackJson(letterJson);
 
@@ -64,19 +64,24 @@ export function letterGlyph(char: string): WordGlyph {
  * the wide field recomposes the word as a full-size row via the shared
  * composer so ABC / MOM / ZOO fill the landscape box.
  */
-export function bonusRunLevel(level: LevelDef, orientation: Orientation): LevelDef | null {
+export function bonusRunLevel(
+  level: LevelDef,
+  spaceRef: FieldSpaceRef = 'portrait',
+): LevelDef | null {
   const word = BONUS_WORDS[level.id];
   if (word === undefined) {
     return null;
   }
-  if (orientation === 'portrait') {
+  const space = resolveSpace(spaceRef);
+  if (space.id === 'phone-portrait') {
     return level;
   }
   const glyphs = [...word].map(letterGlyph);
-  const { strokes } = composeWordRow(glyphs, WIDE_WORD_BOX, BONUS_GAP);
+  const box = space.id === 'phone-landscape' ? WIDE_WORD_BOX : wordRowBox(space);
+  const { strokes } = composeWordRow(glyphs, box, BONUS_GAP);
   const goal = strokes[strokes.length - 1]?.at(-1) ?? {
-    x: LANDSCAPE_FIELD_WIDTH / 2,
-    y: LANDSCAPE_FIELD_HEIGHT / 2,
+    x: space.width / 2,
+    y: space.height / 2,
   };
   return { ...level, goal, strokes };
 }

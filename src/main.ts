@@ -199,7 +199,7 @@ let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])
 function rebuildViews(): void {
   space = fieldSpaceFor(window.innerWidth, window.innerHeight);
   orientation = space.orientation;
-  PACKS = appPacks(app.save, orientation);
+  PACKS = appPacks(app.save, space);
   const paginated = menuPageCount(PACKS.length) > 1;
   menuPage = Math.min(Math.max(menuPage, 0), menuPageCount(PACKS.length) - 1);
   MENU = menuLayout(
@@ -720,12 +720,25 @@ function enterPackLevel(packId: string, levelId: string): void {
  * gets the row in the middle of the tablet field while the two phone
  * references keep byte-identical geometry.
  */
-function projectRunLevel(level: LevelDef): LevelDef {
-  const composed = bonusRunLevel(level, orientation);
-  if (space.id === 'phone-portrait' || space.id === 'phone-landscape') {
-    return composed ?? levelForSpace(level, space);
+function projectRunLevel(level: LevelDef, packId: string): LevelDef {
+  // Word bonuses compose for the active space's row box and are used as composed.
+  const row = bonusRunLevel(level, space);
+  if (row) {
+    return row;
   }
-  return levelForSpace(composed ?? level, space);
+  // The name mini-pack composes its row for the active space too, so a tablet
+  // space plays that composition as authored — re-projecting it would shrink it
+  // back into the projection's narrower margins. The two phone references keep
+  // the shipped pack-composition-then-projection pair exactly.
+  if (packId === NAME_PACK_ID && !isPhoneSpace()) {
+    return level;
+  }
+  return levelForSpace(level, space);
+}
+
+/** True while the active space is one of the two authored phone references. */
+function isPhoneSpace(): boolean {
+  return space.id === 'phone-portrait' || space.id === 'phone-landscape';
 }
 
 /** Shared level boot: art preload, mascot swap, and the tracing session. */
@@ -739,7 +752,7 @@ function startRun(
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
-  const runLevel = projectRunLevel(level);
+  const runLevel = projectRunLevel(level, packId);
   levelArtUrls = art;
   currentRun = {
     level,
@@ -1024,7 +1037,7 @@ function reflowRun(): void {
   if (!authored) {
     return;
   }
-  const runLevel = projectRunLevel(authored);
+  const runLevel = projectRunLevel(authored, run.packId);
   const span = pathGeometryLength(run.runLevel);
   if (span > 0) {
     session.reflow(runLevel, pathGeometryLength(runLevel) / span);
