@@ -61,10 +61,12 @@ visually unchanged.
 - No glyph exceeds scale 1.0; level geometry stays identical relative to the
   field; level glyphs sit at or above today's size on tablets.
 - **Decided 2026-10-06 — magnification scope:** word rows recompose into the
-  active space's box (a 7-letter name goes from `<0.50` in the portrait
-  350-unit box to ~0.81 in a tablet-portrait 880-unit box and 1.00 in a
-  tablet-landscape 1200-unit box); single glyphs and every other level keep
-  their authored unit size, centred. **No engine retune is required**, because
+  active space's box. Measured against the shipping composer, a 7-letter name
+  scales 0.373 in the portrait 350-unit box used on phones today, 0.767 in a
+  slate-portrait 720-unit box, 0.937 in a tablet-portrait 880-unit box and
+  1.000 in a landscape tablet 1200-unit box; a 5-letter name scales 0.529 in
+  portrait today and 1.000 (the cap) in every other box. Single glyphs and
+  every other level keep their authored unit size, centred. **No engine retune is required**, because
   `composeWordRow` caps scale at a single letter's authored size, so no
   geometry ever exceeds the size the tolerance (`FIELD_WIDTH × 0.12` = 51.6
   units) and advance cap (600 units/s) were calibrated against. Magnifying
