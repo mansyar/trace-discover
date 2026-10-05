@@ -16,7 +16,7 @@ v1.7.0 baseline); every tablet-space screen is screenshot-approved per the
 established art-review loop. All work stays local on `track/tablet-fit`; no
 push/PR/release; no new deps and no new shipped assets.
 
-## Phase 1: Design-space foundation — documented decision, space table, reflow plumbing
+## Phase 1: Design-space foundation — documented decision, space table, reflow plumbing [checkpoint: e0da9a4]
 
 - [x] Task 1: Context docs resync **before implementation** (Tech Stack is
       Deliberate) (654ee40)
@@ -45,7 +45,7 @@ push/PR/release; no new deps and no new shipped assets.
   - [x] Commit + git note
 - [x] Task 4: Reflow sweep on the dev server — rotate across phone/16:10/4:3 in
       splash, menu, pack and level; confirm instant re-lay, no flicker
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Level composition and progress-preserving reflow across spaces
 
