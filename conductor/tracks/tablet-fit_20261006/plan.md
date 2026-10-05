@@ -36,14 +36,14 @@ push/PR/release; no new deps and no new shipped assets.
         unchanged
   - [x] Verify coverage on new logic
   - [x] Commit + git note
-- [ ] Task 3: Reflow plumbing across spaces (TDD)
-  - [ ] Red: resize/rotate between any two spaces re-selects and rebuilds
+- [x] Task 3: Reflow plumbing across spaces (TDD) (e0da9a4)
+  - [x] Red: resize/rotate between any two spaces re-selects and rebuilds
         field rect, backing store, input mapping, character canvas and name
         input; additive `window.__app` space probe; existing probes unchanged
-  - [ ] Green: wire the selector through boot/resize and `rebuildViews()`
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] Task 4: Reflow sweep on the dev server — rotate across phone/16:10/4:3 in
+  - [x] Green: wire the selector through boot/resize and `rebuildViews()`
+  - [x] Verify coverage
+  - [x] Commit + git note
+- [x] Task 4: Reflow sweep on the dev server — rotate across phone/16:10/4:3 in
       splash, menu, pack and level; confirm instant re-lay, no flicker
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
