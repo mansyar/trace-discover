@@ -65,6 +65,24 @@ push/PR/release; no new deps and no new shipped assets.
   - [ ] Commit + git note
 - [ ] Task 3: Mid-trace tablet rotation evidence — screenshots at 4:3 and 16:10
       in both orientations → owner sanity check
+- [ ] Task 4: Word rows recompose into the active space's box (TDD) — decided
+      2026-10-06
+  - [ ] Red: box selection for a `FieldSpace` (space-aware replacements for
+        `NAME_BOX` / `WIDE_WORD_BOX`); a 5-letter name reaches the scale cap and
+        a 7-letter name stays above 0.8 in a tablet-portrait box (today it is
+        below 0.5 there); phone portrait and phone landscape rows deep-equal
+        today's composition
+  - [ ] Green: space-aware boxes; `buildNameLevel` / `namePackFor` /
+        `bonusRunLevel` / `appPacks` take the space; menu-card minis keep their
+        current box (cosmetic only, noted)
+  - [ ] No engine retune: the composer caps scale at a single letter's authored
+        size, so every row glyph stays at or below the geometry the tolerance
+        (430 × 0.12 = 51.6 units) and the 600 units/s advance cap were
+        calibrated against — see spec FR3 and the tech-stack note of 2026-10-06
+  - [ ] Row band placement inside the larger tablet boxes: screenshots at 4:3
+        and 16:10 in both orientations → owner approval
+  - [ ] Verify coverage
+  - [ ] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Backdrop and art fit — cover-crop with a fixed anchor

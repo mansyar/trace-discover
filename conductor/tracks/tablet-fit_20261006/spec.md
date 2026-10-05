@@ -57,9 +57,22 @@ visually unchanged.
 
 - Every pack's levels compose fit-and-center in all new spaces through the
   existing projection layer; word rows (My Name, `ABC`/`MOM`/`ZOO`) recompose
-  into the wider boxes at the same scale rules as today.
+  **into the active space's box** at the same scale rules as today.
 - No glyph exceeds scale 1.0; level geometry stays identical relative to the
   field; level glyphs sit at or above today's size on tablets.
+- **Decided 2026-10-06 — magnification scope:** word rows recompose into the
+  active space's box (a 7-letter name goes from `<0.50` in the portrait
+  350-unit box to ~0.81 in a tablet-portrait 880-unit box and 1.00 in a
+  tablet-landscape 1200-unit box); single glyphs and every other level keep
+  their authored unit size, centred. **No engine retune is required**, because
+  `composeWordRow` caps scale at a single letter's authored size, so no
+  geometry ever exceeds the size the tolerance (`FIELD_WIDTH × 0.12` = 51.6
+  units) and advance cap (600 units/s) were calibrated against. Magnifying
+  single glyphs was rejected: a uniform per-space zoom must fit the tallest
+  authored levels, which forces per-level clamping in landscape-oriented tablet
+  spaces and would break the packs' authored size ordering. Recorded in
+  `tech-stack.md` (dated note, 2026-10-06). The row's vertical band inside a
+  larger box needs screenshot and device sign-off, so it ships as its own task.
 
 ### FR4 — Backdrop and art fit (cover-crop, fixed anchor)
 
