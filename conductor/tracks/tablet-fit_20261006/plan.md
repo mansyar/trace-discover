@@ -18,14 +18,14 @@ push/PR/release; no new deps and no new shipped assets.
 
 ## Phase 1: Design-space foundation — documented decision, space table, reflow plumbing
 
-- [ ] Task 1: Context docs resync **before implementation** (Tech Stack is
-      Deliberate)
-  - [ ] `tech-stack.md`: replace the two-space statement with the six-space
+- [x] Task 1: Context docs resync **before implementation** (Tech Stack is
+      Deliberate) (654ee40)
+  - [x] `tech-stack.md`: replace the two-space statement with the six-space
         table, the nearest-anchor selection rule, and the backdrop
         cover-crop/anchor policy
-  - [ ] `product.md`: tablet play + dated note (house style)
-  - [ ] `dev/README.md`: QA table row reserved for `qa-tablet`
-  - [ ] Commit + git note
+  - [x] `product.md`: tablet play + dated note (house style)
+  - [x] `dev/README.md`: QA table row reserved for `qa-tablet`
+  - [x] Commit + git note
 - [ ] Task 2: Space table + selection rule (TDD)
   - [ ] Red: `fieldSpaceFor(viewport)` — exact-anchor ratios pick their own
         space with zero bars (1024×1366 → 4:3, 800×1280 → 16:10, 430×860 →
