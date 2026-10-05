@@ -26,16 +26,16 @@ push/PR/release; no new deps and no new shipped assets.
   - [x] `product.md`: tablet play + dated note (house style)
   - [x] `dev/README.md`: QA table row reserved for `qa-tablet`
   - [x] Commit + git note
-- [ ] Task 2: Space table + selection rule (TDD)
-  - [ ] Red: `fieldSpaceFor(viewport)` — exact-anchor ratios pick their own
+- [x] Task 2: Space table + selection rule (TDD) (cf2479d)
+  - [x] Red: `fieldSpaceFor(viewport)` — exact-anchor ratios pick their own
         space with zero bars (1024×1366 → 4:3, 800×1280 → 16:10, 430×860 →
         phone); Android 3:2 lands on the nearest anchor; square stays portrait;
         ties resolve to the narrower space; phone viewports return the existing
         spaces byte-for-byte
-  - [ ] Green: design-space constants + pure selector; `orientationFor` policy
+  - [x] Green: design-space constants + pure selector; `orientationFor` policy
         unchanged
-  - [ ] Verify coverage on new logic
-  - [ ] Commit + git note
+  - [x] Verify coverage on new logic
+  - [x] Commit + git note
 - [ ] Task 3: Reflow plumbing across spaces (TDD)
   - [ ] Red: resize/rotate between any two spaces re-selects and rebuilds
         field rect, backing store, input mapping, character canvas and name
