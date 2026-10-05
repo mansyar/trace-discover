@@ -78,7 +78,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
-import { levelForOrientation, pathGeometryLength } from './packs/wide';
+import { levelForSpace, pathGeometryLength } from './packs/wide';
 import {
   allContentCached,
   CONTENT_ASSET_URLS,
@@ -713,6 +713,21 @@ function enterPackLevel(packId: string, levelId: string): void {
   );
 }
 
+/**
+ * The level a run actually traces. Word rows (My Name, `ABC`/`MOM`/`ZOO`)
+ * compose for the orientation's authored box; every non-phone space then
+ * centres that geometry in its own box (never magnified), so a tablet space
+ * gets the row in the middle of the tablet field while the two phone
+ * references keep byte-identical geometry.
+ */
+function projectRunLevel(level: LevelDef): LevelDef {
+  const composed = bonusRunLevel(level, orientation);
+  if (space.id === 'phone-portrait' || space.id === 'phone-landscape') {
+    return composed ?? levelForSpace(level, space);
+  }
+  return levelForSpace(composed ?? level, space);
+}
+
 /** Shared level boot: art preload, mascot swap, and the tracing session. */
 function startRun(
   level: LevelDef,
@@ -724,7 +739,7 @@ function startRun(
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
-  const runLevel = bonusRunLevel(level, orientation) ?? levelForOrientation(level, orientation);
+  const runLevel = projectRunLevel(level);
   levelArtUrls = art;
   currentRun = {
     level,
@@ -1009,8 +1024,7 @@ function reflowRun(): void {
   if (!authored) {
     return;
   }
-  const runLevel =
-    bonusRunLevel(authored, orientation) ?? levelForOrientation(authored, orientation);
+  const runLevel = projectRunLevel(authored);
   const span = pathGeometryLength(run.runLevel);
   if (span > 0) {
     session.reflow(runLevel, pathGeometryLength(runLevel) / span);

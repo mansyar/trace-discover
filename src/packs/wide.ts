@@ -1,9 +1,11 @@
-// Wide-field level projection: authored levels target the portrait reference
-// field; in the wide field a level's geometry is uniformly centred (never
-// magnified, never shrunk unless it overflows the wide margins) so single
-// glyphs sit in the middle of the landscape box without touching the art.
+// Level projection across design spaces: authored levels target the portrait
+// phone reference field; in every other space a level's geometry is uniformly
+// centred (never magnified, never shrunk unless it overflows that space's
+// margins) so a single glyph sits in the middle of the box without touching the
+// art, and the phone portrait reference stays byte-identical.
 import type { Point } from '../engine/types';
-import { LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH, type Orientation } from '../field';
+import type { FieldSpace, Orientation } from '../field';
+import { FIELD_SPACES } from '../field';
 import type { LevelDef } from './level';
 
 const MARGIN = 24;
@@ -31,28 +33,33 @@ function boundsOf(level: LevelDef): Bounds | null {
   return Number.isFinite(minX) ? { maxX, maxY, minX, minY } : null;
 }
 
-function landscapeScale(bounds: Bounds): number {
+function fitScale(bounds: Bounds, space: FieldSpace): number {
   const width = Math.max(bounds.maxX - bounds.minX, 1);
   const height = Math.max(bounds.maxY - bounds.minY, 1);
-  return Math.min(
-    1,
-    (LANDSCAPE_FIELD_WIDTH - MARGIN * 2) / width,
-    (LANDSCAPE_FIELD_HEIGHT - MARGIN * 2) / height,
-  );
+  return Math.min(1, (space.width - MARGIN * 2) / width, (space.height - MARGIN * 2) / height);
 }
 
-/** Uniform scale the landscape projection applies to a level (1 in portrait). */
-export function projectionScale(level: LevelDef, orientation: Orientation): number {
-  if (orientation === 'portrait') {
+/**
+ * Uniform scale the projection applies to a level in a space: 1 in the authored
+ * portrait phone space and for anything that already fits (the projection never
+ * magnifies), shrinking only to clear the space's margins.
+ */
+export function projectionScaleFor(level: LevelDef, space: FieldSpace): number {
+  if (space.id === 'phone-portrait') {
     return 1;
   }
   const bounds = boundsOf(level);
-  return bounds ? landscapeScale(bounds) : 1;
+  return bounds ? fitScale(bounds, space) : 1;
 }
 
-/** Projects a level for the active design space; portrait is the authored space. */
-export function levelForOrientation(level: LevelDef, orientation: Orientation): LevelDef {
-  if (orientation === 'portrait') {
+/**
+ * Projects a level into the active design space. The authored portrait phone
+ * space is returned untouched (level geometry is authored there); every other
+ * space centres the geometry uniformly, shrinking it only if it would overflow
+ * that space's margins.
+ */
+export function levelForSpace(level: LevelDef, space: FieldSpace): LevelDef {
+  if (space.id === 'phone-portrait') {
     return level;
   }
 
@@ -61,12 +68,12 @@ export function levelForOrientation(level: LevelDef, orientation: Orientation): 
     return { ...level, goal: { ...level.goal } };
   }
 
-  const scale = landscapeScale(bounds);
+  const scale = fitScale(bounds, space);
   const centerX = (bounds.minX + bounds.maxX) / 2;
   const centerY = (bounds.minY + bounds.maxY) / 2;
   const mapPoint = (point: Point): Point => ({
-    x: LANDSCAPE_FIELD_WIDTH / 2 + (point.x - centerX) * scale,
-    y: LANDSCAPE_FIELD_HEIGHT / 2 + (point.y - centerY) * scale,
+    x: space.width / 2 + (point.x - centerX) * scale,
+    y: space.height / 2 + (point.y - centerY) * scale,
   });
 
   return {
@@ -74,6 +81,26 @@ export function levelForOrientation(level: LevelDef, orientation: Orientation): 
     goal: mapPoint(level.goal),
     strokes: level.strokes.map((stroke) => stroke.map(mapPoint)),
   };
+}
+
+/** The authored phone reference space for an orientation. */
+function phoneSpace(orientation: Orientation): FieldSpace {
+  return orientation === 'landscape'
+    ? FIELD_SPACES['phone-landscape']
+    : FIELD_SPACES['phone-portrait'];
+}
+
+/** Uniform scale the phone-reference projection applies for an orientation. */
+export function projectionScale(level: LevelDef, orientation: Orientation): number {
+  return projectionScaleFor(level, phoneSpace(orientation));
+}
+
+/**
+ * Projects a level for the phone reference of an orientation (the pre-tablet
+ * entry point, kept for callers that only know the orientation).
+ */
+export function levelForOrientation(level: LevelDef, orientation: Orientation): LevelDef {
+  return levelForSpace(level, phoneSpace(orientation));
 }
 
 /** Raw control-geometry length of a level: the sum of its stroke polylines. */
