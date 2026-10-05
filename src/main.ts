@@ -1391,9 +1391,22 @@ function screenTargets(): AppTarget[] {
       x: card.x + card.width / 2,
       y: card.y + card.height / 2,
     }));
+    // The menu pager, mirroring the pack screen's ids: only the directions that
+    // exist on this page are exposed, so a dev probe can drive a paginated menu
+    // (the runtime name card rides page two) the same way a finger does.
+    const pagerTargets: AppTarget[] = [];
+    if (MENU.pager) {
+      if (menuPage > 0) {
+        pagerTargets.push({ id: 'menu:prev', x: MENU.pager.prev.x, y: MENU.pager.prev.y });
+      }
+      if (menuPage < MENU.pager.dots.length - 1) {
+        pagerTargets.push({ id: 'menu:next', x: MENU.pager.next.x, y: MENU.pager.next.y });
+      }
+    }
     const gate = MENU.parentGate;
     return [
       ...cards,
+      ...pagerTargets,
       { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 },
       skinTarget,
     ];

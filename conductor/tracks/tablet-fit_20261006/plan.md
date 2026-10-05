@@ -80,9 +80,11 @@ push/PR/release; no new deps and no new shipped assets.
         (430 × 0.12 = 51.6 units) and the 600 units/s advance cap were
         calibrated against — see spec FR3 and the tech-stack note of 2026-10-06
   - [ ] Row band placement inside the larger tablet boxes: screenshots at 4:3
-        and 16:10 in both orientations → owner approval (BLOCKED: the menu
-        pager is not exposed by targets(), so the paginated name card cannot be
-        driven to in-session - see the task git note)
+        and 16:10 in both orientations → owner approval — evidence captured by
+        `dev/qa/qa-tablet-rows.mjs` (the menu pager spots are now exposed by
+        `targets()`, so the paginated runtime name card can be driven): 155 live
+        assertions pass with 0 failures, 16 labelled shots + gallery in
+        `dev/qa/out/tablet-rows/`; awaiting owner sign-off
   - [x] Verify coverage
   - [x] Commit + git note
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
