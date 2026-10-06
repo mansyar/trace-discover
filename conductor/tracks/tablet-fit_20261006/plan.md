@@ -79,6 +79,16 @@ push/PR/release; no new deps and no new shipped assets.
         size, so every row glyph stays at or below the geometry the tolerance
         (430 × 0.12 = 51.6 units) and the 600 units/s advance cap were
         calibrated against — see spec FR3 and the tech-stack note of 2026-10-06
+  - [x] Trail-guide thickness measured against the phone reference, requested
+        2026-10-07 (f150a89): `dev/qa/qa-tablet-trail.mjs` renders the 7-letter
+        row in all six spaces and measures the guide from the trail canvas — the
+        ribbon renders 64.0–64.5 units everywhere (the authored style, no
+        per-space retune), finger-scale on every device (~51–65 px), and per
+        letter the tablet rows (0.188–0.249) sit inside the shipped
+        landscape-phone band (0.228) with more dots per row (6 → 14–19). No
+        thicker trail, larger dots or wider tip; the one disproportionate guide
+        is the pre-existing portrait-phone long name (0.508), out of scope here.
+        Recorded in `tech-stack.md` (2026-10-07). No code change.
   - [ ] Row band placement inside the larger tablet boxes: screenshots at 4:3
         and 16:10 in both orientations → owner approval — evidence captured by
         `dev/qa/qa-tablet-rows.mjs` (the menu pager spots are now exposed by
