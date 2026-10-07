@@ -159,4 +159,19 @@ push/PR/release; no new deps and no new shipped assets.
 
 ## Phase: Review Fixes
 
-- [ ] Task: Apply review suggestions
+- [x] Task: Apply review suggestions e1dd3b2
+  - [x] Medium — in-level mascot parks were authored in phone field units, so on
+        every tablet space the guide waited on top of the traced letters and the
+        success park landed mid-field. `parksFor(space)` (session.ts) now resolves
+        the authored park through the same field fraction, so both phone
+        references keep their shipped points byte-identical while a tablet space
+        keeps the relative spot (centred, under the row band); guards added in
+        `session.test.ts` and measured live from `.char-canvas` in `qa-tablet-rows`
+  - [x] Low — `projectRunLevel`'s doc comment described the opposite of the
+        tablet/name paths it implements (rewritten)
+  - [x] Low — vacuous assertion in `wordSpace.test.ts` (compared a value with
+        itself) replaced with a real landscape-box guard
+  - [x] Low — duplicate phone row-box branches reviewed and kept deliberately:
+        both modules already branch to the named authored boxes for the phone
+        spaces and call `wordRowBox` for everything else, and the parity is
+        test-locked; no churn for zero behavioural gain
