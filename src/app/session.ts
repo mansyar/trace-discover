@@ -44,7 +44,13 @@ import {
   pointAtSequence,
 } from '../engine/trail';
 import type { Point } from '../engine/types';
-import { FIELD_WIDTH } from '../field';
+import {
+  FIELD_HEIGHT,
+  FIELD_WIDTH,
+  type FieldSpace,
+  LANDSCAPE_FIELD_HEIGHT,
+  LANDSCAPE_FIELD_WIDTH,
+} from '../field';
 import { type LevelDef, levelToPath } from '../packs/level';
 import { type ConfettiParticle, createConfetti, stepConfetti } from '../render/confetti';
 
@@ -57,6 +63,38 @@ const CONFETTI_COUNT = 26;
 export const TRACE_PARK: Point = { x: 215, y: 650 };
 /** Mascot resting spot once the level succeeds (clear of success buttons). */
 export const SUCCESS_PARK: Point = { x: 215, y: 410 };
+
+/** Wide-field twin of `TRACE_PARK`: low and centred under the landscape row. */
+export const TRACE_PARK_WIDE: Point = { x: 430, y: 310 };
+/** Wide-field twin of `SUCCESS_PARK`: beside the landscape success buttons. */
+export const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
+
+/**
+ * The mascot parks for a design space. The parks are authored in the phone
+ * reference of their orientation, so every other space resolves them through
+ * the same fraction of the field: the character keeps its relative waiting spot
+ * (under the row while tracing, beside the buttons on success) however large
+ * the field is, instead of drifting onto the letters as the field grows. Both
+ * phone references return the authored points untouched.
+ */
+export function parksFor(space: FieldSpace): { readonly success: Point; readonly trace: Point } {
+  if (space.id === 'phone-portrait') {
+    return { success: SUCCESS_PARK, trace: TRACE_PARK };
+  }
+  if (space.id === 'phone-landscape') {
+    return { success: SUCCESS_PARK_WIDE, trace: TRACE_PARK_WIDE };
+  }
+  const portrait = space.orientation === 'portrait';
+  const trace = portrait ? TRACE_PARK : TRACE_PARK_WIDE;
+  const success = portrait ? SUCCESS_PARK : SUCCESS_PARK_WIDE;
+  const width = portrait ? FIELD_WIDTH : LANDSCAPE_FIELD_WIDTH;
+  const height = portrait ? FIELD_HEIGHT : LANDSCAPE_FIELD_HEIGHT;
+  const onSpace = (park: Point): Point => ({
+    x: (park.x / width) * space.width,
+    y: (park.y / height) * space.height,
+  });
+  return { success: onSpace(success), trace: onSpace(trace) };
+}
 
 export type SessionEvent = { readonly type: 'assist-widened' } | { readonly type: 'level-done' };
 
@@ -79,7 +117,8 @@ export interface SessionDeps {
   /** Deterministic confetti seed (varies per level for QA replay). */
   readonly seed: number;
   readonly settings: () => SessionSettings;
-  /** Mascot park overrides for the wide field; defaults to the portrait parks. */
+  /** Mascot park overrides for the active design space; defaults to the
+   *  portrait phone parks. Shells pass `parksFor(space)`. */
   readonly parks?: { readonly trace: Point; readonly success: Point };
 }
 

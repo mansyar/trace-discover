@@ -31,14 +31,19 @@ const CAP_NAME = 'CC';
 const ABC_NATURAL = 384;
 
 // Every design space with its row band: the shipped portrait fraction (470/860
-// of the height), the centred landscape row, and the shipped band height.
+// of the height), the centred landscape row, and the shipped band height. Each
+// space also carries the authored trace-park fraction (session.ts TRACE_PARK /
+// TRACE_PARK_WIDE over the phone reference), which the mascot must keep as the
+// field grows.
+const TRACE_PORTRAIT = { x: 215 / 430, y: 650 / 860 };
+const TRACE_LANDSCAPE = { x: 430 / 860, y: 310 / 430 };
 const SPACES = [
-  { bandHeight: 380, centerY: 470, height: 860, id: 'phone-portrait', width: 430 },
-  { bandHeight: 350, centerY: 215, height: 430, id: 'phone-landscape', width: 860 },
-  { bandHeight: 380, centerY: (1280 / 860) * 470, height: 1280, id: 'tablet-portrait', width: 960 },
-  { bandHeight: 350, centerY: 480, height: 960, id: 'tablet-landscape', width: 1280 },
-  { bandHeight: 380, centerY: (1280 / 860) * 470, height: 1280, id: 'slate-portrait', width: 800 },
-  { bandHeight: 350, centerY: 400, height: 800, id: 'slate-landscape', width: 1280 },
+  { bandHeight: 380, centerY: 470, height: 860, id: 'phone-portrait', trace: TRACE_PORTRAIT, width: 430 },
+  { bandHeight: 350, centerY: 215, height: 430, id: 'phone-landscape', trace: TRACE_LANDSCAPE, width: 860 },
+  { bandHeight: 380, centerY: (1280 / 860) * 470, height: 1280, id: 'tablet-portrait', trace: TRACE_PORTRAIT, width: 960 },
+  { bandHeight: 350, centerY: 480, height: 960, id: 'tablet-landscape', trace: TRACE_LANDSCAPE, width: 1280 },
+  { bandHeight: 380, centerY: (1280 / 860) * 470, height: 1280, id: 'slate-portrait', trace: TRACE_PORTRAIT, width: 800 },
+  { bandHeight: 350, centerY: 400, height: 800, id: 'slate-landscape', trace: TRACE_LANDSCAPE, width: 1280 },
 ];
 
 /** Levels cleared to unlock the ABC bonus (nine letters, the shipped threshold). */
@@ -191,6 +196,22 @@ async function measureAuthoredCap() {
   return { xSpan, ySpan };
 }
 
+/** The mascot's waiting spot as a field fraction, read from the live character
+ *  canvas: `positionCharacter` places the canvas centre 0.38 of the character
+ *  size below the park point, so the park is measured back out of the rect. */
+async function parkFraction() {
+  return page.evaluate(() => {
+    const rect = document.querySelector('.char-canvas').getBoundingClientRect();
+    const field = window.__app.field();
+    const centerX = rect.x + rect.width / 2;
+    const centerY = rect.y + rect.height / 2;
+    return {
+      x: (centerX - field.x) / field.width,
+      y: (centerY - field.y - rect.width * 0.38) / field.height,
+    };
+  });
+}
+
 /** Live row placement assertions for one space + word row. */
 async function assertRow(label, space, { xSpan, ySpan }) {
   const live = await liveRow();
@@ -242,6 +263,7 @@ async function assertRow(label, space, { xSpan, ySpan }) {
 }
 
 const gallery = [];
+const parks = [];
 let authoredCap = null;
 
 // 1. Measure the authored cap live, then hold it fixed for every space: no row
@@ -284,6 +306,29 @@ for (const space of SPACES) {
     );
   }
   gallery.push({ group: space.id, label: `7-letter name row (${NAME})`, name: `name-row-${space.id}` });
+
+  // The mascot keeps its authored waiting spot as a fraction of the field, so
+  // the recomposed row never grows underneath it into the letters.
+  const park = await parkFraction();
+  check(
+    Math.abs(park.x - space.trace.x) <= 0.015 && Math.abs(park.y - space.trace.y) <= 0.02,
+    `${space.id} mascot park: authored field fraction kept`,
+    `measured (${park.x.toFixed(3)}, ${park.y.toFixed(3)}) vs authored (${space.trace.x.toFixed(3)}, ${space.trace.y.toFixed(3)})`,
+  );
+  // On a tablet the resolved park clears the row band entirely (the phone
+  // references keep their shipped park, which sits inside their nominal band).
+  if (space.id !== 'phone-portrait' && space.id !== 'phone-landscape') {
+    check(
+      park.y > box.bottom / space.height,
+      `${space.id} mascot park: waits clear below the row band`,
+      `y ${(park.y * space.height).toFixed(1)} vs band bottom ${box.bottom.toFixed(1)}`,
+    );
+  }
+  parks.push({
+    authored: `(${space.trace.x.toFixed(3)}, ${space.trace.y.toFixed(3)})`,
+    id: space.id,
+    measured: `(${park.x.toFixed(3)}, ${park.y.toFixed(3)})`,
+  });
 
   // Shortest-name reference: authored size must be identical in every space.
   await openLevel(`${space.id} cap reference`, CAP_NAME, openNameRow);
@@ -347,6 +392,9 @@ writeFileSync(
 <code>dev/qa/qa-tablet-rows.mjs</code>. Portrait rows sit at 470/860 of the space
 height; landscape rows are centred. The authored cap is
 ${authoredCap.ySpan.toFixed(1)} units of ink height.</p>
+<p>Mascot waiting spot measured from the live <code>.char-canvas</code> rect as a
+field fraction (the authored fraction is the phone reference's park):</p>
+<pre>${['space             measured            authored', ...parks.map((p) => `${p.id.padEnd(18)}${p.measured.padEnd(20)}${p.authored}`)].join('\n')}</pre>
 ${groups
   .map(
     (group) => `<h2>${group}</h2>

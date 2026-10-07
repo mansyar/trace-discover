@@ -106,8 +106,16 @@ describe('name rows per space', () => {
       expect(nameGlyphScale(name, 'portrait')).toBe(nameGlyphScale(name, PHONE_PORTRAIT));
       expect(nameGlyphScale(name, 'landscape')).toBe(nameGlyphScale(name, PHONE_LANDSCAPE));
       expect(buildNameLevel(name, 'portrait')).toEqual(buildNameLevel(name, PHONE_PORTRAIT));
-      expect(buildNameLevel(name, 'landscape')).toEqual(buildNameLevel(name, PHONE_LANDSCAPE));
-      expect(buildNameLevel(name, 'landscape')).toEqual(buildNameLevel(name, 'landscape'));
+      const wide = buildNameLevel(name, PHONE_LANDSCAPE);
+      expect(wide).toEqual(buildNameLevel(name, 'landscape'));
+      // The shipped landscape row still composes inside its authored box.
+      const bounds = boundsOf(wide.strokes);
+      expect(bounds.minX, name).toBeGreaterThanOrEqual(NAME_BOX_LANDSCAPE.left);
+      expect(bounds.maxX, name).toBeLessThanOrEqual(NAME_BOX_LANDSCAPE.right);
+      expect((bounds.minY + bounds.maxY) / 2, name).toBeCloseTo(
+        (NAME_BOX_LANDSCAPE.top + NAME_BOX_LANDSCAPE.bottom) / 2,
+        6,
+      );
     }
   });
 

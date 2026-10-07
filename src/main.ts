@@ -39,7 +39,7 @@ import {
   type ParentPress,
 } from './app/render';
 import { hopPlanFor } from './app/runPlan';
-import { createSession, type LevelSession } from './app/session';
+import { createSession, type LevelSession, parksFor } from './app/session';
 import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { stickerPopFrame } from './app/stickerPop';
 import { withVolume } from './audio/meter';
@@ -141,9 +141,6 @@ import { hitBoardHome, hitShelfBand, hitStickerCell, stickerBoardLayout } from '
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
-/** Wide-field mascot parks: tracing keeps the dino low and centred; success parks it beside the buttons. */
-const TRACE_PARK_WIDE: Point = { x: 430, y: 310 };
-const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
 const CHARACTER_OFFSET_Y = 0.38;
 
 const trailCanvas = requireCanvas(document);
@@ -714,11 +711,14 @@ function enterPackLevel(packId: string, levelId: string): void {
 }
 
 /**
- * The level a run actually traces. Word rows (My Name, `ABC`/`MOM`/`ZOO`)
- * compose for the orientation's authored box; every non-phone space then
- * centres that geometry in its own box (never magnified), so a tablet space
- * gets the row in the middle of the tablet field while the two phone
- * references keep byte-identical geometry.
+ * The level a run actually traces, in the active design space.
+ *
+ * Word rows — the `ABC`/`MOM`/`ZOO` bonuses and the runtime name row — compose
+ * for the active space's box and are used as composed, because re-projecting
+ * them would shrink the wide row back into the projection's narrower margins.
+ * Every other level is projected into the space (centred, never magnified,
+ * shrunk only to clear its margins). The two phone references keep the shipped
+ * composition-then-projection pair exactly.
  */
 function projectRunLevel(level: LevelDef, packId: string): LevelDef {
   // Word bonuses compose for the active space's row box and are used as composed.
@@ -785,10 +785,7 @@ function startRun(
         commit(applyAppEvent(app, { type: 'level-complete', packId, levelId }));
       }
     },
-    parks:
-      orientation === 'landscape'
-        ? { success: SUCCESS_PARK_WIDE, trace: TRACE_PARK_WIDE }
-        : undefined,
+    parks: parksFor(space),
     player,
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),

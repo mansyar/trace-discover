@@ -8,10 +8,26 @@ import {
 import { hopPlacement, hopTimeline } from '../character/hops';
 import { pointAtSequence } from '../engine/trail';
 import type { Point } from '../engine/types';
+import {
+  FIELD_HEIGHT,
+  FIELD_SPACES,
+  FIELD_WIDTH,
+  LANDSCAPE_FIELD_HEIGHT,
+  LANDSCAPE_FIELD_WIDTH,
+} from '../field';
 import { type LevelDef, levelToPath } from '../packs/level';
 import { NUMERAL_LEVELS } from '../packs/numbers';
 import { PRE_LEVELS } from '../packs/pre';
-import { createSession, type SessionEvent } from './session';
+import { wordRowBox } from '../packs/word';
+import {
+  createSession,
+  parksFor,
+  type SessionEvent,
+  SUCCESS_PARK,
+  SUCCESS_PARK_WIDE,
+  TRACE_PARK,
+  TRACE_PARK_WIDE,
+} from './session';
 
 function fakes() {
   const specs: ToneSpec[] = [];
@@ -478,6 +494,85 @@ describe('session parks', () => {
       settings: () => ({ easierTracing: false }),
     });
     expect(session.snapshot().charPos).toEqual({ x: 215, y: 650 });
+  });
+});
+
+describe('parksFor', () => {
+  it('returns the authored parks untouched on both phone references', () => {
+    expect(parksFor(FIELD_SPACES['phone-portrait'])).toEqual({
+      success: SUCCESS_PARK,
+      trace: TRACE_PARK,
+    });
+    expect(parksFor(FIELD_SPACES['phone-landscape'])).toEqual({
+      success: SUCCESS_PARK_WIDE,
+      trace: TRACE_PARK_WIDE,
+    });
+  });
+
+  it('holds every park at its phone-reference fraction in the tablet spaces', () => {
+    const references = {
+      landscape: {
+        height: LANDSCAPE_FIELD_HEIGHT,
+        success: SUCCESS_PARK_WIDE,
+        trace: TRACE_PARK_WIDE,
+        width: LANDSCAPE_FIELD_WIDTH,
+      },
+      portrait: {
+        height: FIELD_HEIGHT,
+        success: SUCCESS_PARK,
+        trace: TRACE_PARK,
+        width: FIELD_WIDTH,
+      },
+    } as const;
+    const tabletSpaces = [
+      FIELD_SPACES['tablet-portrait'],
+      FIELD_SPACES['tablet-landscape'],
+      FIELD_SPACES['slate-portrait'],
+      FIELD_SPACES['slate-landscape'],
+    ];
+    for (const space of tabletSpaces) {
+      const reference = references[space.orientation];
+      const parks = parksFor(space);
+      expect(parks.trace.x / space.width, space.id).toBeCloseTo(
+        reference.trace.x / reference.width,
+        12,
+      );
+      expect(parks.trace.y / space.height, space.id).toBeCloseTo(
+        reference.trace.y / reference.height,
+        12,
+      );
+      expect(parks.success.x / space.width, space.id).toBeCloseTo(
+        reference.success.x / reference.width,
+        12,
+      );
+      expect(parks.success.y / space.height, space.id).toBeCloseTo(
+        reference.success.y / reference.height,
+        12,
+      );
+      for (const park of [parks.trace, parks.success]) {
+        expect(park.x, space.id).toBeGreaterThan(0);
+        expect(park.x, space.id).toBeLessThan(space.width);
+        expect(park.y, space.id).toBeGreaterThan(0);
+        expect(park.y, space.id).toBeLessThan(space.height);
+      }
+    }
+  });
+
+  it('waits centred and clear of the row band in every tablet space', () => {
+    // The regression this guards: a park expressed in phone units drifts onto
+    // the recomposed word row once the field grows.
+    for (const id of [
+      'tablet-portrait',
+      'tablet-landscape',
+      'slate-portrait',
+      'slate-landscape',
+    ] as const) {
+      const space = FIELD_SPACES[id];
+      const { trace } = parksFor(space);
+      expect(trace.x, id).toBeCloseTo(space.width / 2, 6);
+      expect(trace.y, id).toBeGreaterThan(wordRowBox(space).bottom);
+      expect(trace.y, id).toBeLessThan(space.height);
+    }
   });
 });
 
