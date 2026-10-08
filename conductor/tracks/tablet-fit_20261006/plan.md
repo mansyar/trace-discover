@@ -56,7 +56,7 @@ push/PR/release; no new deps and no new shipped assets.
   - [x] Green: extend the projection layer; wire session/pack consumers
   - [x] Verify coverage
   - [x] Commit + git note
-- [ ] Task 2: Session/trail reflow across any two spaces (TDD)
+- [~] Task 2: Session/trail reflow across any two spaces (TDD)
   - [ ] Red: mid-stroke switch between phone and tablet spaces preserves stroke
         index + proportional position; in-flight stroke cancels cleanly;
         repeated switches stable; success/tableau unaffected
