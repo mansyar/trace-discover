@@ -69,6 +69,12 @@ export const TRACE_PARK_WIDE: Point = { x: 430, y: 310 };
 /** Wide-field twin of `SUCCESS_PARK`: beside the landscape success buttons. */
 export const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
 
+/** Where the mascot waits while tracing and rests once the level succeeds. */
+export interface SessionParks {
+  readonly success: Point;
+  readonly trace: Point;
+}
+
 /**
  * The mascot parks for a design space. The parks are authored in the phone
  * reference of their orientation, so every other space resolves them through
@@ -77,7 +83,7 @@ export const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
  * the field is, instead of drifting onto the letters as the field grows. Both
  * phone references return the authored points untouched.
  */
-export function parksFor(space: FieldSpace): { readonly success: Point; readonly trace: Point } {
+export function parksFor(space: FieldSpace): SessionParks {
   if (space.id === 'phone-portrait') {
     return { success: SUCCESS_PARK, trace: TRACE_PARK };
   }
@@ -119,7 +125,7 @@ export interface SessionDeps {
   readonly settings: () => SessionSettings;
   /** Mascot park overrides for the active design space; defaults to the
    *  portrait phone parks. Shells pass `parksFor(space)`. */
-  readonly parks?: { readonly trace: Point; readonly success: Point };
+  readonly parks?: SessionParks;
 }
 
 export interface SessionSnapshot {
@@ -144,8 +150,12 @@ export interface LevelSession {
   pointerDown(point: Point): void;
   pointerMove(point: Point): void;
   pointerUp(): void;
-  /** Rebuilds the trail for a re-laid level, scaling the frontier proportionally. */
-  reflow(level: LevelDef, frontierRatio: number): void;
+  /**
+   * Rebuilds the trail for a re-laid level, scaling the frontier proportionally
+   * so tracing progress survives a space change. Pass the new space's parks to
+   * re-seat the waiting mascot; omitted, the session keeps the parks in force.
+   */
+  reflow(level: LevelDef, frontierRatio: number, parks?: SessionParks): void;
   snapshot(): SessionSnapshot;
   update(dtMs: number): void;
 }
@@ -155,8 +165,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   if (paths.length === 0) {
     throw new Error(`Level ${level.id} has no strokes.`);
   }
-  const tracePark = deps.parks?.trace ?? TRACE_PARK;
-  const successPark = deps.parks?.success ?? SUCCESS_PARK;
+  let parks: SessionParks = deps.parks ?? { success: SUCCESS_PARK, trace: TRACE_PARK };
   const baseTolerance = FIELD_WIDTH * TOLERANCE_FRACTION;
   let multi = createMultiTrail(paths, {
     tolerance: baseTolerance,
@@ -169,7 +178,7 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   let completion: CompletionState = COMPLETION_START;
   let completionStarted = false;
   let confetti: ConfettiParticle[] = [];
-  let charPos: Point = { ...tracePark };
+  let charPos: Point = { ...parks.trace };
   let pointer: Point | null = null;
   let success = false;
   let widenReported = false;
@@ -189,8 +198,8 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
   const glideToPark = (dtMs: number): void => {
     const blend = 1 - Math.exp((-dtMs / 1000) * 5);
     charPos = {
-      x: charPos.x + (successPark.x - charPos.x) * blend,
-      y: charPos.y + (successPark.y - charPos.y) * blend,
+      x: charPos.x + (parks.success.x - charPos.x) * blend,
+      y: charPos.y + (parks.success.y - charPos.y) * blend,
     };
   };
 
@@ -320,10 +329,17 @@ export function createSession(level: LevelDef, deps: SessionDeps): LevelSession 
       pointer = null;
       multiState = endMultiStroke(multiState);
     },
-    reflow: (nextLevel, frontierRatio) => {
+    reflow: (nextLevel, frontierRatio, nextParks) => {
       if (success || completionStarted) {
         return;
       }
+      if (nextParks) {
+        parks = nextParks;
+      }
+      // The mascot waits on the park while tracing and only leaves it during the
+      // completion glide, which the early return above guards. Re-seat it here so
+      // a rotation keeps its relative spot instead of leaving phone coordinates.
+      charPos = { ...parks.trace };
       paths = levelToPath(nextLevel);
       multi = createMultiTrail(paths, {
         tolerance: baseTolerance * toleranceScaleNow,

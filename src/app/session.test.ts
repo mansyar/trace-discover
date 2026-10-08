@@ -18,11 +18,13 @@ import {
 import { type LevelDef, levelToPath } from '../packs/level';
 import { NUMERAL_LEVELS } from '../packs/numbers';
 import { PRE_LEVELS } from '../packs/pre';
+import { levelForSpace, pathGeometryLength } from '../packs/wide';
 import { wordRowBox } from '../packs/word';
 import {
   createSession,
   parksFor,
   type SessionEvent,
+  type SessionParks,
   SUCCESS_PARK,
   SUCCESS_PARK_WIDE,
   TRACE_PARK,
@@ -417,32 +419,62 @@ describe('numeral reward plan', () => {
   });
 });
 
+/** Authored taller than the phone-landscape box: the phone reference fits it
+ *  at 0.764, so re-laying it into a tablet space scales the whole trail. */
 const TWO_STROKE: LevelDef = {
-  goal: { x: 300, y: 400 },
+  goal: { x: 380, y: 600 },
   goalArt: '/art/goal/reflow.webp',
   id: 'reflow-two',
   stroke: 'line',
   strokes: [
     [
-      { x: 100, y: 200 },
-      { x: 300, y: 200 },
+      { x: 100, y: 100 },
+      { x: 380, y: 100 },
     ],
     [
-      { x: 100, y: 400 },
-      { x: 300, y: 400 },
+      { x: 100, y: 600 },
+      { x: 380, y: 600 },
     ],
   ],
 };
 
-/** Same shape scaled by `factor` — stands in for a re-laid design space. */
-function scaledLevel(source: LevelDef, factor: number): LevelDef {
-  return {
-    ...source,
-    goal: { x: source.goal.x * factor, y: source.goal.y * factor },
-    strokes: source.strokes.map((stroke) =>
-      stroke.map((p) => ({ x: p.x * factor, y: p.y * factor })),
-    ),
-  };
+const PHONE_LANDSCAPE_SPACE = FIELD_SPACES['phone-landscape'];
+const TABLET_PORTRAIT_SPACE = FIELD_SPACES['tablet-portrait'];
+/** The two run levels the app would trace, as `startRun`/`reflowRun` build them. */
+const PHONE_RUN = levelForSpace(TWO_STROKE, PHONE_LANDSCAPE_SPACE);
+const TABLET_RUN = levelForSpace(TWO_STROKE, TABLET_PORTRAIT_SPACE);
+/** The frontier ratio `reflowRun` computes from the two run levels' spans. */
+const TO_TABLET = pathGeometryLength(TABLET_RUN) / pathGeometryLength(PHONE_RUN);
+const TO_PHONE = pathGeometryLength(PHONE_RUN) / pathGeometryLength(TABLET_RUN);
+
+function makeSession(
+  level: LevelDef,
+  parks: SessionParks,
+): { f: ReturnType<typeof fakes>; session: ReturnType<typeof createSession> } {
+  const f = fakes();
+  const session = createSession(level, {
+    character: f.character,
+    onEvent: (event) => void f.events.push(event),
+    parks,
+    player: f.player,
+    seed: 7,
+    settings: () => ({ easierTracing: false }),
+  });
+  return { f, session };
+}
+
+/** Index of the path point nearest `target`; used to resume after a reflow. */
+function nearestIndex(path: readonly Point[], target: Point): number {
+  let best = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  path.forEach((candidate, index) => {
+    const distance = Math.hypot(candidate.x - target.x, candidate.y - target.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = index;
+    }
+  });
+  return best;
 }
 
 function strokePath(source: LevelDef, index: number): readonly Point[] {
@@ -576,18 +608,12 @@ describe('parksFor', () => {
   });
 });
 
-describe('session reflow', () => {
-  it('keeps the stroke index and proportional frontier across a reflow', () => {
-    const f = fakes();
-    const session = createSession(TWO_STROKE, {
-      character: f.character,
-      onEvent: (event) => void f.events.push(event),
-      player: f.player,
-      seed: 7,
-      settings: () => ({ easierTracing: false }),
-    });
-    const first = strokePath(TWO_STROKE, 0);
-    const second = strokePath(TWO_STROKE, 1);
+describe('session reflow across design spaces', () => {
+  it('keeps the stroke index and proportional position across a phone -> tablet switch', () => {
+    expect(TO_TABLET).toBeGreaterThan(1);
+    const { session } = makeSession(PHONE_RUN, parksFor(PHONE_LANDSCAPE_SPACE));
+    const first = strokePath(PHONE_RUN, 0);
+    const second = strokePath(PHONE_RUN, 1);
     session.pointerDown(point(first, 0));
     walkStroke(session, first, 1, first.length);
     walkStroke(session, second, 1, Math.floor(second.length / 4));
@@ -595,61 +621,64 @@ describe('session reflow', () => {
     expect(before.multiState.strokeIndex).toBe(1);
     expect(before.multiState.frontier).toBeGreaterThan(0);
 
-    session.reflow(scaledLevel(TWO_STROKE, 0.5), 0.5);
+    session.reflow(TABLET_RUN, TO_TABLET, parksFor(TABLET_PORTRAIT_SPACE));
     const after = session.snapshot();
     expect(after.multiState.strokeIndex).toBe(1);
-    expect(after.multiState.frontier).toBeCloseTo(before.multiState.frontier * 0.5, 6);
+    expect(after.multiState.frontier).toBeCloseTo(before.multiState.frontier * TO_TABLET, 6);
+    expect(after.multi.total).toBeCloseTo(before.multi.total * TO_TABLET, 6);
     expect(after.multiState.tracing).toBe(false);
     expect(after.checkState).toEqual(before.checkState);
   });
 
-  it('cancels an in-flight stroke on reflow and can still be finished', () => {
-    const f = fakes();
-    const session = createSession(TWO_STROKE, {
-      character: f.character,
-      onEvent: (event) => void f.events.push(event),
-      player: f.player,
-      seed: 7,
-      settings: () => ({ easierTracing: false }),
-    });
-    const first = strokePath(TWO_STROKE, 0);
+  it('re-seats the parked mascot into the space it re-lays into', () => {
+    const { session } = makeSession(PHONE_RUN, parksFor(PHONE_LANDSCAPE_SPACE));
+    expect(session.snapshot().charPos).toEqual(TRACE_PARK_WIDE);
+
+    session.reflow(TABLET_RUN, TO_TABLET, parksFor(TABLET_PORTRAIT_SPACE));
+    expect(session.snapshot().charPos).toEqual(parksFor(TABLET_PORTRAIT_SPACE).trace);
+
+    // A shell that passes no parks keeps the ones already in force (the phone
+    // path re-seats at the same spot, so its output is unchanged).
+    session.reflow(PHONE_RUN, TO_PHONE);
+    expect(session.snapshot().charPos).toEqual(parksFor(TABLET_PORTRAIT_SPACE).trace);
+  });
+
+  it('cancels an in-flight stroke across a phone -> tablet switch and can still be finished', () => {
+    const { session } = makeSession(PHONE_RUN, parksFor(PHONE_LANDSCAPE_SPACE));
+    const first = strokePath(PHONE_RUN, 0);
     session.pointerDown(point(first, 0));
     walkStroke(session, first, 1, Math.floor(first.length / 2));
     expect(session.snapshot().multiState.tracing).toBe(true);
 
-    const half = scaledLevel(TWO_STROKE, 0.5);
-    session.reflow(half, 0.5);
+    session.reflow(TABLET_RUN, TO_TABLET, parksFor(TABLET_PORTRAIT_SPACE));
     const after = session.snapshot();
     expect(after.multiState.tracing).toBe(false);
     expect(after.multiState.frontier).toBeGreaterThan(0);
+    expect(after.charPos).toEqual(parksFor(TABLET_PORTRAIT_SPACE).trace);
     session.pointerUp();
 
-    const halfFirst = strokePath(half, 0);
-    const halfSecond = strokePath(half, 1);
-    const resumeIndex = Math.min(
-      Math.max(1, Math.round(after.multiState.frontier / 8)),
-      halfFirst.length - 1,
-    );
-    session.pointerDown(point(halfFirst, resumeIndex));
-    walkStroke(session, halfFirst, resumeIndex + 1, halfFirst.length);
-    walkStroke(session, halfSecond, 1, halfSecond.length);
-    for (let u = 0; u < 400 && !session.success; u += 1) {
+    const tabletFirst = strokePath(TABLET_RUN, 0);
+    const tabletSecond = strokePath(TABLET_RUN, 1);
+    session.pointerDown(after.tip);
+    walkStroke(session, tabletFirst, nearestIndex(tabletFirst, after.tip), tabletFirst.length);
+    walkStroke(session, tabletSecond, 1, tabletSecond.length);
+    for (let u = 0; u < 400; u += 1) {
       session.update(16);
     }
     expect(session.success).toBe(true);
+    // Let the mascot finish gliding to the new space's success park.
+    for (let u = 0; u < 300; u += 1) {
+      session.update(16);
+    }
+    const park = parksFor(TABLET_PORTRAIT_SPACE).success;
+    expect(session.snapshot().charPos.x).toBeCloseTo(park.x, 1);
+    expect(session.snapshot().charPos.y).toBeCloseTo(park.y, 1);
   });
 
-  it('leaves a finished level untouched', () => {
-    const f = fakes();
-    const session = createSession(TWO_STROKE, {
-      character: f.character,
-      onEvent: (event) => void f.events.push(event),
-      player: f.player,
-      seed: 7,
-      settings: () => ({ easierTracing: false }),
-    });
-    const first = strokePath(TWO_STROKE, 0);
-    const second = strokePath(TWO_STROKE, 1);
+  it('leaves the success tableau untouched across a space switch', () => {
+    const { session } = makeSession(PHONE_RUN, parksFor(PHONE_LANDSCAPE_SPACE));
+    const first = strokePath(PHONE_RUN, 0);
+    const second = strokePath(PHONE_RUN, 1);
     session.pointerDown(point(first, 0));
     walkStroke(session, first, 1, first.length);
     walkStroke(session, second, 1, second.length);
@@ -657,33 +686,36 @@ describe('session reflow', () => {
       session.update(16);
     }
     expect(session.success).toBe(true);
+    // Let the mascot finish gliding to its success park before the switch.
+    for (let u = 0; u < 300; u += 1) {
+      session.update(16);
+    }
     const before = session.snapshot();
+    expect(before.charPos.y).toBeCloseTo(SUCCESS_PARK_WIDE.y, 0);
 
-    session.reflow(scaledLevel(TWO_STROKE, 2), 2);
+    session.reflow(TABLET_RUN, TO_TABLET, parksFor(TABLET_PORTRAIT_SPACE));
     const after = session.snapshot();
     expect(after.multi.total).toBeCloseTo(before.multi.total, 9);
     expect(after.multiState).toEqual(before.multiState);
+    expect(after.charPos).toEqual(before.charPos);
+    // The finished run keeps the parks it celebrated with, not the new space's.
+    expect(after.charPos).not.toEqual(parksFor(TABLET_PORTRAIT_SPACE).success);
   });
 
-  it('stays stable across repeated reflows', () => {
-    const f = fakes();
-    const session = createSession(TWO_STROKE, {
-      character: f.character,
-      onEvent: (event) => void f.events.push(event),
-      player: f.player,
-      seed: 7,
-      settings: () => ({ easierTracing: false }),
-    });
-    const second = strokePath(TWO_STROKE, 1);
-    const first = strokePath(TWO_STROKE, 0);
+  it('stays stable across repeated phone <-> tablet switches', () => {
+    const { session } = makeSession(PHONE_RUN, parksFor(PHONE_LANDSCAPE_SPACE));
+    const first = strokePath(PHONE_RUN, 0);
+    const second = strokePath(PHONE_RUN, 1);
     session.pointerDown(point(first, 0));
     walkStroke(session, first, 1, first.length);
     walkStroke(session, second, 1, Math.floor(second.length / 4));
     const before = session.snapshot().multiState.frontier;
 
     for (let round = 0; round < 3; round += 1) {
-      session.reflow(scaledLevel(TWO_STROKE, 0.5), 0.5);
-      session.reflow(TWO_STROKE, 2);
+      session.reflow(TABLET_RUN, TO_TABLET, parksFor(TABLET_PORTRAIT_SPACE));
+      expect(session.snapshot().charPos).toEqual(parksFor(TABLET_PORTRAIT_SPACE).trace);
+      session.reflow(PHONE_RUN, TO_PHONE, parksFor(PHONE_LANDSCAPE_SPACE));
+      expect(session.snapshot().charPos).toEqual(TRACE_PARK_WIDE);
     }
     expect(session.snapshot().multiState.frontier).toBeCloseTo(before, 3);
     expect(session.snapshot().multiState.tracing).toBe(false);

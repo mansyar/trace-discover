@@ -1037,7 +1037,7 @@ function reflowRun(): void {
   const runLevel = projectRunLevel(authored, run.packId);
   const span = pathGeometryLength(run.runLevel);
   if (span > 0) {
-    session.reflow(runLevel, pathGeometryLength(runLevel) / span);
+    session.reflow(runLevel, pathGeometryLength(runLevel) / span, parksFor(space));
   }
   currentRun = {
     level: authored,
