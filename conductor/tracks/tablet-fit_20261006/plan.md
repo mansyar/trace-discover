@@ -56,13 +56,21 @@ push/PR/release; no new deps and no new shipped assets.
   - [x] Green: extend the projection layer; wire session/pack consumers
   - [x] Verify coverage
   - [x] Commit + git note
-- [~] Task 2: Session/trail reflow across any two spaces (TDD)
-  - [ ] Red: mid-stroke switch between phone and tablet spaces preserves stroke
+- [x] Task 2: Session/trail reflow across any two spaces (TDD) (7ae2a6e)
+  - [x] Red: mid-stroke switch between phone and tablet spaces preserves stroke
         index + proportional position; in-flight stroke cancels cleanly;
         repeated switches stable; success/tableau unaffected
-  - [ ] Green: session rebuild path driven by the selected space
-  - [ ] Verify coverage
-  - [ ] Commit + git note
+  - [x] Green: session rebuild path driven by the selected space — `reflow`
+        takes the new space's parks and re-seats the waiting mascot, and
+        `reflowRun` passes `parksFor(space)`, the same resolver `startRun` uses
+  - [x] Re-seat evidence (live browser pass, measured off `#char`): a mid-stroke
+        phone-landscape → tablet-portrait rotation keeps the run and moves the
+        mascot park from (0.5000, 0.7209) to (0.5000, 0.7558) — the tablet
+        space's authored fraction — with the trail re-laid to the tablet centre;
+        rotating back restores the wide park and the run resumes to success
+  - [x] Verify coverage (session.ts 98.3/93.58/100/98.29; global
+        76.97/79.5/91.51/76.56, up from 76.61/79.26/91.28/76.23)
+  - [x] Commit + git note
 - [ ] Task 3: Mid-trace tablet rotation evidence — screenshots at 4:3 and 16:10
       in both orientations → owner sanity check
 - [~] Task 4: Word rows recompose into the active space's box (TDD) (abe9674) — decided
