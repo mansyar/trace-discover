@@ -38,8 +38,11 @@ visually unchanged.
   portrait), then the anchor that minimizes letterbox; ties resolve to the
   narrower space (documented in the module).
 - Expected outcome: **iPad 4:3 and Android 16:10 render with zero bars**;
-  Android 3:2 leaves ≈6% total; phones are unchanged (tall phones keep the
-  phone space and their current small bars — out of scope).
+  Android 3:2 lands on the 16:10 anchor with a bar on each long side (measured
+  2026-10-26 on a 1080×1920 viewport: 96 px top and bottom, 5% per side and 10%
+  of the area — the authoring estimate said ≈6%, corrected here); phones are
+  unchanged (tall phones keep the phone space and their current small bars —
+  out of scope).
 - The design-space table and selection rule are recorded in `tech-stack.md`
   **before** implementation (workflow.md: Tech Stack is Deliberate).
 

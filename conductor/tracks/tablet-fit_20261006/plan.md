@@ -250,28 +250,30 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `src/input/**`, `src/style.css`, `index.html`, `dev/qa/**`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the parent
   surface screenshot matrix
-- **Status:** in_progress
+- **Status:** verified
 
-- [~] **P5.T1: Parent zone** — nine controls + trophies recompose with target
+- [x] **P5.T1: Parent zone** — nine controls + trophies recompose with target
       floors; screenshots → owner approval — the portrait stack interpolates on
       `(fieldHeight − 860)` (cards 1.4×, gaps 60, Done at `fieldHeight − 90` =
       1190/1280) and the wide ribbon centers its two-row block on the field
       (316/674 on 960, 266/564 on 800); every factor is neutral on both phone
       references. The trophy caption and the reset-confirm banner now come from
       the layout instead of hard-coded 620/672/648. 24-shot sweep, 0 failures;
-      awaiting owner approval
-  - [~] Commit + git note (928b7a6)
-- [~] **P5.T2: Name overlay + install panel** — DOM input placement, keyboard
+      owner approved 2026-10-26
+  - [x] Commit + git note (928b7a6)
+- [x] **P5.T2: Name overlay + install panel** — DOM input placement, keyboard
       safety, iOS no-zoom at tablet sizes; screenshots → owner approval — panel,
       input frame and buttons scale on the short axis (1 on phones, capped 1.25),
       a `visualViewport` keyboard inset lifts the panel above the soft keyboard
       and the DOM input follows it, the input font is floored at 16 px, and the
       install card centers on the short axis with scaled copy. Keyboard lift is
-      unit-tested but needs the Phase 6 device pass; awaiting owner approval
-  - [~] Commit + git note (928b7a6)
+      unit-tested and carried into the Phase 6 device pass; owner approved
+      2026-10-26
+  - [x] Commit + git note (928b7a6)
 
+**Result:** verified
+**Checkpoint:** 928b7a6
 **Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-5.md
-(awaiting the P5.T1–P5.T2 owner gate)
 
 ## Phase 6: QA matrix, device pass, docs, acceptance
 
@@ -282,20 +284,46 @@ checkpoint or commit SHA. The inline verification task is now the phase's
 - **Touches:** `dev/qa/**`, `dev/README.md`, `conductor/**`, `package.json`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test && pnpm budget` plus
   `qa-tablet` and `qa-landscape`
-- **Status:** pending
+- **Status:** in_progress
 
-- [ ] **P6.T1: `dev/qa/qa-tablet.mjs` canonical matrix** — 4:3 + 16:10 ×
+- [x] **P6.T1: `dev/qa/qa-tablet.mjs` canonical matrix** — 4:3 + 16:10 ×
       portrait/landscape per screen; rotate mid-trace/mid-menu with state +
       progress assertions; field-fill (bar tolerance) and target-size
-      assertions; screenshots
-- [ ] **P6.T2: Regression sweep** — `qa-landscape` still green, zero-text audit,
-      offline cold start unchanged, perf spot-check, `pnpm budget` record
-- [ ] **P6.T3: Device pass** — iPad + Android tablet fill acceptance, phone
+      assertions; screenshots — 170 assertions, 51 shots, 0 failures across the
+      four tablet spaces (splash, menu, pack page one/two, board, level,
+      success, badge, parent, install, name overlay), one nearest-anchor case
+      (3:2 → 16:10 slate, 96 px bars, 5 % per side) and mid-menu + mid-trace
+      rotations in both directions (state, stroke index and proportional
+      progress kept; the rotated run completes)
+  - [x] Commit + git note
+- [x] **P6.T2: Regression sweep** — `qa-landscape` still green, zero-text audit,
+      offline cold start unchanged, perf spot-check, `pnpm budget` record —
+      `qa-landscape` was **stale, not broken**: its `assertFieldAndTargets`
+      hard-coded the 860×430 phone box, so its own 1180×820 tablet case failed
+      once that viewport resolved to `tablet-landscape`; it now reads
+      `window.__app.space()` (39 assertions, green). Zero-text audit clean on
+      splash/menu/pack/level (seeded with the six-pack save, since the menu is
+      progressive), offline cold start unchanged (187/187, gate decided 97 ms,
+      `pre-1` traces offline, stand-ins heal on reconnect), perf 140–180 ms boot
+      / 2.0–2.9 ms input-to-frame / p95 4.30 ms, dist 5,564,571 B / 10 entries
+      (+4,216 B of code over the pre-track baseline)
+  - [x] Commit + git note
+- [~] **P6.T3: Device pass** — iPad + Android tablet fill acceptance, phone
       regression (portrait + landscape vs v1.7.0 baseline); owner confirms
-      (STOP + owner decision if a target floor cannot hold)
-- [ ] **P6.T4: Docs finalize** (`product.md` dated note, `tech-stack.md`,
+      (STOP + owner decision if a target floor cannot hold) — **blocked on the
+      owner's devices**; the keyboard lift and the 4:3/16:10 fill acceptance are
+      the items only hardware can prove
+- [x] **P6.T4: Docs finalize** (`product.md` dated note, `tech-stack.md`,
       `dev/README.md` probe table); final gates `pnpm check && pnpm test`;
-      coverage; dist record
+      coverage; dist record — `qa-tablet` is canonical in the probe table and the
+      status legend, `tech-stack.md` carries the dated Phase 6 note with the
+      measured 3:2 letterbox correction (5 % per side, not ≈6 % total, also
+      corrected in `spec.md` FR1). `product.md`'s dated note flips to completed
+      in the track-closing docs sync, which needs the owner's approval
+  - [x] Commit + git note
+
+**Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-6.md
+(P6.T3 device pass pending)
 
 ## Phase R1: Review Fixes
 
