@@ -74,12 +74,14 @@ async function boot() {
   await page.waitForTimeout(400);
 }
 
+/** The active design space's units. Since `tablet-fit_20261006` a viewport can
+ *  resolve to any of six spaces, so the probe reads the space the app selected
+ *  instead of assuming the phone reference. */
 async function designSize() {
-  return page.evaluate(() =>
-    window.__app.orientation() === 'landscape'
-      ? { width: 860, height: 430 }
-      : { width: 430, height: 860 },
-  );
+  return page.evaluate(() => {
+    const space = window.__app.space();
+    return { width: space.width, height: space.height };
+  });
 }
 
 async function screenName() {
@@ -186,16 +188,22 @@ async function assertFieldAndTargets(label) {
   const data = await page.evaluate(() => {
     const field = window.__app.field();
     const orientation = window.__app.orientation();
+    const space = window.__app.space();
     return {
-      design: orientation === 'landscape' ? { height: 430, width: 860 } : { height: 860, width: 430 },
+      design: { height: space.height, width: space.width },
       field,
       orientation,
+      space: space.id,
       targets: window.__app.targets(),
     };
   });
   const aspect = data.field.width / data.field.height;
   const designAspect = data.design.width / data.design.height;
-  check(Math.abs(aspect - designAspect) < 0.01, `${label}: field keeps the ${data.orientation} aspect`);
+  check(
+    Math.abs(aspect - designAspect) < 0.01,
+    `${label}: field keeps the ${data.space} aspect`,
+    `${aspect.toFixed(3)} vs ${designAspect.toFixed(3)}`,
+  );
   check(
     data.orientation === (page.viewportSize().width > page.viewportSize().height ? 'landscape' : 'portrait'),
     `${label}: orientation matches the viewport`,
