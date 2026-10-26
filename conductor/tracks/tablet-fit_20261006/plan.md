@@ -206,37 +206,39 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `src/app/app.ts`, `dev/qa/**`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the
   per-screen tablet screenshot matrix
-- **Status:** in_progress
+- **Status:** verified
 
-- [~] **P4.T1: Menu + skin button + gate corner + mascot park at every new
+- [x] **P4.T1: Menu + skin button + gate corner + mascot park at every new
       space**; screenshots → owner approval — the parked mascot is now fitted to
       its sprite box (`clampPark`, 1-unit tolerance keeps the phone parks
       byte-identical), a 4:3-or-taller portrait field uses the two-column grid
       instead of six full-width cards over the mascot's band, and the
       parent-gate hint hangs off the gate's right edge instead of `FIELD_WIDTH`
       (it landed over the left column on any wider field). 77-shot sweep, 0
-      failures; awaiting owner approval
-  - [~] Commit + git note (ca044bf, 93c863c)
-- [~] **P4.T2: Pack screens** — per-pack grids, pagers, sticker shelves, badge
+      failures; owner approved 2026-10-26
+  - [x] Commit + git note (ca044bf, 93c863c)
+- [x] **P4.T2: Pack screens** — per-pack grids, pagers, sticker shelves, badge
       seal and home recompose in-bounds at every new space; screenshots → owner
       approval — all six static packs × six spaces plus the ABC pager page: every
       target a half-floor inside the field; the portrait shelf is anchored 168
       units above the field bottom (was an absolute 692, which stranded it
       mid-screen), the landscape band runs to `fieldWidth − 120` (was a fixed
       630 wide), the mascot stops at the shelf line, and the badge seal keeps the
-      phone's share of the field height; awaiting owner approval
-  - [~] Commit + git note (ca044bf, 93c863c)
-- [~] **P4.T3: Sticker board, success, badge and splash at every new space**
+      phone's share of the field height; owner approved 2026-10-26
+  - [x] Commit + git note (ca044bf, 93c863c)
+- [x] **P4.T3: Sticker board, success, badge and splash at every new space**
       (target floors held); screenshots → owner approval — splash, board,
       success and badge captured at all six spaces; the in-level character is
       capped at the authored 31 % share of the field height (was 46 % on a 4:3
       portrait field, which clipped the body) and the success park is clamped;
       the board holds the 90-unit floor on every tablet space (the phone board's
-      pre-existing sub-floor 29-level grid is excluded); awaiting owner approval
-  - [~] Commit + git note (ca044bf, 93c863c)
+      pre-existing sub-floor 29-level grid is excluded); owner approved
+      2026-10-26
+  - [x] Commit + git note (ca044bf, 93c863c)
 
+**Result:** verified
+**Checkpoint:** 93c863c
 **Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-4.md
-(awaiting the P4.T1–P4.T3 owner gate)
 
 ## Phase 5: Parent surfaces at tablet spaces
 
@@ -248,14 +250,28 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `src/input/**`, `src/style.css`, `index.html`, `dev/qa/**`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the parent
   surface screenshot matrix
-- **Status:** pending
+- **Status:** in_progress
 
-- [ ] **P5.T1: Parent zone** — nine controls + trophies recompose with target
-      floors; screenshots → owner approval
-  - [ ] Commit + git note
-- [ ] **P5.T2: Name overlay + install panel** — DOM input placement, keyboard
-      safety, iOS no-zoom at tablet sizes; screenshots → owner approval
-  - [ ] Commit + git note
+- [~] **P5.T1: Parent zone** — nine controls + trophies recompose with target
+      floors; screenshots → owner approval — the portrait stack interpolates on
+      `(fieldHeight − 860)` (cards 1.4×, gaps 60, Done at `fieldHeight − 90` =
+      1190/1280) and the wide ribbon centers its two-row block on the field
+      (316/674 on 960, 266/564 on 800); every factor is neutral on both phone
+      references. The trophy caption and the reset-confirm banner now come from
+      the layout instead of hard-coded 620/672/648. 24-shot sweep, 0 failures;
+      awaiting owner approval
+  - [~] Commit + git note (928b7a6)
+- [~] **P5.T2: Name overlay + install panel** — DOM input placement, keyboard
+      safety, iOS no-zoom at tablet sizes; screenshots → owner approval — panel,
+      input frame and buttons scale on the short axis (1 on phones, capped 1.25),
+      a `visualViewport` keyboard inset lifts the panel above the soft keyboard
+      and the DOM input follows it, the input font is floored at 16 px, and the
+      install card centers on the short axis with scaled copy. Keyboard lift is
+      unit-tested but needs the Phase 6 device pass; awaiting owner approval
+  - [~] Commit + git note (928b7a6)
+
+**Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-5.md
+(awaiting the P5.T1–P5.T2 owner gate)
 
 ## Phase 6: QA matrix, device pass, docs, acceptance
 

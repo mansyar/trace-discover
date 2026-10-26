@@ -87,6 +87,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-tablet-rotate.mjs` | Tablet mid-trace rotation evidence (`tablet-fit_20261006` Phase 2 task 3): traces `pre-1` partway, rotates 4:3 and 16:10 tablets between portrait and landscape (both directions) mid-trace, asserts the space re-selected / stroke index + proportional progress kept (`window.__app.progress()`) / the level still completes, and writes labelled before/after shots + level close-ups + gallery in `qa/out/tablet-rotate/` | dev `:5199` | one-off |
 | `qa-tablet-trail.mjs` | Tablet word-row trail-guide measurement (`tablet-fit_20261006`): the 7-letter My Name row in all six spaces, measuring the rendered guide from the trail canvas (ribbon width, dot diameter) and reporting every dimension in field units, device px and per-letter ratio → verbatim evidence the tablet guide needs no change | dev `:5199` | one-off |
 | `qa-tablet-backdrops.mjs` | Tablet backdrop/art fit evidence (`tablet-fit_20261006` Phase 3): six skins × all six spaces, measured from the live canvas — every edge is backdrop (no field fill left over) and eight points per space match the documented cover-crop of the same 1024² image, computed independently in the probe; then traces `pre-1` to success on each tablet space and asserts the wash reaches every edge and the confetti spans all four quadrants. Labelled shots + gallery in `qa/out/tablet-backdrops/` | dev `:5199` | one-off |
+| `qa-tablet-parent.mjs` | Parent-surface tablet matrix (`tablet-fit_20261006` Phase 5): opens the parent zone through the real 2.5s corner hold at the four tablet spaces plus both phone references, then drives the reset confirm, the install card and the name overlay — asserting every parent target keeps half a toddler-floor inside the field and a full floor from its neighbours, portrait Done sits at the bottom / wide rows stay centered, and the DOM name input lands inside the field with a no-zoom font above the keyboard band. Labelled shots + gallery in `qa/out/tablet-parent/` | dev `:5199` | one-off |
 | `qa-pack-preview.mjs` | Pack preview harness smoke over every JSON pack: spot-checks first/middle/last level + first bonus per pack (or `--all` for every level), checkpoint counts, default-url fallback (pack-pipeline_20260917; all packs since pack-pipeline-2_20260917) | dev `:5199` | canonical |
 | `qa-menu-capacity.mjs` | Menu capacity matrix shots: 3–6 cards × portrait/landscape + the My Name card case (`menu-capacity_20260917`) | dev `:5199` | canonical |
 | `qa-animals-sweep.mjs` | Animals pack full app flow — traces all 8 levels to success in one chain (badge award, zero page errors) (`animal-outlines_20260919`) | dev `:5199` | canonical |
@@ -119,10 +120,13 @@ in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
 added and `qa-offline` extended in `offline-resilience_20260924` (2026-09-26);
 `qa-tablet-rows` added in `tablet-fit_20261006` (2026-10-06),
 `qa-tablet-trail` in the same track (2026-10-07), `qa-tablet-rotate`,
-`qa-tablet-backdrops` and `qa-tablet-surfaces` in the same track (2026-10-26).
+`qa-tablet-backdrops` and `qa-tablet-surfaces` in the same track (2026-10-26),
+and `qa-tablet-parent` in the same track (2026-10-26).
 `qa-tablet-surfaces` is the child-surface matrix: every child screen at the four
 tablet spaces plus both phone references, asserting each exposed target sits a
-half toddler-floor inside the field and the parked mascot's box stays whole.*
+half toddler-floor inside the field and the parked mascot's box stays whole.
+`qa-tablet-parent` is its parent-surface twin: the corner-hold parent zone, the
+install card and the name overlay at the same six spaces.*
 
 ## PWA asset strategy and verification
 
