@@ -161,20 +161,36 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   tablet-aspect screenshot sweep
 - **Status:** in_progress
 
-- [ ] **P3.T1: Cover-crop and anchor math (TDD)**
-  - [ ] Red: scale/offset for an image covering a field of any new aspect;
+- [x] **P3.T1: Cover-crop and anchor math (TDD)** (a8e4bdc)
+  - [x] Red: scale/offset for an image covering a field of any new aspect;
         anchor holds the ground line and horizon; phone fields produce today's
         geometry exactly; degenerate (missing image) still falls back to paint
-  - [ ] Green: implement the pure fit module and wire the renderer
-  - [ ] Verify coverage
-  - [ ] Commit + git note
-- [ ] **P3.T2: Per-skin backdrop approval** — tablet-aspect screenshots for all
+  - [x] Green: implement the pure fit module and wire the renderer —
+        `src/render/backdropFit.ts` (`coverFit`, `BACKDROP_ANCHOR` = the image
+        centre where the square art composes its horizon/ground band);
+        `drawBackdrop` uses it and `drawDuskPlaceholder` now fills the active
+        space instead of a 430×860 corner while a backdrop decodes
+  - [x] Verify coverage (`backdropFit.ts` 100/100/100/100; global
+        79.07/81.04/92.25/78.67; 870 tests)
+  - [x] Commit + git note
+- [~] **P3.T2: Per-skin backdrop approval** (5535afc) — tablet-aspect screenshots for all
       six skins → owner approval (falls back to a single re-render if one crops
-      badly)
-  - [ ] Commit + git note
-- [ ] **P3.T3: Success wash, confetti and particles cover every new space**
-      (screenshots → owner approval)
-  - [ ] Commit + git note
+      badly); evidence captured by `dev/qa/qa-tablet-backdrops.mjs`: 122 live
+      assertions, 0 failures — every edge of every space is backdrop and 8 points
+      per space match the documented crop of the same 1024² image (worst Δ 19.7);
+      40 shots + gallery in `dev/qa/out/tablet-backdrops/`. One finding: the
+      shipped `public/art/bg/animals.webp` carries an opaque grey band across its
+      top ~28% on every screen (pre-existing, visible on phones too — awaiting
+      the owner's call between accepting the fit and re-rendering the asset)
+  - [~] Commit + git note
+- [~] **P3.T3: Success wash, confetti and particles cover every new space**
+      (screenshots → owner approval) — wash reaches all six sample points on all
+      four tablet spaces and the burst confetti spans all four quadrants on each;
+      awaiting owner approval
+  - [~] Commit + git note
+
+**Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-3.md
+(awaiting the P3.T2/P3.T3 owner gate)
 
 ## Phase 4: Child surfaces at tablet spaces (screenshot-approved)
 
