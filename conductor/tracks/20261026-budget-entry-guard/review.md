@@ -3,9 +3,9 @@
 - **Track:** `20261026-budget-entry-guard`
 - **Type:** `bug`
 - **Branch:** `fix/20261026-budget-entry-guard`
-- **Range:** `5e37a98..ce4a1c8`
+- **Range:** `5e37a98..fa84cd3` (round 1 over `5e37a98..ce4a1c8`; round 2 over the `R1` delta `7725fbd..fa84cd3`)
 - **Date:** `2026-10-26`
-- **Verdict:** `PASS WITH FINDINGS`
+- **Verdict:** `PASS`
 
 ## Summary
 
@@ -23,6 +23,13 @@ researcher), so the review was a read-only pass by the primary agent against the
 same brief a reviewer would receive. That is weaker evidence than a second
 agent; it is disclosed here and in the phase evidence so the PR does not claim
 an independent review.
+
+**Round 2.** All three findings are fixed in `fa84cd3` and proven by five new
+CLI tests (15 in the suite, up from 10): both `--dist` rejections, the mixed
+pass/fail report, a `--total` breach and a non-integer ceiling value. Nothing in
+round 1 survives, no new finding was introduced by the delta, and the gate is
+green at 67 files / 933 tests with coverage unchanged at 82.12 / 83.33 / 93.7 /
+81.79. FR-4 and NFR-3 move from `partial` to `covered`.
 
 ## Verification
 
@@ -44,11 +51,11 @@ an independent review.
 | FR-1 | P1.T1, P1.T2 | real-tree run (`197 / 200`) + `dist-budget.test.ts` boundary and CLI breach tests | covered |
 | FR-2 | P1.T2.2 | `dist-budget.test.ts` "never gates on the precache manifest" and "prints the precache count as information even when it is large" | covered |
 | FR-3 | P1.T5.1 | `dev/tools/dist-budget.mjs` ceiling comment, read in this review | covered |
-| FR-4 | P1.T3 | `--entries` and `--dist` CLI tests; `--total` unexercised (F3) | partial |
+| FR-4 | P1.T3 | `--entries`, `--dist` and `--total` CLI tests, plus the two `--dist` rejections | covered |
 | FR-5 | P1.T1 | exported `measureDist` exercised by every unit test | covered |
 | NFR-1 | P1.T1 | import list unchanged, both lockfiles untouched | covered |
 | NFR-2 | whole phase | `git diff --name-only 5e37a98..HEAD -- . ':!conductor'` → two `dev/tools/` files; dist total identical | covered |
-| NFR-3 | P1.T3.1 | exit 0 / 1 / 1-missing-dir tested; non-integer flag path untested (F3) | partial |
+| NFR-3 | P1.T3.1 | exit 0 / 1 / 1-missing-dir / 1-bad-flag tested, each with its message | covered |
 | NFR-4 | whole phase | measured 0.107–0.118 s end to end, three runs | covered |
 | AC-1 | P1.T2 | `node dev/tools/dist-budget.mjs` → `entries 197 / 200 - PASS` | covered |
 | AC-2 | P1.T2 | `--entries 196` → exit 1, `FAIL entries 197 > 196 shipped files` | covered |
@@ -89,6 +96,8 @@ an independent review.
   - **Requirement:** FR-4, NFR-3
   - **Test gap:** add a CLI case asserting exit 1 and the message for a bare
     `--dist` on a small fixture.
+  - **Status:** fixed in `fa84cd3` — `distDir()` rejects a missing value, a `--`
+    token and a non-directory path; two tests cover the bare flag and a file.
 
 ### Low
 
@@ -107,6 +116,8 @@ an independent review.
   - **Requirement:** NFR-3
   - **Test gap:** assert that a tree over the entry ceiling but under the byte
     ceiling still prints `total … - PASS`.
+  - **Status:** fixed in `fa84cd3` — `budgetFailures` returns one message per
+    ceiling and `main` reports each independently; a mixed-case test asserts it.
 
 - **F3 — `--total` and the non-integer flag path are named by the spec but unexercised**
   - **File:** `dev/tools/dist-budget.test.ts` (suite)
@@ -120,6 +131,8 @@ an independent review.
     message.
   - **Requirement:** FR-4, NFR-3
   - **Test gap:** the two cases above.
+  - **Status:** fixed in `fa84cd3` — "fails the byte ceiling through --total"
+    and "rejects a non-integer ceiling value".
 
 ## Overrides
 
@@ -157,3 +170,4 @@ an independent review.
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 1 | 2 | 0 |
+| 2 | PASS | 0 | 0 | 0 | 0 | 3 |
