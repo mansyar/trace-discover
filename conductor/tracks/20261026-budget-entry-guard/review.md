@@ -163,7 +163,7 @@ green at 67 files / 933 tests with coverage unchanged at 82.12 / 83.33 / 93.7 /
 
 ## Doc sync
 
-`pending` — the post-review sync follows the fix phase.
+`none` — the `tech-stack.md` dated note written before review already states what the entry ceiling bounds and why the two numbers diverged. The review fixes are CLI edge cases (a bare `--dist`, per-ceiling reporting, two missing tests) and change no documented contract, so nothing else needed updating.
 
 ## History
 
