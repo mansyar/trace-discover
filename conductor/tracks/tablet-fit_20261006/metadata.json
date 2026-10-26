@@ -2,7 +2,18 @@
   "id": "tablet-fit_20261006",
   "name": "Tablet fit — fill the canvas on iPads and Android tablets",
   "type": "Feature",
-  "status": "new",
+  "status": "in_progress",
   "created": "2026-10-06",
-  "updated": "2026-10-06"
+  "updated": "2026-10-26",
+  "branch": "track/tablet-fit",
+  "base_branch": "master",
+  "base_sha": "d7c8765def5a0b2f73b218a685adf7cf7040e84c",
+  "last_checkpoint": "66248ec",
+  "doc_sync": "none",
+  "progress": {
+    "phases_total": 6,
+    "phases_verified": 1,
+    "tasks_total": 20,
+    "tasks_done": 6
+  }
 }
