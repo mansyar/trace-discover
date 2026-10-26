@@ -5,7 +5,8 @@
 - **Date:** 2026-10-26
 - **Branch:** `track/tablet-fit`
 - **Base:** `6bcb70d` (Phase 2 checkpoint)
-- **Result:** awaiting owner approval on the per-skin sweep (P3.T2 / P3.T3); code task P3.T1 verified
+- **Head:** `5535afc`
+- **Result:** verified (owner accepted the per-skin sweep 2026-10-26; P3.T1–P3.T3 accepted)
 
 ## Commands
 
@@ -34,8 +35,8 @@
 | FR4 (cover-crop) | Backdrops cover the field under a fixed anchor; no bars, gaps or seams inside it | 8/8 edge samples are backdrop on every skin × space (36/36); 8 points per space match the documented crop of the same 1024² image, computed independently in the probe (worst Δ 19.7/255 across all 36) | met |
 | FR4 (anchor) | The anchor holds the ground line and horizon | Portrait spaces show the identical vertical window as the authored phone portrait (`y = 0`, verified by the fit tests); landscape spaces crop the middle band only, so the same authored ground band is what you see. `coverFit` tests pin the anchor mapping, the tie-breaking axis and the shipped phone geometry exactly | met |
 | FR4 (success) | Success wash, confetti and particles cover the field at every space | 6/6 wash sample points change on all four tablet spaces (wash reaches every edge); the burst confetti spans all four quadrants on all four tablet spaces (59–79 sampled pixels) | met |
-| FR4 (per skin) | Per-skin backdrop results are screenshot-approved (six skins) | 36 labelled shots at `dev/qa/out/tablet-backdrops/` + `gallery.html` | **awaiting owner approval** |
-| AC5 | Backdrops cover the field with the anchor held, verified per skin | As above | **awaiting owner approval** |
+| FR4 (per skin) | Per-skin backdrop results are screenshot-approved (six skins) | 36 labelled shots at `dev/qa/out/tablet-backdrops/` + `gallery.html`; owner approved the sweep 2026-10-26, recording the animal asset band as separate art debt | met |
+| AC5 | Backdrops cover the field with the anchor held, verified per skin | As above | met |
 
 ## Finding — one shipped asset crops badly (pre-existing, not this track)
 
@@ -51,6 +52,10 @@ Options put to the owner at the gate:
 2. Re-render `animals.webp` through the img2img pipeline first (spec allows a single
    re-render when a skin crops badly); this needs the generation pipeline and API access,
    and re-measures `pnpm budget` afterwards.
+
+**Owner decision 2026-10-26: option 1.** The fit stands; the asset band is filed as art debt
+in [issue #22](https://github.com/mansyar/trace-discover/issues/22) with the reproduction and
+the acceptance for a re-render. No code, art or budget change in this phase.
 
 ## Evidence paths
 

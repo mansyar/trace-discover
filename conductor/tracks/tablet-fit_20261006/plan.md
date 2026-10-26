@@ -159,7 +159,7 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `src/ui/success.ts`, `dev/qa/**`, `conductor/tech-stack.md`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the per-skin
   tablet-aspect screenshot sweep
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P3.T1: Cover-crop and anchor math (TDD)** (a8e4bdc)
   - [x] Red: scale/offset for an image covering a field of any new aspect;
@@ -173,24 +173,28 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   - [x] Verify coverage (`backdropFit.ts` 100/100/100/100; global
         79.07/81.04/92.25/78.67; 870 tests)
   - [x] Commit + git note
-- [~] **P3.T2: Per-skin backdrop approval** (5535afc) — tablet-aspect screenshots for all
+- [x] **P3.T2: Per-skin backdrop approval** (5535afc) — tablet-aspect screenshots for all
       six skins → owner approval (falls back to a single re-render if one crops
       badly); evidence captured by `dev/qa/qa-tablet-backdrops.mjs`: 122 live
       assertions, 0 failures — every edge of every space is backdrop and 8 points
       per space match the documented crop of the same 1024² image (worst Δ 19.7);
       40 shots + gallery in `dev/qa/out/tablet-backdrops/`. One finding: the
       shipped `public/art/bg/animals.webp` carries an opaque grey band across its
-      top ~28% on every screen (pre-existing, visible on phones too — awaiting
-      the owner's call between accepting the fit and re-rendering the asset)
-  - [~] Commit + git note
-- [~] **P3.T3: Success wash, confetti and particles cover every new space**
+      top ~28% on every screen (pre-existing, visible on phones too). Owner
+      decision 2026-10-26: **accept the fit, re-render separately** — filed as art
+      debt in issue [#22](https://github.com/mansyar/trace-discover/issues/22),
+      out of scope here because the band is source pixels no crop can remove; the
+      anchor policy and every other skin's fit are unaffected
+  - [x] Commit + git note
+- [x] **P3.T3: Success wash, confetti and particles cover every new space**
       (screenshots → owner approval) — wash reaches all six sample points on all
       four tablet spaces and the burst confetti spans all four quadrants on each;
-      awaiting owner approval
-  - [~] Commit + git note
+      owner approved 2026-10-26 (4:3 landscape success shot reviewed)
+  - [x] Commit + git note
 
+**Result:** verified
+**Checkpoint:** 5535afc
 **Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-3.md
-(awaiting the P3.T2/P3.T3 owner gate)
 
 ## Phase 4: Child surfaces at tablet spaces (screenshot-approved)
 
