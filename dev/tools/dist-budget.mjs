@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 // Dist size budget guard for the $0 payload lane.
 // Ceilings derive from the measured post-payload-diet build, re-anchored on
-// deliberate additions. History:
+// deliberate additions. History (byte total / shipped files):
 //   2026-09-17 - post-diet build: 4,161,522 B / 133 entries -> 4.50 MB / 150
 //   2026-09-17 - post-merge (PR #7 teddy): 4,641,746 B / 136 entries
 //     (teddy.riv 445,653 B + skin art) -> 5.00 MB / 150
@@ -22,22 +22,115 @@ import { fileURLToPath } from 'node:url';
 //   2026-09-24 - payload-headroom_20260924 foreground WebP diet: 5,555,072 B
 //     / 197 entries -> 6.00 MB / 200 (no re-anchor; 341,168 B saved by
 //     re-encoding 169 goal/sticker/pack WebPs; 3 entry slots remain)
+//   2026-10-26 - track 20261026-budget-entry-guard: the entry ceiling had been
+//     comparing the precache manifest, which dropped to 10 when art and rive
+//     left the precache (payload-headroom), against a ceiling anchored on
+//     shipped files. It now bounds shipped files again. Measured at 5e37a98:
+//     197 / 200 shipped, 10 precache entries, 5,564,592 / 6,000,000 B.
 // See conductor/archive/payload-diet_20260916/measurements.md for the diet
 // figures. A re-introduced lossless art batch (+5 MB) or a new pack's raw art
 // batch trips it immediately. Raise ceilings deliberately, with fresh
 // measurements.
-// Usage: node dev/tools/dist-budget.mjs [--total <bytes>] [--entries <n>]
+// Usage: node dev/tools/dist-budget.mjs [--total <bytes>] [--entries <n>] [--dist <dir>]
 const CEIL_TOTAL_BYTES = 6_000_000;
 const CEIL_ENTRIES = 200;
-// Workbox runtime + generated service worker: never precached.
-const NOT_PRECACHED = /^(sw\.js|workbox-.*\.js)$/;
+// Workbox runtime + generated service worker: precached shell plumbing, never
+// part of the shipped content count.
+const NOT_SHIPPED = /^(sw\.js|workbox-.*\.js)$/;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.resolve(HERE, '..', '..', 'dist');
+const DEFAULT_DIST = path.resolve(HERE, '..', '..', 'dist');
 
-const argv = process.argv.slice(2);
-function argValue(flag, fallback) {
+/**
+ * Precache entries listed by the generated service worker, or `null` when the
+ * build has none. Informational only: art and rive are warmed into the runtime
+ * cache after boot, so this number tracks the shell, not the content.
+ */
+export function precacheEntryCount(dir) {
+  const swPath = path.join(dir, 'sw.js');
+  if (!fs.existsSync(swPath)) {
+    return null;
+  }
+  const matches = fs.readFileSync(swPath, 'utf8').match(/url:"/g);
+  return matches ? matches.length : 0;
+}
+
+/**
+ * Measures a built dist tree: byte total, group/subgroup sizes, the shipped
+ * (non-worker) file count the entry ceiling bounds, and the informational
+ * precache count. Throws when the directory is absent so the CLI can point at
+ * `pnpm build`.
+ */
+export function measureDist(dir) {
+  if (!fs.existsSync(dir)) {
+    throw new Error(`dist-budget: ${dir} not found - run \`pnpm build\` first`);
+  }
+  const groups = new Map();
+  const artSub = new Map();
+  let totalBytes = 0;
+  let fileCount = 0;
+  let shippedEntries = 0;
+
+  const walk = (current) => {
+    for (const dirent of fs.readdirSync(current, { withFileTypes: true })) {
+      const full = path.join(current, dirent.name);
+      if (dirent.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      const rel = path.relative(dir, full).split(path.sep).join('/');
+      const bytes = fs.statSync(full).size;
+      const top = rel.includes('/') ? rel.split('/')[0] : '(root)';
+      groups.set(top, (groups.get(top) ?? 0) + bytes);
+      if (top === 'art') {
+        const sub = rel.split('/')[1] ?? 'art';
+        artSub.set(sub, (artSub.get(sub) ?? 0) + bytes);
+      }
+      totalBytes += bytes;
+      fileCount += 1;
+      if (!NOT_SHIPPED.test(path.basename(rel))) {
+        shippedEntries += 1;
+      }
+    }
+  };
+  walk(dir);
+
+  return {
+    dir,
+    totalBytes,
+    fileCount,
+    shippedEntries,
+    precacheEntries: precacheEntryCount(dir),
+    groups,
+    artSub,
+  };
+}
+
+/**
+ * Failure message per ceiling, `null` where the ceiling holds, so each result can
+ * be reported on its own line. The precache count is deliberately not a ceiling:
+ * it describes the shell, and gating it would fail on a number that no longer
+ * follows content.
+ */
+export function budgetFailures(measurement, ceilings) {
+  return {
+    entries:
+      measurement.shippedEntries > ceilings.entries
+        ? `dist-budget: FAIL entries ${measurement.shippedEntries} > ${ceilings.entries} shipped files`
+        : null,
+    totalBytes:
+      measurement.totalBytes > ceilings.totalBytes
+        ? `dist-budget: FAIL total ${measurement.totalBytes} > ${ceilings.totalBytes} B (over by ${
+            measurement.totalBytes - ceilings.totalBytes
+          })`
+        : null,
+  };
+}
+
+function argValue(argv, flag, fallback) {
   const i = argv.indexOf(flag);
-  if (i === -1) return fallback;
+  if (i === -1) {
+    return fallback;
+  }
   const value = Number.parseInt(argv[i + 1] ?? '', 10);
   if (!Number.isFinite(value)) {
     console.error(`dist-budget: ${flag} needs an integer value`);
@@ -45,88 +138,99 @@ function argValue(flag, fallback) {
   }
   return value;
 }
-const ceilTotal = argValue('--total', CEIL_TOTAL_BYTES);
-const ceilEntries = argValue('--entries', CEIL_ENTRIES);
 
-if (!fs.existsSync(DIST)) {
-  console.error('dist-budget: dist/ not found - run `pnpm build` first');
-  process.exit(1);
-}
-
-const groups = new Map();
-const artSub = new Map();
-let totalBytes = 0;
-let fileCount = 0;
-let entries = 0;
-let filesystemEntries = 0;
-
-function walk(dir) {
-  for (const dirent of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, dirent.name);
-    if (dirent.isDirectory()) {
-      walk(full);
-      continue;
-    }
-    const rel = path.relative(DIST, full).split(path.sep).join('/');
-    const bytes = fs.statSync(full).size;
-    const top = rel.includes('/') ? rel.split('/')[0] : '(root)';
-    groups.set(top, (groups.get(top) ?? 0) + bytes);
-    if (top === 'art') {
-      const sub = rel.split('/')[1] ?? 'art';
-      artSub.set(sub, (artSub.get(sub) ?? 0) + bytes);
-    }
-    totalBytes += bytes;
-    fileCount += 1;
-    if (!NOT_PRECACHED.test(path.basename(rel))) filesystemEntries += 1;
+/**
+ * The directory to measure: the default `dist/`, or a `--dist` value that must be
+ * a directory. A bare flag would otherwise resolve to the working directory and
+ * report a confident, wrong measurement.
+ */
+function distDir(argv) {
+  const i = argv.indexOf('--dist');
+  if (i === -1) {
+    return DEFAULT_DIST;
   }
-}
-walk(DIST);
-
-let swReported = null;
-const swPath = path.join(DIST, 'sw.js');
-if (fs.existsSync(swPath)) {
-  const matches = fs.readFileSync(swPath, 'utf8').match(/url:"/g);
-  swReported = matches ? matches.length : 0;
-  entries = swReported;
-} else {
-  entries = filesystemEntries;
-}
-
-const mb = (n) => `${(n / 1e6).toFixed(2)} MB`;
-console.log(`dist-budget: ${path.relative(process.cwd(), DIST)}`);
-console.log(
-  `  files: ${fileCount} (filesystem non-worker files: ${filesystemEntries}; precache entries: ${entries}${
-    swReported === null ? '' : ' from sw.js manifest'
-  })`,
-);
-console.log(`  total: ${totalBytes} B (${mb(totalBytes)})`);
-for (const [name, bytes] of [...groups.entries()].sort((a, b) => b[1] - a[1])) {
-  console.log(`    ${name.padEnd(8)} ${String(bytes).padStart(9)} B`);
-  if (name === 'art') {
-    for (const [sub, subBytes] of [...artSub.entries()].sort((a, b) => b[1] - a[1])) {
-      console.log(`      ${sub.padEnd(8)} ${String(subBytes).padStart(9)} B`);
-    }
+  const value = argv[i + 1];
+  if (value === undefined || value.startsWith('--')) {
+    console.error('dist-budget: --dist needs a directory');
+    process.exit(1);
   }
+  const dir = path.resolve(value);
+  if (fs.existsSync(dir) && !fs.statSync(dir).isDirectory()) {
+    console.error('dist-budget: --dist needs a directory');
+    process.exit(1);
+  }
+  return dir;
 }
 
-let failed = false;
-if (totalBytes > ceilTotal) {
-  console.error(
-    `dist-budget: FAIL total ${totalBytes} > ${ceilTotal} B (over by ${totalBytes - ceilTotal})`,
-  );
-  failed = true;
-} else {
-  console.log(`dist-budget: total ${totalBytes} / ${ceilTotal} B - PASS`);
-}
-if (entries > ceilEntries) {
-  console.error(`dist-budget: FAIL entries ${entries} > ${ceilEntries}`);
-  failed = true;
-} else {
-  console.log(`dist-budget: entries ${entries} / ${ceilEntries} - PASS`);
-}
-if (swReported !== null && swReported !== filesystemEntries) {
+function main() {
+  const argv = process.argv.slice(2);
+  const dir = distDir(argv);
+  const ceilings = {
+    entries: argValue(argv, '--entries', CEIL_ENTRIES),
+    totalBytes: argValue(argv, '--total', CEIL_TOTAL_BYTES),
+  };
+
+  let measurement;
+  try {
+    measurement = measureDist(dir);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+
+  const { artSub, fileCount, groups, precacheEntries, shippedEntries, totalBytes } = measurement;
+  const mb = (n) => `${(n / 1e6).toFixed(2)} MB`;
+  console.log(`dist-budget: ${path.relative(process.cwd(), dir)}`);
   console.log(
-    `dist-budget: note - sw.js manifest count (${swReported}) differs from filesystem non-worker count (${filesystemEntries})`,
+    `  files: ${fileCount} (shipped: ${shippedEntries}; worker files: ${
+      fileCount - shippedEntries
+    }; precache entries: ${precacheEntries ?? 'none'})`,
   );
+  console.log(`  total: ${totalBytes} B (${mb(totalBytes)})`);
+  for (const [name, bytes] of [...groups.entries()].sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${name.padEnd(8)} ${String(bytes).padStart(9)} B`);
+    if (name === 'art') {
+      for (const [sub, subBytes] of [...artSub.entries()].sort((a, b) => b[1] - a[1])) {
+        console.log(`      ${sub.padEnd(8)} ${String(subBytes).padStart(9)} B`);
+      }
+    }
+  }
+
+  // FR-2: the manifest count stays visible because the precache globs are a
+  // deliberate design choice, but it never gates.
+  console.log(
+    precacheEntries === null
+      ? 'dist-budget: precache entries: none (no sw.js in this build) - informational, does not gate'
+      : `dist-budget: precache entries: ${precacheEntries} (informational; art and rive are warmed at runtime)`,
+  );
+
+  // Each ceiling reports independently: a breached entry count must not hide the
+  // byte total's PASS line from a CI log.
+  const failures = budgetFailures(measurement, ceilings);
+  if (failures.totalBytes === null) {
+    console.log(`dist-budget: total ${totalBytes} / ${ceilings.totalBytes} B - PASS`);
+  } else {
+    console.error(failures.totalBytes);
+  }
+  if (failures.entries === null) {
+    console.log(`dist-budget: entries ${shippedEntries} / ${ceilings.entries} - PASS`);
+  } else {
+    console.error(failures.entries);
+  }
+  process.exit(failures.entries === null && failures.totalBytes === null ? 0 : 1);
 }
-process.exit(failed ? 1 : 0);
+
+const invokedPath = process.argv[1];
+const isCli =
+  invokedPath !== undefined &&
+  (() => {
+    try {
+      return fs.realpathSync(invokedPath) === fs.realpathSync(fileURLToPath(import.meta.url));
+    } catch {
+      return false;
+    }
+  })();
+
+if (isCli) {
+  main();
+}

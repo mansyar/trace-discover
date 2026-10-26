@@ -1,0 +1,32 @@
+{
+  "id": "20261026-budget-entry-guard",
+  "title": "The payload budget's entry ceiling no longer measures anything",
+  "type": "bug",
+  "status": "complete",
+  "priority": "medium",
+  "depends_on": [],
+  "created_at": "2026-10-26T08:52:14Z",
+  "updated_at": "2026-10-26T09:11:36Z",
+  "spec": "spec.md",
+  "plan": "plan.md",
+  "branch": "fix/20261026-budget-entry-guard",
+  "base_branch": "master",
+  "base_sha": "5e37a98d9ffcd4be45688ae6a665b7811ad43c56",
+  "progress": {
+    "phases_total": 1,
+    "phases_verified": 1,
+    "tasks_total": 5,
+    "tasks_done": 5
+  },
+  "last_checkpoint": "fa84cd3",
+  "review_verdict": "PASS",
+  "review_rounds": 2,
+  "doc_sync": "none",
+  "pr_url": "https://github.com/mansyar/trace-discover/pull/24",
+  "pr_state": "open",
+  "reverted_at": null,
+  "revert_commit": null,
+  "revert_pr_url": null,
+  "archived_at": "2026-10-26T09:11:36Z",
+  "archive_path": "conductor/archive/20261026-budget-entry-guard"
+}
