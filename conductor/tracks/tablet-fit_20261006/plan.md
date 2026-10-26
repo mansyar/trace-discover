@@ -159,7 +159,7 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `src/ui/success.ts`, `dev/qa/**`, `conductor/tech-stack.md`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the per-skin
   tablet-aspect screenshot sweep
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Cover-crop and anchor math (TDD)**
   - [ ] Red: scale/offset for an image covering a field of any new aspect;
