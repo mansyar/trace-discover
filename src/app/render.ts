@@ -7,12 +7,13 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { BACKDROP_ANCHOR, coverFit } from '../render/backdropFit';
 import { type ConfettiParticle, mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
 import type { BadgeLayout } from '../ui/badge';
-import type { InstallVariant } from '../ui/install';
+import { type InstallVariant, installPanelLayout } from '../ui/install';
 import {
   gateArcEnd,
   MENU_DOT_RADIUS,
@@ -193,16 +194,22 @@ export interface LevelArt {
 
 export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null, sticker: null };
 
-/** Paints the backdrop cover-cropped over the whole design space. */
+/**
+ * Paints the backdrop cover-cropped over the whole design space, under the
+ * fixed anchor policy (see `src/render/backdropFit.ts`). A source image that
+ * has not decoded falls through to the caller's painted stand-in.
+ */
 function drawBackdrop(
   ctx: CanvasRenderingContext2D,
   image: HTMLImageElement,
   design: { readonly width: number; readonly height: number },
 ): void {
-  const scale = Math.max(design.width / image.naturalWidth, design.height / image.naturalHeight);
-  const width = image.naturalWidth * scale;
-  const height = image.naturalHeight * scale;
-  ctx.drawImage(image, (design.width - width) / 2, (design.height - height) / 2, width, height);
+  const fit = coverFit(
+    { height: image.naturalHeight, width: image.naturalWidth },
+    design,
+    BACKDROP_ANCHOR,
+  );
+  ctx.drawImage(image, fit.x, fit.y, fit.width, fit.height);
 }
 
 /** Paints a goal vignette centered on the point at the given pixel size. */
@@ -532,12 +539,14 @@ export function drawMenu(
   }
 }
 
-/** Small parent-facing tooltip under the gate corner (non-interactive, floats over cards). */
+/** Small parent-facing tooltip under the gate corner (non-interactive, floats over cards).
+ *  It hangs off the gate's own right edge, so it points at the hold corner on
+ *  every field width; on the phone that is the authored 430 − margin − width. */
 function drawParentHint(
   ctx: CanvasRenderingContext2D,
   gate: { readonly x: number; readonly y: number; readonly width: number; readonly height: number },
 ): void {
-  const x = FIELD_WIDTH - PARENT_HINT.margin - PARENT_HINT.width;
+  const x = gate.x + gate.width - PARENT_HINT.margin - PARENT_HINT.width;
   const y = gate.y + gate.height + PARENT_HINT.gapAbove;
   ctx.save();
   ctx.beginPath();
@@ -921,18 +930,26 @@ export function drawStickerPop(
   ctx.restore();
 }
 
-/** Drawn stand-in while a skin's backdrop art has not shipped yet. */
-function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent: string): void {
-  const gradient = ctx.createLinearGradient(0, 0, 0, FIELD_HEIGHT);
+/** Drawn stand-in while a skin's backdrop art has not shipped yet: covers the
+ *  whole active design space. The authored dusk is the portrait reference and
+ *  the landscape reference keeps its sun at the same 150 px, so the sun's share
+ *  is taken against the active orientation's reference height. */
+function drawDuskPlaceholder(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  accent: string,
+  design: { readonly width: number; readonly height: number },
+): void {
+  const gradient = ctx.createLinearGradient(0, 0, 0, design.height);
   gradient.addColorStop(0, '#20264d');
   gradient.addColorStop(1, '#4a3b6b');
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  ctx.fillRect(0, 0, design.width, design.height);
   const random = mulberry32(7);
   ctx.fillStyle = '#ffe9a8';
   for (let i = 0; i < 26; i += 1) {
-    const x = random() * FIELD_WIDTH;
-    const y = random() * FIELD_HEIGHT;
+    const x = random() * design.width;
+    const y = random() * design.height;
     const radius = 1.5 + random() * 2.5;
     ctx.globalAlpha = 0.6 + 0.4 * Math.sin(now / 600 + i);
     ctx.beginPath();
@@ -941,7 +958,8 @@ function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent:
   }
   ctx.globalAlpha = 0.9;
   ctx.beginPath();
-  ctx.arc(FIELD_WIDTH / 2, 150, 64, 0, Math.PI * 2);
+  const referenceHeight = design.width > design.height ? FIELD_HEIGHT / 2 : FIELD_HEIGHT;
+  ctx.arc(design.width / 2, design.height * (150 / referenceHeight), 64, 0, Math.PI * 2);
   ctx.fillStyle = accent;
   ctx.fill();
   ctx.globalAlpha = 1;
@@ -961,7 +979,7 @@ export function drawLevel(
   if (art.backdrop) {
     drawBackdrop(ctx, art.backdrop, design);
   } else if (skin) {
-    drawDuskPlaceholder(ctx, now, skin.accent);
+    drawDuskPlaceholder(ctx, now, skin.accent, design);
   }
   const pulse = 1 + 0.12 * Math.sin(now / 300);
   if (snap.completionStarted && snap.completion.stage === 'glow') {
@@ -1210,24 +1228,21 @@ function drawInstallPanel(
   variant: InstallVariant,
   design: { readonly width: number; readonly height: number },
 ): void {
-  const wide = design.width > design.height;
-  const panelTop = wide ? 40 : 120;
-  const panelHeight = wide ? design.height - 80 : 620;
-  const lineHeight = wide ? 36 : 52;
-  const startY = wide ? panelTop + 40 : 190;
+  const layout = installPanelLayout(design.width, design.height);
+  const { panel } = layout;
   ctx.beginPath();
-  ctx.roundRect(40, panelTop, design.width - 80, panelHeight, 18);
+  ctx.roundRect(panel.x, panel.y, panel.width, panel.height, 18);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
   ctx.fill();
   ctx.lineWidth = 4;
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   ctx.fillStyle = NAVY;
-  ctx.font = wide ? '22px system-ui, sans-serif' : '26px system-ui, sans-serif';
+  ctx.font = `${layout.fontSize}px system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const [index, line] of INSTALL_LINES[variant].entries()) {
-    ctx.fillText(line, design.width / 2, startY + index * lineHeight);
+    ctx.fillText(line, design.width / 2, layout.startY + index * layout.lineHeight);
   }
 }
 
@@ -1259,7 +1274,7 @@ export function drawParent(
   ctx.font = '30px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Grown-ups', design.width / 2, 70);
+  ctx.fillText('Grown-ups', layout.title.x, layout.title.y);
   for (const card of layout.cards) {
     drawZoneCard(ctx, card);
   }
@@ -1340,10 +1355,7 @@ export function drawParent(
   );
   if (!confirmReset || wide) {
     ctx.font = '24px system-ui, sans-serif';
-    const trophyAnchor = layout.trophies[1] ?? layout.trophies[0];
-    if (trophyAnchor) {
-      ctx.fillText('Trophies', trophyAnchor.x, wide ? trophyAnchor.y - 40 : 672);
-    }
+    ctx.fillText('Trophies', layout.trophyLabel.x, layout.trophyLabel.y);
     layout.trophies.forEach((slot, index) => {
       ctx.beginPath();
       if (index < trophies.length) {
@@ -1400,7 +1412,7 @@ export function drawParent(
     pressT('done'),
   );
   if (confirmReset) {
-    const bannerY = wide ? 10 : 648;
+    const bannerY = wide ? 10 : layout.trophyLabel.y - 24;
     const bannerHeight = wide ? 90 : 64;
     ctx.beginPath();
     ctx.roundRect(40, bannerY, design.width - 80, bannerHeight, 16);
@@ -1436,6 +1448,7 @@ export function drawNameOverlay(
   ctx.fillStyle = 'rgba(46, 74, 99, 0.45)';
   ctx.fillRect(0, 0, design.width, design.height);
   const { panel, field } = layout;
+  const scale = layout.scale;
   ctx.beginPath();
   ctx.rect(panel.x, panel.y, panel.width, panel.height);
   ctx.fillStyle = '#ffffff';
@@ -1444,10 +1457,10 @@ export function drawNameOverlay(
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   ctx.fillStyle = NAVY;
-  ctx.font = '26px system-ui, sans-serif';
+  ctx.font = `${Math.round(26 * scale)}px system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText("Child's name", design.width / 2, panel.y + 36);
+  ctx.fillText("Child's name", design.width / 2, panel.y + 36 * scale);
   ctx.beginPath();
   ctx.rect(field.x, field.y, field.width, field.height);
   ctx.setLineDash([8, 6]);
@@ -1456,8 +1469,8 @@ export function drawNameOverlay(
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = NAVY;
-  ctx.font = '22px system-ui, sans-serif';
-  ctx.fillText('2-7 letters, A-Z', design.width / 2, field.y + field.height + 34);
+  ctx.font = `${Math.round(22 * scale)}px system-ui, sans-serif`;
+  ctx.fillText('2-7 letters, A-Z', design.width / 2, field.y + field.height + 34 * scale);
   drawZoneButton(ctx, layout.save.x, layout.save.y, layout.save.radius, false, '✓', 'save');
   if (layout.clear) {
     drawZoneButton(ctx, layout.clear.x, layout.clear.y, layout.clear.radius, false, '⌫', 'clear');

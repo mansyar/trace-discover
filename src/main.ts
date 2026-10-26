@@ -39,7 +39,7 @@ import {
   type ParentPress,
 } from './app/render';
 import { hopPlanFor } from './app/runPlan';
-import { createSession, type LevelSession } from './app/session';
+import { createSession, type LevelSession, parksFor } from './app/session';
 import { levelPresentation, shouldDeferSkinSwap } from './app/skinSwap';
 import { stickerPopFrame } from './app/stickerPop';
 import { withVolume } from './audio/meter';
@@ -70,7 +70,7 @@ import {
   createCharacterPresenter,
 } from './character/presenter';
 import type { Point } from './engine/types';
-import { fieldSizeFor, type Orientation, orientationFor } from './field';
+import { FIELD_SPACES, type FieldSpace, fieldSpaceFor, type Orientation } from './field';
 import { attachTraceInput, mapPointerToField, type TraceHandlers } from './input/pointer';
 import { appPacks } from './packs/catalog';
 import { bonusRunLevel } from './packs/letters';
@@ -78,7 +78,7 @@ import { type LevelDef, levelToPath } from './packs/level';
 import { NAME_PACK_ID } from './packs/name';
 import type { PackEntry } from './packs/pack';
 import { firstUnlockedBonusId } from './packs/progress';
-import { levelForOrientation, pathGeometryLength } from './packs/wide';
+import { levelForSpace, pathGeometryLength } from './packs/wide';
 import {
   allContentCached,
   CONTENT_ASSET_URLS,
@@ -100,6 +100,7 @@ import { badgeLayout } from './ui/badge';
 import { type InstallVariant, installVariant } from './ui/install';
 import {
   canGiggle,
+  clampPark,
   hitMascot,
   MASCOT_SPARKLE_COUNT,
   MASCOT_SPARKLE_SEED,
@@ -141,9 +142,6 @@ import { hitBoardHome, hitShelfBand, hitStickerCell, stickerBoardLayout } from '
 import { hitSuccessButton, successLayout } from './ui/success';
 
 const CHARACTER_SCALE = 0.62;
-/** Wide-field mascot parks: tracing keeps the dino low and centred; success parks it beside the buttons. */
-const TRACE_PARK_WIDE: Point = { x: 430, y: 310 };
-const SUCCESS_PARK_WIDE: Point = { x: 805, y: 250 };
 const CHARACTER_OFFSET_Y = 0.38;
 
 const trailCanvas = requireCanvas(document);
@@ -185,7 +183,7 @@ const PACK_GRID: Readonly<Record<string, PackGridConfig>> = {
 };
 
 let PACKS: readonly PackEntry[] = [];
-let space = fieldSizeFor('portrait');
+let space: FieldSpace = FIELD_SPACES['phone-portrait'];
 let orientation: Orientation = 'portrait';
 let MENU = menuLayout(space.width, space.height, []);
 let MENU_FILLS: readonly string[] = [];
@@ -197,8 +195,9 @@ let PACK_PAGERS = new Map<string, PackPager | null>();
 let PACK_MINIS = new Map<string, ReadonlyMap<string, readonly (readonly Point[])[]>>();
 
 function rebuildViews(): void {
-  space = fieldSizeFor(orientation);
-  PACKS = appPacks(app.save, orientation);
+  space = fieldSpaceFor(window.innerWidth, window.innerHeight);
+  orientation = space.orientation;
+  PACKS = appPacks(app.save, space);
   const paginated = menuPageCount(PACKS.length) > 1;
   menuPage = Math.min(Math.max(menuPage, 0), menuPageCount(PACKS.length) - 1);
   MENU = menuLayout(
@@ -252,8 +251,8 @@ function rebuildViews(): void {
   SPLASH = splashLayout(space.width, space.height);
   PARENT = parentZoneLayout(space.width, space.height);
   BADGE = badgeLayout(space.width, space.height);
-  MENU_PARK = menuParkPosition(space.width, space.height, paginated);
-  PACK_PARK = packParkPosition(space.width, space.height);
+  MENU_PARK = menuParkPosition(space.width, space.height, paginated, mascotSize(MASCOT_SCALE_MENU));
+  PACK_PARK = packParkPosition(space.width, space.height, mascotSize(MASCOT_SCALE_PACK));
 }
 let SUCCESS = successLayout(space.width, space.height);
 let SPLASH = splashLayout(space.width, space.height);
@@ -271,6 +270,11 @@ const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
 /** Idle mascot parking + scale on menu/pack (pack parks beside the grid in landscape). */
 const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
+/** Authored character share of the field height on both phone references: the
+ *  half-scale character on the wide phone, and 0.62 of a half-width portrait
+ *  field. The in-level sprite is capped here so a 4:3 portrait field, which is
+ *  not half as tall as it is wide, cannot grow it past the band its park leaves. */
+const LEVEL_MASCOT_HEIGHT_SHARE = CHARACTER_SCALE / 2;
 let MENU_PARK: Point = menuParkPosition(space.width, space.height);
 let PACK_PARK: Point = packParkPosition(space.width, space.height);
 /** How long a giggle sparkle burst lives before frame() clears it. */
@@ -370,8 +374,29 @@ const INSTALL_VARIANT: InstallVariant = installVariant({
 /** Lazily-created DOM field for the parent-set name (child screens never see it). */
 let nameInput: HTMLInputElement | null = null;
 
+/**
+ * On-screen keyboard height in field units. iOS shrinks the visual viewport
+ * without resizing the layout viewport, so the covered strip is what the
+ * keyboard is hiding; Android resizes the layout viewport instead and needs
+ * no inset (the field refits under it).
+ */
+function keyboardInsetUnits(): number {
+  const viewport = window.visualViewport;
+  if (!viewport || !nameInput?.classList.contains('is-open')) {
+    return 0;
+  }
+  const covered = Math.max(0, window.innerHeight - (viewport.height + viewport.offsetTop));
+  const unitsPerCssPixel = field.height / space.height;
+  return unitsPerCssPixel > 0 ? covered / unitsPerCssPixel : 0;
+}
+
 function currentNameOverlay(): NameOverlayLayout {
-  return nameOverlayLayout(space.width, space.height, app.save.name !== undefined);
+  return nameOverlayLayout(
+    space.width,
+    space.height,
+    app.save.name !== undefined,
+    keyboardInsetUnits(),
+  );
 }
 
 function ensureNameInput(): HTMLInputElement {
@@ -407,7 +432,8 @@ function positionNameInput(): void {
   nameInput.style.top = `${field.y + overlay.field.y * scale}px`;
   nameInput.style.width = `${overlay.field.width * scale}px`;
   nameInput.style.height = `${overlay.field.height * scale}px`;
-  nameInput.style.fontSize = `${Math.round(overlay.field.height * scale * 0.55)}px`;
+  // 16px is iOS Safari's no-zoom floor: a smaller field never makes it zoom in.
+  nameInput.style.fontSize = `${Math.max(16, Math.round(overlay.field.height * scale * 0.55))}px`;
 }
 
 /** Shows / hides the DOM field with the overlay screen state. */
@@ -625,7 +651,20 @@ function mascotPlacement(): {
         ? entrancePos(entrance.timeline, entrance.state)
         : session.snapshot().charPos;
     // The wide field is short: keep the mascot at its portrait share of the height.
-    scale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+    const levelScale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+    // Both phone references give the level character 31% of the field's height;
+    // the short edge alone gives a 4:3 portrait field more than that, which would
+    // hang the character off the bottom, so cap it at the authored share.
+    scale =
+      Math.min(
+        Math.min(space.width, space.height) * levelScale,
+        space.height * LEVEL_MASCOT_HEIGHT_SHARE,
+      ) / Math.min(space.width, space.height);
+    if (screen.name === 'success') {
+      // The celebration park is authored in phone units; on a tablet field the
+      // sprite is wider, so keep the whole character on screen for the moment.
+      park = clampPark(park, mascotSize(scale), space.width, space.height);
+    }
   } else if (screen.name === 'menu') {
     park = MENU_PARK;
     scale = MASCOT_SCALE_MENU;
@@ -663,6 +702,15 @@ function reloadLevelSkin(): void {
   preloadArt(presentation.goal);
   preloadArt(presentation.sticker);
   ensureCharacter(presentation.character, true);
+}
+
+/**
+ * The parked mascot's box in field units (see `positionCharacter`): the sprite
+ * grows with the field's short edge, so a tablet space needs the park pulled in
+ * to keep it on screen.
+ */
+function mascotSize(scale: number): number {
+  return Math.min(space.width, space.height) * scale;
 }
 
 /** Menu + pack screens show the active skin's character idling ("parked"). */
@@ -712,6 +760,37 @@ function enterPackLevel(packId: string, levelId: string): void {
   );
 }
 
+/**
+ * The level a run actually traces, in the active design space.
+ *
+ * Word rows — the `ABC`/`MOM`/`ZOO` bonuses and the runtime name row — compose
+ * for the active space's box and are used as composed, because re-projecting
+ * them would shrink the wide row back into the projection's narrower margins.
+ * Every other level is projected into the space (centred, never magnified,
+ * shrunk only to clear its margins). The two phone references keep the shipped
+ * composition-then-projection pair exactly.
+ */
+function projectRunLevel(level: LevelDef, packId: string): LevelDef {
+  // Word bonuses compose for the active space's row box and are used as composed.
+  const row = bonusRunLevel(level, space);
+  if (row) {
+    return row;
+  }
+  // The name mini-pack composes its row for the active space too, so a tablet
+  // space plays that composition as authored — re-projecting it would shrink it
+  // back into the projection's narrower margins. The two phone references keep
+  // the shipped pack-composition-then-projection pair exactly.
+  if (packId === NAME_PACK_ID && !isPhoneSpace()) {
+    return level;
+  }
+  return levelForSpace(level, space);
+}
+
+/** True while the active space is one of the two authored phone references. */
+function isPhoneSpace(): boolean {
+  return space.id === 'phone-portrait' || space.id === 'phone-landscape';
+}
+
 /** Shared level boot: art preload, mascot swap, and the tracing session. */
 function startRun(
   level: LevelDef,
@@ -723,7 +802,7 @@ function startRun(
   player: TonePlayer,
   hopPlan?: HopTimeline,
 ): void {
-  const runLevel = bonusRunLevel(level, orientation) ?? levelForOrientation(level, orientation);
+  const runLevel = projectRunLevel(level, packId);
   levelArtUrls = art;
   currentRun = {
     level,
@@ -756,10 +835,7 @@ function startRun(
         commit(applyAppEvent(app, { type: 'level-complete', packId, levelId }));
       }
     },
-    parks:
-      orientation === 'landscape'
-        ? { success: SUCCESS_PARK_WIDE, trace: TRACE_PARK_WIDE }
-        : undefined,
+    parks: parksFor(space),
     player,
     seed,
     settings: () => ({ easierTracing: app.save.settings.easierTracing }),
@@ -771,7 +847,7 @@ function startRun(
  *  menu/pack. The character trigger is fire-and-forget; a cast without the
  *  giggle input simply stays idle while the note and sparkles still play. */
 function tryGiggle(point: Point, nowMs: number, park: Point, scale: number): void {
-  const zone = mascotZone(park, scale);
+  const zone = mascotZone(park, mascotSize(scale));
   if (!hitMascot(zone, point) || !canGiggle(nowMs, lastGiggle)) {
     return;
   }
@@ -1008,11 +1084,10 @@ function reflowRun(): void {
   if (!authored) {
     return;
   }
-  const runLevel =
-    bonusRunLevel(authored, orientation) ?? levelForOrientation(authored, orientation);
+  const runLevel = projectRunLevel(authored, run.packId);
   const span = pathGeometryLength(run.runLevel);
   if (span > 0) {
-    session.reflow(runLevel, pathGeometryLength(runLevel) / span);
+    session.reflow(runLevel, pathGeometryLength(runLevel) / span, parksFor(space));
   }
   currentRun = {
     level: authored,
@@ -1027,9 +1102,8 @@ function resize(): void {
   const size = computeBackingSize(window.innerWidth, window.innerHeight, dpr);
   trailCanvas.width = size.width;
   trailCanvas.height = size.height;
-  const next = orientationFor(window.innerWidth, window.innerHeight);
-  if (next !== orientation) {
-    orientation = next;
+  const nextSpace = fieldSpaceFor(window.innerWidth, window.innerHeight);
+  if (nextSpace.id !== space.id) {
     rebuildViews();
     reflowRun();
   }
@@ -1332,7 +1406,19 @@ declare global {
       readonly orientation: () => Orientation;
       readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
+      /**
+       * Tracing progress (dev QA): the consumed distance on the active stroke,
+       * that stroke's index, and the level's total path length. Read across a
+       * space change to prove a reflow kept the run's position.
+       */
+      readonly progress: () => {
+        readonly frontier: number;
+        readonly strokeIndex: number;
+        readonly total: number;
+      };
       readonly screen: () => AppState['screen'];
+      /** Active design space (dev QA): the anchor the viewport selected. */
+      readonly space: () => FieldSpace;
       readonly strokes: () => readonly (readonly Point[])[];
       readonly success: () => boolean;
       readonly targets: () => readonly {
@@ -1362,9 +1448,22 @@ function screenTargets(): AppTarget[] {
       x: card.x + card.width / 2,
       y: card.y + card.height / 2,
     }));
+    // The menu pager, mirroring the pack screen's ids: only the directions that
+    // exist on this page are exposed, so a dev probe can drive a paginated menu
+    // (the runtime name card rides page two) the same way a finger does.
+    const pagerTargets: AppTarget[] = [];
+    if (MENU.pager) {
+      if (menuPage > 0) {
+        pagerTargets.push({ id: 'menu:prev', x: MENU.pager.prev.x, y: MENU.pager.prev.y });
+      }
+      if (menuPage < MENU.pager.dots.length - 1) {
+        pagerTargets.push({ id: 'menu:next', x: MENU.pager.next.x, y: MENU.pager.next.y });
+      }
+    }
     const gate = MENU.parentGate;
     return [
       ...cards,
+      ...pagerTargets,
       { id: 'gate', x: gate.x + gate.width / 2, y: gate.y + gate.height / 2 },
       skinTarget,
     ];
@@ -1477,7 +1576,19 @@ window.__app = {
   orientation: () => orientation,
   moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
+  progress: () => {
+    if (!session) {
+      return { frontier: 0, strokeIndex: 0, total: 0 };
+    }
+    const snapshot = session.snapshot();
+    return {
+      frontier: snapshot.frontier,
+      strokeIndex: snapshot.multiState.strokeIndex,
+      total: snapshot.multi.total,
+    };
+  },
   screen: () => app.screen,
+  space: () => ({ ...space }),
   strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),
   success: () => session?.success ?? false,
   targets: () => screenTargets(),
@@ -1610,6 +1721,10 @@ window.addEventListener('online', () => {
   retryCharacter();
   warmContentWhenBackOnline();
 });
+// The visual viewport tracks the soft keyboard (and iOS's page scroll while it
+// is up), so the name panel lifts above it as soon as it opens.
+window.visualViewport?.addEventListener('resize', positionNameInput);
+window.visualViewport?.addEventListener('scroll', positionNameInput);
 window.addEventListener('resize', resize);
 void bootContentReadiness();
 hideCharacter();

@@ -1,10 +1,10 @@
 // Mascot tap zone: the field-space circle a tap must land on to make the
 // parked character giggle (menu + pack). Mirrors the shell's canvas math:
-// size = FIELD_WIDTH * scale and CHARACTER_OFFSET_Y (0.38) place the sprite
-// square; the zone is that square's inscribed circle, so every tap reaching
-// the sprite reaches the zone and the zone never extends past the sprite.
+// the sprite square is `size` field units wide (min field edge * scale) and
+// CHARACTER_OFFSET_Y (0.38) places it; the zone is that square's inscribed
+// circle, so every tap reaching the sprite reaches the zone and the zone never
+// extends past the sprite.
 import type { Point } from '../engine/types';
-import { FIELD_WIDTH } from '../field';
 
 /** Mirrors the shell's CHARACTER_OFFSET_Y (sprite center sits below the park). */
 const MASCOT_OFFSET_Y = 0.38;
@@ -17,9 +17,57 @@ export interface MascotZone {
   readonly y: number;
 }
 
-/** Field-space tap zone for the mascot parked at `park` (see positionCharacter). */
-export function mascotZone(park: Point, scale: number): MascotZone {
-  const size = FIELD_WIDTH * scale;
+/** Overshoot a parked mascot keeps before it is pulled back inside the field.
+ *  The authored phone parks kiss the edge by under a unit (the wide-field pack
+ *  park sits 0.9 units past it), and keeping that preserves the shipped phone
+ *  rendering exactly; anything larger is a real clip on a bigger field. */
+const PARK_EDGE_TOLERANCE = 1;
+
+/**
+ * Keeps a parked mascot's box inside the field. The sprite square is `size`
+ * wide and its center sits MASCOT_OFFSET_Y of the size below the park, so the
+ * park must leave `size * (MASCOT_OFFSET_Y + 0.5)` below it and half a sprite
+ * on either side. Parks already inside come back untouched — the authored
+ * phone spots therefore stay byte-identical — while a tablet space, where the
+ * sprite grows with the short edge and the authored offsets cannot cover it,
+ * moves the park in just enough to fit. `bottomLimit` is the lowest the box may
+ * reach (the sticker shelf on a pack screen); it defaults to the field edge.
+ */
+export function clampPark(
+  park: Point,
+  size: number,
+  fieldWidth: number,
+  fieldHeight: number,
+  bottomLimit = fieldHeight,
+): Point {
+  if (size <= 0) {
+    return park;
+  }
+  const half = size / 2;
+  const spanBelow = size * (MASCOT_OFFSET_Y + 0.5);
+  const minX = half;
+  const maxX = fieldWidth - half;
+  const minY = half - size * MASCOT_OFFSET_Y;
+  const maxY = Math.min(fieldHeight, bottomLimit) - spanBelow;
+  const x =
+    park.x < minX - PARK_EDGE_TOLERANCE
+      ? minX
+      : park.x > maxX + PARK_EDGE_TOLERANCE
+        ? maxX
+        : park.x;
+  const y =
+    park.y < minY - PARK_EDGE_TOLERANCE
+      ? minY
+      : park.y > maxY + PARK_EDGE_TOLERANCE
+        ? maxY
+        : park.y;
+  return { x, y };
+}
+
+/** Field-space tap zone for the mascot parked at `park` (see positionCharacter).
+ *  `size` is the sprite square in field units, so a tablet space — where the
+ *  sprite grows with the short edge — gets a zone that matches what is drawn. */
+export function mascotZone(park: Point, size: number): MascotZone {
   return { x: park.x, y: park.y + size * MASCOT_OFFSET_Y, radius: size * MASCOT_HIT_RATIO };
 }
 

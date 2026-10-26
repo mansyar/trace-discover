@@ -20,11 +20,31 @@ async function launch() {
   return chromium.launch({ channel: 'msedge' });
 }
 
+/** The menu only shows packs a child has reached, so the audit seeds progress
+ *  (the same mixed save the tablet probes use) to put all six packs on it. */
+const CLEARED = [
+  ...Array.from({ length: 14 }, (_, index) => `pre-${index + 2}`),
+  'abc-a',
+  'abc-b',
+  'abc-c',
+  'abc-d',
+  'numbers-1',
+  'shapes-circle',
+  'patterns-1',
+];
+
 const browser = await launch();
 const page = await browser.newPage({ viewport: { width: 430, height: 900 } });
+await page.addInitScript(
+  ({ completed }) => {
+    window.localStorage.setItem(
+      'trace-discover-save-v1',
+      JSON.stringify({ badges: [], completedLevels: completed, settings: {}, version: 3 }),
+    );
+  },
+  { completed: CLEARED },
+);
 await page.goto(BASE + '/index.html');
-await page.evaluate(() => localStorage.removeItem('trace-discover-save-v1'));
-await page.reload();
 await page.waitForFunction(() => window.__app !== undefined, null, { timeout: 15000 });
 
 const text = () => page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').trim());
@@ -42,6 +62,11 @@ const tap = async (id) => {
   await wait(350);
 };
 
+const waitScreen = (name) =>
+  page.waitForFunction((wanted) => window.__app.screen().name === wanted, name, {
+    timeout: 20000,
+  });
+
 const results = [];
 const audit = async (label) => {
   const value = await text();
@@ -50,10 +75,13 @@ const audit = async (label) => {
 
 await audit('splash');
 await tap('splash');
+await waitScreen('menu');
 await audit('menu');
 await tap('pack:animals');
+await waitScreen('pack');
 await audit('pack (animals)');
 await tap('level:animal-1');
+await waitScreen('level');
 await audit('level (animal-1)');
 
 const dirty = results.filter((line) => !line.endsWith('clean'));

@@ -2,17 +2,22 @@
 // Mirrors src/render/renderPath.test.ts: a recording stub context asserts the
 // primitives each painter emits — there is no real canvas in the node test env.
 import { describe, expect, it } from 'vitest';
-import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
-import type { SplashLayout } from '../ui/menu';
+import { FIELD_HEIGHT, FIELD_SPACES, FIELD_WIDTH } from '../field';
+import type { SkinDef } from '../skins/skins';
+import { menuLayout, type SplashLayout } from '../ui/menu';
 import { stickerBoardLayout } from '../ui/stickerBoard';
 import {
   drawDrawnMascot,
   drawGate,
+  drawLevel,
+  drawMenu,
   drawSplash,
   drawStickerBoard,
   drawStickerPop,
   GOLD,
+  NO_LEVEL_ART,
 } from './render';
+import type { SessionSnapshot } from './session';
 import { stickerPopFrame } from './stickerPop';
 
 const IDS = ['num-0', 'num-1', 'num-2'];
@@ -44,7 +49,12 @@ function fakeContext(ops: string[], arcs: string[] = []): CanvasRenderingContext
       ops.push(
         `drawImage:${Number(args[1])},${Number(args[2])},${Number(args[3])},${Number(args[4])}`,
       ),
+    createLinearGradient: () => ({ addColorStop: () => {} }),
     setLineDash: (segments: number[]) => ops.push(`setLineDash:${segments.join(',')}`),
+    rect: (x: number, y: number, width: number, height: number) =>
+      ops.push(`rect:${x},${y},${width},${height}`),
+    roundRect: (x: number, y: number, width: number, height: number) =>
+      ops.push(`roundRect:${x},${y},${width},${height}`),
     save: () => ops.push('save'),
     restore: () => ops.push('restore'),
     translate: () => ops.push('translate'),
@@ -110,6 +120,92 @@ describe('drawStickerBoard', () => {
     drawStickerBoard(fakeContext(ops), boardLayout(), [false, false, false], new Map(), backdrop);
     expect(ops.filter((op) => op.startsWith('drawImage'))).toHaveLength(1);
     expect(ops).not.toContain(`fillRect:0,0,${FIELD_WIDTH},${FIELD_HEIGHT}`);
+  });
+});
+
+describe('backdrop art fit per space', () => {
+  const square = { naturalWidth: 1024, naturalHeight: 1024 } as unknown as HTMLImageElement;
+
+  function drawAt(spaceId: keyof typeof FIELD_SPACES, backdrop = square): string[] {
+    const ops: string[] = [];
+    const space = FIELD_SPACES[spaceId];
+    drawStickerBoard(
+      fakeContext(ops),
+      boardLayout(),
+      [false, false, false],
+      new Map(),
+      backdrop,
+      undefined,
+      space,
+    );
+    return ops;
+  }
+
+  it('keeps the authored phone portrait cover-crop', () => {
+    expect(drawAt('phone-portrait')).toContain('drawImage:-215,0,860,860');
+  });
+
+  it('cover-crops the square scene into the tablet landscape field', () => {
+    // 1024² into 1280×960: the wider field keeps the middle band, so the crop
+    // takes 160 units off the top and the bottom rather than letterboxing.
+    expect(drawAt('tablet-landscape')).toContain('drawImage:0,-160,1280,1280');
+  });
+
+  it('leaves no edge of a slate portrait field uncovered', () => {
+    const [x, y, width, height] = (drawAt('slate-portrait')[0] ?? '')
+      .replace('drawImage:', '')
+      .split(',')
+      .map(Number);
+    expect(x ?? 1).toBeLessThanOrEqual(0);
+    expect(y ?? 1).toBeLessThanOrEqual(0);
+    expect((x ?? 0) + (width ?? 0)).toBeGreaterThanOrEqual(800);
+    expect((y ?? 0) + (height ?? 0)).toBeGreaterThanOrEqual(1280);
+  });
+});
+
+describe('drawLevel no-art stand-in', () => {
+  const snap = {
+    assistState: {},
+    charPos: { x: 0, y: 0 },
+    checkpoints: {},
+    checkState: {},
+    completion: { elapsedMs: 0, stage: 'idle' },
+    completionStarted: false,
+    confetti: [],
+    frontier: 0,
+    hintVisible: false,
+    multi: { strokes: [], total: 0 },
+    multiState: { frontier: 0, strokeIndex: 0, tracing: false },
+    nudgeAt: null,
+    tip: { x: 0, y: 0 },
+  } as unknown as SessionSnapshot;
+  const skin = { accent: '#8ecae6' } as unknown as SkinDef;
+
+  it('covers the whole active field while the backdrop art loads', () => {
+    const ops: string[] = [];
+    const space = FIELD_SPACES['tablet-landscape'];
+    drawLevel(fakeContext(ops), 0, snap, NO_LEVEL_ART, skin, space);
+    expect(ops).toContain(`fillRect:0,0,${space.width},${space.height}`);
+  });
+
+  it('keeps the dusk sun where each phone reference shipped it', () => {
+    // The authored dusk is the portrait reference (sun 150 down an 860 field)
+    // and the landscape reference shares that pixel position (150 of 430), so
+    // a space-aware share may not move either phone. Tablets scale the share.
+    const sun = (field: { readonly width: number; readonly height: number }) => {
+      const arcs: string[] = [];
+      drawLevel(fakeContext([], arcs), 0, snap, NO_LEVEL_ART, skin, field);
+      const disc = arcs.find((arc) => arc.endsWith(',64,0,6.283'));
+      if (!disc) {
+        throw new Error('missing sun disc');
+      }
+      const [x, y] = disc.split(',').map(Number);
+      return { x, y };
+    };
+    expect(sun({ height: 860, width: FIELD_WIDTH })).toEqual({ x: FIELD_WIDTH / 2, y: 150 });
+    expect(sun({ height: 430, width: 860 })).toEqual({ x: 430, y: 150 });
+    const tablet = FIELD_SPACES['tablet-portrait'];
+    expect(sun(tablet).y).toBeCloseTo((150 / 860) * tablet.height, 0);
   });
 });
 
@@ -263,5 +359,30 @@ describe('drawGate', () => {
     expect(ringArcs(arcs, GATE_LAYOUT)).toHaveLength(1);
     expect(ops).toContain('closePath');
     expect(ops).toContain(`fillStyle:${GOLD}`);
+  });
+});
+
+describe('drawMenu parent hint', () => {
+  const IDS = ['pre', 'numbers', 'abc', 'shapes'];
+
+  function hintRect(width: number, height: number): string {
+    const ops: string[] = [];
+    const layout = menuLayout(width, height, IDS);
+    drawMenu(fakeContext(ops), 0, layout, [], undefined, undefined, undefined, 0, true);
+    const rect = ops.find((op) => op.startsWith('roundRect:'));
+    if (!rect) {
+      throw new Error('hint was not drawn');
+    }
+    return rect;
+  }
+
+  it('hangs off the gate corner on the phone (the authored chip position)', () => {
+    expect(hintRect(FIELD_WIDTH, FIELD_HEIGHT)).toBe('roundRect:170,108,240,58');
+  });
+
+  it('stays at the gate corner on a tablet field instead of the phone column', () => {
+    // 960 wide: the chip's right edge keeps the gate's 20-unit margin.
+    expect(hintRect(960, 1280)).toBe('roundRect:700,108,240,58');
+    expect(hintRect(1280, 800)).toBe('roundRect:1020,108,240,58');
   });
 });

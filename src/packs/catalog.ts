@@ -2,7 +2,7 @@
 // ships first, numbers second, letters third, shapes fourth, animals fifth,
 // patterns sixth; the runtime-composed name mini-pack appends while a name is
 // saved.
-import type { Orientation } from '../field';
+import { type FieldSpaceRef, resolveSpace } from '../field';
 import type { SaveData } from '../save/store';
 import { ANIMALS_PACK } from './animals';
 import { LETTERS_PACK } from './letters';
@@ -30,9 +30,9 @@ export function allPacks(): readonly PackEntry[] {
 /** Static packs plus the runtime-composed name mini-pack while a name is saved. */
 export function appPacks(
   save: SaveData,
-  orientation: Orientation = 'portrait',
+  spaceRef: FieldSpaceRef = 'portrait',
 ): readonly PackEntry[] {
-  const namePack = namePackFor(save.name, orientation);
+  const namePack = namePackFor(save.name, resolveSpace(spaceRef));
   if (!namePack) {
     return PACKS;
   }

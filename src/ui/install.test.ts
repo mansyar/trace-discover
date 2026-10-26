@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { type InstallSignals, installVariant } from './install';
+
+import { type InstallSignals, installPanelLayout, installVariant } from './install';
 
 function signals(partial: Partial<InstallSignals>): InstallSignals {
   return { maxTouchPoints: 0, standalone: false, userAgent: '', ...partial };
@@ -34,5 +35,60 @@ describe('installVariant', () => {
   it('falls back to generic for desktop and unknown agents', () => {
     expect(installVariant(signals({ userAgent: WINDOWS_UA }))).toBe('generic');
     expect(installVariant(signals({}))).toBe('generic');
+  });
+});
+
+describe('installPanelLayout', () => {
+  /** The generic variant is the longest copy block (nine lines). */
+  const LINES = 9;
+
+  it('keeps the authored phone panels byte-identical', () => {
+    expect(installPanelLayout(430, 860)).toEqual({
+      fontSize: 26,
+      lineHeight: 52,
+      panel: { height: 620, width: 350, x: 40, y: 120 },
+      startY: 190,
+    });
+    expect(installPanelLayout(860, 430)).toEqual({
+      fontSize: 22,
+      lineHeight: 36,
+      panel: { height: 350, width: 780, x: 40, y: 40 },
+      startY: 80,
+    });
+  });
+
+  it('centers the panel and keeps every line inside it at tablet spaces', () => {
+    const spaces = [
+      { height: 1280, width: 960 },
+      { height: 960, width: 1280 },
+      { height: 1280, width: 800 },
+      { height: 800, width: 1280 },
+    ];
+    for (const space of spaces) {
+      const layout = installPanelLayout(space.width, space.height);
+      const { panel } = layout;
+      expect(panel.x).toBeGreaterThanOrEqual(0);
+      expect(panel.y).toBeGreaterThanOrEqual(0);
+      expect(panel.x + panel.width).toBeLessThanOrEqual(space.width);
+      expect(panel.y + panel.height).toBeLessThanOrEqual(space.height);
+      // Vertically centered: the free space splits evenly above and below.
+      expect(Math.abs(panel.y - (space.height - panel.height) / 2)).toBeLessThan(1);
+      expect(layout.startY).toBeGreaterThan(panel.y);
+      expect(layout.startY + (LINES - 1) * layout.lineHeight).toBeLessThan(panel.y + panel.height);
+      expect(layout.fontSize).toBeGreaterThan(22);
+    }
+  });
+
+  it('keeps the shortest copy inside the same panel', () => {
+    for (const size of [
+      { height: 860, lines: 6, width: 430 },
+      { height: 1280, lines: 6, width: 960 },
+      { height: 960, lines: 6, width: 1280 },
+    ]) {
+      const layout = installPanelLayout(size.width, size.height);
+      expect(layout.startY + (size.lines - 1) * layout.lineHeight).toBeLessThan(
+        layout.panel.y + layout.panel.height,
+      );
+    }
   });
 });

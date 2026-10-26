@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
+import { FIELD_SPACES, LANDSCAPE_FIELD_HEIGHT, LANDSCAPE_FIELD_WIDTH } from '../field';
 import { LETTER_LEVELS } from './letters';
 import type { LevelDef } from './level';
 import { PRE_LEVELS } from './pre';
-import { levelForOrientation, projectionScale } from './wide';
+import { levelForOrientation, levelForSpace, projectionScale, projectionScaleFor } from './wide';
 
 const MARGIN = 24;
 
@@ -166,5 +166,109 @@ describe('levelForOrientation', () => {
     const snapshot = JSON.parse(JSON.stringify(level)) as LevelDef;
     levelForOrientation(level, 'landscape');
     expect(level).toEqual(snapshot);
+  });
+});
+
+describe('levelForSpace', () => {
+  it('is the identity in the authored portrait phone space for every pre level', () => {
+    const space = FIELD_SPACES['phone-portrait'];
+    for (const level of PRE_LEVELS) {
+      expect(levelForSpace(level, space)).toBe(level);
+    }
+  });
+
+  it('matches the existing landscape projection byte-for-byte in the phone landscape space', () => {
+    const space = FIELD_SPACES['phone-landscape'];
+    for (const level of [...PRE_LEVELS, ...LETTER_LEVELS]) {
+      expect(levelForSpace(level, space)).toEqual(levelForOrientation(level, 'landscape'));
+    }
+  });
+
+  it('centres a single glyph in a portrait tablet space without magnifying it', () => {
+    const space = FIELD_SPACES['tablet-portrait'];
+    const level = LETTER_LEVELS[0] as LevelDef;
+    const authored = bbox(level);
+    const box = bbox(levelForSpace(level, space));
+
+    // Never magnified: the drawn size is the authored size, to the unit.
+    expect(box.maxX - box.minX).toBeCloseTo(authored.maxX - authored.minX, 9);
+    expect(box.maxY - box.minY).toBeCloseTo(authored.maxY - authored.minY, 9);
+    // Centred in the tablet box, inside its margins.
+    expect((box.minX + box.maxX) / 2).toBeCloseTo(space.width / 2, 6);
+    expect((box.minY + box.maxY) / 2).toBeCloseTo(space.height / 2, 6);
+    expect(box.minX).toBeGreaterThanOrEqual(MARGIN - 1e-9);
+    expect(box.maxX).toBeLessThanOrEqual(space.width - MARGIN + 1e-9);
+    expect(box.minY).toBeGreaterThanOrEqual(MARGIN - 1e-9);
+    expect(box.maxY).toBeLessThanOrEqual(space.height - MARGIN + 1e-9);
+    expect(projectionScaleFor(level, space)).toBe(1);
+  });
+
+  it('fits and centres the largest pre-writing level in every tablet space', () => {
+    const level = PRE_LEVELS[PRE_LEVELS.length - 1] as LevelDef;
+    const spaces = [
+      FIELD_SPACES['tablet-portrait'],
+      FIELD_SPACES['tablet-landscape'],
+      FIELD_SPACES['slate-portrait'],
+      FIELD_SPACES['slate-landscape'],
+    ];
+    for (const space of spaces) {
+      const box = bbox(levelForSpace(level, space));
+      expect(box.minX).toBeGreaterThanOrEqual(MARGIN - 1e-9);
+      expect(box.maxX).toBeLessThanOrEqual(space.width - MARGIN + 1e-9);
+      expect(box.minY).toBeGreaterThanOrEqual(MARGIN - 1e-9);
+      expect(box.maxY).toBeLessThanOrEqual(space.height - MARGIN + 1e-9);
+      expect((box.minX + box.maxX) / 2).toBeCloseTo(space.width / 2, 6);
+      expect((box.minY + box.maxY) / 2).toBeCloseTo(space.height / 2, 6);
+      expect(projectionScaleFor(level, space)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('shrinks oversize geometry uniformly to fit a tablet space, never above scale 1', () => {
+    const level: LevelDef = {
+      goal: { x: 1900, y: 950 },
+      goalArt: '/art/goal/test.webp',
+      id: 'wide-test',
+      stroke: 'line',
+      strokes: [
+        [
+          { x: 100, y: 100 },
+          { x: 1000, y: 500 },
+          { x: 1900, y: 100 },
+        ],
+      ],
+    };
+    const space = FIELD_SPACES['tablet-portrait'];
+    const box = bbox(levelForSpace(level, space));
+    expect(box.maxX - box.minX).toBeLessThanOrEqual(space.width - 2 * MARGIN + 1e-9);
+    expect(box.maxY - box.minY).toBeLessThanOrEqual(space.height - 2 * MARGIN + 1e-9);
+    expect((box.maxX - box.minX) / 1800).toBeCloseTo((box.maxY - box.minY) / 400, 9);
+    expect((box.minX + box.maxX) / 2).toBeCloseTo(space.width / 2, 6);
+    expect((box.minY + box.maxY) / 2).toBeCloseTo(space.height / 2, 6);
+  });
+
+  it('maps the goal with the same transform as the strokes in a slate space', () => {
+    const level = LETTER_LEVELS[5] as LevelDef;
+    const projected = levelForSpace(level, FIELD_SPACES['slate-landscape']);
+    const lastPoint = projected.strokes.at(-1)?.at(-1);
+    expect(lastPoint).toBeDefined();
+    if (lastPoint) {
+      expect(projected.goal.x).toBeCloseTo(lastPoint.x, 9);
+      expect(projected.goal.y).toBeCloseTo(lastPoint.y, 9);
+    }
+  });
+
+  it('returns an untouched copy for a level without strokes', () => {
+    const level: LevelDef = {
+      goal: { x: 215, y: 470 },
+      goalArt: '/art/goal/empty.webp',
+      id: 'empty',
+      stroke: 'line',
+      strokes: [],
+    };
+    const projected = levelForSpace(level, FIELD_SPACES['tablet-portrait']);
+    expect(projected).not.toBe(level);
+    expect(projected.goal).toEqual(level.goal);
+    expect(projected.strokes).toEqual([]);
+    expect(projectionScaleFor(level, FIELD_SPACES['tablet-portrait'])).toBe(1);
   });
 });

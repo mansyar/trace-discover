@@ -607,7 +607,10 @@ describe('menu pager affordances (beyond the six-card capacity)', () => {
 
   it('keeps the pager row clear of the lifted paginated park (both orientations)', () => {
     for (const field of CAPACITY_FIELDS) {
-      const zone = mascotZone(menuParkPosition(field.width, field.height, true), MASCOT_SCALE_MENU);
+      const zone = mascotZone(
+        menuParkPosition(field.width, field.height, true),
+        Math.min(field.width, field.height) * MASCOT_SCALE_MENU,
+      );
       const pager = menuPagerLayout(field.width, field.height, 3);
       for (const spot of [pager.prev, pager.next, ...pager.dots]) {
         expect(spotDistance(zone, spot)).toBeGreaterThan(zone.radius);
@@ -722,5 +725,38 @@ describe('menu dot strips and card art at capacity (29-dot letters case)', () =>
     expect(card.width).toBeLessThan(200);
     const rowCount = new Set(menuDotPositions(LETTER_DOTS, card).map((dot) => dot.y)).size;
     expect(rowCount).toBeLessThanOrEqual(5);
+  });
+});
+
+describe('menuLayout at tablet portrait spaces', () => {
+  // Six packs: the shipping count with the runtime name card (menus capacity).
+  const IDS = ['pre', 'numbers', 'abc', 'shapes', 'animals', 'name'] as const;
+
+  for (const [width, height] of [
+    [960, 1280],
+    [800, 1280],
+  ] as const) {
+    it(`${width}x${height}: uses the two-column grid so the park keeps its band`, () => {
+      const layout = menuLayout(width, height, IDS);
+      const columns = new Set(layout.cards.map((card) => card.x));
+      expect(columns.size).toBe(2);
+      // Cards never reach the parked mascot's band at the bottom of the field.
+      const cardBottom = Math.max(...layout.cards.map((card) => card.y + card.height));
+      const park = menuParkPosition(width, height, false, Math.min(width, height) * 0.32);
+      const size = Math.min(width, height) * 0.32;
+      expect(cardBottom).toBeLessThan(park.y + size * 0.38 - size / 2);
+    });
+  }
+
+  it('keeps the shipped phone portrait stack and grid exactly', () => {
+    // Four cards: the authored single full-width column.
+    const four = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, ['pre', 'numbers', 'abc', 'shapes']);
+    expect(new Set(four.cards.map((card) => card.x)).size).toBe(1);
+    expect(four.cards[0]).toEqual({ height: 150, packId: 'pre', width: 300, x: 65, y: 85 });
+    // Six cards: the authored compact two-column grid.
+    const six = menuLayout(FIELD_WIDTH, FIELD_HEIGHT, IDS);
+    expect(new Set(six.cards.map((card) => card.x)).size).toBe(2);
+    const park = menuParkPosition(FIELD_WIDTH, FIELD_HEIGHT, false, FIELD_WIDTH * 0.32);
+    expect(park).toEqual({ x: 215, y: 735 });
   });
 });

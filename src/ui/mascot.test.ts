@@ -3,6 +3,7 @@ import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { createConfetti } from '../render/confetti';
 import {
   canGiggle,
+  clampPark,
   hitMascot,
   MASCOT_GIGGLE_COOLDOWN_MS,
   MASCOT_SPARKLE_COUNT,
@@ -52,11 +53,11 @@ function ids(count: number): readonly string[] {
 }
 
 function menuZone(): MascotZone {
-  return mascotZone(MENU_PARK, MASCOT_SCALE_MENU);
+  return mascotZone(MENU_PARK, FIELD_WIDTH * MASCOT_SCALE_MENU);
 }
 
 function packZone(): MascotZone {
-  return mascotZone(PACK_PARK, MASCOT_SCALE_PACK);
+  return mascotZone(PACK_PARK, FIELD_WIDTH * MASCOT_SCALE_PACK);
 }
 
 /** Shortest distance from the zone's center to a rectangle (0 when inside). */
@@ -86,6 +87,24 @@ describe('mascotZone', () => {
     expect(zone.x).toBe(PACK_PARK.x);
     expect(zone.y).toBeCloseTo(PACK_PARK.y + size * SPRITE_OFFSET_Y, 5);
     expect(zone.radius).toBeCloseTo(size / 2, 5);
+  });
+
+  it('takes the sprite size in field units, so it follows the active field height', () => {
+    // The sprite is sized off the field height (min dimension) in src/main.ts:
+    // on the phone field and in landscape that is the 430 width, on a tablet
+    // portrait field it is the 960 width. The zone must follow that number.
+    const cases = [
+      { height: 860, size: 430 * MASCOT_SCALE_MENU, width: 430 },
+      { height: 430, size: 430 * MASCOT_SCALE_MENU, width: 860 },
+      { height: 1280, size: 960 * MASCOT_SCALE_MENU, width: 960 },
+    ];
+    for (const { height, size, width } of cases) {
+      const park = { x: width / 2, y: height * 0.62 };
+      const zone = mascotZone(park, size);
+      expect(zone.x).toBe(park.x);
+      expect(zone.y).toBeCloseTo(park.y + size * SPRITE_OFFSET_Y, 5);
+      expect(zone.radius).toBeCloseTo(size / 2, 5);
+    }
   });
 
   it('stays fully inside the field on both screens', () => {
@@ -234,5 +253,42 @@ describe('giggle sparkle recipe', () => {
     }
     expect(MASCOT_SPARKLE_COUNT).toBeGreaterThanOrEqual(6);
     expect(MASCOT_SPARKLE_COUNT).toBeLessThanOrEqual(16);
+  });
+});
+
+describe('clampPark (tablet spaces keep the parked mascot whole)', () => {
+  /** Portrait menu park, mirroring src/main.ts park + scale. */
+  const menuPark = (width: number, height: number) => ({
+    x: width / 2,
+    y: height - (width > height ? 130 : 125),
+  });
+
+  it('leaves the authored phone parks untouched', () => {
+    const portrait = clampPark(menuPark(430, 860), 430 * MASCOT_SCALE_MENU, 430, 860);
+    expect(portrait).toEqual({ x: 215, y: 735 });
+    const wide = clampPark({ x: 805, y: 215 }, 430 * MASCOT_SCALE_PACK, 860, 430);
+    // The authored wide-field park kisses the edge by under a unit; that stays.
+    expect(wide).toEqual({ x: 805, y: 215 });
+  });
+
+  it('pulls a tablet portrait park up so the sprite box stays inside', () => {
+    const park = clampPark(menuPark(960, 1280), 960 * MASCOT_SCALE_MENU, 960, 1280);
+    const size = 960 * MASCOT_SCALE_MENU;
+    const bottom = park.y + size * (SPRITE_OFFSET_Y + 0.5);
+    expect(bottom).toBeLessThanOrEqual(1280);
+    expect(bottom).toBeCloseTo(1280, 5);
+    expect(park.x).toBe(480);
+  });
+
+  it('pulls a tablet landscape park in from the right edge', () => {
+    const size = 960 * MASCOT_SCALE_PACK;
+    const park = clampPark({ x: 1280 - 55, y: 480 }, size, 1280, 960);
+    expect(park.x + size / 2).toBeLessThanOrEqual(1280);
+    expect(park.x + size / 2).toBeCloseTo(1280, 5);
+  });
+
+  it('is a no-op for a park that already fits or has no sprite', () => {
+    expect(clampPark({ x: 100, y: 100 }, 0, 430, 860)).toEqual({ x: 100, y: 100 });
+    expect(clampPark({ x: 100, y: 100 }, 40, 430, 860)).toEqual({ x: 100, y: 100 });
   });
 });

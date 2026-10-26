@@ -6,6 +6,7 @@
 // a cleared level shows its sticker.
 import type { Point } from '../engine/types';
 import { hasSticker, type SaveData } from '../save/store';
+import { clampPark } from './mascot';
 
 export interface PackCard {
   readonly height: number;
@@ -63,10 +64,15 @@ const SLOT_GAP_LANDSCAPE = 12;
 const SLOT_RADIUS = 20;
 const SLOT_RADIUS_LANDSCAPE = 16;
 const SLOT_ROW_GAP = 4;
-const SLOT_TOP = 692;
+/** Portrait shelf distance from the field's bottom edge (860 − 692): the shelf
+ *  keeps its authored spot on the phone and stays above the home/pager row on a
+ *  taller tablet field instead of stranding itself mid-screen. */
+const SLOT_BOTTOM_OFFSET_PORTRAIT = 168;
 const SLOT_BOTTOM_OFFSET_LANDSCAPE = 90;
 const SLOT_BAND_LEFT_LANDSCAPE = 110;
-const SLOT_BAND_WIDTH_LANDSCAPE = 630;
+/** Landscape band inset from the field's right edge (860 − 740): the band always
+ *  runs from the cleared home corner to just short of the parked mascot. */
+const SLOT_BAND_RIGHT_INSET_LANDSCAPE = 120;
 const DEFAULT_SLOTS_PER_ROW = 5;
 const PAGER_RADIUS = 45;
 const PAGER_GAP = 10;
@@ -86,7 +92,9 @@ export function packLayout(
   const slotsPerRow = options.slotsPerRow ?? DEFAULT_SLOTS_PER_ROW;
   const landscape = fieldWidth > fieldHeight;
   const gridTop = landscape ? GRID_TOP_LANDSCAPE : GRID_TOP;
-  const slotTop = landscape ? fieldHeight - SLOT_BOTTOM_OFFSET_LANDSCAPE : SLOT_TOP;
+  const slotTop = landscape
+    ? fieldHeight - SLOT_BOTTOM_OFFSET_LANDSCAPE
+    : fieldHeight - SLOT_BOTTOM_OFFSET_PORTRAIT;
   // Landscape shifts the grid left of centre, keeping the mascot band clear.
   const centerX = landscape ? fieldWidth / 2 - GRID_CENTER_OFFSET_LANDSCAPE : fieldWidth / 2;
   const cards = levelIds.map((levelId, index): PackCard => {
@@ -106,9 +114,10 @@ export function packLayout(
   const slotRadius = landscape ? SLOT_RADIUS_LANDSCAPE : SLOT_RADIUS;
   const slotGap = landscape ? SLOT_GAP_LANDSCAPE : SLOT_GAP;
   const slotRowWidth = slotsPerRow * slotRadius * 2 + (slotsPerRow - 1) * slotGap;
+  const slotBandWidth = fieldWidth - SLOT_BAND_RIGHT_INSET_LANDSCAPE - SLOT_BAND_LEFT_LANDSCAPE;
   // Landscape keeps the shelf in one row, centred between home and the mascot band.
   const slotStartX = landscape
-    ? SLOT_BAND_LEFT_LANDSCAPE + (SLOT_BAND_WIDTH_LANDSCAPE - slotRowWidth) / 2
+    ? SLOT_BAND_LEFT_LANDSCAPE + (slotBandWidth - slotRowWidth) / 2
     : centerX - slotRowWidth / 2;
   const slots = levelIds.map(
     (levelId, index): PackSlot => ({
@@ -239,10 +248,26 @@ function inSpot(spot: PackPagerSpot, point: Point): boolean {
   return Math.hypot(point.x - spot.x, point.y - spot.y) <= spot.radius;
 }
 
-/** Mascot park: between grid and shelf in portrait; beside the grid in the wide field. */
-export function packParkPosition(fieldWidth: number, fieldHeight: number): Point {
+/** Mascot park: between grid and shelf in portrait; beside the grid in the wide
+ *  field. The authored offsets are phone units, so a bigger field pulls the park
+ *  in far enough to keep the whole sprite inside (see `clampPark`). */
+export function packParkPosition(fieldWidth: number, fieldHeight: number, mascotSize = 0): Point {
   if (fieldWidth > fieldHeight) {
-    return { x: fieldWidth - PACK_PARK_RIGHT_OFFSET_LANDSCAPE, y: fieldHeight / 2 };
+    return clampPark(
+      { x: fieldWidth - PACK_PARK_RIGHT_OFFSET_LANDSCAPE, y: fieldHeight / 2 },
+      mascotSize,
+      fieldWidth,
+      fieldHeight,
+    );
   }
-  return { x: fieldWidth / 2, y: fieldHeight - PACK_PARK_BOTTOM_OFFSET_PORTRAIT };
+  // Portrait: the mascot stands between the grid and the sticker shelf, and a
+  // bigger field grows the sprite, so its box stops at the shelf's band rather
+  // than covering the stickers it is standing next to.
+  return clampPark(
+    { x: fieldWidth / 2, y: fieldHeight - PACK_PARK_BOTTOM_OFFSET_PORTRAIT },
+    mascotSize,
+    fieldWidth,
+    fieldHeight,
+    fieldHeight - SLOT_BOTTOM_OFFSET_PORTRAIT,
+  );
 }
