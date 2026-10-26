@@ -1,5 +1,7 @@
 # Project Context
 
+<!-- conductor-version: 2 -->
+
 ## Definition
 
 - [Product Definition](./product.md)

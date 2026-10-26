@@ -28,3 +28,6 @@ dev/art-src/*/*.trace.json
 dev/ref/
 dev/package-lock.json
 .freebuff/
+
+# Conductor runtime state (evidence, backups, run state)
+.conductor/
