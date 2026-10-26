@@ -206,18 +206,37 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `src/app/app.ts`, `dev/qa/**`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the
   per-screen tablet screenshot matrix
-- **Status:** pending
+- **Status:** in_progress
 
-- [ ] **P4.T1: Menu + skin button + gate corner + mascot park at every new
-      space**; screenshots → owner approval
-  - [ ] Commit + git note
-- [ ] **P4.T2: Pack screens** — per-pack grids, pagers, sticker shelves, badge
+- [~] **P4.T1: Menu + skin button + gate corner + mascot park at every new
+      space**; screenshots → owner approval — the parked mascot is now fitted to
+      its sprite box (`clampPark`, 1-unit tolerance keeps the phone parks
+      byte-identical), a 4:3-or-taller portrait field uses the two-column grid
+      instead of six full-width cards over the mascot's band, and the
+      parent-gate hint hangs off the gate's right edge instead of `FIELD_WIDTH`
+      (it landed over the left column on any wider field). 77-shot sweep, 0
+      failures; awaiting owner approval
+  - [~] Commit + git note (ca044bf, 93c863c)
+- [~] **P4.T2: Pack screens** — per-pack grids, pagers, sticker shelves, badge
       seal and home recompose in-bounds at every new space; screenshots → owner
-      approval
-  - [ ] Commit + git note
-- [ ] **P4.T3: Sticker board, success, badge and splash at every new space**
-      (target floors held); screenshots → owner approval
-  - [ ] Commit + git note
+      approval — all six static packs × six spaces plus the ABC pager page: every
+      target a half-floor inside the field; the portrait shelf is anchored 168
+      units above the field bottom (was an absolute 692, which stranded it
+      mid-screen), the landscape band runs to `fieldWidth − 120` (was a fixed
+      630 wide), the mascot stops at the shelf line, and the badge seal keeps the
+      phone's share of the field height; awaiting owner approval
+  - [~] Commit + git note (ca044bf, 93c863c)
+- [~] **P4.T3: Sticker board, success, badge and splash at every new space**
+      (target floors held); screenshots → owner approval — splash, board,
+      success and badge captured at all six spaces; the in-level character is
+      capped at the authored 31 % share of the field height (was 46 % on a 4:3
+      portrait field, which clipped the body) and the success park is clamped;
+      the board holds the 90-unit floor on every tablet space (the phone board's
+      pre-existing sub-floor 29-level grid is excluded); awaiting owner approval
+  - [~] Commit + git note (ca044bf, 93c863c)
+
+**Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-4.md
+(awaiting the P4.T1–P4.T3 owner gate)
 
 ## Phase 5: Parent surfaces at tablet spaces
 
