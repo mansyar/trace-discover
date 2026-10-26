@@ -86,6 +86,7 @@ Start the right server first, then run the script (most accept a URL argument).
 | `qa-tablet-rows.mjs` | Tablet word-row band evidence (`tablet-fit_20261006` task 4): 7-letter My Name row, shortest-name cap reference and the ABC bonus row in both tablet/slate spaces + both phone references, with live band-fit, growth, authored-cap and mascot-park-fraction assertions (park measured off the live `.char-canvas` rect) plus labelled screenshots + gallery in `qa/out/tablet-rows/` | dev `:5199` | one-off |
 | `qa-tablet-rotate.mjs` | Tablet mid-trace rotation evidence (`tablet-fit_20261006` Phase 2 task 3): traces `pre-1` partway, rotates 4:3 and 16:10 tablets between portrait and landscape (both directions) mid-trace, asserts the space re-selected / stroke index + proportional progress kept (`window.__app.progress()`) / the level still completes, and writes labelled before/after shots + level close-ups + gallery in `qa/out/tablet-rotate/` | dev `:5199` | one-off |
 | `qa-tablet-trail.mjs` | Tablet word-row trail-guide measurement (`tablet-fit_20261006`): the 7-letter My Name row in all six spaces, measuring the rendered guide from the trail canvas (ribbon width, dot diameter) and reporting every dimension in field units, device px and per-letter ratio → verbatim evidence the tablet guide needs no change | dev `:5199` | one-off |
+| `qa-tablet-backdrops.mjs` | Tablet backdrop/art fit evidence (`tablet-fit_20261006` Phase 3): six skins × all six spaces, measured from the live canvas — every edge is backdrop (no field fill left over) and eight points per space match the documented cover-crop of the same 1024² image, computed independently in the probe; then traces `pre-1` to success on each tablet space and asserts the wash reaches every edge and the confetti spans all four quadrants. Labelled shots + gallery in `qa/out/tablet-backdrops/` | dev `:5199` | one-off |
 | `qa-pack-preview.mjs` | Pack preview harness smoke over every JSON pack: spot-checks first/middle/last level + first bonus per pack (or `--all` for every level), checkpoint counts, default-url fallback (pack-pipeline_20260917; all packs since pack-pipeline-2_20260917) | dev `:5199` | canonical |
 | `qa-menu-capacity.mjs` | Menu capacity matrix shots: 3–6 cards × portrait/landscape + the My Name card case (`menu-capacity_20260917`) | dev `:5199` | canonical |
 | `qa-animals-sweep.mjs` | Animals pack full app flow — traces all 8 levels to success in one chain (badge award, zero page errors) (`animal-outlines_20260919`) | dev `:5199` | canonical |
@@ -117,8 +118,8 @@ in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
 `pwa-asset-strategy_20260924` (2026-09-24); `qa-readiness` + `qa-character`
 added and `qa-offline` extended in `offline-resilience_20260924` (2026-09-26);
 `qa-tablet-rows` added in `tablet-fit_20261006` (2026-10-06),
-`qa-tablet-trail` in the same track (2026-10-07) and `qa-tablet-rotate` in the
-same track (2026-10-26).*
+`qa-tablet-trail` in the same track (2026-10-07), `qa-tablet-rotate` and
+`qa-tablet-backdrops` in the same track (2026-10-26).*
 
 ## PWA asset strategy and verification
 
