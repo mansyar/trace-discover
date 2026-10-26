@@ -80,7 +80,7 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   `conductor/tech-stack.md`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test` plus the live
   rotation/row probes under `dev/qa/`
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P2.T1: Projection generalization for tablet boxes (TDD)** (174c10a)
   - [x] Red: single glyphs fit-and-center in each new space (scale ≤ 1.0,
@@ -104,9 +104,15 @@ checkpoint or commit SHA. The inline verification task is now the phase's
   - [x] Verify coverage (session.ts 98.3/93.58/100/98.29; global
         76.97/79.5/91.51/76.56, up from 76.61/79.26/91.28/76.23)
   - [x] Commit + git note
-- [ ] **P2.T3: Mid-trace tablet rotation evidence** — screenshots at 4:3 and
-      16:10 in both orientations → owner sanity check
-- [~] **P2.T4: Word rows recompose into the active space's box (TDD)** (abe9674) — decided
+- [x] **P2.T3: Mid-trace tablet rotation evidence** — screenshots at 4:3 and
+      16:10 in both orientations → owner sanity check (6bcb70d) — evidence
+      captured by `dev/qa/qa-tablet-rotate.mjs`: 31 live assertions across the
+      four rotations (space re-selected, level kept, stroke index kept, progress
+      0.500 → 0.500, run completes, 0 page errors); 8 before/after shots,
+      close-ups and a gallery in `dev/qa/out/tablet-rotate/`; the additive
+      `window.__app.progress()` probe it needed is reused by the Phase 6 matrix;
+      owner approved 2026-10-26
+- [x] **P2.T4: Word rows recompose into the active space's box (TDD)** (abe9674) — decided
       2026-10-06
   - [x] Red: box selection for a `FieldSpace` (space-aware replacements for
         `NAME_BOX` / `WIDE_WORD_BOX`); a 5-letter name reaches the scale cap and
@@ -130,14 +136,18 @@ checkpoint or commit SHA. The inline verification task is now the phase's
         thicker trail, larger dots or wider tip; the one disproportionate guide
         is the pre-existing portrait-phone long name (0.508), out of scope here.
         Recorded in `tech-stack.md` (2026-10-07). No code change.
-  - [ ] Row band placement inside the larger tablet boxes: screenshots at 4:3
+  - [x] Row band placement inside the larger tablet boxes: screenshots at 4:3
         and 16:10 in both orientations → owner approval — evidence captured by
         `dev/qa/qa-tablet-rows.mjs` (the menu pager spots are now exposed by
         `targets()`, so the paginated runtime name card can be driven): 155 live
         assertions pass with 0 failures, 16 labelled shots + gallery in
-        `dev/qa/out/tablet-rows/`; awaiting owner sign-off
+        `dev/qa/out/tablet-rows/`; owner approved 2026-10-26
   - [x] Verify coverage
   - [x] Commit + git note
+
+**Result:** verified
+**Checkpoint:** 6bcb70d
+**Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-2.md
 
 ## Phase 3: Backdrop and art fit — cover-crop with a fixed anchor
 
