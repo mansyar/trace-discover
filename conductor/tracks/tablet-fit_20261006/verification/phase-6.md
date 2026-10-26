@@ -91,7 +91,7 @@ pre-track baseline**, no new asset, no new dependency.
 
 | ID | Criterion | Evidence | Status |
 | --- | --- | --- | --- |
-| AC1 | Every screen fills the viewport on iPad 4:3 and Android 16:10, both orientations | matrix: 44 screens' worth of `assertFill` at ≤ 1 px bars across the four spaces | met |
+| AC1 | Every screen fills the viewport on iPad 4:3 and Android 16:10, both orientations | matrix: 41 field-fill assertions (39 exact-anchor at ≤ 1 px bars plus the centered 3:2 case) | met |
 | AC2 | Dead space on 1024×1366 drops from ~170 px per side to zero | field = viewport at the exact 4:3 anchor (0 px bars); 1024×1366 resolves to `tablet-portrait` | met |
 | AC3 | All child screens in-bounds with target floors | matrix + `qa-tablet-surfaces` (77 shots) | met |
 | AC4 | Rotating mid-trace loses no progress, no crash, instant reflow | matrix rotations: stroke index kept, progress ratio ±0.02, run completes, both families both directions | met |
