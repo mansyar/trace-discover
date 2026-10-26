@@ -374,8 +374,29 @@ const INSTALL_VARIANT: InstallVariant = installVariant({
 /** Lazily-created DOM field for the parent-set name (child screens never see it). */
 let nameInput: HTMLInputElement | null = null;
 
+/**
+ * On-screen keyboard height in field units. iOS shrinks the visual viewport
+ * without resizing the layout viewport, so the covered strip is what the
+ * keyboard is hiding; Android resizes the layout viewport instead and needs
+ * no inset (the field refits under it).
+ */
+function keyboardInsetUnits(): number {
+  const viewport = window.visualViewport;
+  if (!viewport || !nameInput?.classList.contains('is-open')) {
+    return 0;
+  }
+  const covered = Math.max(0, window.innerHeight - (viewport.height + viewport.offsetTop));
+  const unitsPerCssPixel = field.height / space.height;
+  return unitsPerCssPixel > 0 ? covered / unitsPerCssPixel : 0;
+}
+
 function currentNameOverlay(): NameOverlayLayout {
-  return nameOverlayLayout(space.width, space.height, app.save.name !== undefined);
+  return nameOverlayLayout(
+    space.width,
+    space.height,
+    app.save.name !== undefined,
+    keyboardInsetUnits(),
+  );
 }
 
 function ensureNameInput(): HTMLInputElement {
@@ -411,7 +432,8 @@ function positionNameInput(): void {
   nameInput.style.top = `${field.y + overlay.field.y * scale}px`;
   nameInput.style.width = `${overlay.field.width * scale}px`;
   nameInput.style.height = `${overlay.field.height * scale}px`;
-  nameInput.style.fontSize = `${Math.round(overlay.field.height * scale * 0.55)}px`;
+  // 16px is iOS Safari's no-zoom floor: a smaller field never makes it zoom in.
+  nameInput.style.fontSize = `${Math.max(16, Math.round(overlay.field.height * scale * 0.55))}px`;
 }
 
 /** Shows / hides the DOM field with the overlay screen state. */
@@ -1699,6 +1721,10 @@ window.addEventListener('online', () => {
   retryCharacter();
   warmContentWhenBackOnline();
 });
+// The visual viewport tracks the soft keyboard (and iOS's page scroll while it
+// is up), so the name panel lifts above it as soon as it opens.
+window.visualViewport?.addEventListener('resize', positionNameInput);
+window.visualViewport?.addEventListener('scroll', positionNameInput);
 window.addEventListener('resize', resize);
 void bootContentReadiness();
 hideCharacter();

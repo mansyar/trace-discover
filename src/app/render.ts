@@ -13,7 +13,7 @@ import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
 import type { SkinDef } from '../skins/skins';
 import type { BadgeLayout } from '../ui/badge';
-import type { InstallVariant } from '../ui/install';
+import { type InstallVariant, installPanelLayout } from '../ui/install';
 import {
   gateArcEnd,
   MENU_DOT_RADIUS,
@@ -1225,24 +1225,21 @@ function drawInstallPanel(
   variant: InstallVariant,
   design: { readonly width: number; readonly height: number },
 ): void {
-  const wide = design.width > design.height;
-  const panelTop = wide ? 40 : 120;
-  const panelHeight = wide ? design.height - 80 : 620;
-  const lineHeight = wide ? 36 : 52;
-  const startY = wide ? panelTop + 40 : 190;
+  const layout = installPanelLayout(design.width, design.height);
+  const { panel } = layout;
   ctx.beginPath();
-  ctx.roundRect(40, panelTop, design.width - 80, panelHeight, 18);
+  ctx.roundRect(panel.x, panel.y, panel.width, panel.height, 18);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.97)';
   ctx.fill();
   ctx.lineWidth = 4;
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   ctx.fillStyle = NAVY;
-  ctx.font = wide ? '22px system-ui, sans-serif' : '26px system-ui, sans-serif';
+  ctx.font = `${layout.fontSize}px system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const [index, line] of INSTALL_LINES[variant].entries()) {
-    ctx.fillText(line, design.width / 2, startY + index * lineHeight);
+    ctx.fillText(line, design.width / 2, layout.startY + index * layout.lineHeight);
   }
 }
 
@@ -1274,7 +1271,7 @@ export function drawParent(
   ctx.font = '30px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Grown-ups', design.width / 2, 70);
+  ctx.fillText('Grown-ups', layout.title.x, layout.title.y);
   for (const card of layout.cards) {
     drawZoneCard(ctx, card);
   }
@@ -1355,10 +1352,7 @@ export function drawParent(
   );
   if (!confirmReset || wide) {
     ctx.font = '24px system-ui, sans-serif';
-    const trophyAnchor = layout.trophies[1] ?? layout.trophies[0];
-    if (trophyAnchor) {
-      ctx.fillText('Trophies', trophyAnchor.x, wide ? trophyAnchor.y - 40 : 672);
-    }
+    ctx.fillText('Trophies', layout.trophyLabel.x, layout.trophyLabel.y);
     layout.trophies.forEach((slot, index) => {
       ctx.beginPath();
       if (index < trophies.length) {
@@ -1415,7 +1409,7 @@ export function drawParent(
     pressT('done'),
   );
   if (confirmReset) {
-    const bannerY = wide ? 10 : 648;
+    const bannerY = wide ? 10 : layout.trophyLabel.y - 24;
     const bannerHeight = wide ? 90 : 64;
     ctx.beginPath();
     ctx.roundRect(40, bannerY, design.width - 80, bannerHeight, 16);
@@ -1451,6 +1445,7 @@ export function drawNameOverlay(
   ctx.fillStyle = 'rgba(46, 74, 99, 0.45)';
   ctx.fillRect(0, 0, design.width, design.height);
   const { panel, field } = layout;
+  const scale = layout.scale;
   ctx.beginPath();
   ctx.rect(panel.x, panel.y, panel.width, panel.height);
   ctx.fillStyle = '#ffffff';
@@ -1459,10 +1454,10 @@ export function drawNameOverlay(
   ctx.strokeStyle = NAVY;
   ctx.stroke();
   ctx.fillStyle = NAVY;
-  ctx.font = '26px system-ui, sans-serif';
+  ctx.font = `${Math.round(26 * scale)}px system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText("Child's name", design.width / 2, panel.y + 36);
+  ctx.fillText("Child's name", design.width / 2, panel.y + 36 * scale);
   ctx.beginPath();
   ctx.rect(field.x, field.y, field.width, field.height);
   ctx.setLineDash([8, 6]);
@@ -1471,8 +1466,8 @@ export function drawNameOverlay(
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = NAVY;
-  ctx.font = '22px system-ui, sans-serif';
-  ctx.fillText('2-7 letters, A-Z', design.width / 2, field.y + field.height + 34);
+  ctx.font = `${Math.round(22 * scale)}px system-ui, sans-serif`;
+  ctx.fillText('2-7 letters, A-Z', design.width / 2, field.y + field.height + 34 * scale);
   drawZoneButton(ctx, layout.save.x, layout.save.y, layout.save.radius, false, '✓', 'save');
   if (layout.clear) {
     drawZoneButton(ctx, layout.clear.x, layout.clear.y, layout.clear.radius, false, '⌫', 'clear');
