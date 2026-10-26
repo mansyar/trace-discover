@@ -1356,6 +1356,16 @@ declare global {
       readonly orientation: () => Orientation;
       readonly moment: () => AppState['stickerMoment'];
       readonly path: () => readonly Point[];
+      /**
+       * Tracing progress (dev QA): the consumed distance on the active stroke,
+       * that stroke's index, and the level's total path length. Read across a
+       * space change to prove a reflow kept the run's position.
+       */
+      readonly progress: () => {
+        readonly frontier: number;
+        readonly strokeIndex: number;
+        readonly total: number;
+      };
       readonly screen: () => AppState['screen'];
       /** Active design space (dev QA): the anchor the viewport selected. */
       readonly space: () => FieldSpace;
@@ -1516,6 +1526,17 @@ window.__app = {
   orientation: () => orientation,
   moment: () => app.stickerMoment,
   path: () => (session ? (session.snapshot().multi.strokes[0]?.points ?? []) : []),
+  progress: () => {
+    if (!session) {
+      return { frontier: 0, strokeIndex: 0, total: 0 };
+    }
+    const snapshot = session.snapshot();
+    return {
+      frontier: snapshot.frontier,
+      strokeIndex: snapshot.multiState.strokeIndex,
+      total: snapshot.multi.total,
+    };
+  },
   screen: () => app.screen,
   space: () => ({ ...space }),
   strokes: () => (session ? session.snapshot().multi.strokes.map((stroke) => stroke.points) : []),
