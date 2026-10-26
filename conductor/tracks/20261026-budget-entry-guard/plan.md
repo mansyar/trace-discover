@@ -52,8 +52,12 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3
 - **Touches:** `dev/tools/dist-budget.mjs`, `dev/tools/dist-budget.test.ts`
 - **Verification:** `CI=true pnpm check && pnpm pack:check && CI=true pnpm test --coverage && pnpm build && pnpm budget`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **R1.T1: Resolve F1** — `--dist` takes a directory or exits 1: a missing value, a `--` token or a non-directory path errors with `dist-budget: --dist needs a directory`, so a bare flag can never measure the working directory; a CLI test covers the bare flag and a file path.
-- [ ] **R1.T2: Resolve F2** — each ceiling prints its own result, so a passing byte total still reports PASS when the entry count fails; the exit code comes from the union, and a test asserts the mixed case.
-- [ ] **R1.T3: Resolve F3** — CLI tests exercise a `--total` breach and a non-integer `--entries` value (exit 1, usage message).
+**Result:** verified
+**Checkpoint:** fa84cd3
+**Evidence:** conductor/tracks/20261026-budget-entry-guard/verification/phase-R1.md
+
+- [x] **R1.T1: Resolve F1** — `--dist` takes a directory or exits 1: a missing value, a `--` token or a non-directory path errors with `dist-budget: --dist needs a directory`, so a bare flag can never measure the working directory; a CLI test covers the bare flag and a file path.
+- [x] **R1.T2: Resolve F2** — each ceiling prints its own result, so a passing byte total still reports PASS when the entry count fails; the exit code comes from the union, and a test asserts the mixed case.
+- [x] **R1.T3: Resolve F3** — CLI tests exercise a `--total` breach and a non-integer `--entries` value (exit 1, usage message).
