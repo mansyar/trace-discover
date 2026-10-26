@@ -13,10 +13,10 @@
   guarded entry metric, fails above 200, keeps the precache count
   informational, and a Vitest suite proves both directions on fixtures.
 - **Depends on:** none
-- **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6
+- **Covers:** FR-1, FR-2, FR-3, FR-4, FR-5, NFR-1, NFR-2, NFR-3, NFR-4, AC-1, AC-2, AC-3, AC-4, AC-5, AC-6
 - **Touches:** `dev/tools/dist-budget.mjs`, `dev/tools/dist-budget.test.ts`
 - **Verification:** `CI=true pnpm check && pnpm pack:check && CI=true pnpm test --coverage && pnpm build && pnpm budget`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Extract the measurement into an exported pure function** — covers: FR-5
   - [ ] **P1.T1.1: Move the walk and the group/subgroup tallies into `measureDist(dir)`, returning total bytes, file count, shipped count, precache count and the group maps, keeping the existing `sw.js` / `workbox-*` exclusion.**
