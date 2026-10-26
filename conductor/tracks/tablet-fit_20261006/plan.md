@@ -367,10 +367,22 @@ checkpoint or commit SHA. The inline verification task is now the phase's
 - **Touches:** `src/ui/mascot.ts`, `src/ui/mascot.test.ts`, `src/main.ts`, `src/dev/screens.ts`,
   `src/app/render.ts`, `src/app/render.test.ts`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test`
-- **Status:** pending
+- **Status:** verified
 
-- [ ] **R2.T1: Resolve F1** — `mascotZone` takes the sprite size in field units instead of deriving
+- [x] **R2.T1: Resolve F1** — `mascotZone` takes the sprite size in field units instead of deriving
       it from `FIELD_WIDTH`; `tryGiggle` passes `mascotSize(scale)` and the dev tuning overlay passes
       the phone-sized sprite it draws; a tablet case asserts the zone is the sprite's inscribed box
-- [ ] **R2.T2: Resolve F2** — the placeholder sun keeps `y = 150` on both phone references and the
-      same share of the short edge on a tablet space; a painter test locks all three cases
+      — the red run failed 11 tests against the scale-based signature (a 4:3 portrait zone came out
+      18,616 units wide); after the fix the zone is 153.6 units on the 307-unit 4:3 sprite and 68.8
+      on the 138-unit phone sprite, and a live probe on the production build started the giggle note
+      from the sprite's outer half on all four spaces (and still ignored a tap 0.9 widths out)
+  - [x] Commit + git note
+- [x] **R2.T2: Resolve F2** — the placeholder sun keeps `y = 150` on both phone references and the
+      same share of the short edge on a tablet space; a painter test locks all three cases — the red
+      run caught the phone landscape at `y = 75`; the share is now taken against the orientation's
+      reference height (860 portrait / 430 landscape), so both phone references sit at 150 again
+  - [x] Commit + git note
+
+**Result:** verified
+**Checkpoint:** 2348307
+**Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-R2.md

@@ -5,8 +5,8 @@
 - **Branch:** `track/tablet-fit`
 - **Range:** `d7c8765..HEAD` (38 code files, +5,290 / −289; reviewed per phase checkpoint plus the cross-phase diff — large-review volume strategy)
 - **Date:** 2026-10-26
-- **Round:** 1
-- **Verdict:** **PASS WITH FINDINGS** (no Critical/High; one Medium goes to Phase R2)
+- **Round:** 2 (round 1: PASS WITH FINDINGS — F1, F2 fixed in Phase R2; F3, F4 recorded as debt)
+- **Verdict:** **PASS**
 
 ## Summary
 
@@ -44,7 +44,7 @@ no requirement is unmet.
 | FR3 | Level composition per space, rows recompose | `packs/wide.ts` `levelForSpace`, `packs/word.ts` `wordRowBox`, `packs/name.ts`, `packs/letters.ts` | `wide.test.ts`, `wordSpace.test.ts`, `qa-tablet-rows`, `qa-tablet-trail` | covered |
 | FR4 | Cover-crop + fixed anchor | `src/render/backdropFit.ts`, `drawBackdrop`, `drawDuskPlaceholder` | `backdropFit.test.ts`, `qa-tablet-backdrops` | covered |
 | FR5 | Child surfaces recompose, 90 px floor | `ui/menu.ts`, `ui/pack.ts`, `ui/mascot.ts`, `ui/badge.ts`, `render.ts` | `qa-tablet-surfaces` (77 shots), `qa-tablet` | covered |
-| FR6 | Parent zone, overlay, install panel | `ui/parentZone.ts`, `ui/install.ts`, `main.ts` keyboard inset | `parentZone.test.ts`, `install.test.ts`, `qa-tablet-parent`, matrix | covered (F1 unrelated, F1 is the mascot) |
+| FR6 | Parent zone, overlay, install panel | `ui/parentZone.ts`, `ui/install.ts`, `main.ts` keyboard inset | `parentZone.test.ts`, `install.test.ts`, `qa-tablet-parent`, matrix | covered |
 | FR7 | QA matrix + device pass | `dev/qa/qa-tablet.mjs` | 170 assertions; owner device pass | covered |
 | FR8 | Docs + budget | `tech-stack.md`, `product.md`, `dev/README.md` | dated notes, budget record | covered |
 | NFR | 916 tests, coverage > 80 % on new logic | — | 82.12 / 83.30 / 93.70 / 81.79; new modules 100 % | covered |
@@ -64,7 +64,7 @@ no requirement is unmet.
 
 ## Findings
 
-### F1 — Medium: the parked mascot's tap zone is still phone-sized, so tablet taps miss the sprite
+### F1 — Medium: the parked mascot's tap zone is still phone-sized, so tablet taps miss the sprite — **fixed in Phase R2**
 
 - **Where:** `src/ui/mascot.ts:68` (`mascotZone`), used by `src/main.ts:850` (`tryGiggle`).
 - **What:** `mascotZone` computes the zone from `FIELD_WIDTH * scale` and `MASCOT_OFFSET_Y`, i.e. a
@@ -86,7 +86,7 @@ no requirement is unmet.
   every delivered target).
 - **Test gap:** `mascot.test.ts` only ever measured a phone-sized sprite.
 
-### F2 — Low: the dusk placeholder's sun moved on the phone landscape (parity)
+### F2 — Low: the dusk placeholder's sun moved on the phone landscape (parity) — **fixed in Phase R2**
 
 - **Where:** `src/app/render.ts` `drawDuskPlaceholder`.
 - **What:** the sun was at a fixed `y = 150` in both orientations; it is now
@@ -145,7 +145,29 @@ tuning, save schema changes, desktop/ultrawide.
 | Round | Verdict | Critical | High | Medium | Low | Fixed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | PASS WITH FINDINGS | 0 | 0 | 1 (F1) | 3 (F2, F3, F4) | F1, F2 → Phase R2 |
+| 2 | PASS | 0 | 0 | 0 | 2 (F3, F4 as debt) | F1, F2 verified fixed at `2348307` |
+
+## Round 2 — fix verification
+
+Phase R2 (`2348307`, [evidence](verification/phase-R2.md)) resolved both actionable findings at the
+root, red first:
+
+- **F1** — `mascotZone(park, size)` now takes the sprite square in field units, and `tryGiggle`
+  passes `mascotSize(scale)` — the same number `positionCharacter` draws. The unit test covers the
+  138-, 256- and 307-unit sprites; a live probe on the production build confirms the sprite's outer
+  half now starts the giggle note on the 4:3 portrait, 16:10 portrait and 4:3 landscape spaces while
+  a tap 0.9 sprite-widths out stays ignored, and the phone still behaves exactly as shipped.
+- **F2** — the dusk sun's share is taken against the active orientation's reference height, restoring
+  `y = 150` on both phone references (the landscape had moved to 75); a painter test reads the arc
+  out of `drawLevel` and locks the phone references and the tablet share.
+
+Re-ran every gate on the fix delta: `pnpm check` clean (143 files), 918 tests / 66 files, coverage
+82.12 / 83.33 / 93.70 / 81.79, build ok, budget 5,564,592 B / 10 entries (+21 B over round 1), and the
+probes on the new build — `qa-tablet` 170 assertions / 51 shots / 0 failures, `qa-landscape` 39
+assertions green, zero-text audit clean. No new findings; no requirement regressed. F3 and F4 stay
+recorded as debt with their reasons.
 
 ## Doc sync
 
-`pending` — the post-review sync runs after Phase R2.
+`updated` — `tech-stack.md` carries the round-2 numbers and `product.md` needed no change; the track
+is complete from a review standpoint.
