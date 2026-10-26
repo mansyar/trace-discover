@@ -357,3 +357,20 @@ checkpoint or commit SHA. The inline verification task is now the phase's
 **Result:** verified
 **Checkpoint:** 66248ec
 **Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-R1.md
+
+## Phase R2: Review Fixes
+
+- **Goal:** Resolve review findings F1 (the parked mascot's tap zone is phone-sized) and F2 (the
+  dusk placeholder's sun moved on the phone landscape).
+- **Depends on:** Phase 6
+- **Covers:** F1, F2
+- **Touches:** `src/ui/mascot.ts`, `src/ui/mascot.test.ts`, `src/main.ts`, `src/dev/screens.ts`,
+  `src/app/render.ts`, `src/app/render.test.ts`
+- **Verification:** `CI=true pnpm check && CI=true pnpm test`
+- **Status:** pending
+
+- [ ] **R2.T1: Resolve F1** — `mascotZone` takes the sprite size in field units instead of deriving
+      it from `FIELD_WIDTH`; `tryGiggle` passes `mascotSize(scale)` and the dev tuning overlay passes
+      the phone-sized sprite it draws; a tablet case asserts the zone is the sprite's inscribed box
+- [ ] **R2.T2: Resolve F2** — the placeholder sun keeps `y = 150` on both phone references and the
+      same share of the short edge on a tablet space; a painter test locks all three cases

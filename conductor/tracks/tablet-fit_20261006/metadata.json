@@ -9,6 +9,8 @@
   "base_branch": "master",
   "base_sha": "d7c8765def5a0b2f73b218a685adf7cf7040e84c",
   "last_checkpoint": "7bd7483",
+  "review_verdict": "PASS WITH FINDINGS",
+  "review_rounds": 1,
   "doc_sync": "none",
   "progress": {
     "phases_total": 6,
