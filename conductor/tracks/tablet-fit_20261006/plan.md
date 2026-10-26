@@ -313,7 +313,7 @@ checkpoint or commit SHA. The inline verification task is now the phase's
       (STOP + owner decision if a target floor cannot hold) — the owner ran the
       branch on an iPad and an Android tablet from the LAN preview and confirmed
       the 4:3/16:10 fill, the name-overlay keyboard lift and the unchanged
-      phone, 2026-10-26
+      phone, 2026-10-26 — [device pass record](verification/phase-6-device.md)
 - [x] **P6.T4: Docs finalize** (`product.md` dated note, `tech-stack.md`,
       `dev/README.md` probe table); final gates `pnpm check && pnpm test`;
       coverage; dist record — `qa-tablet` is canonical in the probe table and the
