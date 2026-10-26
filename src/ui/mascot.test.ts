@@ -53,11 +53,11 @@ function ids(count: number): readonly string[] {
 }
 
 function menuZone(): MascotZone {
-  return mascotZone(MENU_PARK, MASCOT_SCALE_MENU);
+  return mascotZone(MENU_PARK, FIELD_WIDTH * MASCOT_SCALE_MENU);
 }
 
 function packZone(): MascotZone {
-  return mascotZone(PACK_PARK, MASCOT_SCALE_PACK);
+  return mascotZone(PACK_PARK, FIELD_WIDTH * MASCOT_SCALE_PACK);
 }
 
 /** Shortest distance from the zone's center to a rectangle (0 when inside). */
@@ -87,6 +87,24 @@ describe('mascotZone', () => {
     expect(zone.x).toBe(PACK_PARK.x);
     expect(zone.y).toBeCloseTo(PACK_PARK.y + size * SPRITE_OFFSET_Y, 5);
     expect(zone.radius).toBeCloseTo(size / 2, 5);
+  });
+
+  it('takes the sprite size in field units, so it follows the active field height', () => {
+    // The sprite is sized off the field height (min dimension) in src/main.ts:
+    // on the phone field and in landscape that is the 430 width, on a tablet
+    // portrait field it is the 960 width. The zone must follow that number.
+    const cases = [
+      { height: 860, size: 430 * MASCOT_SCALE_MENU, width: 430 },
+      { height: 430, size: 430 * MASCOT_SCALE_MENU, width: 860 },
+      { height: 1280, size: 960 * MASCOT_SCALE_MENU, width: 960 },
+    ];
+    for (const { height, size, width } of cases) {
+      const park = { x: width / 2, y: height * 0.62 };
+      const zone = mascotZone(park, size);
+      expect(zone.x).toBe(park.x);
+      expect(zone.y).toBeCloseTo(park.y + size * SPRITE_OFFSET_Y, 5);
+      expect(zone.radius).toBeCloseTo(size / 2, 5);
+    }
   });
 
   it('stays fully inside the field on both screens', () => {

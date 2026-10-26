@@ -847,7 +847,7 @@ function startRun(
  *  menu/pack. The character trigger is fire-and-forget; a cast without the
  *  giggle input simply stays idle while the note and sparkles still play. */
 function tryGiggle(point: Point, nowMs: number, park: Point, scale: number): void {
-  const zone = mascotZone(park, scale);
+  const zone = mascotZone(park, mascotSize(scale));
   if (!hitMascot(zone, point) || !canGiggle(nowMs, lastGiggle)) {
     return;
   }

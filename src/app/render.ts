@@ -931,7 +931,9 @@ export function drawStickerPop(
 }
 
 /** Drawn stand-in while a skin's backdrop art has not shipped yet: covers the
- *  whole active design space (the authored dusk is the portrait reference). */
+ *  whole active design space. The authored dusk is the portrait reference and
+ *  the landscape reference keeps its sun at the same 150 px, so the sun's share
+ *  is taken against the active orientation's reference height. */
 function drawDuskPlaceholder(
   ctx: CanvasRenderingContext2D,
   now: number,
@@ -956,7 +958,8 @@ function drawDuskPlaceholder(
   }
   ctx.globalAlpha = 0.9;
   ctx.beginPath();
-  ctx.arc(design.width / 2, design.height * (150 / FIELD_HEIGHT), 64, 0, Math.PI * 2);
+  const referenceHeight = design.width > design.height ? FIELD_HEIGHT / 2 : FIELD_HEIGHT;
+  ctx.arc(design.width / 2, design.height * (150 / referenceHeight), 64, 0, Math.PI * 2);
   ctx.fillStyle = accent;
   ctx.fill();
   ctx.globalAlpha = 1;

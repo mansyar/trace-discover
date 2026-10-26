@@ -494,9 +494,9 @@ function drawMascotOverlay(): void {
   if (!mascotOn || config === undefined || mascotEntrance === null) {
     return;
   }
-  const zone = mascotZone(config.park, config.scale);
-  const pos = entrancePos(mascotEntrance.timeline, mascotEntrance.state);
   const size = FIELD_WIDTH * config.scale;
+  const zone = mascotZone(config.park, size);
+  const pos = entrancePos(mascotEntrance.timeline, mascotEntrance.state);
   const centerX = pos.x;
   const centerY = pos.y + size * 0.38;
   const radius = size / 2;
@@ -660,7 +660,7 @@ function tuningTap(id: (typeof TUNING_BUTTONS)[number]['id']): void {
     if (mascotEntrance === null) {
       parkMascot();
     }
-    const zone = mascotZone(config.park, config.scale);
+    const zone = mascotZone(config.park, FIELD_WIDTH * config.scale);
     sparkles = createConfetti(MASCOT_SPARKLE_COUNT, MASCOT_SPARKLE_SEED, {
       x: zone.x,
       y: zone.y,

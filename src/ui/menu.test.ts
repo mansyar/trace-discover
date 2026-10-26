@@ -607,7 +607,10 @@ describe('menu pager affordances (beyond the six-card capacity)', () => {
 
   it('keeps the pager row clear of the lifted paginated park (both orientations)', () => {
     for (const field of CAPACITY_FIELDS) {
-      const zone = mascotZone(menuParkPosition(field.width, field.height, true), MASCOT_SCALE_MENU);
+      const zone = mascotZone(
+        menuParkPosition(field.width, field.height, true),
+        Math.min(field.width, field.height) * MASCOT_SCALE_MENU,
+      );
       const pager = menuPagerLayout(field.width, field.height, 3);
       for (const spot of [pager.prev, pager.next, ...pager.dots]) {
         expect(spotDistance(zone, spot)).toBeGreaterThan(zone.radius);

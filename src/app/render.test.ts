@@ -187,6 +187,26 @@ describe('drawLevel no-art stand-in', () => {
     drawLevel(fakeContext(ops), 0, snap, NO_LEVEL_ART, skin, space);
     expect(ops).toContain(`fillRect:0,0,${space.width},${space.height}`);
   });
+
+  it('keeps the dusk sun where each phone reference shipped it', () => {
+    // The authored dusk is the portrait reference (sun 150 down an 860 field)
+    // and the landscape reference shares that pixel position (150 of 430), so
+    // a space-aware share may not move either phone. Tablets scale the share.
+    const sun = (field: { readonly width: number; readonly height: number }) => {
+      const arcs: string[] = [];
+      drawLevel(fakeContext([], arcs), 0, snap, NO_LEVEL_ART, skin, field);
+      const disc = arcs.find((arc) => arc.endsWith(',64,0,6.283'));
+      if (!disc) {
+        throw new Error('missing sun disc');
+      }
+      const [x, y] = disc.split(',').map(Number);
+      return { x, y };
+    };
+    expect(sun({ height: 860, width: FIELD_WIDTH })).toEqual({ x: FIELD_WIDTH / 2, y: 150 });
+    expect(sun({ height: 430, width: 860 })).toEqual({ x: 430, y: 150 });
+    const tablet = FIELD_SPACES['tablet-portrait'];
+    expect(sun(tablet).y).toBeCloseTo((150 / 860) * tablet.height, 0);
+  });
 });
 
 describe('drawStickerPop', () => {
