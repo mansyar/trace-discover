@@ -118,8 +118,11 @@ in `ci-qa-hardening_20260917` (2026-09-17), which also added `qa-smoke`
 `pwa-asset-strategy_20260924` (2026-09-24); `qa-readiness` + `qa-character`
 added and `qa-offline` extended in `offline-resilience_20260924` (2026-09-26);
 `qa-tablet-rows` added in `tablet-fit_20261006` (2026-10-06),
-`qa-tablet-trail` in the same track (2026-10-07), `qa-tablet-rotate` and
-`qa-tablet-backdrops` in the same track (2026-10-26).*
+`qa-tablet-trail` in the same track (2026-10-07), `qa-tablet-rotate`,
+`qa-tablet-backdrops` and `qa-tablet-surfaces` in the same track (2026-10-26).
+`qa-tablet-surfaces` is the child-surface matrix: every child screen at the four
+tablet spaces plus both phone references, asserting each exposed target sits a
+half toddler-floor inside the field and the parked mascot's box stays whole.*
 
 ## PWA asset strategy and verification
 
