@@ -2,17 +2,21 @@
 // Mirrors src/render/renderPath.test.ts: a recording stub context asserts the
 // primitives each painter emits — there is no real canvas in the node test env.
 import { describe, expect, it } from 'vitest';
-import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { FIELD_HEIGHT, FIELD_SPACES, FIELD_WIDTH } from '../field';
+import type { SkinDef } from '../skins/skins';
 import type { SplashLayout } from '../ui/menu';
 import { stickerBoardLayout } from '../ui/stickerBoard';
 import {
   drawDrawnMascot,
   drawGate,
+  drawLevel,
   drawSplash,
   drawStickerBoard,
   drawStickerPop,
   GOLD,
+  NO_LEVEL_ART,
 } from './render';
+import type { SessionSnapshot } from './session';
 import { stickerPopFrame } from './stickerPop';
 
 const IDS = ['num-0', 'num-1', 'num-2'];
@@ -44,6 +48,7 @@ function fakeContext(ops: string[], arcs: string[] = []): CanvasRenderingContext
       ops.push(
         `drawImage:${Number(args[1])},${Number(args[2])},${Number(args[3])},${Number(args[4])}`,
       ),
+    createLinearGradient: () => ({ addColorStop: () => {} }),
     setLineDash: (segments: number[]) => ops.push(`setLineDash:${segments.join(',')}`),
     save: () => ops.push('save'),
     restore: () => ops.push('restore'),
@@ -110,6 +115,72 @@ describe('drawStickerBoard', () => {
     drawStickerBoard(fakeContext(ops), boardLayout(), [false, false, false], new Map(), backdrop);
     expect(ops.filter((op) => op.startsWith('drawImage'))).toHaveLength(1);
     expect(ops).not.toContain(`fillRect:0,0,${FIELD_WIDTH},${FIELD_HEIGHT}`);
+  });
+});
+
+describe('backdrop art fit per space', () => {
+  const square = { naturalWidth: 1024, naturalHeight: 1024 } as unknown as HTMLImageElement;
+
+  function drawAt(spaceId: keyof typeof FIELD_SPACES, backdrop = square): string[] {
+    const ops: string[] = [];
+    const space = FIELD_SPACES[spaceId];
+    drawStickerBoard(
+      fakeContext(ops),
+      boardLayout(),
+      [false, false, false],
+      new Map(),
+      backdrop,
+      undefined,
+      space,
+    );
+    return ops;
+  }
+
+  it('keeps the authored phone portrait cover-crop', () => {
+    expect(drawAt('phone-portrait')).toContain('drawImage:-215,0,860,860');
+  });
+
+  it('cover-crops the square scene into the tablet landscape field', () => {
+    // 1024² into 1280×960: the wider field keeps the middle band, so the crop
+    // takes 160 units off the top and the bottom rather than letterboxing.
+    expect(drawAt('tablet-landscape')).toContain('drawImage:0,-160,1280,1280');
+  });
+
+  it('leaves no edge of a slate portrait field uncovered', () => {
+    const [x, y, width, height] = (drawAt('slate-portrait')[0] ?? '')
+      .replace('drawImage:', '')
+      .split(',')
+      .map(Number);
+    expect(x ?? 1).toBeLessThanOrEqual(0);
+    expect(y ?? 1).toBeLessThanOrEqual(0);
+    expect((x ?? 0) + (width ?? 0)).toBeGreaterThanOrEqual(800);
+    expect((y ?? 0) + (height ?? 0)).toBeGreaterThanOrEqual(1280);
+  });
+});
+
+describe('drawLevel no-art stand-in', () => {
+  const snap = {
+    assistState: {},
+    charPos: { x: 0, y: 0 },
+    checkpoints: {},
+    checkState: {},
+    completion: { elapsedMs: 0, stage: 'idle' },
+    completionStarted: false,
+    confetti: [],
+    frontier: 0,
+    hintVisible: false,
+    multi: { strokes: [], total: 0 },
+    multiState: { frontier: 0, strokeIndex: 0, tracing: false },
+    nudgeAt: null,
+    tip: { x: 0, y: 0 },
+  } as unknown as SessionSnapshot;
+  const skin = { accent: '#8ecae6' } as unknown as SkinDef;
+
+  it('covers the whole active field while the backdrop art loads', () => {
+    const ops: string[] = [];
+    const space = FIELD_SPACES['tablet-landscape'];
+    drawLevel(fakeContext(ops), 0, snap, NO_LEVEL_ART, skin, space);
+    expect(ops).toContain(`fillRect:0,0,${space.width},${space.height}`);
   });
 });
 

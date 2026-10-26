@@ -7,6 +7,7 @@ import { pointAtLength } from '../engine/path';
 import { pointAtSequence, strokeStartArc } from '../engine/trail';
 import type { Point } from '../engine/types';
 import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
+import { BACKDROP_ANCHOR, coverFit } from '../render/backdropFit';
 import { type ConfettiParticle, mulberry32 } from '../render/confetti';
 import { drawMultiPath, type PathStyle } from '../render/renderPath';
 import type { ParentSettings } from '../save/store';
@@ -193,16 +194,22 @@ export interface LevelArt {
 
 export const NO_LEVEL_ART: LevelArt = { backdrop: null, goal: null, sticker: null };
 
-/** Paints the backdrop cover-cropped over the whole design space. */
+/**
+ * Paints the backdrop cover-cropped over the whole design space, under the
+ * fixed anchor policy (see `src/render/backdropFit.ts`). A source image that
+ * has not decoded falls through to the caller's painted stand-in.
+ */
 function drawBackdrop(
   ctx: CanvasRenderingContext2D,
   image: HTMLImageElement,
   design: { readonly width: number; readonly height: number },
 ): void {
-  const scale = Math.max(design.width / image.naturalWidth, design.height / image.naturalHeight);
-  const width = image.naturalWidth * scale;
-  const height = image.naturalHeight * scale;
-  ctx.drawImage(image, (design.width - width) / 2, (design.height - height) / 2, width, height);
+  const fit = coverFit(
+    { height: image.naturalHeight, width: image.naturalWidth },
+    design,
+    BACKDROP_ANCHOR,
+  );
+  ctx.drawImage(image, fit.x, fit.y, fit.width, fit.height);
 }
 
 /** Paints a goal vignette centered on the point at the given pixel size. */
@@ -921,18 +928,24 @@ export function drawStickerPop(
   ctx.restore();
 }
 
-/** Drawn stand-in while a skin's backdrop art has not shipped yet. */
-function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent: string): void {
-  const gradient = ctx.createLinearGradient(0, 0, 0, FIELD_HEIGHT);
+/** Drawn stand-in while a skin's backdrop art has not shipped yet: covers the
+ *  whole active design space (the authored dusk is the portrait reference). */
+function drawDuskPlaceholder(
+  ctx: CanvasRenderingContext2D,
+  now: number,
+  accent: string,
+  design: { readonly width: number; readonly height: number },
+): void {
+  const gradient = ctx.createLinearGradient(0, 0, 0, design.height);
   gradient.addColorStop(0, '#20264d');
   gradient.addColorStop(1, '#4a3b6b');
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT);
+  ctx.fillRect(0, 0, design.width, design.height);
   const random = mulberry32(7);
   ctx.fillStyle = '#ffe9a8';
   for (let i = 0; i < 26; i += 1) {
-    const x = random() * FIELD_WIDTH;
-    const y = random() * FIELD_HEIGHT;
+    const x = random() * design.width;
+    const y = random() * design.height;
     const radius = 1.5 + random() * 2.5;
     ctx.globalAlpha = 0.6 + 0.4 * Math.sin(now / 600 + i);
     ctx.beginPath();
@@ -941,7 +954,7 @@ function drawDuskPlaceholder(ctx: CanvasRenderingContext2D, now: number, accent:
   }
   ctx.globalAlpha = 0.9;
   ctx.beginPath();
-  ctx.arc(FIELD_WIDTH / 2, 150, 64, 0, Math.PI * 2);
+  ctx.arc(design.width / 2, design.height * (150 / FIELD_HEIGHT), 64, 0, Math.PI * 2);
   ctx.fillStyle = accent;
   ctx.fill();
   ctx.globalAlpha = 1;
@@ -961,7 +974,7 @@ export function drawLevel(
   if (art.backdrop) {
     drawBackdrop(ctx, art.backdrop, design);
   } else if (skin) {
-    drawDuskPlaceholder(ctx, now, skin.accent);
+    drawDuskPlaceholder(ctx, now, skin.accent, design);
   }
   const pulse = 1 + 0.12 * Math.sin(now / 300);
   if (snap.completionStarted && snap.completion.stage === 'glow') {
