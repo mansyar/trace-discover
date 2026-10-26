@@ -8,12 +8,12 @@
   "branch": "track/tablet-fit",
   "base_branch": "master",
   "base_sha": "d7c8765def5a0b2f73b218a685adf7cf7040e84c",
-  "last_checkpoint": "928b7a6",
+  "last_checkpoint": "7bd7483",
   "doc_sync": "none",
   "progress": {
     "phases_total": 6,
-    "phases_verified": 5,
+    "phases_verified": 6,
     "tasks_total": 20,
-    "tasks_done": 19
+    "tasks_done": 20
   }
 }

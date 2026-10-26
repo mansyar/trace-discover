@@ -5,8 +5,8 @@
 - **Date:** 2026-10-26
 - **Branch:** `track/tablet-fit`
 - **Base:** `928b7a6` (Phase 5 checkpoint)
-- **Head:** recorded with the phase commit
-- **Result:** P6.T1, P6.T2 and P6.T4 complete; **P6.T3 (device pass) pending the owner's hardware**
+- **Head:** `7bd7483`
+- **Result:** verified — P6.T1/T2/T4 measured, P6.T3 confirmed by the owner on an iPad and an Android tablet (2026-10-26)
 
 ## Commands
 
@@ -97,9 +97,9 @@ pre-track baseline**, no new asset, no new dependency.
 | AC4 | Rotating mid-trace loses no progress, no crash, instant reflow | matrix rotations: stroke index kept, progress ratio ±0.02, run completes, both families both directions | met |
 | AC5 | Backdrops cover the field with the anchor held, per skin | `qa-tablet-backdrops` (122 assertions, 40 shots); the animals band filed as issue #22 | met (owner-accepted) |
 | AC6 | Phones unchanged vs v1.7.0 | no phone rule changed: every new factor is neutral on both references and test-locked; both phone references ride every probe | met (screenshots in the galleries; pixel diff is the device pass) |
-| AC7 | Parent zone, overlay and install panel usable; keyboard never covers the field | `qa-tablet-parent` (24 shots) + layout tests; the soft-keyboard lift needs hardware | **partial — device pass** |
+| AC7 | Parent zone, overlay and install panel usable; keyboard never covers the field | `qa-tablet-parent` (24 shots) + layout tests; owner confirmed the soft-keyboard lift on an iPad and an Android tablet, 2026-10-26 | met |
 | AC8 | `qa-tablet` green, `qa-landscape` green, zero-text, offline, budget | as above | met |
-| AC9 | Coverage > 80 % on new logic, docs synced, review passed, device pass confirmed | coverage 82.12 / 83.30 / 93.70 / 81.79, `parentZone.ts` + `install.ts` 100 %; review and device pass still open | **partial** |
+| AC9 | Coverage > 80 % on new logic, docs synced, review passed, device pass confirmed | coverage 82.12 / 83.30 / 93.70 / 81.79, `parentZone.ts` + `install.ts` 100 %; device pass confirmed; review runs next | **partial — review** |
 
 ## Evidence paths
 
@@ -119,6 +119,8 @@ pre-track baseline**, no new asset, no new dependency.
 
 ## Notes
 
-- **P6.T3 is the remaining gate:** iPad + Android tablet fill acceptance, the soft-keyboard lift,
-  and a phone portrait/landscape pass against the v1.7.0 baseline. None of it can be proven in
-  headless Chromium.
+- **P6.T3, the device pass, is confirmed.** The owner opened the branch's production build from a
+  LAN preview (`http://192.168.0.101:4173/`, verified serving the current bundle) on an iPad and an
+  Android tablet and accepted the 4:3/16:10 fill, the name-overlay lift above the soft keyboard
+  and the unchanged phone. Nothing in this phase is proven by headless Chromium for those three
+  items, so the confirmation is the evidence.

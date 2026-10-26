@@ -284,7 +284,7 @@ checkpoint or commit SHA. The inline verification task is now the phase's
 - **Touches:** `dev/qa/**`, `dev/README.md`, `conductor/**`, `package.json`
 - **Verification:** `CI=true pnpm check && CI=true pnpm test && pnpm budget` plus
   `qa-tablet` and `qa-landscape`
-- **Status:** in_progress
+- **Status:** verified
 
 - [x] **P6.T1: `dev/qa/qa-tablet.mjs` canonical matrix** — 4:3 + 16:10 ×
       portrait/landscape per screen; rotate mid-trace/mid-menu with state +
@@ -308,11 +308,12 @@ checkpoint or commit SHA. The inline verification task is now the phase's
       / 2.0–2.9 ms input-to-frame / p95 4.30 ms, dist 5,564,571 B / 10 entries
       (+4,216 B of code over the pre-track baseline)
   - [x] Commit + git note
-- [~] **P6.T3: Device pass** — iPad + Android tablet fill acceptance, phone
+- [x] **P6.T3: Device pass** — iPad + Android tablet fill acceptance, phone
       regression (portrait + landscape vs v1.7.0 baseline); owner confirms
-      (STOP + owner decision if a target floor cannot hold) — **blocked on the
-      owner's devices**; the keyboard lift and the 4:3/16:10 fill acceptance are
-      the items only hardware can prove
+      (STOP + owner decision if a target floor cannot hold) — the owner ran the
+      branch on an iPad and an Android tablet from the LAN preview and confirmed
+      the 4:3/16:10 fill, the name-overlay keyboard lift and the unchanged
+      phone, 2026-10-26
 - [x] **P6.T4: Docs finalize** (`product.md` dated note, `tech-stack.md`,
       `dev/README.md` probe table); final gates `pnpm check && pnpm test`;
       coverage; dist record — `qa-tablet` is canonical in the probe table and the
@@ -322,8 +323,9 @@ checkpoint or commit SHA. The inline verification task is now the phase's
       in the track-closing docs sync, which needs the owner's approval
   - [x] Commit + git note
 
+**Result:** verified
+**Checkpoint:** 7bd7483
 **Evidence:** conductor/tracks/tablet-fit_20261006/verification/phase-6.md
-(P6.T3 device pass pending)
 
 ## Phase R1: Review Fixes
 
