@@ -73,23 +73,28 @@ describe('dist budget measurement', () => {
 
 describe('dist budget guard', () => {
   it('passes at and below the entry ceiling', () => {
-    expect(budgetFailures(measureDist(fixture({ shipped: 199 })), CEILINGS)).toEqual([]);
-    expect(budgetFailures(measureDist(fixture({ shipped: 200 })), CEILINGS)).toEqual([]);
+    const held = { entries: null, totalBytes: null };
+
+    expect(budgetFailures(measureDist(fixture({ shipped: 199 })), CEILINGS)).toEqual(held);
+    expect(budgetFailures(measureDist(fixture({ shipped: 200 })), CEILINGS)).toEqual(held);
   });
 
   it('fails above the entry ceiling with the shipped count in the message', () => {
     const failures = budgetFailures(measureDist(fixture({ shipped: 201 })), CEILINGS);
 
-    expect(failures).toHaveLength(1);
-    expect(failures[0]).toContain('201 > 200');
+    expect(failures.entries).toContain('201 > 200');
+    expect(failures.totalBytes).toBeNull();
   });
 
   it('never gates on the precache manifest', () => {
     const measured = measureDist(fixture({ precache: 300, shipped: 199 }));
 
     expect(measured.precacheEntries).toBe(300);
-    expect(budgetFailures(measured, CEILINGS)).toEqual([]);
-    expect(budgetFailures(measured, { entries: 250, totalBytes: 6_000_000 })).toEqual([]);
+    expect(budgetFailures(measured, CEILINGS)).toEqual({ entries: null, totalBytes: null });
+    expect(budgetFailures(measured, { entries: 250, totalBytes: 6_000_000 })).toEqual({
+      entries: null,
+      totalBytes: null,
+    });
   });
 });
 
@@ -126,5 +131,50 @@ describe('dist budget CLI', () => {
 
     expect(run.status).toBe(1);
     expect(run.stderr).toContain('pnpm build');
+  });
+
+  it('rejects a bare --dist instead of measuring the working directory', () => {
+    const run = runTool(['--dist']);
+
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain('--dist needs a directory');
+    expect(run.stdout).toBe('');
+  });
+
+  it('rejects a --dist value that is a file', () => {
+    const root = fixture({ shipped: 1 });
+    const file = join(root, 'index.html');
+    writeFileSync(file, 'x');
+    const run = runTool(['--dist', file]);
+
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain('--dist needs a directory');
+  });
+
+  it('reports the byte ceiling independently of a breached entry count', () => {
+    const root = fixture({ shipped: 201 });
+    const run = runTool(['--dist', root, '--entries', '200']);
+
+    expect(run.status).toBe(1);
+    expect(run.stdout).toContain('total');
+    expect(run.stdout).toContain('- PASS');
+    expect(run.stderr).toContain('FAIL entries 201 > 200');
+  });
+
+  it('fails the byte ceiling through --total', () => {
+    const root = fixture({ shipped: 5 });
+    const run = runTool(['--dist', root, '--total', '1']);
+
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain('FAIL total');
+    expect(run.stdout).toContain('entries 5 / 200 - PASS');
+  });
+
+  it('rejects a non-integer ceiling value', () => {
+    const root = fixture({ shipped: 5 });
+    const run = runTool(['--dist', root, '--entries', 'many']);
+
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain('needs an integer value');
   });
 });

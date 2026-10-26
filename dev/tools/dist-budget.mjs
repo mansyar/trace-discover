@@ -106,25 +106,24 @@ export function measureDist(dir) {
 }
 
 /**
- * Ceiling breaches for a measurement. The precache count is deliberately not
- * part of this: it describes the shell, and gating it would fail on a number
- * that no longer follows content.
+ * Failure message per ceiling, `null` where the ceiling holds, so each result can
+ * be reported on its own line. The precache count is deliberately not a ceiling:
+ * it describes the shell, and gating it would fail on a number that no longer
+ * follows content.
  */
 export function budgetFailures(measurement, ceilings) {
-  const failures = [];
-  if (measurement.totalBytes > ceilings.totalBytes) {
-    failures.push(
-      `dist-budget: FAIL total ${measurement.totalBytes} > ${ceilings.totalBytes} B (over by ${
-        measurement.totalBytes - ceilings.totalBytes
-      })`,
-    );
-  }
-  if (measurement.shippedEntries > ceilings.entries) {
-    failures.push(
-      `dist-budget: FAIL entries ${measurement.shippedEntries} > ${ceilings.entries} shipped files`,
-    );
-  }
-  return failures;
+  return {
+    entries:
+      measurement.shippedEntries > ceilings.entries
+        ? `dist-budget: FAIL entries ${measurement.shippedEntries} > ${ceilings.entries} shipped files`
+        : null,
+    totalBytes:
+      measurement.totalBytes > ceilings.totalBytes
+        ? `dist-budget: FAIL total ${measurement.totalBytes} > ${ceilings.totalBytes} B (over by ${
+            measurement.totalBytes - ceilings.totalBytes
+          })`
+        : null,
+  };
 }
 
 function argValue(argv, flag, fallback) {
@@ -140,10 +139,32 @@ function argValue(argv, flag, fallback) {
   return value;
 }
 
+/**
+ * The directory to measure: the default `dist/`, or a `--dist` value that must be
+ * a directory. A bare flag would otherwise resolve to the working directory and
+ * report a confident, wrong measurement.
+ */
+function distDir(argv) {
+  const i = argv.indexOf('--dist');
+  if (i === -1) {
+    return DEFAULT_DIST;
+  }
+  const value = argv[i + 1];
+  if (value === undefined || value.startsWith('--')) {
+    console.error('dist-budget: --dist needs a directory');
+    process.exit(1);
+  }
+  const dir = path.resolve(value);
+  if (fs.existsSync(dir) && !fs.statSync(dir).isDirectory()) {
+    console.error('dist-budget: --dist needs a directory');
+    process.exit(1);
+  }
+  return dir;
+}
+
 function main() {
   const argv = process.argv.slice(2);
-  const distFlag = argv.indexOf('--dist');
-  const dir = distFlag === -1 ? DEFAULT_DIST : path.resolve(argv[distFlag + 1] ?? '');
+  const dir = distDir(argv);
   const ceilings = {
     entries: argValue(argv, '--entries', CEIL_ENTRIES),
     totalBytes: argValue(argv, '--total', CEIL_TOTAL_BYTES),
@@ -183,16 +204,20 @@ function main() {
       : `dist-budget: precache entries: ${precacheEntries} (informational; art and rive are warmed at runtime)`,
   );
 
+  // Each ceiling reports independently: a breached entry count must not hide the
+  // byte total's PASS line from a CI log.
   const failures = budgetFailures(measurement, ceilings);
-  if (failures.length === 0) {
+  if (failures.totalBytes === null) {
     console.log(`dist-budget: total ${totalBytes} / ${ceilings.totalBytes} B - PASS`);
+  } else {
+    console.error(failures.totalBytes);
+  }
+  if (failures.entries === null) {
     console.log(`dist-budget: entries ${shippedEntries} / ${ceilings.entries} - PASS`);
   } else {
-    for (const failure of failures) {
-      console.error(failure);
-    }
+    console.error(failures.entries);
   }
-  process.exit(failures.length === 0 ? 0 : 1);
+  process.exit(failures.entries === null && failures.totalBytes === null ? 0 : 1);
 }
 
 const invokedPath = process.argv[1];
