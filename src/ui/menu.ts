@@ -7,6 +7,7 @@
 // six-card capacity the menu paginates: one full page at a time behind the
 // same fixed prev/next + dots row the pack screen already teaches.
 import type { Point } from '../engine/types';
+import { clampPark } from './mascot';
 
 export interface MenuCard {
   readonly height: number;
@@ -68,6 +69,11 @@ const GAP_SHRINK_STEP = 2;
 /** Widest grids each orientation grows to before any shrinking. */
 const TALL_MAX_COLUMNS = 2;
 const WIDE_MAX_COLUMNS = 3;
+/** Tallest field that keeps the authored full-width stack (the portrait phone
+ *  space). A tablet portrait field is taller than any authored stack plus the
+ *  parked mascot's band, so it takes the two-column grid the phone already
+ *  grows into past four cards instead of stretching six cards over the mascot. */
+const TALL_STACK_MAX_HEIGHT = 860;
 
 /** Cards the menu lays out at full size in either orientation (the reserved My Name slot included). */
 export const MENU_CARD_CAPACITY = 6;
@@ -236,7 +242,7 @@ function tallCards(
   if (count === 0) {
     return [];
   }
-  if (fits(1, count, fieldHeight, FULL_METRICS)) {
+  if (fieldHeight <= TALL_STACK_MAX_HEIGHT && fits(1, count, fieldHeight, FULL_METRICS)) {
     const cardWidth = fieldWidth - SIDE_MARGIN * 2;
     return gridCards(fieldWidth, fieldHeight, packIds, 1, cardWidth, FULL_METRICS);
   }
@@ -281,6 +287,7 @@ export function menuParkPosition(
   fieldWidth: number,
   fieldHeight: number,
   paginated = false,
+  mascotSize = 0,
 ): Point {
   const bottomOffset = paginated
     ? fieldWidth > fieldHeight
@@ -289,7 +296,14 @@ export function menuParkPosition(
     : fieldWidth > fieldHeight
       ? MENU_PARK_BOTTOM_OFFSET_LANDSCAPE
       : MENU_PARK_BOTTOM_OFFSET_PORTRAIT;
-  return { x: fieldWidth / 2, y: fieldHeight - bottomOffset };
+  // The authored offset is in phone units; on a taller field the mascot grows
+  // with the short edge, so the park is pulled in far enough to keep it whole.
+  return clampPark(
+    { x: fieldWidth / 2, y: fieldHeight - bottomOffset },
+    mascotSize,
+    fieldWidth,
+    fieldHeight,
+  );
 }
 
 export function hitMenuCard(layout: MenuLayout, point: Point): string | null {

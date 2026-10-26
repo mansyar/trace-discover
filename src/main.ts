@@ -100,6 +100,7 @@ import { badgeLayout } from './ui/badge';
 import { type InstallVariant, installVariant } from './ui/install';
 import {
   canGiggle,
+  clampPark,
   hitMascot,
   MASCOT_SPARKLE_COUNT,
   MASCOT_SPARKLE_SEED,
@@ -250,8 +251,8 @@ function rebuildViews(): void {
   SPLASH = splashLayout(space.width, space.height);
   PARENT = parentZoneLayout(space.width, space.height);
   BADGE = badgeLayout(space.width, space.height);
-  MENU_PARK = menuParkPosition(space.width, space.height, paginated);
-  PACK_PARK = packParkPosition(space.width, space.height);
+  MENU_PARK = menuParkPosition(space.width, space.height, paginated, mascotSize(MASCOT_SCALE_MENU));
+  PACK_PARK = packParkPosition(space.width, space.height, mascotSize(MASCOT_SCALE_PACK));
 }
 let SUCCESS = successLayout(space.width, space.height);
 let SPLASH = splashLayout(space.width, space.height);
@@ -269,6 +270,11 @@ const SKIN_BUTTON_SCREENS: ReadonlySet<string> = new Set([
 /** Idle mascot parking + scale on menu/pack (pack parks beside the grid in landscape). */
 const MASCOT_SCALE_MENU = 0.32;
 const MASCOT_SCALE_PACK = 0.26;
+/** Authored character share of the field height on both phone references: the
+ *  half-scale character on the wide phone, and 0.62 of a half-width portrait
+ *  field. The in-level sprite is capped here so a 4:3 portrait field, which is
+ *  not half as tall as it is wide, cannot grow it past the band its park leaves. */
+const LEVEL_MASCOT_HEIGHT_SHARE = CHARACTER_SCALE / 2;
 let MENU_PARK: Point = menuParkPosition(space.width, space.height);
 let PACK_PARK: Point = packParkPosition(space.width, space.height);
 /** How long a giggle sparkle burst lives before frame() clears it. */
@@ -623,7 +629,20 @@ function mascotPlacement(): {
         ? entrancePos(entrance.timeline, entrance.state)
         : session.snapshot().charPos;
     // The wide field is short: keep the mascot at its portrait share of the height.
-    scale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+    const levelScale = orientation === 'landscape' ? CHARACTER_SCALE / 2 : CHARACTER_SCALE;
+    // Both phone references give the level character 31% of the field's height;
+    // the short edge alone gives a 4:3 portrait field more than that, which would
+    // hang the character off the bottom, so cap it at the authored share.
+    scale =
+      Math.min(
+        Math.min(space.width, space.height) * levelScale,
+        space.height * LEVEL_MASCOT_HEIGHT_SHARE,
+      ) / Math.min(space.width, space.height);
+    if (screen.name === 'success') {
+      // The celebration park is authored in phone units; on a tablet field the
+      // sprite is wider, so keep the whole character on screen for the moment.
+      park = clampPark(park, mascotSize(scale), space.width, space.height);
+    }
   } else if (screen.name === 'menu') {
     park = MENU_PARK;
     scale = MASCOT_SCALE_MENU;
@@ -661,6 +680,15 @@ function reloadLevelSkin(): void {
   preloadArt(presentation.goal);
   preloadArt(presentation.sticker);
   ensureCharacter(presentation.character, true);
+}
+
+/**
+ * The parked mascot's box in field units (see `positionCharacter`): the sprite
+ * grows with the field's short edge, so a tablet space needs the park pulled in
+ * to keep it on screen.
+ */
+function mascotSize(scale: number): number {
+  return Math.min(space.width, space.height) * scale;
 }
 
 /** Menu + pack screens show the active skin's character idling ("parked"). */

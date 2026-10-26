@@ -539,12 +539,14 @@ export function drawMenu(
   }
 }
 
-/** Small parent-facing tooltip under the gate corner (non-interactive, floats over cards). */
+/** Small parent-facing tooltip under the gate corner (non-interactive, floats over cards).
+ *  It hangs off the gate's own right edge, so it points at the hold corner on
+ *  every field width; on the phone that is the authored 430 − margin − width. */
 function drawParentHint(
   ctx: CanvasRenderingContext2D,
   gate: { readonly x: number; readonly y: number; readonly width: number; readonly height: number },
 ): void {
-  const x = FIELD_WIDTH - PARENT_HINT.margin - PARENT_HINT.width;
+  const x = gate.x + gate.width - PARENT_HINT.margin - PARENT_HINT.width;
   const y = gate.y + gate.height + PARENT_HINT.gapAbove;
   ctx.save();
   ctx.beginPath();

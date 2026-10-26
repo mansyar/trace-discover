@@ -3,6 +3,7 @@ import { FIELD_HEIGHT, FIELD_WIDTH } from '../field';
 import { createConfetti } from '../render/confetti';
 import {
   canGiggle,
+  clampPark,
   hitMascot,
   MASCOT_GIGGLE_COOLDOWN_MS,
   MASCOT_SPARKLE_COUNT,
@@ -234,5 +235,42 @@ describe('giggle sparkle recipe', () => {
     }
     expect(MASCOT_SPARKLE_COUNT).toBeGreaterThanOrEqual(6);
     expect(MASCOT_SPARKLE_COUNT).toBeLessThanOrEqual(16);
+  });
+});
+
+describe('clampPark (tablet spaces keep the parked mascot whole)', () => {
+  /** Portrait menu park, mirroring src/main.ts park + scale. */
+  const menuPark = (width: number, height: number) => ({
+    x: width / 2,
+    y: height - (width > height ? 130 : 125),
+  });
+
+  it('leaves the authored phone parks untouched', () => {
+    const portrait = clampPark(menuPark(430, 860), 430 * MASCOT_SCALE_MENU, 430, 860);
+    expect(portrait).toEqual({ x: 215, y: 735 });
+    const wide = clampPark({ x: 805, y: 215 }, 430 * MASCOT_SCALE_PACK, 860, 430);
+    // The authored wide-field park kisses the edge by under a unit; that stays.
+    expect(wide).toEqual({ x: 805, y: 215 });
+  });
+
+  it('pulls a tablet portrait park up so the sprite box stays inside', () => {
+    const park = clampPark(menuPark(960, 1280), 960 * MASCOT_SCALE_MENU, 960, 1280);
+    const size = 960 * MASCOT_SCALE_MENU;
+    const bottom = park.y + size * (SPRITE_OFFSET_Y + 0.5);
+    expect(bottom).toBeLessThanOrEqual(1280);
+    expect(bottom).toBeCloseTo(1280, 5);
+    expect(park.x).toBe(480);
+  });
+
+  it('pulls a tablet landscape park in from the right edge', () => {
+    const size = 960 * MASCOT_SCALE_PACK;
+    const park = clampPark({ x: 1280 - 55, y: 480 }, size, 1280, 960);
+    expect(park.x + size / 2).toBeLessThanOrEqual(1280);
+    expect(park.x + size / 2).toBeCloseTo(1280, 5);
+  });
+
+  it('is a no-op for a park that already fits or has no sprite', () => {
+    expect(clampPark({ x: 100, y: 100 }, 0, 430, 860)).toEqual({ x: 100, y: 100 });
+    expect(clampPark({ x: 100, y: 100 }, 40, 430, 860)).toEqual({ x: 100, y: 100 });
   });
 });

@@ -4,12 +4,13 @@
 import { describe, expect, it } from 'vitest';
 import { FIELD_HEIGHT, FIELD_SPACES, FIELD_WIDTH } from '../field';
 import type { SkinDef } from '../skins/skins';
-import type { SplashLayout } from '../ui/menu';
+import { menuLayout, type SplashLayout } from '../ui/menu';
 import { stickerBoardLayout } from '../ui/stickerBoard';
 import {
   drawDrawnMascot,
   drawGate,
   drawLevel,
+  drawMenu,
   drawSplash,
   drawStickerBoard,
   drawStickerPop,
@@ -50,6 +51,10 @@ function fakeContext(ops: string[], arcs: string[] = []): CanvasRenderingContext
       ),
     createLinearGradient: () => ({ addColorStop: () => {} }),
     setLineDash: (segments: number[]) => ops.push(`setLineDash:${segments.join(',')}`),
+    rect: (x: number, y: number, width: number, height: number) =>
+      ops.push(`rect:${x},${y},${width},${height}`),
+    roundRect: (x: number, y: number, width: number, height: number) =>
+      ops.push(`roundRect:${x},${y},${width},${height}`),
     save: () => ops.push('save'),
     restore: () => ops.push('restore'),
     translate: () => ops.push('translate'),
@@ -334,5 +339,30 @@ describe('drawGate', () => {
     expect(ringArcs(arcs, GATE_LAYOUT)).toHaveLength(1);
     expect(ops).toContain('closePath');
     expect(ops).toContain(`fillStyle:${GOLD}`);
+  });
+});
+
+describe('drawMenu parent hint', () => {
+  const IDS = ['pre', 'numbers', 'abc', 'shapes'];
+
+  function hintRect(width: number, height: number): string {
+    const ops: string[] = [];
+    const layout = menuLayout(width, height, IDS);
+    drawMenu(fakeContext(ops), 0, layout, [], undefined, undefined, undefined, 0, true);
+    const rect = ops.find((op) => op.startsWith('roundRect:'));
+    if (!rect) {
+      throw new Error('hint was not drawn');
+    }
+    return rect;
+  }
+
+  it('hangs off the gate corner on the phone (the authored chip position)', () => {
+    expect(hintRect(FIELD_WIDTH, FIELD_HEIGHT)).toBe('roundRect:170,108,240,58');
+  });
+
+  it('stays at the gate corner on a tablet field instead of the phone column', () => {
+    // 960 wide: the chip's right edge keeps the gate's 20-unit margin.
+    expect(hintRect(960, 1280)).toBe('roundRect:700,108,240,58');
+    expect(hintRect(1280, 800)).toBe('roundRect:1020,108,240,58');
   });
 });

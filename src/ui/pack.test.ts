@@ -496,3 +496,74 @@ describe('packLayout (landscape)', () => {
     expect((slotFirst.x + slotLast.x) / 2).toBeCloseTo(425, 5);
   });
 });
+
+describe('packLayout shelf + park at tablet spaces', () => {
+  const LEVELS = Array.from({ length: 12 }, (_, index) => `abc-${index}`);
+
+  it('keeps the portrait shelf 168 units above the field bottom on every space', () => {
+    for (const [width, height] of [
+      [430, 860],
+      [960, 1280],
+      [800, 1280],
+    ] as const) {
+      const layout = packLayout(width, height, LEVELS, { cardSize: 90, columns: 4 });
+      const slot = layout.slots[0];
+      if (!slot) {
+        throw new Error('missing slots');
+      }
+      expect(slot.y).toBeCloseTo(height - 168, 5);
+    }
+  });
+
+  it('keeps the landscape shelf band running to just short of the park', () => {
+    for (const [width, height] of [
+      [860, 430],
+      [1280, 960],
+      [1280, 800],
+    ] as const) {
+      const layout = packLayout(width, height, LEVELS, {
+        cardSize: 90,
+        columns: 7,
+        slotsPerRow: 14,
+      });
+      const first = layout.slots[0];
+      const last = layout.slots.at(-1);
+      if (!first || !last) {
+        throw new Error('missing slots');
+      }
+      expect(first.x - first.radius).toBeGreaterThanOrEqual(110);
+      expect(last.x + last.radius).toBeLessThanOrEqual(width - 120 + 1);
+    }
+  });
+
+  it('keeps the authored phone parks (in portrait and wide fields)', () => {
+    const size = 430 * 0.26;
+    expect(packParkPosition(FIELD_WIDTH, FIELD_HEIGHT, size)).toEqual({ x: 215, y: 572 });
+    expect(packParkPosition(860, 430, size)).toEqual({ x: 805, y: 215 });
+  });
+});
+
+describe('pack mascot park vs the portrait sticker shelf', () => {
+  const size = (width: number, height: number) => Math.min(width, height) * 0.26;
+
+  it('keeps the authored phone park (the sprite clears the shelf there already)', () => {
+    expect(packParkPosition(FIELD_WIDTH, FIELD_HEIGHT, size(FIELD_WIDTH, FIELD_HEIGHT))).toEqual({
+      x: 215,
+      y: 572,
+    });
+  });
+
+  it('lifts the park on a taller field so the sprite box stops at the shelf', () => {
+    for (const [width, height] of [
+      [960, 1280],
+      [800, 1280],
+    ] as const) {
+      const mascot = size(width, height);
+      const park = packParkPosition(width, height, mascot);
+      const boxBottom = park.y + mascot * (0.38 + 0.5);
+      const shelfTop = height - 168;
+      expect(boxBottom).toBeLessThanOrEqual(shelfTop + 1e-9);
+      expect(boxBottom).toBeCloseTo(shelfTop, 5);
+    }
+  });
+});
